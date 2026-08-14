@@ -1,0 +1,36 @@
+{
+  "standard": "USDM",
+  "version": "4.0",
+  "released": "2025-06-03",
+  "source_repo": "https://github.com/cdisc-org/DDF-RA",
+  "pinned_commit": "aa303cb32f5d3ceecc68a16803e26720d2c1fc26",
+  "commit_message": "Final v4.0 for Publication",
+  "retrieved": "2026-08-14",
+  "files": [
+    {
+      "name": "USDM_API.json",
+      "bytes": 354939,
+      "sha256": "dc4303bca26256c56e5cb83222e898a09a5244472f7fd092b425cc2b7568fe19"
+    },
+    {
+      "name": "USDM_API.yaml",
+      "bytes": 231577,
+      "sha256": "b6df19001d20c45afc00ab607b5eac731231c2754f54e7940534f6b6ba2af8c8"
+    },
+    {
+      "name": "USDM_CORE_Rules.xlsx",
+      "bytes": 32916,
+      "sha256": "5f30133d04230434f396326332f2c3bd67da536f4da766c3e94ecd310231c937"
+    },
+    {
+      "name": "USDM_CT.xlsx",
+      "bytes": 113834,
+      "sha256": "a9efa740abc41299efa83607a0880012ac8dcc8df7db60259c2a7e96f42cd94f"
+    },
+    {
+      "name": "USDM-IG.pdf",
+      "bytes": 5872581,
+      "sha256": "5e244eee17289f7dbe0c75f5221c57b08056dd4f79cd5074007bcabd40fb1d2e"
+    }
+  ]
+}

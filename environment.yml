@@ -1,0 +1,24 @@
+name: sdg
+
+channels:
+  - conda-forge
+
+dependencies:
+  # Python 3.12 rather than 3.13: the PDF and table stack is better tested there.
+  - python=3.12
+
+  # Binary or compiled dependencies go through conda.
+  - pymupdf        # PDF text extraction with layout and bounding boxes
+  - pandas
+  - openpyxl       # reads USDM_CT.xlsx
+  - pip
+
+  - pip:
+      - anthropic          # extraction and classification
+      - pdfplumber         # table detection, complements pymupdf
+      - pydantic>=2        # schemas generated from USDM_API.json
+      - neo4j              # graph driver
+      - httpx              # ClinicalTrials.gov and DDF endpoints
+      - python-dotenv
+      - pyyaml             # prompt registry
+      - pytest

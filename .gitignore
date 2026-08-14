@@ -1,0 +1,29 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Data: everything is reproducible from manifests, so nothing is committed.
+# data/raw/ is immutable once downloaded and is never edited in place.
+data/**
+!data/**/
+!data/**/.gitkeep
+!data/raw/**/manifest.json
+
+# Model response cache
+.cache/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+.venv/
+venv/
+
+# Editors / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
