@@ -1,6 +1,10 @@
 services:
   neo4j:
-    image: neo4j:5-community
+    # Pinned to a patch version, not the floating `5-community` tag, which moves
+    # to the newest 5.x on every pull. Same reasoning as the pinned USDM spec:
+    # a version changing mid-project would make failures unattributable.
+    # Digest of this image: sha256:d9dd3dc7d1c78fa959191ff02dbdcbefadceaf83eee23428fb92a58cac8ad3fe
+    image: neo4j:5.26.29-community
     container_name: sdg-neo4j
     ports:
       - "7474:7474"   # Browser (HTTP)

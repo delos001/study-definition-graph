@@ -82,6 +82,7 @@ That is the project. Everything else supports it.
 | Output | Working code first | Design write-up deferred, not dropped. |
 | Corpus | Protocol + SAP for the same study, growing to about 3 studies | Smallest set where classifying a document is a real decision and linking across documents is real. |
 | Graph store | Neo4j in Docker | Docker 29.6.2 already installed. The visual browser is the main argument. |
+| Neo4j version | Pinned to `5.26.29-community` (5.26 LTS) | The `5-community` tag floats to the newest 5.x on every pull. Same reasoning as the pinned USDM spec: a version moving mid-project makes a failure unattributable. Digest recorded in `docker-compose.yml`. |
 | Standard | USDM v4.0, pinned | Current published version. |
 | Model provider | Anthropic (Claude) | Key already in use in `langgraph_sandbox/spike/spike.py` via `langchain_anthropic`. |
 | Orchestration | Plain Python through Phase 4, LangGraph at Phase 5 | See the routing-complexity assessment below. |
