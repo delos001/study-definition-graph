@@ -201,11 +201,8 @@ study-definition-graph/
   tests/
 ```
 
-Two conventions, both from your existing setup:
-
-- `data/raw/` is never modified after download, per your global rule.
-- Match the file style in `langgraph_sandbox/spike/spike.py`: module docstring
-  with Description / Date / Author, and `###` banner section headers.
+Working conventions for this tree (immutability of `data/raw/`, manifests,
+source file style) live in `CLAUDE.md`.
 
 ### Build phases
 

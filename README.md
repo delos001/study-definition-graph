@@ -13,7 +13,8 @@ CDISC's USDM model and no cell in the table.
 Rebuilding that graph is the point of this project.
 
 See [BACKGROUND.md](BACKGROUND.md) for the domain context, the USDM essentials,
-and the design constraints. Read it at session start.
+and the design constraints. [PLAN.md](PLAN.md) holds the build sequence and the
+decision record. [CLAUDE.md](CLAUDE.md) holds the working conventions.
 
 ## Status
 
@@ -40,15 +41,16 @@ Copy-Item .env.example .env
 Then fill in `ANTHROPIC_API_KEY` in `.env`. Neo4j Browser is at
 <http://localhost:7474> (user `neo4j`, password `studydefinition`).
 
+## Reading the pinned USDM Implementation Guide
+
+```powershell
+python scripts/read_ig.py --list      # section map
+python scripts/read_ig.py 4.23        # one section as text
+```
+
+Section-to-page map, and a record of which sections have been read and verified:
+[docs/usdm_ig_map.md](docs/usdm_ig_map.md).
+
 ## Conventions
 
-- `data/raw/` is immutable. Nothing writes to it after download. Everything
-  downstream reads from it and writes to `data/interim/` or `data/processed/`.
-- The USDM specification is **pinned to a recorded commit**, not fetched latest.
-  USDM has shipped four major versions in under three years; a version moving
-  mid-project would silently change extraction output. See
-  `data/raw/usdm_v4/manifest.json`.
-- Prompts live in versioned files under `prompts/`, never as string literals in
-  code. An edit creates a new version.
-- Every extracted fact carries provenance: source document, section, page, char
-  span, prompt id and version, model id, timestamp.
+Working conventions are in [CLAUDE.md](CLAUDE.md), not duplicated here.

@@ -1,0 +1,102 @@
+{
+  "set": "usdm_worked_examples",
+  "description": "CDISC's own worked examples: three real protocols with the USDM v4.0 JSON produced from each, plus the human-authored source spreadsheet that was the intermediate mapping step.",
+  "source_repo": "https://github.com/cdisc-org/DDF-RA",
+  "source_dir": "Documents/Examples",
+  "pinned_commit": "aa303cb32f5d3ceecc68a16803e26720d2c1fc26",
+  "retrieved": "2026-08-17",
+  "local_dir": "data/raw/usdm_examples",
+  "excluded": "Devices and Observational examples: synthetic test data not derived from a real protocol, per Documents/Examples/README.md.",
+  "files": [
+    {
+      "name": "README.md",
+      "path": "Documents/Examples/README.md",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/README.md",
+      "local": "data/raw/usdm_examples/README.md",
+      "role": "CDISC's own description of these examples",
+      "bytes": 778,
+      "sha256": "c4f425f90ff596d5bfe52b985a334a3dc39414111c9afab70ced3bdf9d20d887"
+    },
+    {
+      "name": "CDISC_Pilot_Study.pdf",
+      "path": "Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.pdf",
+      "local": "data/raw/usdm_examples/CDISC_Pilot/CDISC_Pilot_Study.pdf",
+      "role": "source protocol document (human-readable)",
+      "bytes": 240338,
+      "sha256": "dbadb3709bb5c41f1ede5ccf60412e9e2fa7ec18d3fdc996ec329cd80e61a040"
+    },
+    {
+      "name": "CDISC_Pilot_Study.json",
+      "path": "Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.json",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.json",
+      "local": "data/raw/usdm_examples/CDISC_Pilot/CDISC_Pilot_Study.json",
+      "role": "resulting USDM v4.0 API JSON, generated from the spreadsheet",
+      "bytes": 1057705,
+      "sha256": "67ab5e35cadc9f900d19403341ec7f89d500aaf692aae328dd3037c31d609aa2"
+    },
+    {
+      "name": "CDISC_Pilot_Study.xlsx",
+      "path": "Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.xlsx",
+      "local": "data/raw/usdm_examples/CDISC_Pilot/CDISC_Pilot_Study.xlsx",
+      "role": "human-authored source spreadsheet, the manual mapping step",
+      "bytes": 237714,
+      "sha256": "5d8d9753f9da57bffa5e20cc10e0ae8e0fac9c7bb8057ec57938eafd77d7045a"
+    },
+    {
+      "name": "EliLilly_NCT03421379_Diabetes.pdf",
+      "path": "Documents/Examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.pdf",
+      "local": "data/raw/usdm_examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.pdf",
+      "role": "source protocol document (human-readable)",
+      "bytes": 684592,
+      "sha256": "a94c35b9e940b3cd1b7dc326c11ab004f88f8cea4e0df2fa20d4b28b4be16eba"
+    },
+    {
+      "name": "EliLilly_NCT03421379_Diabetes.json",
+      "path": "Documents/Examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.json",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.json",
+      "local": "data/raw/usdm_examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.json",
+      "role": "resulting USDM v4.0 API JSON, generated from the spreadsheet",
+      "bytes": 1650278,
+      "sha256": "8301f8ec71d759a578240323ca39db243bbd7253f3e24d022758ab065021f696"
+    },
+    {
+      "name": "EliLilly_NCT03421379_Diabetes.xlsx",
+      "path": "Documents/Examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.xlsx",
+      "local": "data/raw/usdm_examples/EliLilly_NCT03421379_Diabetes/EliLilly_NCT03421379_Diabetes.xlsx",
+      "role": "human-authored source spreadsheet, the manual mapping step",
+      "bytes": 100639,
+      "sha256": "c8a7a1c93f4388f4237ef5acf4713c283ced8daab5776a2e90fe2cd7ec56f8d2"
+    },
+    {
+      "name": "Alexion_NCT04573309_Wilsons.pdf",
+      "path": "Documents/Examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.pdf",
+      "local": "data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.pdf",
+      "role": "source protocol document (human-readable)",
+      "bytes": 911216,
+      "sha256": "c01266c8e5209e6916340e647f6ba5738db114bec8412f024e44a47e9fdc64b7"
+    },
+    {
+      "name": "Alexion_NCT04573309_Wilsons.json",
+      "path": "Documents/Examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.json",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.json",
+      "local": "data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.json",
+      "role": "resulting USDM v4.0 API JSON, generated from the spreadsheet",
+      "bytes": 1104550,
+      "sha256": "872845f631d6ab7b3afa3de420bfc6a5e52da800577a2a5d9dfd858410ac6933"
+    },
+    {
+      "name": "Alexion_NCT04573309_Wilsons.xlsx",
+      "path": "Documents/Examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.xlsx",
+      "local": "data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/Alexion_NCT04573309_Wilsons.xlsx",
+      "role": "human-authored source spreadsheet, the manual mapping step",
+      "bytes": 143233,
+      "sha256": "89b1d253e658efa865f683bb0c27f92100515df991fe1b77df814c12c24b17f9"
+    }
+  ]
+}

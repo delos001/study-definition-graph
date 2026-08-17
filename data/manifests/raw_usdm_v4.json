@@ -1,0 +1,227 @@
+{
+  "standard": "USDM",
+  "version": "4.0",
+  "released": "2025-06-03",
+  "source_repo": "https://github.com/cdisc-org/DDF-RA",
+  "pinned_commit": "aa303cb32f5d3ceecc68a16803e26720d2c1fc26",
+  "commit_message": "Final v4.0 for Publication",
+  "retrieved": "2026-08-14; UML deliverable added 2026-08-17",
+  "files": [
+    {
+      "name": "USDM_API.json",
+      "path": "Deliverables/API/USDM_API.json",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/API/USDM_API.json",
+      "format": "OpenAPI 3.1.0 (JSON)",
+      "bytes": 354939,
+      "sha256": "dc4303bca26256c56e5cb83222e898a09a5244472f7fd092b425cc2b7568fe19",
+      "local": "data/raw/usdm_v4/USDM_API.json"
+    },
+    {
+      "name": "USDM_API.yaml",
+      "path": "Deliverables/API/USDM_API.yaml",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/API/USDM_API.yaml",
+      "format": "OpenAPI 3.1.0 (YAML)",
+      "bytes": 231577,
+      "sha256": "b6df19001d20c45afc00ab607b5eac731231c2754f54e7940534f6b6ba2af8c8",
+      "local": "data/raw/usdm_v4/USDM_API.yaml"
+    },
+    {
+      "name": "USDM_CORE_Rules.xlsx",
+      "path": "Deliverables/RULES/USDM_CORE_Rules.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/RULES/USDM_CORE_Rules.xlsx",
+      "format": "XLSX",
+      "bytes": 32916,
+      "sha256": "5f30133d04230434f396326332f2c3bd67da536f4da766c3e94ecd310231c937",
+      "local": "data/raw/usdm_v4/USDM_CORE_Rules.xlsx"
+    },
+    {
+      "name": "USDM_CT.xlsx",
+      "path": "Deliverables/CT/USDM_CT.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/CT/USDM_CT.xlsx",
+      "format": "XLSX",
+      "bytes": 113834,
+      "sha256": "a9efa740abc41299efa83607a0880012ac8dcc8df7db60259c2a7e96f42cd94f",
+      "local": "data/raw/usdm_v4/USDM_CT.xlsx"
+    },
+    {
+      "name": "USDM-IG.pdf",
+      "path": "Deliverables/IG/USDM-IG.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/IG/USDM-IG.pdf",
+      "format": "PDF",
+      "bytes": 5872581,
+      "sha256": "5e244eee17289f7dbe0c75f5221c57b08056dd4f79cd5074007bcabd40fb1d2e",
+      "local": "data/raw/usdm_v4/USDM-IG.pdf"
+    },
+    {
+      "name": "dataDictionary.MD",
+      "path": "Deliverables/UML/dataDictionary.MD",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/dataDictionary.MD",
+      "local": "data/raw/usdm_v4/uml/dataDictionary.MD",
+      "format": "Markdown table",
+      "role": "Definitions, cardinality, NCI codes and codelist refs for every class and attribute. The semantics USDM_API.json omits.",
+      "bytes": 110540,
+      "sha256": "5912a0a05a0ae9e9e3131ae827e3e28fe9e5de0b98c6d1c207804410dcc98837"
+    },
+    {
+      "name": "dataStructure.yml",
+      "path": "Deliverables/UML/dataStructure.yml",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/dataStructure.yml",
+      "local": "data/raw/usdm_v4/uml/dataStructure.yml",
+      "format": "YAML",
+      "role": "Machine-readable form of the data dictionary, including the target class of each relationship.",
+      "bytes": 269184,
+      "sha256": "6f49a407aef41a66dd40a82ad3348672a22cd8874849254d7e4f27d6275daca6"
+    },
+    {
+      "name": "USDM_UML.xmi",
+      "path": "Deliverables/UML/USDM_UML.xmi",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/USDM_UML.xmi",
+      "local": "data/raw/usdm_v4/uml/USDM_UML.xmi",
+      "format": "XMI",
+      "role": "Full UML model in interchange format.",
+      "bytes": 1852563,
+      "sha256": "7ee0a12f92f164022a4ce53d4de900b506fd86089ccf7d1e1b0a7c7ea90e3117"
+    },
+    {
+      "name": "Activities.png",
+      "path": "Deliverables/UML/UML_Views/Activities.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Activities.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Activities.png",
+      "format": "PNG",
+      "role": "UML class diagram: Activities",
+      "bytes": 139057,
+      "sha256": "e2fc0ea3326c741c8dab1105733f632955284c3acc18e5f8c173c50dc1a519fd"
+    },
+    {
+      "name": "Arms_Epochs.png",
+      "path": "Deliverables/UML/UML_Views/Arms_Epochs.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Arms_Epochs.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Arms_Epochs.png",
+      "format": "PNG",
+      "role": "UML class diagram: Arms Epochs",
+      "bytes": 85223,
+      "sha256": "920290d12ea61a8cd2b65e57fed8776440627b55dbae18875c38b2ac76fff82a"
+    },
+    {
+      "name": "Documents.png",
+      "path": "Deliverables/UML/UML_Views/Documents.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Documents.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Documents.png",
+      "format": "PNG",
+      "role": "UML class diagram: Documents",
+      "bytes": 64403,
+      "sha256": "03c9de82abaf9d5b3dc0cff8d5e04248386baa99aebfb4e4073cbc666e486f27"
+    },
+    {
+      "name": "Eligibility.png",
+      "path": "Deliverables/UML/UML_Views/Eligibility.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Eligibility.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Eligibility.png",
+      "format": "PNG",
+      "role": "UML class diagram: Eligibility",
+      "bytes": 48063,
+      "sha256": "ca06b253e9eb698361e0903ddea779821b961d4fd47fa7cdf7b6d2fff0749858"
+    },
+    {
+      "name": "Extension.png",
+      "path": "Deliverables/UML/UML_Views/Extension.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Extension.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Extension.png",
+      "format": "PNG",
+      "role": "UML class diagram: Extension",
+      "bytes": 25706,
+      "sha256": "a5abb5c516c99aea16d219579e39b1e89c441a6c4dcd5cb971c2ffac0d6bb9f3"
+    },
+    {
+      "name": "Identifiers.png",
+      "path": "Deliverables/UML/UML_Views/Identifiers.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Identifiers.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Identifiers.png",
+      "format": "PNG",
+      "role": "UML class diagram: Identifiers",
+      "bytes": 64495,
+      "sha256": "a58cdda4e0c34a0b90f7c9df586cb0ecfe7a34717569ce9f581ab8d162438855"
+    },
+    {
+      "name": "Interventions.png",
+      "path": "Deliverables/UML/UML_Views/Interventions.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Interventions.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Interventions.png",
+      "format": "PNG",
+      "role": "UML class diagram: Interventions",
+      "bytes": 142266,
+      "sha256": "3687a4f6dbc722497538497af04f6159ed0bcb4092ef40a97bc407fc3d1f74f3"
+    },
+    {
+      "name": "Objectives.png",
+      "path": "Deliverables/UML/UML_Views/Objectives.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Objectives.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Objectives.png",
+      "format": "PNG",
+      "role": "UML class diagram: Objectives",
+      "bytes": 96473,
+      "sha256": "79657f95889778b643623435b69673ddd318affcd2794e69552af3c94122e561"
+    },
+    {
+      "name": "Organizations.png",
+      "path": "Deliverables/UML/UML_Views/Organizations.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Organizations.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Organizations.png",
+      "format": "PNG",
+      "role": "UML class diagram: Organizations",
+      "bytes": 105341,
+      "sha256": "bdc9aec9fcaa497220a32209e71a20fa5a6e13c6e64aa7429780a4c25491211f"
+    },
+    {
+      "name": "Population.png",
+      "path": "Deliverables/UML/UML_Views/Population.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Population.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Population.png",
+      "format": "PNG",
+      "role": "UML class diagram: Population",
+      "bytes": 143597,
+      "sha256": "69ba71fc45e758913e7d6b0b52f690c9eab8a0eb2c2284e797a77dcf878c1d00"
+    },
+    {
+      "name": "StudyDesign.png",
+      "path": "Deliverables/UML/UML_Views/StudyDesign.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/StudyDesign.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/StudyDesign.png",
+      "format": "PNG",
+      "role": "UML class diagram: StudyDesign",
+      "bytes": 75257,
+      "sha256": "06a32bd227d23badf344e54635551bfbe13ef31c6a97b45c56ac5da0f793c738"
+    },
+    {
+      "name": "StudyVersions.png",
+      "path": "Deliverables/UML/UML_Views/StudyVersions.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/StudyVersions.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/StudyVersions.png",
+      "format": "PNG",
+      "role": "UML class diagram: StudyVersions",
+      "bytes": 152693,
+      "sha256": "6e261ec39b41903f43d1c9eed4920cb7da10576ee25162a0499f21f5e01e414b"
+    },
+    {
+      "name": "SyntaxTemplates.png",
+      "path": "Deliverables/UML/UML_Views/SyntaxTemplates.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/SyntaxTemplates.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/SyntaxTemplates.png",
+      "format": "PNG",
+      "role": "UML class diagram: SyntaxTemplates",
+      "bytes": 25039,
+      "sha256": "2efe25ee8f7d2f54a1e65e2e62b1bb315f59f5c1b36eda1f19e7aa31ccc8bd98"
+    },
+    {
+      "name": "Timeline.png",
+      "path": "Deliverables/UML/UML_Views/Timeline.png",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_Views/Timeline.png",
+      "local": "data/raw/usdm_v4/uml/UML_Views/Timeline.png",
+      "format": "PNG",
+      "role": "UML class diagram: Timeline",
+      "bytes": 103992,
+      "sha256": "ef5fe32b7133b8af823bffb5663cc857c120cd148ca2ec13c293a91f0d124e51"
+    }
+  ],
+  "local_dir": "data/raw/usdm_v4"
+}

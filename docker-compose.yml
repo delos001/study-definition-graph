@@ -6,6 +6,10 @@ services:
     # Digest of this image: sha256:d9dd3dc7d1c78fa959191ff02dbdcbefadceaf83eee23428fb92a58cac8ad3fe
     image: neo4j:5.26.29-community
     container_name: sdg-neo4j
+    # Comes back after a host reboot or a Docker Desktop restart. `unless-stopped`
+    # rather than `always`: an explicit `docker compose stop` stays stopped, so
+    # "off" remains a state we choose.
+    restart: unless-stopped
     ports:
       - "7474:7474"   # Browser (HTTP)
       - "7687:7687"   # Bolt (driver)

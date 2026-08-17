@@ -4,11 +4,12 @@
 !.env.example
 
 # Data: everything is reproducible from manifests, so nothing is committed.
-# data/raw/ is immutable once downloaded and is never edited in place.
+# data/raw/ is immutable once downloaded and is never edited in place, so the
+# manifests that make it re-fetchable live outside it, in data/manifests/.
 data/**
 !data/**/
 !data/**/.gitkeep
-!data/raw/**/manifest.json
+!data/manifests/**
 
 # Model response cache
 .cache/

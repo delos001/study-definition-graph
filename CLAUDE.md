@@ -1,0 +1,147 @@
+# CLAUDE.md
+
+Standing rules for this repo. Applies to every session, on top of the global
+`~/.claude/CLAUDE.md`.
+
+This file holds **rules**. `README.md` holds what the project is and how to run
+it. `PLAN.md` holds the build sequence and the record of why decisions were
+made. Do not add rules to the other two, and do not restate rules from here in
+them.
+
+## Session start
+
+1. Read `BACKGROUND.md`. Domain context, USDM essentials, design constraints.
+2. Read `docs/usdm_ig_map.md`. It lists which Implementation Guide sections have
+   actually been read and verified, and which have not.
+
+## Grounding: which USDM source answers which question
+
+USDM is five official CDISC standards (IG p.6), all pinned under
+`data/raw/usdm_v4/`. They are not interchangeable. Go to the one that holds the
+answer:
+
+| Question | Source | How to read it |
+| --- | --- | --- |
+| What does this class or attribute **mean**? | `uml/dataDictionary.MD` | Grep it. Markdown table, one row per attribute, with definition, cardinality, NCI code, codelist ref. |
+| What does this ID **point at**? | `uml/dataStructure.yml` | Load with pyyaml. Gives target class, cardinality, and `Ref` vs `Value`. |
+| How does this map to real protocol content? | `USDM-IG.pdf` | `python scripts/read_ig.py <section>` |
+| What does the payload look like? | `USDM_API.json` | Shape only. **No semantics.** |
+| Which terms are legal for a coded field? | `USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` |
+| Is a document conformant? | `USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet ...` |
+| What does a real one look like? | `data/raw/usdm_examples/` | Three real protocols with their USDM JSON and the human-authored source spreadsheet. |
+| How did a human decide the mapping? | example `*.xlsx` | `python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records` |
+
+**Rule: no claim about what a USDM element means, or how it maps to protocol
+content, without reading the relevant source first.**
+
+`USDM_API.json` is the trap. It is generated from the model and discards
+definitions, cardinalities, and the target class of every relationship. Counting
+things in it describes the file, not the standard. If a question is about
+meaning, the answer is not in that file.
+
+The IG is 119 pages. Do not read it whole:
+
+```powershell
+python scripts/read_ig.py 4.23           # by section number
+python scripts/read_ig.py --find timing  # search all pages
+python scripts/read_ig.py --list         # section map
+```
+
+The example workbooks have 25 to 35 sheets each. Search across all of them
+rather than guessing which sheet holds something:
+
+```powershell
+python scripts/read_xlsx.py --all --find "estimand"
+python scripts/read_xlsx.py Alexion                        # list its sheets
+python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records
+```
+
+`mainTimeline` in an example workbook is that study's Schedule of Activities.
+It runs to 58 columns, so use `--format records`, not the default table.
+
+### Label every claim
+
+Each factual statement about USDM gets one of three labels, stated plainly:
+
+| Label | Means |
+| --- | --- |
+| **IG-sourced** | Read in the IG this session. Cite section and page. |
+| **Measured** | Computed from a pinned file. Show the command or output. |
+| **Inferred** | Reasoned from names or structure. Not verified. Say so. |
+
+Unlabelled assertion is the failure mode this rule exists to prevent. If a claim
+is inferred, say "inferred" before making it, not after being asked.
+
+### When the guidance runs out
+
+USDM does not cover everything, and the IG says so. Three tiers, in order:
+
+1. **The IG covers it.** Follow it. Cite section and page.
+2. **The IG does not cover it, but the content must be captured.** Use the
+   extension mechanism, IG §6.4 (pp.100-107): `extensionAttributes` on the class,
+   each entry carrying an `id`, a `url` identifying our extension, and a value.
+   The IG explicitly sanctions this for "a need to overcome issues with the
+   model" (p.100). It also requires that extensions be documented, so record ours
+   in `docs/`.
+3. **Neither applies**, because it is a process or design question rather than a
+   data-shape question. Decide, label the decision **unguided**, and record it in
+   `PLAN.md`.
+
+Never stall for lack of guidance. Always say which tier you are in.
+
+## Data
+
+- `data/raw/` is immutable. Nothing writes to it after download, ever.
+  Downstream reads from it and writes to `data/interim/` or `data/processed/`.
+- Provenance records live in `data/manifests/`, never inside `data/raw/`, so the
+  rule above has no exceptions. One file per downloaded set, named for the tier:
+  `raw_usdm_v4.json`.
+- The USDM specification is pinned to a recorded commit. Never fetch latest.
+  Verify the recorded sha256 before parsing a pinned file.
+
+## Pipeline
+
+- Prompts live in versioned files under `prompts/`, never as string literals in
+  code. An edit creates a new version.
+- Every extracted fact carries provenance: source document, section, page,
+  character span, prompt id and version, model id, timestamp. This is about
+  tracing a wrong answer back to the sentence that caused it. It is unrelated to
+  the IG grounding rule above.
+
+## Source files
+
+Scripts are written to be reviewed by someone who did not write them and does
+not want to reverse-engineer them. The goal is that reading only the comments
+gives an accurate picture of what the script does. `scripts/read_ig.py` is the
+worked example; match it.
+
+### Required header
+
+Every script opens with a module docstring carrying, in this order:
+
+```
+Script:      filename.py
+Description: what it does, and any non-obvious constraint it operates under
+Inputs:      files or services read, and whether they are read-only
+Outputs:     what it writes, or "writes nothing to disk"
+Usage:       one line per invocation mode, with a real example
+Exit codes:  each code and what causes it
+Date:        YYYY-MM-DD
+Author:      Jason Delosh
+```
+
+### Required markup
+
+- `###` banner headers grouping the file into named sections.
+- A docstring on every function stating what it does, what it returns, and
+  **why it works the way it does** where the approach is not obvious. State the
+  reasoning, not a restatement of the signature.
+- A comment on every non-obvious code block explaining the intent behind it.
+- A comment on every `try`/`except` saying what failure it absorbs and what
+  happens instead. Never leave a silent `except`.
+- A comment wherever a non-standard library, an index convention, or a
+  workaround is used, saying why that choice was made.
+- Comments explain *why*. Do not write comments that restate the code.
+
+Simplicity still governs. Heavy commenting is not licence for clever code; if a
+block needs a paragraph to explain, prefer rewriting the block.
