@@ -1,0 +1,33 @@
+{
+  "set": "usdm_mappings",
+  "description": "Crosswalks between USDM and other standards, from the DDF-RA Documents/Mappings directory. Informative material, not one of the five official USDM standards.",
+  "source_repo": "https://github.com/cdisc-org/DDF-RA",
+  "source_dir": "Documents/Mappings",
+  "pinned_commit": "aa303cb32f5d3ceecc68a16803e26720d2c1fc26",
+  "retrieved": "2026-08-17",
+  "local_dir": "data/raw/usdm_mappings",
+  "caveat": "DDF-RA Documents/README.md describes these as provisional and written against USDM v3.1x. That README is stale: both files declare USDM v4.0.0 in their own Readme sheet, verified 2026-08-17. m11_mapping is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching USDM-IG p.8. ct-gov_mapping carries a \"v4.0 Change\" column.",
+  "excluded": "ctis_mapping.xlsx (EU registry, out of scope), cpt_mapping.xlsx (authoring template our sources do not use), sdtm_mapping.xlsx (USDM to SDTM, downstream and opposite direction).",
+  "files": [
+    {
+      "name": "m11_mapping.xlsx",
+      "path": "Documents/Mappings/m11_mapping.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Mappings/m11_mapping.xlsx",
+      "local": "data/raw/usdm_mappings/m11_mapping.xlsx",
+      "format": "XLSX",
+      "role": "Crosswalk from ICH M11 CeSHarP protocol template elements to USDM. M11 is an authoring template our source protocols are not written in, so this is reference material, not a pipeline input.",
+      "bytes": 61250,
+      "sha256": "82f35cfdd37628dfe8415ed4324303eb9c452e534f8aaea0002d31519f5ae341"
+    },
+    {
+      "name": "ct-gov_mapping.xlsx",
+      "path": "Documents/Mappings/ct-gov_mapping.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Mappings/ct-gov_mapping.xlsx",
+      "local": "data/raw/usdm_mappings/ct-gov_mapping.xlsx",
+      "format": "XLSX",
+      "role": "Crosswalk from ClinicalTrials.gov registry fields to USDM. Directly relevant from Phase 1, since every study we fetch already has these registry fields populated.",
+      "bytes": 28185,
+      "sha256": "e96ba610bdc6dc282ed44f98320afb07a370dba5cd1e6b6a8d15f84c34231885"
+    }
+  ]
+}

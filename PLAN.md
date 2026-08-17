@@ -86,6 +86,50 @@ That is the project. Everything else supports it.
 | Standard | USDM v4.0, pinned | Current published version. |
 | Model provider | Anthropic (Claude) | Key already in use in `langgraph_sandbox/spike/spike.py` via `langchain_anthropic`. |
 | Orchestration | Plain Python through Phase 4, LangGraph at Phase 5 | See the routing-complexity assessment below. |
+| Source material | All five official USDM standards pinned, plus CDISC's worked examples | See below. The API specification alone was not enough. |
+
+### Which USDM sources we hold, and why
+
+USDM is five official CDISC standards (IG p.6), not one file. The project
+originally held only the API specification, which is generated from the model
+and discards every attribute definition, every cardinality, and the target class
+of every relationship. Design work built on it was reasoning from the one
+artifact with no semantics in it.
+
+All five are now pinned to DDF-RA commit `aa303cb`, with the worked examples and
+two crosswalks. Inventory and hashes in `data/manifests/`.
+
+The UML deliverable is the one that mattered most. `dataStructure.yml` types every
+ID reference (`epochId` to `StudyEpoch`, `activityIds` to `Activity`), which the
+API specification leaves as a bare string. That is the edge list Phase 4 needs
+and it is published, not something we have to infer.
+
+### Mapping crosswalks: two taken, three dropped
+
+`Documents/Mappings/` holds five crosswalks between USDM and other standards.
+
+**Taken:**
+
+- `ct-gov_mapping.xlsx`. Phase 1 pulls studies from ClinicalTrials.gov, and every
+  study there already has structured registry fields. Six sheets map those fields
+  to a USDM class, attribute and target path. Structured ground truth for part of
+  every study, with no model call involved.
+- `m11_mapping.xlsx`. ICH M11 is an authoring template our source protocols are
+  not written in, so this is reference material rather than a pipeline input.
+  Kept because it is small and holding the complete source is cheaper than
+  re-deciding later.
+
+**Dropped permanently**, so this does not resurface:
+
+- `ctis_mapping.xlsx`. EU CTIS registry submission. Out of scope.
+- `cpt_mapping.xlsx`. TransCelerate authoring template. Our sources do not use it.
+- `sdtm_mapping.xlsx`. Maps USDM to SDTM, which is downstream of this project and
+  runs in the opposite direction.
+
+One caveat resolved rather than carried: `Documents/README.md` calls all five
+provisional and v3.1x-era. That README is stale. Both files we took declare USDM
+v4.0.0 in their own `Readme` sheet, and `m11_mapping` is aligned to the M11
+Updated Step 2 Draft of 14 March 2025, matching IG p.8.
 
 ### Routing complexity, and where LangGraph earns its place
 
