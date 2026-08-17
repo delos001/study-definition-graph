@@ -11,7 +11,10 @@ them.
 ## Session start
 
 1. Read `BACKGROUND.md`. Domain context, USDM essentials, design constraints.
-2. Read `docs/usdm_ig_map.md`. It lists which Implementation Guide sections have
+2. Read the "Next session, in order" section at the top of `PLAN.md`'s open
+   items. It carries what was agreed last time and why, so a cold start does not
+   need the user to re-explain it.
+3. Read `docs/usdm_ig_map.md`. It lists which Implementation Guide sections have
    actually been read and verified, and which have not.
 
 ## Grounding: which USDM source answers which question

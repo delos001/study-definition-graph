@@ -323,6 +323,50 @@ hand-built answer set.
   precision and recall per case, not one accuracy number. Comparable published
   work sits around 76% clean, so expect it to be bad at first.
 
+## Next session, in order
+
+**1. Build `docs/sources.md`.** One navigation document covering every pinned
+artifact, replacing `docs/usdm_ig_map.md`, which covers only the IG. For each
+artifact: what question it answers, how to read it, a one-line index of its
+internal structure, and whether it has been read and verified or is still
+unexamined. `CLAUDE.md` then points at that one file.
+
+The manifests in `data/manifests/` do not do this job and are not meant to. They
+record url, format, role and sha256, which answers "is this file authentic and
+where did it come from". They do not answer "which file holds my answer".
+
+Building the index is also the first time the sources get checked against each
+other. Four discrepancies are already visible and unchased:
+
+- **Class counts disagree.** `USDM_API.json` 81, `dataDictionary.MD` 84,
+  `dataStructure.yml` 86. Probably abstract classes that never serialise, since
+  `dataStructure.yml` carries a `Modifier: Concrete` field, but that is inference
+  and unverified.
+- **The 14 UML diagrams are unindexed and ungreppable.** None has been viewed.
+  `Extension.png` and `Timeline.png` are the two the IG points at and cannot
+  render in extracted text.
+- **Codelist references are unchecked.** `dataDictionary.MD` has a "Codelist Ref"
+  column pointing into `USDM_CT.xlsx`. Nothing has verified those resolve.
+- **CORE's actual scope is an open question.** 260 rules, unread. The working
+  assumption was that CORE exists to check referential integrity the schema
+  cannot express. Then `dataStructure.yml` turned out to type every reference.
+  What CORE covers is one file read away.
+
+**2. The Alexion walk.** Trace one activity end to end through
+`data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/`: from the printed Schedule
+of Activities in the protocol PDF, to the row a human wrote in the `mainTimeline`
+sheet, to the USDM objects it became in the JSON.
+
+The point is not the artifact. It is that reading a schema does not tell you how
+it applies to a protocol, and this is the only place where the same activity can
+be seen in all three forms at once. It also defines what Phases 1 to 3 actually
+have to reproduce, which is a better input to designing them than a spec is.
+
+**Not next:** `src/sdg/usdm_spec.py`. It was designed against `USDM_API.json`
+before the UML deliverable was found. `dataStructure.yml` supplies what that
+design was going to reconstruct, so the loader is now smaller and needs
+redesigning before it is written.
+
 ## Open items
 
 1. **Deferred, not dropped:** the design write-up (taxonomy, prompt library
