@@ -166,6 +166,19 @@ obligation applicable to protocol authors and on what timeline. `BACKGROUND.md`
 carries a design constraint saying M11 is "a regulatory expectation, not a
 verified mandate". That needs re-checking, not inverting.
 
+### Declined deliberately: section addressing for the M11 PDFs
+
+None of the three M11 PDFs carries embedded bookmarks, so `scripts/read_pdf.py`
+cannot address them by section. Supporting that would need a second, different
+mechanism: parsing a printed contents page or detecting headings by font size.
+It is not a parameterisation of what exists.
+
+**Not doing it.** The Technical Specification is a reference of 186 data elements
+rather than a linear read, so term lookup is the access pattern it actually
+wants, and `--find` already provides that: a term search lands on one or two
+pages. Building section navigation would serve an access pattern the document
+does not have. Recorded here as declined rather than overlooked.
+
 ### Routing complexity, and where LangGraph earns its place
 
 Counting the actual branch points in Phases 0 to 4:

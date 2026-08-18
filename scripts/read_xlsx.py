@@ -252,6 +252,19 @@ def search_workbook(path: Path, term: str) -> list[str]:
 
 
 def main() -> int:
+    """
+    Parse arguments, dispatch to one mode, and return a shell exit code.
+
+    Modes are checked in order of specificity: --all --find searches every
+    workbook, --find searches one, --sheet prints one sheet, and a bare workbook
+    name lists its sheets.
+    """
+    # openpyxl returns proper Unicode, but a Windows console defaults to a
+    # legacy code page and silently replaces anything it cannot encode. Controlled
+    # terminology and rule text use em dashes, bullets and non-ASCII quotes, so
+    # without this the output is mangled exactly where it carries meaning.
+    sys.stdout.reconfigure(encoding="utf-8")
+
     parser = argparse.ArgumentParser(
         description="Read a sheet from one of the project's pinned Excel workbooks."
     )

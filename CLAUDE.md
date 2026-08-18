@@ -19,36 +19,52 @@ them.
 
 ## Grounding: which USDM source answers which question
 
-USDM is five official CDISC standards (IG p.6), all pinned under
-`data/raw/usdm_v4/`. They are not interchangeable. Go to the one that holds the
-answer:
+Three standards bodies are pinned here, not one. USDM is five official CDISC
+standards (IG p.6) under `data/raw/usdm_v4/`. ICH M11 defines the protocol a
+study is authored as, under `data/raw/ich_m11/`. ICH E9(R1) defines the estimand
+framework USDM models, under `data/raw/ich_e9r1/`. None are interchangeable. Go
+to the one that holds the answer:
 
 | Question | Source | How to read it |
 | --- | --- | --- |
-| What does this class or attribute **mean**? | `uml/dataDictionary.MD` | Grep it. Markdown table, one row per attribute, with definition, cardinality, NCI code, codelist ref. |
-| What does this ID **point at**? | `uml/dataStructure.yml` | Load with pyyaml. Gives target class, cardinality, and `Ref` vs `Value`. |
-| How does this map to real protocol content? | `USDM-IG.pdf` | `python scripts/read_ig.py <section>` |
-| What does the payload look like? | `USDM_API.json` | Shape only. **No semantics.** |
-| Which terms are legal for a coded field? | `USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` |
-| Is a document conformant? | `USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet ...` |
-| What does a real one look like? | `data/raw/usdm_examples/` | Three real protocols with their USDM JSON and the human-authored source spreadsheet. |
+| What does this USDM class or attribute **mean**? | `usdm_v4/uml/dataDictionary.MD` | Grep it. Markdown table, one row per attribute, with definition, cardinality, NCI code, codelist ref. |
+| What does this ID **point at**? | `usdm_v4/uml/dataStructure.yml` | Load with pyyaml. Gives target class, cardinality, and `Ref` vs `Value`. |
+| How does USDM map to real protocol content? | `usdm_v4/USDM-IG.pdf` | `python scripts/read_pdf.py <section>` |
+| What does the payload look like? | `usdm_v4/USDM_API.json` | Shape only. **No semantics.** |
+| Which terms are legal for a coded field? | `usdm_v4/USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` |
+| Is a document conformant? | `usdm_v4/USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet ...` |
+| What does a real one look like? | `usdm_examples/` | Three real protocols with their USDM JSON and the human-authored source spreadsheet. |
 | How did a human decide the mapping? | example `*.xlsx` | `python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records` |
+| What **sections** does a protocol have, and what belongs in each? | `ich_m11/ICH_M11_Template.pdf` | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` |
+| What is this protocol **data element**, and is it required? | `ich_m11/ICH_M11_TechnicalSpecification.pdf` | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"`. 186 elements, each with definition, data type, cardinality, conformance. |
+| What does an **estimand attribute** mean? | `ich_e9r1/ICH_E9R1_Addendum.pdf` | `python scripts/read_pdf.py --doc e9r1 --pages 11-12`. Use the page range, not `A.3.3`: the four attributes (treatment, population, variable, population-level summary) run past the bookmark boundary, and section mode returns only the first. |
 
-**Rule: no claim about what a USDM element means, or how it maps to protocol
-content, without reading the relevant source first.**
+**Rule: no claim about what an element of any of these standards means, or how it
+maps to protocol content, without reading the relevant source first.**
+
+M11 and USDM are maintained by different bodies on different cycles, so they
+drift. USDM v4.0 (2025-06-03) is aligned to an M11 Step 2 draft; M11 reached
+Step 4 on 2025-11-19. That is expected and is not a defect to reconcile.
 
 `USDM_API.json` is the trap. It is generated from the model and discards
 definitions, cardinalities, and the target class of every relationship. Counting
 things in it describes the file, not the standard. If a question is about
 meaning, the answer is not in that file.
 
-The IG is 119 pages. Do not read it whole:
+The pinned PDFs run to 500 pages combined. Never read one whole:
 
 ```powershell
-python scripts/read_ig.py 4.23           # by section number
-python scripts/read_ig.py --find timing  # search all pages
-python scripts/read_ig.py --list         # section map
+python scripts/read_pdf.py --docs         # what is registered
+python scripts/read_pdf.py 4.23           # IG, by section number
+python scripts/read_pdf.py --find timing  # IG, search all pages
+python scripts/read_pdf.py --list         # IG section map
+python scripts/read_pdf.py --doc m11-techspec --find "Estimand"
+python scripts/read_pdf.py --doc e9r1 --list
 ```
+
+The USDM IG and E9(R1) carry bookmarks, so they can be addressed by section. The
+three M11 PDFs carry none, so they answer only to `--find` and `--pages`. The
+script says so rather than returning an empty section map.
 
 The example workbooks have 25 to 35 sheets each. Search across all of them
 rather than guessing which sheet holds something:
@@ -115,7 +131,7 @@ Never stall for lack of guidance. Always say which tier you are in.
 
 Scripts are written to be reviewed by someone who did not write them and does
 not want to reverse-engineer them. The goal is that reading only the comments
-gives an accurate picture of what the script does. `scripts/read_ig.py` is the
+gives an accurate picture of what the script does. `scripts/read_pdf.py` is the
 worked example; match it.
 
 ### Required header

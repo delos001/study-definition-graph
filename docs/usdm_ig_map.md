@@ -6,8 +6,8 @@ Routing table for `data/raw/usdm_v4/USDM-IG.pdf` (119 pages, pinned commit
 Read a section with:
 
 ```powershell
-python scripts/read_ig.py 4.23
-python scripts/read_ig.py 6.4 --raw   # skip header/footer stripping
+python scripts/read_pdf.py 4.23
+python scripts/read_pdf.py 6.4 --raw   # skip header/footer stripping
 ```
 
 Page ranges come from the PDF's own bookmarks. Where several sections start on
