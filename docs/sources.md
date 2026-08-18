@@ -66,7 +66,7 @@ Manifest: `raw_ich_e9r1.json`.
 
 | Question | File | How to read it | Read? |
 | --- | --- | --- | --- |
-| What is an estimand and what are its parts? | `ich_e9r1/ICH_E9R1_Addendum.pdf` | `python scripts/read_pdf.py --doc e9r1 --pages 11-12`. Use the page range, not section `A.3.3`: the four attributes run past the bookmark boundary and section mode returns only the first. | §A.3.3 only |
+| What is an estimand and what are its parts? | `ich_e9r1/ICH_E9R1_Addendum.pdf` | `python scripts/read_pdf.py --doc e9r1 A.3.3` | §A.3.3 only |
 
 ---
 

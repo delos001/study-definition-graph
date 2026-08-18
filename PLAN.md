@@ -60,6 +60,14 @@ The source sweep had stopped at one GitHub repository. Widening it found two sta
 
 **Unverified:** whether M11 Step 4 creates an obligation on protocol authors, and by when. `BACKGROUND.md` still calls it an expectation rather than a mandate. Re-check before relying on either reading.
 
+### Section addressing, fixed 2026-08-18
+
+`read_pdf.py` returned whole pages for a section, so a section starting mid-page arrived with the previous one attached, and one spilling past a page break was silently cut short. E9(R1) A.3.3 returned 1 of its 4 estimand attributes with no sign the rest existed. In the USDM IG, 32 of 54 sections shared a page range with another, and 4.22 and 4.23 returned byte-identical text.
+
+The cause was one line: the section end was set to the page before the next section starts, which discards whatever the section holds on that page. It now ends on that page and `read_pdf.py` trims both shared pages at the headings, matching on the section number because the IG puts number and title on one line while E9(R1) splits them. Where a heading cannot be found the output says so rather than guessing, since a boundary chosen silently is the failure being fixed.
+
+All 66 sections across both bookmarked documents extract cleanly, each starting at its own heading. `docs/usdm_ig_map.md` was regenerated, since 40 of its 52 page ranges changed.
+
 ### Declined: section addressing for the M11 PDFs
 
 The M11 PDFs carry no bookmarks, so `read_pdf.py` cannot address them by section. Supporting that needs a different mechanism, not a parameterisation of what exists. Not doing it: the Technical Specification is a lookup reference rather than a linear read, so `--find` is the access pattern it wants and a term search lands on one or two pages.
@@ -178,7 +186,6 @@ The point is not the artifact. It is that reading a schema does not tell you how
 
 - **The 14 UML class diagrams have never been opened.** They are images, so nothing can grep them. `DDF_USDM_Model_Informative.pdf` now covers the same ground in searchable form and may make them redundant; nobody has checked.
 - **What the CORE rules actually check.** 93 of the 210 v4-applicable rules are implemented as JSONata in `cdisc-org/cdisc-jsonata-rules`, which also confirms the rules are JSONata rather than YAML. None has been read.
-- **Section addressing returns whole pages.** A section that starts mid-page arrives with the previous one attached, and a list spilling over a page break is silently cut short. Confirmed on E9(R1) A.3.3, where 3 of 4 estimand attributes were lost. `docs/sources.md` routes around it with page ranges. Not fixed.
 - **Two claims evicted from `BACKGROUND.md` are still unverified**: whether JSON-Schema validation of USDM JSON is an open CDISC issue, and whether API version and model version are decoupled. Both are checkable in `USDM_API.json`.
 
 

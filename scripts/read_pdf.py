@@ -178,16 +178,19 @@ def load_toc(doc: fitz.Document) -> list[dict]:
     sections: list[dict] = []
 
     for index, (_level, title, start_page) in enumerate(bookmarks):
-        # Default to the final page, which is correct for the last bookmark and
-        # is overwritten below for every other one.
-        end_page = doc.page_count
-
-        # Scan forward for the first bookmark that starts on a strictly later
-        # page. Bookmarks sharing this section's start page are skipped.
-        for _next_level, _next_title, next_start in bookmarks[index + 1 :]:
-            if next_start > start_page:
-                end_page = next_start - 1
-                break
+        # The next bookmark in document order, whatever page it starts on, is
+        # what actually bounds this section. Its start page is included, not
+        # excluded: a section frequently runs partway into the page where the
+        # next one begins, and cutting at next_start - 1 silently discarded
+        # that remainder. extract_pages trims the overlap at the heading.
+        if index + 1 < len(bookmarks):
+            _next_level, next_title, next_start = bookmarks[index + 1]
+            end_page = next_start
+            next_match = SECTION_NUMBER_PATTERN.match(next_title.strip())
+            next_number = next_match.group(1) if next_match else ""
+        else:
+            end_page = doc.page_count
+            next_number = ""
 
         title = title.strip()
         number_match = SECTION_NUMBER_PATTERN.match(title)
@@ -198,6 +201,7 @@ def load_toc(doc: fitz.Document) -> list[dict]:
                 "title": title,
                 "start": start_page,
                 "end": end_page,
+                "next_number": next_number,
             }
         )
 
@@ -232,6 +236,30 @@ def find_section(sections: list[dict], wanted: str) -> dict | None:
 
 
 ### Text extraction ############################################################
+
+
+def heading_offset(text: str, number: str) -> int | None:
+    """Character offset where a section's heading begins, or None if not found.
+
+    Matches a line that opens with the section number, which is how headings
+    appear in every registered document. The number alone is used rather than
+    the full bookmark title because the two do not always agree: the USDM IG
+    renders "4.23 Addressing Footnotes" on one line, while E9(R1) puts "A.3.3."
+    and "Estimand Attributes" on separate lines, so a title match would fail
+    there.
+
+    The trailing `[.\\s]` matters. Without it "4.2" would also match the start of
+    "4.23", and a request for the shorter section would be cut at the longer
+    one's heading.
+
+    Returns None rather than guessing. The caller reports that, because a wrong
+    boundary chosen silently is the failure this whole function exists to fix.
+    """
+    if not number:
+        return None
+
+    match = re.search(rf"^[ \t]*{re.escape(number)}[.\s]", text, re.M)
+    return match.start() if match else None
 
 
 def strip_boilerplate(text: str, patterns: tuple[re.Pattern, ...]) -> str:
@@ -307,6 +335,7 @@ def extract_pages(
     raw: bool,
     patterns: tuple[re.Pattern, ...],
     label: str,
+    section: dict | None = None,
 ) -> str:
     """
     Return the text of pages start..end inclusive, one labelled block per page.
@@ -322,6 +351,7 @@ def extract_pages(
     page numbers.
     """
     blocks = []
+    warnings: list[str] = []
 
     for page_number in range(start, end + 1):
         page = doc[page_number - 1]
@@ -329,6 +359,31 @@ def extract_pages(
 
         if not raw:
             text = strip_boilerplate(text, patterns)
+
+        # Trim the shared pages at the two ends. A section rarely owns a whole
+        # page at either boundary: the first page usually opens with the tail of
+        # the previous section, and the last page usually ends where the next
+        # one begins. Cutting at the headings is what makes two sections that
+        # share a page range return different text.
+        if section is not None and not raw:
+            if page_number == start:
+                cut = heading_offset(text, section["number"])
+                if cut is not None:
+                    text = text[cut:]
+                elif section["number"]:
+                    warnings.append(
+                        f"could not locate the heading for {section['number']} on page "
+                        f"{page_number}; that page is shown whole and may open mid-section"
+                    )
+            if page_number == end and end != start:
+                cut = heading_offset(text, section["next_number"])
+                if cut is not None:
+                    text = text[:cut]
+                elif section["next_number"]:
+                    warnings.append(
+                        f"could not locate the heading for {section['next_number']} on page "
+                        f"{page_number}; that page is shown whole and may run past this section"
+                    )
 
         block = f"--- {label} page {page_number} ---\n{text.strip()}"
 
@@ -531,6 +586,9 @@ def main() -> int:
     # Mode: an explicit page range, bypassing the section map. Used when the
     # bookmarks are too coarse, which happens where sections share a start page,
     # and it is the only page-addressed mode available for the M11 documents.
+    # Page mode addresses pages, not sections, so nothing is trimmed.
+    section_for_trim = None
+
     if args.pages:
         start_text, _, end_text = args.pages.partition("-")
         start_page = int(start_text)
@@ -549,6 +607,7 @@ def main() -> int:
         start_page = section["start"]
         end_page = section["end"]
         label = section["title"]
+        section_for_trim = section
 
     print(f"### {document['label']} | {label} | pages {start_page}-{end_page}\n")
     print(
@@ -559,6 +618,7 @@ def main() -> int:
             args.raw,
             document["boilerplate"],
             document["label"],
+            section_for_trim,
         )
     )
     return 0
