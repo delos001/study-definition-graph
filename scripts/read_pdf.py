@@ -4,13 +4,15 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              plain text, so a working session can consult a specification
              without loading the whole document.
 
-             Registered documents are the CDISC USDM Implementation Guide and
-             the three ICH M11 Step 4 documents. They differ in one way that
-             governs this script's design: the USDM IG carries 54 embedded
-             bookmarks, so it can be addressed by section number, and none of
-             the M11 PDFs carry any, so they can only be addressed by search or
-             by explicit page range. That is a property of the source files, not
-             a limitation this script can code around, so section modes fail
+             Six documents are registered: the CDISC USDM Implementation Guide,
+             the whole-model diagram, the three ICH M11 Step 4 documents, and
+             ICH E9(R1). Run --docs to list them.
+
+             They differ in one way that governs this script's design. The USDM
+             IG and E9(R1) carry embedded bookmarks, so they can be addressed by
+             section number. The others carry none, so they answer only to
+             --find and --pages. That is a property of the source files, not a
+             limitation this script can code around, so section modes fail
              loudly on a bookmark-less document rather than returning nothing.
 
              No PDF is ever converted to another format. Every registered
@@ -18,8 +20,10 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              represent, so wherever a page holds one, this script says so rather
              than silently producing incomplete text.
 
-Inputs:      data/raw/usdm_v4/USDM-IG.pdf          (read-only, pinned)
-             data/raw/ich_m11/ICH_M11_*.pdf        (read-only, pinned)
+Inputs:      data/raw/usdm_v4/USDM-IG.pdf                    (read-only, pinned)
+             data/raw/usdm_v4/DDF_USDM_Model_Informative.pdf  (read-only, pinned)
+             data/raw/ich_m11/ICH_M11_*.pdf                   (read-only, pinned)
+             data/raw/ich_e9r1/ICH_E9R1_Addendum.pdf          (read-only, pinned)
              Section numbers and page ranges come from each PDF's own bookmarks.
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
@@ -32,6 +36,7 @@ Usage:       python scripts/read_pdf.py --docs                 list registered d
              python scripts/read_pdf.py --list                 print the section map
              python scripts/read_pdf.py --doc m11-techspec --find "Number of Participants"
              python scripts/read_pdf.py --doc m11-template --pages 12-14
+             python scripts/read_pdf.py --doc model-diagram --find Encounter
 
 Exit codes:  0 success
              1 the PDF is missing, the requested section was not found, or a
@@ -48,6 +53,7 @@ import contextlib
 import io
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 # pymupdf is imported under its legacy name "fitz". It is a conda dependency
@@ -117,6 +123,16 @@ DOCUMENTS = {
         "path": RAW / "ich_e9r1" / "ICH_E9R1_Addendum.pdf",
         "label": "ICH E9(R1) Estimands Addendum",
         "manifest": "raw_ich_e9r1.json",
+        "boilerplate": (),
+    },
+    # The whole USDM model as one vector diagram. Registered despite being a
+    # picture because its text extracts cleanly, which the 14 UML_Views PNGs of
+    # the same material do not. Everything is on page 1, so --find is the only
+    # sensible mode.
+    "model-diagram": {
+        "path": RAW / "usdm_v4" / "DDF_USDM_Model_Informative.pdf",
+        "label": "USDM Model Diagram (informative)",
+        "manifest": "raw_usdm_v4.json",
         "boilerplate": (),
     },
 }
@@ -328,6 +344,28 @@ def extract_pages(
 ### Search #####################################################################
 
 
+def searchable(text: str) -> str:
+    """
+    Return a form of text suitable for matching, not for display.
+
+    Some PDFs store typographic ligatures as single characters, so the word
+    "Definition" is really "De" + U+FB01 + "nition" and a plain substring search
+    for it silently finds nothing. That is the worst failure mode available
+    here: not an error, just an empty result that reads as "the document does
+    not mention this".
+
+    Of the registered documents only the model diagram is affected, with 21
+    ligatures, but the cost of normalising is trivial and the cost of missing a
+    hit is a wrong conclusion. NFKD decomposes ligatures back into their letters
+    and is applied to both the needle and the page text, so the two are always
+    compared on the same footing.
+
+    Used only for matching. Text that gets printed is never passed through this,
+    so what the reader sees is still exactly what the PDF holds.
+    """
+    return unicodedata.normalize("NFKD", text).casefold()
+
+
 def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[str]:
     """
     Find every page whose text contains term, case-insensitively.
@@ -346,14 +384,14 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
     known, and the first matching line, so the caller can decide what is worth
     reading in full rather than reading it all.
     """
-    needle = term.lower()
+    needle = searchable(term)
     hits = []
 
     for page_index in range(doc.page_count):
         page_number = page_index + 1
         text = doc[page_index].get_text()
 
-        if needle not in text.lower():
+        if needle not in searchable(text):
             continue
 
         # Attribute the page to the last section that starts on or before it.
@@ -367,7 +405,7 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
         # Show the first matching line as context, trimmed so a wide PDF line
         # does not dominate the output.
         snippet = next(
-            (line.strip() for line in text.splitlines() if needle in line.lower()),
+            (line.strip() for line in text.splitlines() if needle in searchable(line)),
             "",
         )
         if len(snippet) > 110:

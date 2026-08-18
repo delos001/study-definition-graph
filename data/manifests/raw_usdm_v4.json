@@ -5,7 +5,7 @@
   "source_repo": "https://github.com/cdisc-org/DDF-RA",
   "pinned_commit": "aa303cb32f5d3ceecc68a16803e26720d2c1fc26",
   "commit_message": "Final v4.0 for Publication",
-  "retrieved": "2026-08-14; UML deliverable added 2026-08-17",
+  "retrieved": "2026-08-14; UML deliverable added 2026-08-17; model diagram and v3-to-v4 delta added 2026-08-18",
   "files": [
     {
       "name": "USDM_API.json",
@@ -221,6 +221,26 @@
       "role": "UML class diagram: Timeline",
       "bytes": 103992,
       "sha256": "ef5fe32b7133b8af823bffb5663cc857c120cd148ca2ec13c293a91f0d124e51"
+    },
+    {
+      "name": "DDF_USDM_Model_Informative.pdf",
+      "path": "Documents/DDF USDM Model Informative.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/DDF%20USDM%20Model%20Informative.pdf",
+      "local": "data/raw/usdm_v4/DDF_USDM_Model_Informative.pdf",
+      "format": "PDF",
+      "role": "The whole model as one diagram. Single page, vector, all text extractable, so unlike the 14 UML_Views PNGs it can be searched. Taken in preference to USDM_UML.png, which is the same view as an unsearchable image.",
+      "bytes": 137367,
+      "sha256": "360d11863135b67dfaa6a8b1bb1fe61b8dd6e427f86523fc437404953320c8b5"
+    },
+    {
+      "name": "UML_DELTA_3-0-0_4-0-0.csv",
+      "path": "Deliverables/UML/UML_DELTA_3-0-0_4-0-0.csv",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Deliverables/UML/UML_DELTA_3-0-0_4-0-0.csv",
+      "local": "data/raw/usdm_v4/uml/UML_DELTA_3-0-0_4-0-0.csv",
+      "format": "CSV",
+      "role": "What changed between USDM v3.0 and v4.0: 1302 rows of class, status (Added/Deleted/Modified), attribute and old value. Held because the crosswalks and the published prior art this project cites were written in the v3.1x era, so reading them correctly needs to know what moved.",
+      "bytes": 117892,
+      "sha256": "5a82fb066013cbed1457b8bddf9243783fa159bce7b348902839d5d7cf4c26b3"
     }
   ],
   "local_dir": "data/raw/usdm_v4"

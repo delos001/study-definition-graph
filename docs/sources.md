@@ -30,6 +30,8 @@ Pinned to DDF-RA commit `aa303cb`. Manifest: `raw_usdm_v4.json`.
 | What does the payload look like? | `usdm_v4/USDM_API.json` | Shape only. **No definitions, no cardinalities, no relationship targets.** Never answer a meaning question from this file. | n/a |
 | Which values are legal for a coded field? | `usdm_v4/USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` | no |
 | Is a document conformant? | `usdm_v4/USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"`. 259 rules. | no |
+| What does the whole model look like at once? | `usdm_v4/DDF_USDM_Model_Informative.pdf` | `python scripts/read_pdf.py --doc model-diagram --find "<class>"`. One page, vector, text extracts. **Informative, not complete**: it omits classes the data dictionary has, so never treat an absence here as an absence from the model. | no |
+| What changed between v3.0 and v4.0? | `usdm_v4/uml/UML_DELTA_3-0-0_4-0-0.csv` | Grep it. 1302 rows: class, Added/Deleted/Modified, attribute, old value. Needed to read v3.1x-era material such as the crosswalks and the published prior art. | no |
 | What does a class diagram look like? | `usdm_v4/uml/UML_Views/*.png` | 14 images. Cannot be grepped or extracted; must be viewed. **None has been opened.** | no |
 
 ### CDISC worked examples
@@ -101,7 +103,8 @@ Recorded so these do not resurface.
 | `cpt_mapping.xlsx` | TransCelerate authoring template. Our source protocols do not use it. |
 | `sdtm_mapping.xlsx` | USDM to SDTM. Downstream of this project and runs the opposite direction. |
 | `Documents/Examples/Devices`, `Observational` | Synthetic test data, not derived from a real protocol, per CDISC's own examples readme. |
-| DDF-RA `*_DELTA_*` and `*_Changes` files | Version-migration history. Only matters if the pin moves, and it does not. ~40 files. Reviewed 2026-08-18. |
+| DDF-RA `*_DELTA_*` and `*_Changes` files, except the v3-to-v4 UML delta | Version-migration history between older releases. Only matters if the pin moves, and it does not. ~40 files. The one exception, `UML_DELTA_3-0-0_4-0-0.csv`, is held: it is not about moving the pin but about reading v3.1x-era material correctly, which the crosswalks and the cited prior art both are. Reviewed 2026-08-18. |
+| `Deliverables/UML/USDM_UML.png` | The whole-model class diagram as an image, 1.1 MB. Superseded by `DDF_USDM_Model_Informative.pdf`, which is the same view in vector form with extractable text, so it can be searched rather than only looked at. Decided 2026-08-18. |
 | `USDM_UML.qea`, `UML_EA.DTD`, `*.graffle`, `HowTos/` | Editor project files and authoring tutorials for CDISC's own toolchain. Reviewed 2026-08-18. |
 | `Documents/CORE Test Data Template/` | Was justified as the route into "what does CORE actually check". That question is now largely answered by the JSONata rules below, so the case has weakened. Reviewed 2026-08-18. |
 
@@ -113,5 +116,3 @@ Named, located, and looked at, but not evaluated for use.
 | --- | --- | --- |
 | `cdisc-org/cdisc-jsonata-rules` | GitHub | 98 rule directories named `DDF000NN`, matching the `Final CORE Rule ID` column in our pinned rules spreadsheet. 93 of the 210 v4-applicable rules have an implementation, 44%. Five implemented rules are absent from our pinned spec, one beyond its range, so the rules are ahead of the spec. 8.5 MB, mostly ~1 MB test fixtures per rule. No README, no licence, last pushed 2025-12-19. **Do not bulk-pin; pull individual rule files at point of use.** 2026-08-18. |
 | `cdisc-org/usdm_api` | GitHub | Described as "a simple DDF emulation". Ships a Dockerfile. Reframes the Phase 0 question from "is a conformance endpoint publicly reachable" to "can we run one locally", same pattern as Neo4j. 2026-08-18. |
-| `Deliverables/UML/USDM_UML.png` | DDF-RA | The whole-model class diagram, 1.1 MB. We hold 14 partial views of it and not the thing itself. 2026-08-18. |
-| `Documents/DDF USDM Model Informative.pdf` | DDF-RA | An alternative view of the model, 137 KB. Small, and a PDF rather than an image, so it is readable by existing tooling. 2026-08-18. |
