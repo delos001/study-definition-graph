@@ -2,14 +2,9 @@
 
 Where to look. Two sections: what we hold, and what exists that we do not hold.
 
-Skim the first section at session start to see what has and has not been read.
-The second section is consulted only when a question comes up; it is a pointer
-list, not context. For how these standards relate to each other, see
-[standards_map.html](standards_map.html).
+Skim the first section at session start to see what has and has not been read. The second section is consulted only when a question comes up; it is a pointer list, not context. For how these standards relate to each other, see [standards_map.html](standards_map.html).
 
-Provenance and checksums live in `data/manifests/`, one file per set. This file
-answers "which file holds my answer"; the manifests answer "is this file
-authentic". Different questions, different files.
+Provenance and checksums live in `data/manifests/`, one file per set. This file answers "which file holds my answer"; the manifests answer "is this file authentic". Different questions, different files.
 
 ---
 
@@ -44,14 +39,11 @@ Three real protocols, each in three forms. Manifest: `raw_usdm_examples.json`.
 | How did a human decide the mapping? | `usdm_examples/<study>/*.xlsx` | `python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records`. 25 to 35 sheets each. `mainTimeline` is that study's Schedule of Activities, 58 columns wide. |
 | What did it become? | `usdm_examples/<study>/*.json` | The finished USDM output, generated from the spreadsheet. |
 
-Studies: `Alexion_NCT04573309_Wilsons`, `EliLilly_NCT03421379_Diabetes`,
-`CDISC_Pilot`. Search across all workbooks with
-`python scripts/read_xlsx.py --all --find "<term>"`.
+Studies: `Alexion_NCT04573309_Wilsons`, `EliLilly_NCT03421379_Diabetes`, `CDISC_Pilot`. Search across all workbooks with `python scripts/read_xlsx.py --all --find "<term>"`.
 
 ### Crosswalks between standards
 
-Manifest: `raw_usdm_mappings.json`. Both run **into** USDM, verified from their
-column headers.
+Manifest: `raw_usdm_mappings.json`. Both run **into** USDM, verified from their column headers.
 
 | Question | File |
 | --- | --- |
@@ -60,8 +52,7 @@ column headers.
 
 ### ICH M11 CeSHarP, Step 4
 
-Adopted 2025-11-19. Manifest: `raw_ich_m11.json`. **No embedded bookmarks**, so
-these answer only to `--find` and `--pages`, never to a section number.
+Adopted 2025-11-19. Manifest: `raw_ich_m11.json`. **No embedded bookmarks**, so these answer only to `--find` and `--pages`, never to a section number.
 
 | Question | File | How to read it | Read? |
 | --- | --- | --- | --- |
@@ -81,8 +72,7 @@ Manifest: `raw_ich_e9r1.json`.
 
 ## What exists that we do not hold
 
-Only resources actually reviewed appear here. Each carries a decision, not a
-description. Anything named but unchecked is not an entry.
+Only resources actually reviewed appear here. Each carries a decision, not a description. Anything named but unchecked is not an entry.
 
 ### In use, or scheduled
 

@@ -1,7 +1,6 @@
 # USDM-IG v4.0 section map
 
-Routing table for `data/raw/usdm_v4/USDM-IG.pdf` (119 pages, pinned commit
-`aa303cb`). Purpose: find the right section without reading the whole guide.
+Routing table for `data/raw/usdm_v4/USDM-IG.pdf` (119 pages, pinned commit `aa303cb`). Purpose: find the right section without reading the whole guide.
 
 Read a section with:
 
@@ -10,9 +9,7 @@ python scripts/read_pdf.py 4.23
 python scripts/read_pdf.py 6.4 --raw   # skip header/footer stripping
 ```
 
-Page ranges come from the PDF's own bookmarks. Where several sections start on
-the same page the ranges overlap; that is a limit of the source bookmarks, not
-an error. Narrow by reading and trimming.
+Page ranges come from the PDF's own bookmarks. Where several sections start on the same page the ranges overlap; that is a limit of the source bookmarks, not an error. Narrow by reading and trimming.
 
 | Section | Pages |
 | --- | --- |
@@ -71,8 +68,7 @@ an error. Narrow by reading and trimming.
 
 ## Read and verified
 
-Sections confirmed read in a prior session. Anything not listed here has **not**
-been consulted, and claims about it are inference until it is.
+Sections confirmed read in a prior session. Anything not listed here has **not** been consulted, and claims about it are inference until it is.
 
 | Section | Pages | What it established |
 | --- | --- | --- |
