@@ -261,6 +261,118 @@ controlled terminology, and conformance rule specifications all come from the
 public `cdisc-org/DDF-RA` repo, which was already the plan. **Membership is not
 worth buying for this project.**
 
+### Source navigation, built 2026-08-18
+
+`docs/sources.md` is one navigation document covering
+every pinned artifact: what question it answers, how to read it, and whether it
+has been read or is still unexamined. `CLAUDE.md` now points at it at session
+start.
+
+One departure from the plan as written. It was to *replace* `docs/usdm_ig_map.md`.
+It does not. That file holds a per-section read ledger for a 119-page guide, and
+folding that into a per-artifact index would coarsen it from 54 rows to one.
+`sources.md` links to it instead. Same reasoning applies to any future document
+with its own internal ledger: the index points at them, it does not absorb them.
+
+The manifests in `data/manifests/` do not do this job and are not meant to. They
+record url, format, role and sha256, which answers "is this file authentic and
+where did it come from". They do not answer "which file holds my answer".
+
+`docs/sources.md` also absorbs a second job, agreed 2026-08-18: **a registry of
+resources that exist and we do not hold.** The problem it solves is demonstrated,
+not hypothetical. `cdisc-org/cdisc-jsonata-rules` was found by chance while
+checking something else, and it is the reason the CORE scope question stayed open
+for weeks; nothing in the repo would have led a session there.
+
+Two sections, one file, because the question a session asks is "where do I find
+X" and it should not have to know in advance whether X is pinned.
+
+Format rules, which exist to stop it becoming a bibliography:
+
+- **Every entry carries a decision, never a description.** Three states only:
+  *in use* (with where), *not taken* (with the reason, so it does not resurface),
+  *unassessed* (name, location, one line on why it might matter, date last
+  looked at, and nothing else). The cap on the third tier is what keeps it light.
+- **Only things actually reviewed go in.** Named-but-unchecked candidates are not
+  entries. An entry states what was observed and when, not what the thing is,
+  because a one-line characterisation of an unread resource is the same
+  unlabelled-assertion failure that was just cut out of `BACKGROUND.md`.
+- **It is never read at session start.** `CLAUDE.md`'s session-start list must not
+  include it. It is consulted when a question arises. That single constraint is
+  the difference between a pointer file and context bloat.
+
+Entries ready to write, all verified 2026-08-18:
+
+| Resource | State | Observed |
+| --- | --- | --- |
+| `cdisc-org/cdisc-jsonata-rules` | unassessed, do not pin | 98 `DDF000NN` JSONata rules with fixtures. 93 of the 210 v4-applicable spec rules have an implementation, 44%. Five implemented rules are absent from our pinned spec, one (`DDF00262`) beyond its range, so the rules are ahead of the spec. 8.5 MB, mostly ~1 MB test fixtures per rule. No README, no licence, last pushed 2025-12-19. Pull individual rule files at point of use. |
+| `cdisc-org/cdisc-rules-engine` | in use at Phase 0 | The CORE engine. Already scheduled. Version-pin as tooling, not as hashed data. |
+| `cdisc-org/usdm` | not taken | Requires `CDISC_API_KEY` for CDISC Library CT and BC lookups, confirmed from its README. Its `usdm_excel` importer is the tool that generated our three worked examples, so its documented workbook format is worth reading even though the package cannot run here. |
+| `cdisc-org/usdm_api` | unassessed | "A simple DDF emulation", ships a Dockerfile. Reframes the Phase 0 question from "is a conformance endpoint publicly reachable" to "can we run one locally", same pattern as Neo4j. |
+| `cdisc-org/cdisc-open-rules` | not taken | `CORE-000NNN` YAML rules, a different ID space from `DDF000NN`. Not USDM. |
+| ClinicalTrials.gov field definitions | deferred to Phase 1 | Needed to use `ct-gov_mapping.xlsx`; that API is called live by decision. |
+
+Building the index is also the first time the sources get checked against each
+other. Two discrepancies are now closed, two remain unchased:
+
+- **Class counts. Closed, measured 2026-08-18.** `dataStructure.yml` holds 86
+  classes: 80 `Modifier: Concrete` and 6 `Abstract` (`Identifier`,
+  `PopulationDefinition`, `QuantityRange`, `ScheduledInstance`, `StudyDesign`,
+  `SyntaxTemplate`). `dataDictionary.MD` holds 84, the same set minus
+  `ExtensionAttribute` and `ExtensionClass`, consistent with IG §6.4 placing the
+  extension mechanism outside the logical model. `USDM_API.json` holds 164
+  component schemas reducing to 83 base names after stripping `-Input`/`-Output`:
+  the 80 concrete classes plus `Wrapper`, `HTTPValidationError` and
+  `ValidationError`, which are API plumbing rather than model classes. No
+  abstract class appears in the API. `extensionAttributes` is present on exactly
+  those 80 concrete classes, which corrects the "81" previously recorded in
+  `docs/usdm_ig_map.md`.
+- **The 14 UML diagrams are unindexed and ungreppable.** None has been viewed.
+  `Extension.png` and `Timeline.png` are the two the IG points at and cannot
+  render in extracted text.
+- **Codelist references. Closed, measured 2026-08-18.** Every one of the 517
+  distinct NCI C-codes appearing in `dataDictionary.MD` also appears in
+  `USDM_CT.xlsx`. Nothing dangles. `USDM_CT.xlsx` carries 634 codes in total, the
+  extra 117 being value-set terms rather than class and attribute identifiers.
+- **CORE's actual scope is an open question.** 260 rules, unread. The working
+  assumption was that CORE exists to check referential integrity the schema
+  cannot express. Then `dataStructure.yml` turned out to type every reference.
+  What CORE covers is one file read away.
+
+Four further claims arrive here from `BACKGROUND.md`, which was stripped of all
+USDM technical content on 2026-08-18 (see below). Each was carried as an
+unverified assertion and each is settled by reading a pinned file:
+
+- **Conformance rules are reportedly expressed in JSONata**, not the YAML used
+  for other CDISC rule sets. Effectively single-source. `USDM_CORE_Rules.xlsx`
+  settles it.
+- **The CORE rule set is substantially but not fully authored.** No percentage
+  should be quoted until the 260 rows are read. Folds into the CORE scope item
+  above.
+- **JSON-Schema validation of USDM JSON is an open CDISC issue**, so schema
+  validation is complementary to the rules engine rather than a substitute. If
+  true this shapes the Phase 3 validation design, so it needs confirming.
+- **API version and model version are decoupled**, with V5 endpoints reportedly
+  serving USDM 4.0. Checkable in `USDM_API.json` directly.
+
+One claim was dropped rather than moved: "check attribute names against the
+pinned `USDM_API.json` rather than against names in circulation from CDISC's
+reference Python package". That is already the standing rule in `CLAUDE.md`, and
+restating it elsewhere is how rules drift.
+
+### Why BACKGROUND.md no longer describes USDM
+
+`BACKGROUND.md` is read at session start, before any source file is opened. A
+USDM summary sitting there is read first and therefore forms a position in
+advance of the evidence, which is the exact failure the grounding rule exists to
+prevent. Labelling the summary would not fix that; only removing it does.
+
+The test now applied to that file: **if reading a source document could change a
+sentence, the sentence does not belong in `BACKGROUND.md`.** It keeps why the
+project exists, the problem in plain terms, the target hard cases, design
+constraints, evaluation practice and published prior art. All USDM structure is
+gone, along with a file list that duplicated `data/manifests/`.
+
 ## Deliverable 1: BACKGROUND.md
 
 Written. See [BACKGROUND.md](BACKGROUND.md).
@@ -373,117 +485,9 @@ hand-built answer set.
 
 ## Next session, in order
 
-**1. Build `docs/sources.md`. Done 2026-08-18.** One navigation document covering
-every pinned artifact: what question it answers, how to read it, and whether it
-has been read or is still unexamined. `CLAUDE.md` now points at it at session
-start.
+Phase 0 scaffolding is finished. What follows is pipeline work.
 
-One departure from the plan as written. It was to *replace* `docs/usdm_ig_map.md`.
-It does not. That file holds a per-section read ledger for a 119-page guide, and
-folding that into a per-artifact index would coarsen it from 54 rows to one.
-`sources.md` links to it instead. Same reasoning applies to any future document
-with its own internal ledger: the index points at them, it does not absorb them.
-
-The manifests in `data/manifests/` do not do this job and are not meant to. They
-record url, format, role and sha256, which answers "is this file authentic and
-where did it come from". They do not answer "which file holds my answer".
-
-`docs/sources.md` also absorbs a second job, agreed 2026-08-18: **a registry of
-resources that exist and we do not hold.** The problem it solves is demonstrated,
-not hypothetical. `cdisc-org/cdisc-jsonata-rules` was found by chance while
-checking something else, and it is the reason the CORE scope question stayed open
-for weeks; nothing in the repo would have led a session there.
-
-Two sections, one file, because the question a session asks is "where do I find
-X" and it should not have to know in advance whether X is pinned.
-
-Format rules, which exist to stop it becoming a bibliography:
-
-- **Every entry carries a decision, never a description.** Three states only:
-  *in use* (with where), *not taken* (with the reason, so it does not resurface),
-  *unassessed* (name, location, one line on why it might matter, date last
-  looked at, and nothing else). The cap on the third tier is what keeps it light.
-- **Only things actually reviewed go in.** Named-but-unchecked candidates are not
-  entries. An entry states what was observed and when, not what the thing is,
-  because a one-line characterisation of an unread resource is the same
-  unlabelled-assertion failure that was just cut out of `BACKGROUND.md`.
-- **It is never read at session start.** `CLAUDE.md`'s session-start list must not
-  include it. It is consulted when a question arises. That single constraint is
-  the difference between a pointer file and context bloat.
-
-Entries ready to write, all verified 2026-08-18:
-
-| Resource | State | Observed |
-| --- | --- | --- |
-| `cdisc-org/cdisc-jsonata-rules` | unassessed, do not pin | 98 `DDF000NN` JSONata rules with fixtures. 93 of the 210 v4-applicable spec rules have an implementation, 44%. Five implemented rules are absent from our pinned spec, one (`DDF00262`) beyond its range, so the rules are ahead of the spec. 8.5 MB, mostly ~1 MB test fixtures per rule. No README, no licence, last pushed 2025-12-19. Pull individual rule files at point of use. |
-| `cdisc-org/cdisc-rules-engine` | in use at Phase 0 | The CORE engine. Already scheduled. Version-pin as tooling, not as hashed data. |
-| `cdisc-org/usdm` | not taken | Requires `CDISC_API_KEY` for CDISC Library CT and BC lookups, confirmed from its README. Its `usdm_excel` importer is the tool that generated our three worked examples, so its documented workbook format is worth reading even though the package cannot run here. |
-| `cdisc-org/usdm_api` | unassessed | "A simple DDF emulation", ships a Dockerfile. Reframes the Phase 0 question from "is a conformance endpoint publicly reachable" to "can we run one locally", same pattern as Neo4j. |
-| `cdisc-org/cdisc-open-rules` | not taken | `CORE-000NNN` YAML rules, a different ID space from `DDF000NN`. Not USDM. |
-| ClinicalTrials.gov field definitions | deferred to Phase 1 | Needed to use `ct-gov_mapping.xlsx`; that API is called live by decision. |
-
-Building the index is also the first time the sources get checked against each
-other. Two discrepancies are now closed, two remain unchased:
-
-- **Class counts. Closed, measured 2026-08-18.** `dataStructure.yml` holds 86
-  classes: 80 `Modifier: Concrete` and 6 `Abstract` (`Identifier`,
-  `PopulationDefinition`, `QuantityRange`, `ScheduledInstance`, `StudyDesign`,
-  `SyntaxTemplate`). `dataDictionary.MD` holds 84, the same set minus
-  `ExtensionAttribute` and `ExtensionClass`, consistent with IG §6.4 placing the
-  extension mechanism outside the logical model. `USDM_API.json` holds 164
-  component schemas reducing to 83 base names after stripping `-Input`/`-Output`:
-  the 80 concrete classes plus `Wrapper`, `HTTPValidationError` and
-  `ValidationError`, which are API plumbing rather than model classes. No
-  abstract class appears in the API. `extensionAttributes` is present on exactly
-  those 80 concrete classes, which corrects the "81" previously recorded in
-  `docs/usdm_ig_map.md`.
-- **The 14 UML diagrams are unindexed and ungreppable.** None has been viewed.
-  `Extension.png` and `Timeline.png` are the two the IG points at and cannot
-  render in extracted text.
-- **Codelist references. Closed, measured 2026-08-18.** Every one of the 517
-  distinct NCI C-codes appearing in `dataDictionary.MD` also appears in
-  `USDM_CT.xlsx`. Nothing dangles. `USDM_CT.xlsx` carries 634 codes in total, the
-  extra 117 being value-set terms rather than class and attribute identifiers.
-- **CORE's actual scope is an open question.** 260 rules, unread. The working
-  assumption was that CORE exists to check referential integrity the schema
-  cannot express. Then `dataStructure.yml` turned out to type every reference.
-  What CORE covers is one file read away.
-
-Four further claims arrive here from `BACKGROUND.md`, which was stripped of all
-USDM technical content on 2026-08-18 (see below). Each was carried as an
-unverified assertion and each is settled by reading a pinned file:
-
-- **Conformance rules are reportedly expressed in JSONata**, not the YAML used
-  for other CDISC rule sets. Effectively single-source. `USDM_CORE_Rules.xlsx`
-  settles it.
-- **The CORE rule set is substantially but not fully authored.** No percentage
-  should be quoted until the 260 rows are read. Folds into the CORE scope item
-  above.
-- **JSON-Schema validation of USDM JSON is an open CDISC issue**, so schema
-  validation is complementary to the rules engine rather than a substitute. If
-  true this shapes the Phase 3 validation design, so it needs confirming.
-- **API version and model version are decoupled**, with V5 endpoints reportedly
-  serving USDM 4.0. Checkable in `USDM_API.json` directly.
-
-One claim was dropped rather than moved: "check attribute names against the
-pinned `USDM_API.json` rather than against names in circulation from CDISC's
-reference Python package". That is already the standing rule in `CLAUDE.md`, and
-restating it elsewhere is how rules drift.
-
-### Why BACKGROUND.md no longer describes USDM
-
-`BACKGROUND.md` is read at session start, before any source file is opened. A
-USDM summary sitting there is read first and therefore forms a position in
-advance of the evidence, which is the exact failure the grounding rule exists to
-prevent. Labelling the summary would not fix that; only removing it does.
-
-The test now applied to that file: **if reading a source document could change a
-sentence, the sentence does not belong in `BACKGROUND.md`.** It keeps why the
-project exists, the problem in plain terms, the target hard cases, design
-constraints, evaluation practice and published prior art. All USDM structure is
-gone, along with a file list that duplicated `data/manifests/`.
-
-**2. The Alexion walk.** Trace one activity end to end through
+**1. The Alexion walk.** Trace one activity end to end through
 `data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/`: from the printed Schedule
 of Activities in the protocol PDF, to the row a human wrote in the `mainTimeline`
 sheet, to the USDM objects it became in the JSON.
@@ -492,6 +496,26 @@ The point is not the artifact. It is that reading a schema does not tell you how
 it applies to a protocol, and this is the only place where the same activity can
 be seen in all three forms at once. It also defines what Phases 1 to 3 actually
 have to reproduce, which is a better input to designing them than a spec is.
+
+**2. Then design Phase 1** against what the walk actually showed, rather than
+against the specification.
+
+### Still open, none of it blocking
+
+- **The 14 UML class diagrams have never been opened.** They are images, so
+  nothing can grep them. `DDF_USDM_Model_Informative.pdf` now covers the same
+  ground in searchable form, which may make them redundant; nobody has checked.
+- **CORE's exact scope.** Largely answered: 93 of the 210 v4-applicable rules
+  are implemented as JSONata in `cdisc-org/cdisc-jsonata-rules`. What those 93
+  actually check has not been read.
+- **Section addressing returns whole pages.** Asking for a section gives every
+  page it touches, so a section that starts mid-page arrives with the previous
+  one attached, and a list that spills over a page break is silently cut short.
+  Confirmed on E9(R1) §A.3.3, where 3 of 4 estimand attributes were lost.
+  `sources.md` and `CLAUDE.md` route around it with page ranges. Not fixed.
+- **Four claims moved out of `BACKGROUND.md`** still need settling against the
+  sources: rules-are-JSONata, CORE authoring completeness, JSON-Schema
+  validation status, API-versus-model version decoupling. Listed above.
 
 **Not next:** `src/sdg/usdm_spec.py`. It was designed against `USDM_API.json`
 before the UML deliverable was found. `dataStructure.yml` supplies what that
