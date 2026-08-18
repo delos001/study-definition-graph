@@ -1,0 +1,320 @@
+<title>USDM Standards Lineage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@400;600&display=swap">
+
+<style>
+  :root {
+    --ground:    #F5F7F9;
+    --surface:   #FFFFFF;
+    --ink:       #16202B;
+    --muted:     #63707F;
+    --rule:      #D9DEE5;
+    --verified:  #0F6E78;
+    --unverified:#A2601B;
+    --verified-wash:  #0F6E7814;
+    --unverified-wash:#A2601B14;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:    #11151B;
+      --surface:   #191F27;
+      --ink:       #E3E9F0;
+      --muted:     #94A1B1;
+      --rule:      #2A323D;
+      --verified:  #4FC2CC;
+      --unverified:#D99B4A;
+      --verified-wash:  #4FC2CC1A;
+      --unverified-wash:#D99B4A1A;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground:    #11151B;
+    --surface:   #191F27;
+    --ink:       #E3E9F0;
+    --muted:     #94A1B1;
+    --rule:      #2A323D;
+    --verified:  #4FC2CC;
+    --unverified:#D99B4A;
+    --verified-wash:  #4FC2CC1A;
+    --unverified-wash:#D99B4A1A;
+  }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    padding: 3rem 1.5rem 5rem;
+  }
+  .wrap { max-width: 60rem; margin: 0 auto; display: flex; flex-direction: column; gap: 2.75rem; }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: .75rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted); margin: 0 0 .5rem;
+  }
+  h1 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: clamp(1.9rem, 4vw, 2.6rem); font-weight: 600;
+    line-height: 1.15; text-wrap: balance; margin: 0 0 .75rem;
+  }
+  h2 {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1.3rem; font-weight: 600; margin: 0 0 .9rem;
+    text-wrap: balance;
+  }
+  .lede { max-width: 34em; color: var(--muted); margin: 0; }
+  p { max-width: 34em; }
+  header { border-bottom: 1px solid var(--rule); padding-bottom: 2rem; }
+
+  figure { margin: 0; }
+  .figframe {
+    overflow-x: auto; background: var(--surface);
+    border: 1px solid var(--rule); border-radius: 4px; padding: 1.25rem;
+  }
+  .figframe svg { display: block; min-width: 660px; max-width: 100%; height: auto; }
+  figcaption { color: var(--muted); font-size: .9rem; margin-top: .85rem; max-width: 40em; }
+
+  .box      { fill: var(--surface); stroke: currentColor; stroke-opacity: .3; }
+  .box-name { font-family: "IBM Plex Mono", monospace; font-size: 12px; fill: var(--ink); }
+  .box-sub  { font-family: "IBM Plex Sans", sans-serif; font-size: 10.5px; fill: var(--muted); }
+  .band     { font-family: "IBM Plex Mono", monospace; font-size: 10px; fill: var(--muted);
+              letter-spacing: .09em; text-transform: uppercase; }
+  .edge     { stroke: var(--verified); stroke-width: 1.6; fill: none; }
+  .edge-u   { stroke: var(--unverified); stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; }
+  .elabel   { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; fill: var(--verified); }
+  .elabel-u { font-family: "IBM Plex Mono", monospace; font-size: 9.5px; fill: var(--unverified); }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 1.5rem; font-size: .85rem; color: var(--muted); margin-top: 1rem; }
+  .key { display: inline-flex; align-items: center; gap: .5rem; }
+  .swatch { width: 26px; height: 0; border-top: 2px solid var(--verified); }
+  .swatch.u { border-top: 2px dashed var(--unverified); }
+
+  .tablewrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  th, td { text-align: left; padding: .7rem .9rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th {
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem;
+    letter-spacing: .07em; text-transform: uppercase; color: var(--muted); font-weight: 500;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  td code, .mono { font-family: "IBM Plex Mono", monospace; font-size: .84em; }
+  .pill {
+    display: inline-block; white-space: nowrap; padding: .12rem .5rem; border-radius: 2px;
+    font-family: "IBM Plex Mono", monospace; font-size: .72rem; letter-spacing: .04em;
+  }
+  .pill.v { color: var(--verified); background: var(--verified-wash); border: 1px solid var(--verified); }
+  .pill.u { color: var(--unverified); background: var(--unverified-wash); border: 1px solid var(--unverified); }
+
+  .note {
+    border-left: 2px solid var(--unverified); background: var(--unverified-wash);
+    padding: 1rem 1.25rem; border-radius: 0 3px 3px 0;
+  }
+  .note h2 { font-size: 1.1rem; }
+  .note p:last-child { margin-bottom: 0; }
+  ol, ul { max-width: 36em; padding-left: 1.3rem; }
+  li { margin-bottom: .45rem; }
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">study-definition-graph · reference</p>
+  <h1>How the pinned standards fit together</h1>
+  <p class="lede">Four bodies of guidance sit in <span class="mono">data/raw/</span>. This is what
+  feeds what, and which of those connections has actually been checked against the files rather
+  than assumed.</p>
+</header>
+
+<figure>
+  <div class="figframe">
+    <svg viewBox="0 0 820 730" role="img"
+         aria-label="Lineage diagram. ICH E9(R1) and ICH M11 and ClinicalTrials.gov all feed into the USDM UML master model. The master generates dataDictionary.MD and dataStructure.yml, and the API specification is derived from it by an unverified route. USDM_CT.xlsx supplies code lists to the data dictionary, and USDM_CORE_Rules.xlsx validates documents against the API specification. The implementation guide explains all of it in prose. At the bottom, a protocol PDF becomes a hand-mapped spreadsheet which becomes USDM JSON.">
+
+      <defs>
+        <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/>
+        </marker>
+      </defs>
+
+      <!-- ============ BAND 1: external standards ============ -->
+      <text class="band" x="20" y="68">feeds in</text>
+
+      <rect class="box" x="140" y="40" width="209" height="50" rx="3"/>
+      <text class="box-name" x="152" y="62">ICH E9(R1)</text>
+      <text class="box-sub"  x="152" y="79">defines the estimand · 22 pp</text>
+
+      <rect class="box" x="365" y="40" width="209" height="50" rx="3"/>
+      <text class="box-name" x="377" y="62">ICH M11</text>
+      <text class="box-sub"  x="377" y="79">protocol template · 318 pp</text>
+
+      <rect class="box" x="590" y="40" width="209" height="50" rx="3"/>
+      <text class="box-name" x="602" y="62">ClinicalTrials.gov</text>
+      <text class="box-sub"  x="602" y="79">registry fields · live API</text>
+
+      <path class="edge" d="M 244 90 L 244 140 L 415 140 L 415 175" marker-end="url(#tip)"/>
+      <text class="elabel" x="252" y="134">4 of 4 estimand attributes match</text>
+
+      <path class="edge" d="M 469 90 L 469 175" marker-end="url(#tip)"/>
+      <text class="elabel" x="477" y="160">crosswalk</text>
+
+      <path class="edge" d="M 694 90 L 694 140 L 525 140 L 525 175" marker-end="url(#tip)"/>
+      <text class="elabel" x="600" y="134" text-anchor="end">crosswalk</text>
+
+      <!-- ============ BAND 2: master model ============ -->
+      <text class="band" x="20" y="205">master</text>
+
+      <rect class="box" x="380" y="175" width="180" height="52" rx="3" stroke-opacity=".55" stroke-width="1.8"/>
+      <text class="box-name" x="392" y="198">USDM_UML.xmi</text>
+      <text class="box-sub"  x="392" y="215">the one editable source</text>
+
+      <path class="edge" d="M 420 227 L 420 265 L 244 265 L 244 300" marker-end="url(#tip)"/>
+      <text class="elabel" x="252" y="259">generated</text>
+
+      <path class="edge" d="M 470 227 L 470 300" marker-end="url(#tip)"/>
+      <text class="elabel" x="478" y="285">generated</text>
+
+      <path class="edge-u" d="M 520 227 L 520 265 L 694 265 L 694 300" marker-end="url(#tip)"/>
+      <text class="elabel-u" x="686" y="259" text-anchor="end">derived, route not confirmed</text>
+
+      <!-- ============ BAND 3: generated files ============ -->
+      <text class="band" x="20" y="330">generated</text>
+
+      <rect class="box" x="140" y="300" width="209" height="50" rx="3"/>
+      <text class="box-name" x="152" y="322">dataDictionary.MD</text>
+      <text class="box-sub"  x="152" y="339">84 classes, with definitions</text>
+
+      <rect class="box" x="365" y="300" width="209" height="50" rx="3"/>
+      <text class="box-name" x="377" y="322">dataStructure.yml</text>
+      <text class="box-sub"  x="377" y="339">86 classes, typed links</text>
+
+      <rect class="box" x="590" y="300" width="209" height="50" rx="3"/>
+      <text class="box-name" x="602" y="322">USDM_API.json</text>
+      <text class="box-sub"  x="602" y="339">80 real classes + 3 plumbing</text>
+
+      <!-- ============ BAND 4: companions ============ -->
+      <text class="band" x="20" y="455">companions</text>
+
+      <rect class="box" x="140" y="425" width="330" height="52" rx="3"/>
+      <text class="box-name" x="152" y="448">USDM_CT.xlsx</text>
+      <text class="box-sub"  x="152" y="465">the legal values for coded fields · NCI C-codes</text>
+
+      <rect class="box" x="486" y="425" width="313" height="52" rx="3"/>
+      <text class="box-name" x="498" y="448">USDM_CORE_Rules.xlsx</text>
+      <text class="box-sub"  x="498" y="465">259 conformance rules</text>
+
+      <path class="edge" d="M 244 425 L 244 350" marker-end="url(#tip)"/>
+      <text class="elabel" x="252" y="392">all 517 codes resolve</text>
+
+      <path class="edge" d="M 694 425 L 694 350" marker-end="url(#tip)"/>
+      <text class="elabel" x="686" y="392" text-anchor="end">rules validate against it</text>
+
+      <!-- ============ BAND 5: the guide ============ -->
+      <rect class="box" x="140" y="520" width="659" height="46" rx="3" stroke-dasharray="4 4"/>
+      <text class="box-name" x="152" y="541">USDM-IG.pdf</text>
+      <text class="box-sub"  x="152" y="557">explains everything above in prose · 119 pp · the only one written for a human to read</text>
+
+      <!-- ============ BAND 6: in practice ============ -->
+      <text class="band" x="20" y="641">in practice</text>
+
+      <rect class="box" x="140" y="610" width="180" height="50" rx="3"/>
+      <text class="box-name" x="152" y="632">Protocol PDF</text>
+      <text class="box-sub"  x="152" y="649">the real document</text>
+
+      <rect class="box" x="380" y="610" width="180" height="50" rx="3"/>
+      <text class="box-name" x="392" y="632">Spreadsheet</text>
+      <text class="box-sub"  x="392" y="649">a human maps it</text>
+
+      <rect class="box" x="620" y="610" width="179" height="50" rx="3"/>
+      <text class="box-name" x="632" y="632">USDM JSON</text>
+      <text class="box-sub"  x="632" y="649">the structured output</text>
+
+      <path class="edge" d="M 320 635 L 375 635" marker-end="url(#tip)"/>
+      <path class="edge" d="M 560 635 L 615 635" marker-end="url(#tip)"/>
+      <text class="elabel" x="470" y="601" text-anchor="middle">this middle step is what we are replacing</text>
+
+      <line x1="140" y1="588" x2="799" y2="588" stroke="currentColor" stroke-opacity=".18"/>
+    </svg>
+  </div>
+  <figcaption>Everything machine-readable in USDM comes out of one file. The three documents we
+  hold from other bodies attach at specific, checkable points rather than in general.</figcaption>
+  <div class="legend">
+    <span class="key"><span class="swatch"></span> checked against the files</span>
+    <span class="key"><span class="swatch u"></span> not checked</span>
+  </div>
+</figure>
+
+<section>
+  <h2>What was checked, and how</h2>
+  <div class="tablewrap">
+    <table>
+      <thead>
+        <tr><th>Connection</th><th>Status</th><th>Evidence</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>USDM_UML.xmi</code> generates the two UML files</td>
+          <td><span class="pill v">checked</span></td>
+          <td>CDISC's own build script fires whenever that one file changes, and runs a dictionary generator against it.</td>
+        </tr>
+        <tr>
+          <td><code>USDM_CT.xlsx</code> supplies the code lists</td>
+          <td><span class="pill v">checked</span></td>
+          <td>All 517 codes named in the data dictionary appear in the terminology file. None missing.</td>
+        </tr>
+        <tr>
+          <td>Conformance rules check against the API file</td>
+          <td><span class="pill v">checked</span></td>
+          <td>The rules say so in their own text: "must conform with the USDM schema based on the API specification."</td>
+        </tr>
+        <tr>
+          <td>ICH E9(R1) defines what USDM's estimand holds</td>
+          <td><span class="pill v">checked</span></td>
+          <td>All four attributes E9(R1) names, plus intercurrent events, appear one-for-one on USDM's estimand class.</td>
+        </tr>
+        <tr>
+          <td>The two crosswalks run <em>into</em> USDM</td>
+          <td><span class="pill v">checked</span></td>
+          <td>Both spreadsheets are laid out as two column groups: the other standard on the left, USDM on the right.</td>
+        </tr>
+        <tr>
+          <td>M11 and USDM share a code system</td>
+          <td><span class="pill v">checked</span></td>
+          <td>Both use NCI codes, but they overlap only partly: 43 codes in common out of 407 in M11 and 634 in USDM. Not interchangeable.</td>
+        </tr>
+        <tr>
+          <td>Protocol becomes spreadsheet becomes JSON</td>
+          <td><span class="pill v">checked</span></td>
+          <td>All three of CDISC's worked examples exist in exactly those three forms.</td>
+        </tr>
+        <tr>
+          <td><code>USDM_API.json</code> is derived from the master</td>
+          <td><span class="pill u">not checked</span></td>
+          <td>The class counts line up exactly (80 real classes, the 6 abstract ones dropped), so it plainly comes from the model. But the build script I read does not produce it, so how it is made is unconfirmed.</td>
+        </tr>
+        <tr>
+          <td>USDM draws on BRIDG, feeds SDTM</td>
+          <td><span class="pill u">not checked</span></td>
+          <td>The implementation guide says both. Neither has been traced to a file.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="note">
+  <h2>The one thing worth knowing</h2>
+  <p>The single most useful fact on this page: <strong>only one USDM file is authored by hand.</strong>
+  Everything else machine-readable is generated from it. That means a disagreement between two
+  of those files is not two opinions to weigh, it is a generation artifact, and the master wins.</p>
+  <p>That already resolved one open question. Three files appeared to disagree about how many
+  classes USDM has. They do not. The master has 86, six of which are abstract scaffolding that
+  never appears in real data, and two of which are an extension mechanism the documentation
+  deliberately leaves out. Which is how you get 86, 84, and 80 from one model.</p>
+</section>
+
+</div>

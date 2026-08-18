@@ -418,7 +418,7 @@ Entries ready to write, all verified 2026-08-18:
 | ClinicalTrials.gov field definitions | deferred to Phase 1 | Needed to use `ct-gov_mapping.xlsx`; that API is called live by decision. |
 
 Building the index is also the first time the sources get checked against each
-other. One discrepancy is now closed, three remain unchased:
+other. Two discrepancies are now closed, two remain unchased:
 
 - **Class counts. Closed, measured 2026-08-18.** `dataStructure.yml` holds 86
   classes: 80 `Modifier: Concrete` and 6 `Abstract` (`Identifier`,
@@ -435,8 +435,10 @@ other. One discrepancy is now closed, three remain unchased:
 - **The 14 UML diagrams are unindexed and ungreppable.** None has been viewed.
   `Extension.png` and `Timeline.png` are the two the IG points at and cannot
   render in extracted text.
-- **Codelist references are unchecked.** `dataDictionary.MD` has a "Codelist Ref"
-  column pointing into `USDM_CT.xlsx`. Nothing has verified those resolve.
+- **Codelist references. Closed, measured 2026-08-18.** Every one of the 517
+  distinct NCI C-codes appearing in `dataDictionary.MD` also appears in
+  `USDM_CT.xlsx`. Nothing dangles. `USDM_CT.xlsx` carries 634 codes in total, the
+  extra 117 being value-set terms rather than class and attribute identifiers.
 - **CORE's actual scope is an open question.** 260 rules, unread. The working
   assumption was that CORE exists to check referential integrity the schema
   cannot express. Then `dataStructure.yml` turned out to type every reference.
