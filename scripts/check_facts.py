@@ -49,11 +49,12 @@ import openpyxl
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RAW = REPO_ROOT / "data" / "raw"
 
-# Documents scanned for stated figures. docs/standards_map.html is excluded: it
-# is published as an artifact and its numbers are captions on a diagram rather
-# than prose a session would act on.
+# Documents scanned for stated figures. docs/standards_map.html is included:
+# it is linked from docs/sources.md and a session acts on what it says, so its
+# numbers need the same guard as the prose. Being HTML makes no difference to a
+# regex looking for a figure.
 DOCS = ["README.md", "BACKGROUND.md", "PLAN.md", "CLAUDE.md",
-        "docs/sources.md", "docs/usdm_ig_map.md"]
+        "docs/sources.md", "docs/usdm_ig_map.md", "docs/standards_map.html"]
 
 
 ### Measurements ###############################################################
@@ -114,6 +115,27 @@ def dictionary_codes() -> int:
     return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
+def shared_codes() -> int:
+    """NCI codes appearing in both the M11 Technical Specification and USDM's CT.
+
+    Guarded because it is the one figure on the standards map that contradicts
+    an intuition: both standards use NCI codes, so they look interchangeable,
+    and they are not. If this number ever drifts toward either total it would
+    change the conclusion, not just the caption.
+    """
+    text = "".join(page.get_text() for page in
+                   fitz.open(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf"))
+    m11 = set(re.findall(r"\b(C\d{4,6})\b", text))
+
+    terminology = set()
+    for sheet in openpyxl.load_workbook(RAW / "usdm_v4" / "USDM_CT.xlsx", read_only=True):
+        for row in sheet.iter_rows(values_only=True):
+            for cell in row:
+                if cell:
+                    terminology.update(re.findall(r"\b(C\d{4,6})\b", str(cell)))
+    return len(m11 & terminology)
+
+
 def uml_diagrams() -> int:
     """Class diagram images shipped in the UML deliverable."""
     return len(list((RAW / "usdm_v4" / "uml" / "UML_Views").glob("*.png")))
@@ -133,7 +155,8 @@ FACTS = [
     ("CORE rules",            core_rules,        r"(\d+) rules\b"),
     ("M11 data elements",     m11_elements,      r"(\d+) elements"),
     ("UML delta rows",        uml_delta_rows,    r"(\d+) rows:"),
-    ("dataDictionary codes",  dictionary_codes,  r"(\d+) NCI codes"),
+    ("dataDictionary codes",  dictionary_codes,  r"(\d+) NCI codes|all (\d+) codes"),
+    ("M11 and USDM shared codes", shared_codes,  r"(\d+) codes in common"),
     ("UML class diagrams",    uml_diagrams,      r"(\d+) UML class diagrams|(\d+) class diagram"),
     # Written as a word in prose, so the check accepts either form. Kept narrow
     # enough that "three" elsewhere in a sentence cannot match.
