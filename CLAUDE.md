@@ -12,7 +12,7 @@ Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primar
 
 ## Grounding
 
-**No claim about what a pinned standard means, or how it maps to protocol content, without reading the source first.** `docs/sources.md` routes to it.
+**No claim about what a pinned standard means, or how it maps to protocol content, without reading the source first.**
 
 **Never read a pinned PDF whole.** 500 pages combined. Take a section, a page range, or a search term.
 
