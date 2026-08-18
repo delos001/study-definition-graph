@@ -19,27 +19,6 @@ Not in `programming_sandbox`: this needs its own conda environment, a Docker ser
 
 `programming_sandbox\digital_data_flow\` is an empty directory. I will not remove it without asking.
 
-## Plain-English version of the problem
-
-A clinical trial protocol is a long document. Buried in it is a table called the Schedule of Activities: rows are things done to a patient, columns are visits, an X means "do this thing at this visit."
-
-That table is not the real structure. The real structure is a network: visits connected by timing rules, activities hanging off visits, and decision points that branch depending on the patient. The printed table is a flattened picture of that network, and flattening loses things. Specifically it loses everything written as a footnote or as prose: "only if liver enzymes are above twice normal," "repeat every 21 days until the disease progresses," "may be done up to 7 days early."
-
-USDM, the public CDISC data model, has a proper typed slot for every one of those lost things. So the job is not "parse the table." The job is **rebuild the network from a flattened picture plus the footnotes**, and put it in USDM's shape.
-
-That is the project. Everything else supports it.
-
-## Glossary
-
-- **USDM** (Unified Study Definitions Model): CDISC's data model describing a clinical study's *plan*. Version 4.0, released 3 June 2025. Published as an OpenAPI specification, so the exact shape of every object is machine-readable and downloadable.
-- **Schedule of Activities (SoA)**: the visit-by-activity grid in a protocol.
-- **SAP** (Statistical Analysis Plan): companion document describing how the data will be analyzed. Written later, often by different people, referring back to the protocol using different words for the same things. That mismatch is what makes linking two documents interesting.
-- **Knowledge graph**: data stored as things (nodes) and relationships (edges) rather than rows. Good at questions requiring a chain of relationships.
-- **Neo4j**: the most widely used graph database. Runs as a server. Ships with Neo4j Browser, a web page where you type a query and it draws the result as connected dots. That drawing is the reason to use it here: a broken link between two documents is obvious in a picture and nearly invisible in code.
-- **Cypher**: Neo4j's query language. Roughly what SQL is to a relational database.
-- **Entity resolution**: deciding whether two differently-named records are the same real thing. A protocol says "Intent-to-Treat Population," an SAP says "Full Analysis Set." Sometimes identical, sometimes not.
-- **Provenance**: recording, for every extracted fact, where it came from and how it was produced.
-
 ## Decisions made so far
 
 | Decision | Choice | Why |
@@ -80,23 +59,20 @@ One caveat resolved rather than carried: `Documents/README.md` calls all five pr
 
 ### Standards outside CDISC, added 2026-08-18
 
-The source sweep had stopped at one GitHub repository. Widening it turned up two bodies of guidance the project needs and did not hold. Both are now pinned, with manifests and hashes.
+The source sweep had stopped at one GitHub repository. Widening it found two standards the project needs and did not hold. Both are pinned; `docs/sources.md` says what each answers.
 
-**ICH M11 CeSHarP, Step 4, adopted 2025-11-19.** Three documents: Guideline (6pp), Template (67pp), Technical Specification (245pp). Taken from ICH as the primary body; EMA hosts the same three at Step 5. The Template defines what sections a protocol has and what belongs in each, which Phase 1 section location and Phase 2 section classification both need. The Technical Specification defines 186 protocol data elements with definition, data type, cardinality and conformance, and carries NCI C-codes, the same code system USDM uses. It is structurally the M11 counterpart of the USDM data dictionary.
+**ICH M11 CeSHarP**, Step 4, adopted 2025-11-19. Earlier reasoning dismissed it as reference-only because our protocols are not authored in it. Too narrow: its template describes protocol structure whether or not a given protocol follows it, and Phases 1 and 2 need that.
 
-Earlier reasoning had dismissed M11 as reference-only because our source protocols are not authored in it. That was too narrow: the template is useful as a description of protocol structure whether or not a given protocol follows it.
+**ICH E9(R1)**, Step 4, 2019-12-03. Phase 4 gates on the SAP defining estimands. USDM models the framework without defining it; E9(R1) defines it.
 
-**ICH E9(R1) Estimands Addendum, Step 4, 2019-12-03** (22pp). Phase 4 gates on the SAP defining estimands. USDM models the estimand framework structurally but does not define it; E9(R1) does, and §A.3.3 is the attribute definition.
+**Drift between the two bodies is expected, not a defect.** USDM v4.0 is aligned to an M11 Step 2 draft; M11 went Step 4 eight months later. Different organisations, different release cycles. Do not try to reconcile them.
 
-**Drift between bodies is expected, not a defect.** USDM v4.0 (2025-06-03) is aligned to an M11 Step 2 draft, and `m11_mapping.xlsx` targets the Updated Step 2 Draft of 2025-03-14. M11 went Step 4 eight months later. USDM and M11 are maintained by different organisations on different release cycles, so a v4.0 pin pointing at its contemporaneous M11 draft is internally consistent. Recorded in both manifests so no future session tries to reconcile it.
+**Unverified:** whether M11 Step 4 creates an obligation on protocol authors, and by when. `BACKGROUND.md` still calls it an expectation rather than a mandate. Re-check before relying on either reading.
 
-**Still unverified:** whether M11 Step 4, or the EU's Step 5 listing, creates an obligation applicable to protocol authors and on what timeline. `BACKGROUND.md` carries a design constraint saying M11 is "a regulatory expectation, not a verified mandate". That needs re-checking, not inverting.
+### Declined: section addressing for the M11 PDFs
 
-### Declined deliberately: section addressing for the M11 PDFs
+The M11 PDFs carry no bookmarks, so `read_pdf.py` cannot address them by section. Supporting that needs a different mechanism, not a parameterisation of what exists. Not doing it: the Technical Specification is a lookup reference rather than a linear read, so `--find` is the access pattern it wants and a term search lands on one or two pages.
 
-None of the three M11 PDFs carries embedded bookmarks, so `scripts/read_pdf.py` cannot address them by section. Supporting that would need a second, different mechanism: parsing a printed contents page or detecting headings by font size. It is not a parameterisation of what exists.
-
-**Not doing it.** The Technical Specification is a reference of 186 data elements rather than a linear read, so term lookup is the access pattern it actually wants, and `--find` already provides that: a term search lands on one or two pages. Building section navigation would serve an access pattern the document does not have. Recorded here as declined rather than overlooked.
 
 ### Routing complexity, and where LangGraph earns its place
 

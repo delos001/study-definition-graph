@@ -18,6 +18,17 @@ The consequence that defines the project: everything the printed schedule expres
 
 The project's premise is that USDM has a typed structural home for each of those things. That is a premise, not an established fact. How the printed grid maps into USDM is worked out from the sources and from CDISC's own worked examples, not asserted here.
 
+## Glossary
+
+- **USDM** (Unified Study Definitions Model): CDISC's data model describing a clinical study's *plan*. Version 4.0, released 3 June 2025. Published as an OpenAPI specification, so the exact shape of every object is machine-readable and downloadable.
+- **Schedule of Activities (SoA)**: the visit-by-activity grid in a protocol.
+- **SAP** (Statistical Analysis Plan): companion document describing how the data will be analyzed. Written later, often by different people, referring back to the protocol using different words for the same things. That mismatch is what makes linking two documents interesting.
+- **Knowledge graph**: data stored as things (nodes) and relationships (edges) rather than rows. Good at questions requiring a chain of relationships.
+- **Neo4j**: the most widely used graph database. Runs as a server. Ships with Neo4j Browser, a web page where you type a query and it draws the result as connected dots. That drawing is the reason to use it here: a broken link between two documents is obvious in a picture and nearly invisible in code.
+- **Cypher**: Neo4j's query language. Roughly what SQL is to a relational database.
+- **Entity resolution**: deciding whether two differently-named records are the same real thing. A protocol says "Intent-to-Treat Population," an SAP says "Full Analysis Set." Sometimes identical, sometimes not.
+- **Provenance**: recording, for every extracted fact, where it came from and how it was produced.
+
 ## Target hard cases
 
 The two extraction cases the project aims at, chosen because they are precisely the content with no cell in the table:
