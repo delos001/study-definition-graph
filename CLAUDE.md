@@ -14,60 +14,19 @@ This file holds **rules**. `README.md` holds what the project is and how to run 
 
 `docs/standards_map.html` shows how the pinned standards feed each other and which of those links has been verified. Open it when the relationship between two standards matters, not routinely.
 
-## Grounding: which USDM source answers which question
+## Grounding
 
-Three standards bodies are pinned here, not one. USDM is five official CDISC standards (IG p.6) under `data/raw/usdm_v4/`. ICH M11 defines the protocol a study is authored as, under `data/raw/ich_m11/`. ICH E9(R1) defines the estimand framework USDM models, under `data/raw/ich_e9r1/`. None are interchangeable. Go to the one that holds the answer:
+**No claim about what an element of any pinned standard means, or how it maps to protocol content, without reading the relevant source first.** Which source answers which question, and the command to read it, is in `docs/sources.md`. That is the only place that routing lives; do not restate it here.
 
-| Question | Source | How to read it |
-| --- | --- | --- |
-| What does this USDM class or attribute **mean**? | `usdm_v4/uml/dataDictionary.MD` | Grep it. Markdown table, one row per attribute, with definition, cardinality, NCI code, codelist ref. |
-| What does this ID **point at**? | `usdm_v4/uml/dataStructure.yml` | Load with pyyaml. Gives target class, cardinality, and `Ref` vs `Value`. |
-| How does USDM map to real protocol content? | `usdm_v4/USDM-IG.pdf` | `python scripts/read_pdf.py <section>` |
-| What does the payload look like? | `usdm_v4/USDM_API.json` | Shape only. **No semantics.** |
-| Which terms are legal for a coded field? | `usdm_v4/USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` |
-| Is a document conformant? | `usdm_v4/USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet ...` |
-| What does a real one look like? | `usdm_examples/` | Three real protocols with their USDM JSON and the human-authored source spreadsheet. |
-| How did a human decide the mapping? | example `*.xlsx` | `python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records` |
-| What **sections** does a protocol have, and what belongs in each? | `ich_m11/ICH_M11_Template.pdf` | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` |
-| What is this protocol **data element**, and is it required? | `ich_m11/ICH_M11_TechnicalSpecification.pdf` | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"`. 186 elements, each with definition, data type, cardinality, conformance. |
-| What does an **estimand attribute** mean? | `ich_e9r1/ICH_E9R1_Addendum.pdf` | `python scripts/read_pdf.py --doc e9r1 --pages 11-12`. Use the page range, not `A.3.3`: the four attributes (treatment, population, variable, population-level summary) run past the bookmark boundary, and section mode returns only the first. |
-
-**Rule: no claim about what an element of any of these standards means, or how it maps to protocol content, without reading the relevant source first.**
-
-M11 and USDM are maintained by different bodies on different cycles, so they drift. USDM v4.0 (2025-06-03) is aligned to an M11 Step 2 draft; M11 reached Step 4 on 2025-11-19. That is expected and is not a defect to reconcile.
-
-`USDM_API.json` is the trap. It is generated from the model and discards definitions, cardinalities, and the target class of every relationship. Counting things in it describes the file, not the standard. If a question is about meaning, the answer is not in that file.
-
-The pinned PDFs run to 500 pages combined. Never read one whole:
-
-```powershell
-python scripts/read_pdf.py --docs         # what is registered
-python scripts/read_pdf.py 4.23           # IG, by section number
-python scripts/read_pdf.py --find timing  # IG, search all pages
-python scripts/read_pdf.py --list         # IG section map
-python scripts/read_pdf.py --doc m11-techspec --find "Estimand"
-python scripts/read_pdf.py --doc e9r1 --list
-```
-
-The USDM IG and E9(R1) carry bookmarks, so they can be addressed by section. The three M11 PDFs carry none, so they answer only to `--find` and `--pages`. The script says so rather than returning an empty section map.
-
-The example workbooks have 25 to 35 sheets each. Search across all of them rather than guessing which sheet holds something:
-
-```powershell
-python scripts/read_xlsx.py --all --find "estimand"
-python scripts/read_xlsx.py Alexion                        # list its sheets
-python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records
-```
-
-`mainTimeline` in an example workbook is that study's Schedule of Activities. It runs to 58 columns, so use `--format records`, not the default table.
+**Never read a pinned PDF whole.** They run to 500 pages combined. Address a section, a page range, or a search term.
 
 ### Label every claim
 
-Each factual statement about USDM gets one of three labels, stated plainly:
+Each factual statement about any pinned standard gets one of three labels, stated plainly:
 
 | Label | Means |
 | --- | --- |
-| **IG-sourced** | Read in the IG this session. Cite section and page. |
+| **Source-read** | Read in a pinned source this session. Name the document and the section or page. |
 | **Measured** | Computed from a pinned file. Show the command or output. |
 | **Inferred** | Reasoned from names or structure. Not verified. Say so. |
 
@@ -75,10 +34,10 @@ Unlabelled assertion is the failure mode this rule exists to prevent. If a claim
 
 ### When the guidance runs out
 
-USDM does not cover everything, and the IG says so. Three tiers, in order:
+The standards do not cover everything, and they say so. Three tiers, in order:
 
-1. **The IG covers it.** Follow it. Cite section and page.
-2. **The IG does not cover it, but the content must be captured.** Use the extension mechanism, IG §6.4 (pp.100-107): `extensionAttributes` on the class, each entry carrying an `id`, a `url` identifying our extension, and a value. The IG explicitly sanctions this for "a need to overcome issues with the model" (p.100). It also requires that extensions be documented, so record ours in `docs/`.
+1. **A standard covers it.** Follow it. Name the document and the section or page.
+2. **No standard covers it, but the content must be captured.** Use USDM's extension mechanism, IG §6.4, which explicitly sanctions this. It requires that extensions be documented, so record every one in `docs/`. How it is shaped: `docs/usdm_ig_map.md`.
 3. **Neither applies**, because it is a process or design question rather than a data-shape question. Decide, label the decision **unguided**, and record it in `PLAN.md`.
 
 Never stall for lack of guidance. Always say which tier you are in.
