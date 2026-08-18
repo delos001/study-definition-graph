@@ -104,5 +104,5 @@ Named, located, and looked at, but not evaluated for use.
 
 | Resource | Where | What was observed, and when |
 | --- | --- | --- |
-| `cdisc-org/cdisc-jsonata-rules` | GitHub | 98 rule directories named `DDF000NN`, matching the `Final CORE Rule ID` column in our pinned rules spreadsheet. 93 of the 210 v4-applicable rules have an implementation, 44%. Five implemented rules are absent from our pinned spec, one beyond its range, so the rules are ahead of the spec. 8.5 MB, mostly ~1 MB test fixtures per rule. No README, no licence, last pushed 2025-12-19. **Do not bulk-pin; pull individual rule files at point of use.** 2026-08-18. |
-| `cdisc-org/usdm_api` | GitHub | Described as "a simple DDF emulation". Ships a Dockerfile. Reframes the Phase 0 question from "is a conformance endpoint publicly reachable" to "can we run one locally", same pattern as Neo4j. 2026-08-18. |
+| `cdisc-org/cdisc-jsonata-rules` | GitHub | The USDM conformance rules that actually run: 93 of the 210 v4-applicable ones, as JSONata with test fixtures. Do not bulk-pin (8.5 MB, unlicensed); pull single rules at point of use. 2026-08-18. |
+| `cdisc-org/usdm_api` | GitHub | A DDF emulation with a Dockerfile, so a conformance endpoint may be runnable locally rather than needing a public one. 2026-08-18. |

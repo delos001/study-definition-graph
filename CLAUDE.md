@@ -38,6 +38,7 @@ Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primar
 - Every download gets a `data/manifests/` entry in the same breath, never a record inside `data/raw/`. `data/` is gitignored, so an unrecorded file cannot be restored and is indistinguishable from a pinned one.
 - Pinned versions never move. Never fetch latest.
 - `python scripts/verify_manifests.py` checks them: 0 clean, 1 missing or altered, 2 unrecorded, 3 unreadable manifest.
+- Any count written into a document must be recomputable. Add it to `scripts/check_facts.py`, which re-derives every stated figure from the pinned files. Run it after changing the corpus.
 
 ## Pipeline
 

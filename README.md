@@ -63,4 +63,4 @@ study-definition-graph/
 | How the standards feed each other | [docs/standards_map.html](docs/standards_map.html) |
 | USDM guide section map | [docs/usdm_ig_map.md](docs/usdm_ig_map.md) |
 
-The scripts describe themselves: `python scripts/read_pdf.py --help`, likewise `read_xlsx.py` and `verify_manifests.py`.
+The scripts describe themselves: `python scripts/read_pdf.py --help`, likewise `read_xlsx.py`, `verify_manifests.py` and `check_facts.py`.
