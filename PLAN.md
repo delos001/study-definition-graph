@@ -336,12 +336,20 @@ record url, format, role and sha256, which answers "is this file authentic and
 where did it come from". They do not answer "which file holds my answer".
 
 Building the index is also the first time the sources get checked against each
-other. Four discrepancies are already visible and unchased:
+other. One discrepancy is now closed, three remain unchased:
 
-- **Class counts disagree.** `USDM_API.json` 81, `dataDictionary.MD` 84,
-  `dataStructure.yml` 86. Probably abstract classes that never serialise, since
-  `dataStructure.yml` carries a `Modifier: Concrete` field, but that is inference
-  and unverified.
+- **Class counts. Closed, measured 2026-08-18.** `dataStructure.yml` holds 86
+  classes: 80 `Modifier: Concrete` and 6 `Abstract` (`Identifier`,
+  `PopulationDefinition`, `QuantityRange`, `ScheduledInstance`, `StudyDesign`,
+  `SyntaxTemplate`). `dataDictionary.MD` holds 84, the same set minus
+  `ExtensionAttribute` and `ExtensionClass`, consistent with IG §6.4 placing the
+  extension mechanism outside the logical model. `USDM_API.json` holds 164
+  component schemas reducing to 83 base names after stripping `-Input`/`-Output`:
+  the 80 concrete classes plus `Wrapper`, `HTTPValidationError` and
+  `ValidationError`, which are API plumbing rather than model classes. No
+  abstract class appears in the API. `extensionAttributes` is present on exactly
+  those 80 concrete classes, which corrects the "81" previously recorded in
+  `docs/usdm_ig_map.md`.
 - **The 14 UML diagrams are unindexed and ungreppable.** None has been viewed.
   `Extension.png` and `Timeline.png` are the two the IG points at and cannot
   render in extracted text.
@@ -351,6 +359,40 @@ other. Four discrepancies are already visible and unchased:
   assumption was that CORE exists to check referential integrity the schema
   cannot express. Then `dataStructure.yml` turned out to type every reference.
   What CORE covers is one file read away.
+
+Four further claims arrive here from `BACKGROUND.md`, which was stripped of all
+USDM technical content on 2026-08-18 (see below). Each was carried as an
+unverified assertion and each is settled by reading a pinned file:
+
+- **Conformance rules are reportedly expressed in JSONata**, not the YAML used
+  for other CDISC rule sets. Effectively single-source. `USDM_CORE_Rules.xlsx`
+  settles it.
+- **The CORE rule set is substantially but not fully authored.** No percentage
+  should be quoted until the 260 rows are read. Folds into the CORE scope item
+  above.
+- **JSON-Schema validation of USDM JSON is an open CDISC issue**, so schema
+  validation is complementary to the rules engine rather than a substitute. If
+  true this shapes the Phase 3 validation design, so it needs confirming.
+- **API version and model version are decoupled**, with V5 endpoints reportedly
+  serving USDM 4.0. Checkable in `USDM_API.json` directly.
+
+One claim was dropped rather than moved: "check attribute names against the
+pinned `USDM_API.json` rather than against names in circulation from CDISC's
+reference Python package". That is already the standing rule in `CLAUDE.md`, and
+restating it elsewhere is how rules drift.
+
+### Why BACKGROUND.md no longer describes USDM
+
+`BACKGROUND.md` is read at session start, before any source file is opened. A
+USDM summary sitting there is read first and therefore forms a position in
+advance of the evidence, which is the exact failure the grounding rule exists to
+prevent. Labelling the summary would not fix that; only removing it does.
+
+The test now applied to that file: **if reading a source document could change a
+sentence, the sentence does not belong in `BACKGROUND.md`.** It keeps why the
+project exists, the problem in plain terms, the target hard cases, design
+constraints, evaluation practice and published prior art. All USDM structure is
+gone, along with a file list that duplicated `data/manifests/`.
 
 **2. The Alexion walk.** Trace one activity end to end through
 `data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/`: from the printed Schedule

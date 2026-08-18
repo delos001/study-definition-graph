@@ -78,7 +78,7 @@ been consulted, and claims about it are inference until it is.
 | --- | --- | --- |
 | 2 Fundamentals of the USDM | 6-8 | USDM is 5 official standards, not 1: class diagram, API spec, Controlled Terminology, this IG, Conformance Rule Specifications. `USDM_API.json` is one of the five and the one carrying no semantics. v4.0 is aligned to ICH M11 CeSHarP. Publicly available protocols have been mapped to USDM and published as "USDM GitHub Examples" (p.8). |
 | 3.1 Relationship to Other CDISC Standards | 9-10 | USDM draws on BRIDG, supersedes PRM, and feeds SDTM Trial Design datasets. |
-| 6.4 Extension Mechanism | 100-107 | Sanctioned route for content the model does not cover, including explicitly "a need to overcome issues with the model". Implemented as `extensionAttributes`, present on all 81 classes: a list of `ExtensionAttribute` (id, url, value). Not part of the logical model; API-only. Extensions **must be documented** by whoever creates them. |
+| 6.4 Extension Mechanism | 100-107 | Sanctioned route for content the model does not cover, including explicitly "a need to overcome issues with the model". Implemented as `extensionAttributes`, present on all 80 concrete classes (measured 2026-08-18; the 81 previously recorded here was wrong): a list of `ExtensionAttribute` (id, url, value). Not part of the logical model; API-only. Extensions **must be documented** by whoever creates them. |
 
 ## Priority unread sections
 
