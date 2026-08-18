@@ -2,22 +2,13 @@
 
 ## Context
 
-A hands-on learning build. The goal is to understand, by building it, how AI turns unstructured clinical documents into standards-conformant structured data linked in a knowledge graph. Reading about this does not produce the understanding; making it break does.
-
-Two deliverables:
-
-1. **`BACKGROUND.md`**, committed in the repo, so context does not have to be re-established every session.
-2. **A working pipeline**, built in phases.
+Why the project exists is in `BACKGROUND.md`. This file is the build sequence and the record of what was decided and why.
 
 This plan is a starting point, not a contract. Where it names a tool you have not used, Phase 0 exists to get hands on it before anything depends on it. Phases 3 to 5 are deliberately sketches, to be designed when we reach them.
 
 ## Location and naming
 
-New standalone repo at `C:\Users\delos\code\study-definition-graph`.
-
-Not in `programming_sandbox`: this needs its own conda environment, a Docker service, and a `data/` tree, none of which belong in a repo whose README reads "miscellaneous data wrangling scripts." Splitting git history out later costs more than starting clean.
-
-`programming_sandbox\digital_data_flow\` is an empty directory. I will not remove it without asking.
+Standalone repo, not a folder inside `programming_sandbox`: this needs its own conda environment, a Docker service and a `data/` tree, none of which belong in a repo whose README reads "miscellaneous data wrangling scripts." Splitting git history out later costs more than starting clean.
 
 ## Decisions made so far
 
@@ -135,35 +126,7 @@ Building it settled two things by measurement:
 - **Codelist references resolve.** All 517 NCI codes in `dataDictionary.MD` appear in `USDM_CT.xlsx`. Nothing dangles.
 
 
-## Deliverable 1: BACKGROUND.md
-
-Written. See [BACKGROUND.md](BACKGROUND.md).
-
-De-identified deliberately: no company, no people, no locations, no partnerships. Facts originally sourced from conversations are reframed as design constraints, target problems, or open questions, which is what they actually are for this project. Everything else is public standards material or published research.
-
-## Deliverable 2: the pipeline
-
-### Repository layout
-
-```
-study-definition-graph/
-  README.md
-  BACKGROUND.md
-  environment.yml
-  docker-compose.yml         # neo4j
-  .env.example
-  data/
-    raw/                     # never modified after download
-    interim/                 # parsed pages, sections
-    processed/               # extracted entities, graph load files
-    eval/                    # hand-built correct answers
-  prompts/                   # one file per prompt, versioned
-  src/sdg/
-  scripts/
-  tests/
-```
-
-Working conventions for this tree (immutability of `data/raw/`, manifests, source file style) live in `CLAUDE.md`.
+## The pipeline
 
 ### Build phases
 

@@ -32,6 +32,26 @@ Fill in `ANTHROPIC_API_KEY` in `.env`. Neo4j Browser is at <http://localhost:747
 
 `data/` is gitignored and rebuilds from `data/manifests/`. Check it with `python scripts/verify_manifests.py`.
 
+## Layout
+
+```
+study-definition-graph/
+  README.md
+  BACKGROUND.md
+  environment.yml
+  docker-compose.yml         # neo4j
+  .env.example
+  data/
+    raw/                     # never modified after download
+    interim/                 # parsed pages, sections
+    processed/               # extracted entities, graph load files
+    eval/                    # hand-built correct answers
+  prompts/                   # one file per prompt, versioned
+  src/sdg/
+  scripts/
+  tests/
+```
+
 ## Where to look
 
 | For | Read |

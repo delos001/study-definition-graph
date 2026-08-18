@@ -52,11 +52,8 @@ USDM is CDISC's data model for a clinical study's *plan*, as distinct from its r
 
 ## Evaluation and provenance practice
 
-- **Bidirectional verification is the defensible pattern**: conformance and schema validation of the produced artifact, *plus* reconciliation back to source with field-level traceability from each USDM element to the protocol content it came from. The mapping specification itself is the testable artifact.
 - **Golden dataset entry shape**: input, expert-validated expected output, and metadata (category, difficulty, edge-case flag). Practitioner guidance suggests 20 to 50 reviewed items catches gross regressions.
 - **Acceptance thresholds are agreed before testing begins**, and benchmarked at or above the performance of whatever process is being replaced.
-- **Pin model versions to immutable identifiers**, never moving aliases, and record the identifier in run metadata. Providers retire versions, often within roughly 12 to 18 months, without complete changelogs.
-- **Prompts are production dependencies.** Versioned immutably, each version carrying model, parameters, tool configuration, and the rationale for the change. An edit creates a new version rather than altering the old one.
 - **Regression evaluation** re-runs a fixed set after every model, prompt, retriever, or tool change, compared against the last passing baseline.
 - **Named failure mode: silent quality loss.** An edit makes output friendlier and drops a required element. Fluent and wrong is worse than obviously broken.
 - **An observed evaluation pattern in this product category**: generate section by section rather than whole-document; a second model scores each section against a configurable checklist; a third rewrites the prompt when the check fails. Generation is anchored to a structured definition rather than model memory. Structure first, prose second.

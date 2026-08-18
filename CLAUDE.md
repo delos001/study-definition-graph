@@ -2,6 +2,8 @@
 
 Rules for this repo, on top of the global `~/.claude/CLAUDE.md`. `README.md` is what the project is and how to run it; `PLAN.md` is the build sequence and the decision record; `docs/sources.md` is which file answers which question. Keep each to its own job.
 
+This repo is de-identified: no company, no people, no locations, no partnerships. Anything learned from a conversation is written as a design constraint, a target problem or an open question, which is what it is here.
+
 Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primary access path here, and a phrase split across lines silently fails to match.
 
 ## Session start
@@ -39,7 +41,8 @@ Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primar
 
 ## Pipeline
 
-- Prompts live in versioned files under `prompts/`, never as string literals. An edit creates a new version.
+- Prompts live in versioned files under `prompts/`, never as string literals. An edit creates a new version, carrying the model, parameters, tool configuration and the reason for the change.
+- Pin model versions to immutable identifiers, never moving aliases, and record the identifier in run metadata. Providers retire versions without complete changelogs.
 - Every extracted fact carries provenance: source document, section, page, character span, prompt id and version, model id, timestamp. It exists to trace a wrong answer back to the sentence that caused it.
 
 ## Source files
