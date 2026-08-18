@@ -6,6 +6,8 @@ This repo is de-identified: no company, no people, no locations, no partnerships
 
 Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primary access path here, and a phrase split across lines silently fails to match.
 
+Scripts run in the `sdg` conda environment. `README.md` has the rest of the setup.
+
 ## Session start
 
 1. `BACKGROUND.md` - why the project exists and the design constraints.
