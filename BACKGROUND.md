@@ -2,7 +2,7 @@
 
 Context for the study-definition-graph project. Read this at session start.
 
-**What this file is not.** It carries no technical content about USDM. Class meanings, attributes, cardinalities, relationship targets, controlled terminology and conformance rules come from the pinned sources, and only from there. A summary of them here would be read before the sources are ever opened, which forms a position in advance of the evidence and defeats the grounding rule in `CLAUDE.md`. The test applied to every sentence below: if reading a source document could change it, it does not belong in this file.
+No technical content about any standard belongs here. The test: if reading a source document could change a sentence, it goes in the source, not in this file.
 
 ## Why this project exists
 
@@ -27,13 +27,7 @@ The two extraction cases the project aims at, chosen because they are precisely 
 
 ## USDM, in one paragraph
 
-USDM is CDISC's data model for a clinical study's *plan*, as distinct from its results. Version 4.0, released 3 June 2025, aligned to ICH M11, adopted by no regulator. It is published as five separate official standards rather than one file, which is why "check USDM" is not a single action. `CLAUDE.md` holds the table of which of the five answers which kind of question. Everything else about the model is read from those files at the moment it is needed.
-
-## Where the material comes from
-
-Everything this project needs is public and free. No CDISC membership is required, and that was checked rather than assumed: a non-member API key authenticates against the CDISC Library and returns `"Members-only content"`, so the Library API and the `usdm` PyPI package are out of scope.
-
-The pinned corpus and its provenance are in `data/manifests/`, one file per set, with a url and a sha256 per file. Which sources are pinned versus called live, and why, is in `PLAN.md`.
+USDM is CDISC's data model for a clinical study's *plan*, as distinct from its results. Version 4.0, released 3 June 2025, aligned to ICH M11, adopted by no regulator. It is published as five separate official standards rather than one file, which is why "check USDM" is not a single action. Everything else about the model is read from the pinned files when it is needed.
 
 ## Design constraints
 
