@@ -123,7 +123,14 @@ Never stall for lack of guidance. Always say which tier you are in.
   rule above has no exceptions. One file per downloaded set, named for the tier:
   `raw_usdm_v4.json`.
 - The USDM specification is pinned to a recorded commit. Never fetch latest.
-  Verify the recorded sha256 before parsing a pinned file.
+- **Every downloaded file goes in a manifest in the same breath as the
+  download.** `data/` is gitignored, so a file nobody recorded cannot be
+  restored from a clean clone and is indistinguishable from one that was
+  properly pinned.
+- Verify checksums with `python scripts/verify_manifests.py`. Run it after any
+  download, and before trusting a pinned file that a conclusion will rest on.
+  Exit 0 clean, 1 a file is missing or altered, 2 a file is unrecorded, 3 a
+  manifest is unreadable.
 
 ## Pipeline
 

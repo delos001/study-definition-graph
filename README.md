@@ -48,7 +48,14 @@ Then fill in `ANTHROPIC_API_KEY` in `.env`. Neo4j Browser is at
 
 `data/` is gitignored. Every pinned file is recorded in `data/manifests/` with
 its url and sha256, so the corpus can be rebuilt and verified from a clean
-clone.
+clone. Check it at any time:
+
+```powershell
+python scripts/verify_manifests.py
+```
+
+That confirms every recorded file is present and unaltered, and flags any file
+sitting in `data/raw/` that no manifest accounts for.
 
 ## Pinned standards
 
