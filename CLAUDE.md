@@ -16,7 +16,7 @@ Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primar
 
 **No claim about what a pinned standard means, or how it maps to protocol content, without reading the source first.**
 
-**Never read a pinned PDF whole.** 500 pages combined. Take a section, a page range, or a search term.
+**Never read a pinned PDF whole.** 460 pages across six of them. Take a section, a page range, or a search term.
 
 **Label every claim** as one of:
 
