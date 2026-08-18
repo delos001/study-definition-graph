@@ -78,8 +78,14 @@ python scripts/read_xlsx.py --all --find "estimand"
 python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records
 ```
 
-Section-to-page map for the IG, and a record of which sections have been read
-and verified: [docs/usdm_ig_map.md](docs/usdm_ig_map.md).
+## Finding your way around the sources
+
+- [docs/sources.md](docs/sources.md) — which file answers which question, whether
+  it has been read yet, and what exists that we deliberately did not download.
+- [docs/standards_map.html](docs/standards_map.html) — how the four standards
+  feed each other, with every connection marked as verified or not.
+- [docs/usdm_ig_map.md](docs/usdm_ig_map.md) — section-to-page map for the USDM
+  implementation guide, and which sections have been read.
 
 ## Conventions
 

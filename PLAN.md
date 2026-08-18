@@ -373,11 +373,16 @@ hand-built answer set.
 
 ## Next session, in order
 
-**1. Build `docs/sources.md`.** One navigation document covering every pinned
-artifact, replacing `docs/usdm_ig_map.md`, which covers only the IG. For each
-artifact: what question it answers, how to read it, a one-line index of its
-internal structure, and whether it has been read and verified or is still
-unexamined. `CLAUDE.md` then points at that one file.
+**1. Build `docs/sources.md`. Done 2026-08-18.** One navigation document covering
+every pinned artifact: what question it answers, how to read it, and whether it
+has been read or is still unexamined. `CLAUDE.md` now points at it at session
+start.
+
+One departure from the plan as written. It was to *replace* `docs/usdm_ig_map.md`.
+It does not. That file holds a per-section read ledger for a 119-page guide, and
+folding that into a per-artifact index would coarsen it from 54 rows to one.
+`sources.md` links to it instead. Same reasoning applies to any future document
+with its own internal ledger: the index points at them, it does not absorb them.
 
 The manifests in `data/manifests/` do not do this job and are not meant to. They
 record url, format, role and sha256, which answers "is this file authentic and

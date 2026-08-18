@@ -10,6 +10,16 @@
   "excluded": "ctis_mapping.xlsx (EU registry, out of scope), cpt_mapping.xlsx (authoring template our sources do not use), sdtm_mapping.xlsx (USDM to SDTM, downstream and opposite direction).",
   "files": [
     {
+      "name": "DDF-RA_Documents_README.md",
+      "path": "Documents/README.md",
+      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/README.md",
+      "local": "data/raw/usdm_mappings/DDF-RA_Documents_README.md",
+      "format": "Markdown",
+      "role": "CDISC's own description of the Documents directory the crosswalks live in. Held because the caveat below quotes it, and quoting a file we do not hold is untraceable.",
+      "bytes": 920,
+      "sha256": "ada747e8ab4770253e61236920bfa737737602b23701a0e1d48f838a7a607015"
+    },
+    {
       "name": "m11_mapping.xlsx",
       "path": "Documents/Mappings/m11_mapping.xlsx",
       "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Mappings/m11_mapping.xlsx",

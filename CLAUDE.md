@@ -10,12 +10,19 @@ them.
 
 ## Session start
 
-1. Read `BACKGROUND.md`. Domain context, USDM essentials, design constraints.
+1. Read `BACKGROUND.md`. Why the project exists, the problem, design
+   constraints. It carries no technical content about any standard, on purpose.
 2. Read the "Next session, in order" section at the top of `PLAN.md`'s open
    items. It carries what was agreed last time and why, so a cold start does not
    need the user to re-explain it.
-3. Read `docs/usdm_ig_map.md`. It lists which Implementation Guide sections have
-   actually been read and verified, and which have not.
+3. Skim the first half of `docs/sources.md`. It lists every pinned file, the
+   question each one answers, and whether it has actually been read. The second
+   half is a pointer list for things we do not hold; consult it on demand rather
+   than reading it in.
+
+`docs/standards_map.html` shows how the pinned standards feed each other and
+which of those links has been verified. Open it when the relationship between
+two standards matters, not routinely.
 
 ## Grounding: which USDM source answers which question
 
