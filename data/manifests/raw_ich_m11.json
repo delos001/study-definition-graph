@@ -1,0 +1,45 @@
+{
+  "set": "ich_m11",
+  "description": "ICH M11 Clinical electronic Structured Harmonised Protocol (CeSHarP), Step 4 final. Three documents: the Guideline, the protocol Template, and the Technical Specification. USDM v4.0 is aligned to M11, and M11 defines the section structure a protocol is authored in, which Phase 1 section location and Phase 2 section classification both need.",
+  "source": "https://database.ich.org/sites/default/files/",
+  "publisher": "International Council for Harmonisation (ICH)",
+  "step": "Step 4, adopted 19 November 2025",
+  "retrieved": "2026-08-18",
+  "local_dir": "data/raw/ich_m11",
+  "pinning": "ICH publishes PDFs at stable URLs with no version control system, so there is no commit to pin. The pin here is the sha256 plus the retrieval date. Re-download and re-hash to detect a silent replacement at the same URL.",
+  "caveat": "M11 reached Step 4 on 2025-11-19, after USDM v4.0 was published (2025-06-03) and after the DDF-RA m11_mapping.xlsx crosswalk was authored against the Updated Step 2 Draft of 2025-03-14. The crosswalk therefore maps USDM v4.0 to a superseded M11 draft. That is expected: USDM and M11 are maintained by different bodies on different release cycles, and a v4.0 pin pointing at its contemporaneous M11 draft is internally consistent. Do not treat the mismatch as an error to reconcile.",
+  "unverified": "Step 4 status and the 2025-11-19 adoption date were read from page 1 of each PDF. Whether Step 4 or the EU's Step 5 listing creates an obligation applicable to protocol authors, and on what timeline, has NOT been verified. BACKGROUND.md's design constraint on this point needs re-checking rather than inverting.",
+  "alternate_source": "EMA hosts the same three documents at Step 5 (EU implementation), dated 2025-12-15, under https://www.ema.europa.eu/en/ich-m11-guideline-clinical-study-protocol-template-technical-specifications-scientific-guideline. ICH was taken as the primary body.",
+  "files": [
+    {
+      "name": "ICH_M11_Guideline.pdf",
+      "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
+      "local": "data/raw/ich_m11/ICH_M11_Guideline.pdf",
+      "format": "PDF",
+      "pages": 6,
+      "role": "The guideline proper. States scope and principles; the substance is in the other two documents.",
+      "bytes": 292468,
+      "sha256": "28c72a19ba6062d7dc00d67154421ab3cfe09dbdf73d3d88deb2fabd03085ddc"
+    },
+    {
+      "name": "ICH_M11_Template.pdf",
+      "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_Template_2025_1119.pdf",
+      "local": "data/raw/ich_m11/ICH_M11_Template.pdf",
+      "format": "PDF",
+      "pages": 67,
+      "role": "The protocol template: table of contents, common headers, and per-section authoring instructions. This is the document that answers what sections a conformant protocol has and what belongs in each.",
+      "bytes": 998957,
+      "sha256": "89ee5c3f5ff24cb6e7b5f19223f57338e2610a521942a2c575e315a368a4f8c8"
+    },
+    {
+      "name": "ICH_M11_TechnicalSpecification.pdf",
+      "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
+      "local": "data/raw/ich_m11/ICH_M11_TechnicalSpecification.pdf",
+      "format": "PDF",
+      "pages": 245,
+      "role": "Data elements and their technical attributes (definition, conformance, cardinality) for interoperable electronic exchange of protocol content. Structurally the M11 counterpart of the USDM data dictionary, and at 245 pages the largest artifact in the corpus.",
+      "bytes": 3846369,
+      "sha256": "57b8bf8edf32bf359a90a8632f0d771e7956fac5083f2f3a31350a47520e7691"
+    }
+  ]
+}

@@ -131,6 +131,41 @@ provisional and v3.1x-era. That README is stale. Both files we took declare USDM
 v4.0.0 in their own `Readme` sheet, and `m11_mapping` is aligned to the M11
 Updated Step 2 Draft of 14 March 2025, matching IG p.8.
 
+### Standards outside CDISC, added 2026-08-18
+
+The source sweep had stopped at one GitHub repository. Widening it turned up two
+bodies of guidance the project needs and did not hold. Both are now pinned, with
+manifests and hashes.
+
+**ICH M11 CeSHarP, Step 4, adopted 2025-11-19.** Three documents:
+Guideline (6pp), Template (67pp), Technical Specification (245pp). Taken from
+ICH as the primary body; EMA hosts the same three at Step 5. The Template
+defines what sections a protocol has and what belongs in each, which Phase 1
+section location and Phase 2 section classification both need. The Technical
+Specification defines 186 protocol data elements with definition, data type,
+cardinality and conformance, and carries NCI C-codes, the same code system USDM
+uses. It is structurally the M11 counterpart of the USDM data dictionary.
+
+Earlier reasoning had dismissed M11 as reference-only because our source
+protocols are not authored in it. That was too narrow: the template is useful as
+a description of protocol structure whether or not a given protocol follows it.
+
+**ICH E9(R1) Estimands Addendum, Step 4, 2019-12-03** (22pp). Phase 4 gates on
+the SAP defining estimands. USDM models the estimand framework structurally but
+does not define it; E9(R1) does, and §A.3.3 is the attribute definition.
+
+**Drift between bodies is expected, not a defect.** USDM v4.0 (2025-06-03) is
+aligned to an M11 Step 2 draft, and `m11_mapping.xlsx` targets the Updated Step 2
+Draft of 2025-03-14. M11 went Step 4 eight months later. USDM and M11 are
+maintained by different organisations on different release cycles, so a v4.0 pin
+pointing at its contemporaneous M11 draft is internally consistent. Recorded in
+both manifests so no future session tries to reconcile it.
+
+**Still unverified:** whether M11 Step 4, or the EU's Step 5 listing, creates an
+obligation applicable to protocol authors and on what timeline. `BACKGROUND.md`
+carries a design constraint saying M11 is "a regulatory expectation, not a
+verified mandate". That needs re-checking, not inverting.
+
 ### Routing complexity, and where LangGraph earns its place
 
 Counting the actual branch points in Phases 0 to 4:
@@ -334,6 +369,40 @@ unexamined. `CLAUDE.md` then points at that one file.
 The manifests in `data/manifests/` do not do this job and are not meant to. They
 record url, format, role and sha256, which answers "is this file authentic and
 where did it come from". They do not answer "which file holds my answer".
+
+`docs/sources.md` also absorbs a second job, agreed 2026-08-18: **a registry of
+resources that exist and we do not hold.** The problem it solves is demonstrated,
+not hypothetical. `cdisc-org/cdisc-jsonata-rules` was found by chance while
+checking something else, and it is the reason the CORE scope question stayed open
+for weeks; nothing in the repo would have led a session there.
+
+Two sections, one file, because the question a session asks is "where do I find
+X" and it should not have to know in advance whether X is pinned.
+
+Format rules, which exist to stop it becoming a bibliography:
+
+- **Every entry carries a decision, never a description.** Three states only:
+  *in use* (with where), *not taken* (with the reason, so it does not resurface),
+  *unassessed* (name, location, one line on why it might matter, date last
+  looked at, and nothing else). The cap on the third tier is what keeps it light.
+- **Only things actually reviewed go in.** Named-but-unchecked candidates are not
+  entries. An entry states what was observed and when, not what the thing is,
+  because a one-line characterisation of an unread resource is the same
+  unlabelled-assertion failure that was just cut out of `BACKGROUND.md`.
+- **It is never read at session start.** `CLAUDE.md`'s session-start list must not
+  include it. It is consulted when a question arises. That single constraint is
+  the difference between a pointer file and context bloat.
+
+Entries ready to write, all verified 2026-08-18:
+
+| Resource | State | Observed |
+| --- | --- | --- |
+| `cdisc-org/cdisc-jsonata-rules` | unassessed, do not pin | 98 `DDF000NN` JSONata rules with fixtures. 93 of the 210 v4-applicable spec rules have an implementation, 44%. Five implemented rules are absent from our pinned spec, one (`DDF00262`) beyond its range, so the rules are ahead of the spec. 8.5 MB, mostly ~1 MB test fixtures per rule. No README, no licence, last pushed 2025-12-19. Pull individual rule files at point of use. |
+| `cdisc-org/cdisc-rules-engine` | in use at Phase 0 | The CORE engine. Already scheduled. Version-pin as tooling, not as hashed data. |
+| `cdisc-org/usdm` | not taken | Requires `CDISC_API_KEY` for CDISC Library CT and BC lookups, confirmed from its README. Its `usdm_excel` importer is the tool that generated our three worked examples, so its documented workbook format is worth reading even though the package cannot run here. |
+| `cdisc-org/usdm_api` | unassessed | "A simple DDF emulation", ships a Dockerfile. Reframes the Phase 0 question from "is a conformance endpoint publicly reachable" to "can we run one locally", same pattern as Neo4j. |
+| `cdisc-org/cdisc-open-rules` | not taken | `CORE-000NNN` YAML rules, a different ID space from `DDF000NN`. Not USDM. |
+| ClinicalTrials.gov field definitions | deferred to Phase 1 | Needed to use `ct-gov_mapping.xlsx`; that API is called live by decision. |
 
 Building the index is also the first time the sources get checked against each
 other. One discrepancy is now closed, three remain unchased:

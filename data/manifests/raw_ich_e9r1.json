@@ -1,0 +1,22 @@
+{
+  "set": "ich_e9r1",
+  "description": "ICH E9(R1), Addendum on Estimands and Sensitivity Analysis in Clinical Trials. The normative definition of the estimand framework. USDM models that framework structurally but does not define it, and Phase 4 gates on the SAP actually defining estimands, so the definition has to come from here.",
+  "source": "https://database.ich.org/sites/default/files/",
+  "publisher": "International Council for Harmonisation (ICH)",
+  "step": "Step 4, dated 2019-12-03",
+  "retrieved": "2026-08-18",
+  "local_dir": "data/raw/ich_e9r1",
+  "pinning": "ICH publishes PDFs at stable URLs with no version control system, so there is no commit to pin. The pin here is the sha256 plus the retrieval date. Re-download and re-hash to detect a silent replacement at the same URL.",
+  "files": [
+    {
+      "name": "ICH_E9R1_Addendum.pdf",
+      "url": "https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf",
+      "local": "data/raw/ich_e9r1/ICH_E9R1_Addendum.pdf",
+      "format": "PDF",
+      "pages": 22,
+      "role": "Defines the estimand as a construct with attributes (population, variable, intercurrent event handling, population-level summary) and describes sensitivity analysis. Read this before making any claim about what an estimand attribute means.",
+      "bytes": 160629,
+      "sha256": "f7471f411f1c87ee76783d5b2b9faaeca31d01d530213f71b50d136b39e3b0d9"
+    }
+  ]
+}
