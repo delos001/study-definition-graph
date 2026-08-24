@@ -54,7 +54,7 @@ python scripts/fetch_sources.py
 
 Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
 
-The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes, or if a figure stated in the markdown no longer matches the pinned files. Both checks are read-only and take under a second.
+The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes. It is read-only, instant, and uses only the standard library, so it works whether or not the `sdg` environment is active.
 
 Then confirm it worked. All three should exit 0:
 

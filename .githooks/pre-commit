@@ -2,25 +2,22 @@
 #
 # Pre-commit hook for study-definition-graph.
 #
-# Runs the two checks that guard generated or derived content. Both are cheap
-# and read-only. Enabled by `git config core.hooksPath .githooks`, which the
-# README's setup section does; the hook is committed so a fresh clone gets it.
+# Enabled by `git config core.hooksPath .githooks`, which the README's setup
+# section runs after the clone. Committed rather than left in .git/hooks so a
+# fresh clone gets it.
 #
-# Skipped deliberately: verify_manifests.py, which hashes 41 files and belongs
-# in a manual run rather than on every commit.
+# Only checks that need no third-party packages belong here, so the hook works
+# from any terminal whether or not the sdg conda environment is active. That
+# rules out check_facts.py (imports pymupdf and openpyxl) and
+# verify_manifests.py (hashes 41 files). Both are manual runs; see the README.
 
 set -e
 
 # scripts/README.md is generated from each script's header block. A commit that
-# edits a header without regenerating would ship an index that disagrees with
-# the scripts it describes.
+# edits a header without regenerating ships an index that disagrees with the
+# scripts it describes, which is the exact drift the generator exists to stop.
+# Pure standard library, so plain `python` is enough.
 python scripts/build_index.py --check || {
   echo "pre-commit: run 'python scripts/build_index.py' and stage scripts/README.md"
-  exit 1
-}
-
-# Every count stated in the markdown is re-derived from the pinned files.
-python scripts/check_facts.py > /dev/null || {
-  echo "pre-commit: a stated figure no longer matches the sources; run 'python scripts/check_facts.py'"
   exit 1
 }
