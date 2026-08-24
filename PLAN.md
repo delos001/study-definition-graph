@@ -161,7 +161,7 @@ Building it settled two things by measurement:
 
 **Phase 4 (sketch): build the graph and test whether it earns its place.** Load Neo4j, resolve entities across the protocol/SAP pair, build cross-document links, then run the question the project exists to answer.
 
-**Phase 5 (sketch): the Schedule of Activities, done properly.** The real target, last because everything above is scaffolding for it. Reconstruct the timing graph from the flattened table *plus* footnotes and prose. Published evidence says to give the model the page as an image rather than as extracted text, because text extraction loses spatial hierarchy. Score against a hand-built answer set.
+**Phase 5 (sketch): the Schedule of Activities, done properly.** The hardest single case in a protocol, last because it needs everything above it working first. Reconstruct the timing graph from the flattened table *plus* footnotes and prose. Published evidence says to give the model the page as an image rather than as extracted text, because text extraction loses spatial hierarchy. Score against a hand-built answer set.
 
 ### Verification per phase
 
