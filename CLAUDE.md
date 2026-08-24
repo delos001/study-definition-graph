@@ -62,8 +62,10 @@ Outputs:     what it writes, or "writes nothing to disk"
 Usage:       one line per invocation mode, with a real example
 Exit codes:  each code and what causes it
 Date:        YYYY-MM-DD
-Author:      Jason Delosh
+Owner:       Jason Delosh
 ```
+
+`Owner` is who is accountable for the file and who to ask about it, not who wrote it. Authorship is recorded per commit in git, model attribution included, so it stays accurate as humans and models both edit a file over time. `git log --follow <file>` and `git blame <file>` are the answers to who wrote a given line. `Owner` changes only when ownership actually transfers.
 
 And carries:
 

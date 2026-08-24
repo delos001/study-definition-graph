@@ -32,7 +32,7 @@ Exit codes:  0  every stated figure matches the source it came from
              2  a pinned file needed for a check is missing
 
 Date:        2026-08-18
-Author:      Jason Delosh
+Owner:       Jason Delosh
 """
 
 from __future__ import annotations

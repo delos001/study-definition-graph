@@ -47,7 +47,7 @@ Exit codes:  0  every recorded file is present and matches its recorded sha256
              known contents.
 
 Date:        2026-08-24
-Author:      Jason Delosh
+Owner:       Jason Delosh
 """
 
 from __future__ import annotations

@@ -37,7 +37,7 @@ Exit codes:  0  every recorded file is present and matches, no unrecorded files
              than an undocumented one.
 
 Date:        2026-08-18
-Author:      Jason Delosh
+Owner:       Jason Delosh
 """
 
 from __future__ import annotations

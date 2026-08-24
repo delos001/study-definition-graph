@@ -30,7 +30,7 @@ Exit codes:  0 success
              1 the workbook was not found, or the named sheet does not exist
 
 Date:        2026-08-17
-Author:      Jason Delosh
+Owner:       Jason Delosh
 """
 
 from __future__ import annotations

@@ -43,7 +43,7 @@ Exit codes:  0 success
                section mode was used on a document that has no bookmarks
 
 Date:        2026-08-18
-Author:      Jason Delosh
+Owner:       Jason Delosh
 """
 
 from __future__ import annotations

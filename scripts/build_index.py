@@ -43,7 +43,7 @@ Exit codes:  0  the index was written, or --check found it current
              would be wrong rather than merely out of date.
 
 Date:        2026-08-24
-Author:      Jason Delosh
+Owner:       Jason Delosh
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ REQUIRED_FIELDS = (
     "Usage",
     "Exit codes",
     "Date",
-    "Author",
+    "Owner",
 )
 
 # A field starts at column 0 with a capitalised label and a colon. Continuation
