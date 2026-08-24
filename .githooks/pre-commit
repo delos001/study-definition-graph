@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+# Pre-commit hook for study-definition-graph.
+#
+# Runs the two checks that guard generated or derived content. Both are cheap
+# and read-only. Enabled by `git config core.hooksPath .githooks`, which the
+# README's setup section does; the hook is committed so a fresh clone gets it.
+#
+# Skipped deliberately: verify_manifests.py, which hashes 41 files and belongs
+# in a manual run rather than on every commit.
+
+set -e
+
+# scripts/README.md is generated from each script's header block. A commit that
+# edits a header without regenerating would ship an index that disagrees with
+# the scripts it describes.
+python scripts/build_index.py --check || {
+  echo "pre-commit: run 'python scripts/build_index.py' and stage scripts/README.md"
+  exit 1
+}
+
+# Every count stated in the markdown is re-derived from the pinned files.
+python scripts/check_facts.py > /dev/null || {
+  echo "pre-commit: a stated figure no longer matches the sources; run 'python scripts/check_facts.py'"
+  exit 1
+}

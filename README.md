@@ -31,6 +31,7 @@ You need Git, [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/)
 
 ```powershell
 git clone <repo-url> ; cd study-definition-graph
+git config core.hooksPath .githooks   # pre-commit checks, see below
 
 # 1. Python environment. Python 3.12, pinned in environment.yml.
 conda env create -f environment.yml
@@ -52,6 +53,8 @@ python scripts/fetch_sources.py
 ```
 
 Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
+
+The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes, or if a figure stated in the markdown no longer matches the pinned files. Both checks are read-only and take under a second.
 
 Then confirm it worked. All three should exit 0:
 
