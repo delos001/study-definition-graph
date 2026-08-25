@@ -118,6 +118,8 @@ You raised this. It splits cleanly.
 
 Consequence: none. The `usdm` PyPI package stays out of scope, and the model, controlled terminology, and conformance rule specifications all come from the public `cdisc-org/DDF-RA` repo, which was already the plan. **Membership is not worth buying for this project.**
 
+**Biomedical Concepts: same gate, same resolution, confirmed 2026-08-25.** The COSMoS BC API (`GET .../api/cosmos/v1/mdr/bc/packages`) also returns "Members-only content" (401), so live BC lookups are out too. It does not matter: the full BC set is published in the public `cdisc-org/COSMoS` repo export, now pinned to commit `031429b` (manifest `raw_cdisc_bc.json`). BC mapping is therefore feasible without membership, contrary to the earlier worry. It stays a Phase 3 enrichment layer, not a prerequisite: an `Activity` references a BC by ID, so structural extraction comes first and BC IDs attach afterward. The worked examples confirm it is optional, ECG carries no BC mapping while Vitals does.
+
 ### Source navigation, built 2026-08-18
 
 `docs/sources.md` answers "which file holds my answer", which the manifests were never meant to. It has two halves: every pinned file with the question it answers and whether it has been read, then a registry of resources that exist and we do not hold. That registry is the record of what was already reviewed and rejected, so a later session does not re-litigate it; the entries live there, not here.

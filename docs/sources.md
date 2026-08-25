@@ -41,6 +41,16 @@ Three real protocols, each in three forms. Manifest: `raw_usdm_examples.json`.
 
 Studies: `Alexion_NCT04573309_Wilsons`, `EliLilly_NCT03421379_Diabetes`, `CDISC_Pilot`. Search across all workbooks with `python scripts/read_xlsx.py --all --find "<term>"`.
 
+### CDISC Biomedical Concepts (COSMoS)
+
+Pinned to COSMoS commit `031429b`. Manifest: `raw_cdisc_bc.json`. The CDISC Library COSMoS API is member-gated (401 "Members-only content" on this subscription), so these come from the public repo export; the same pin-not-latest discipline as USDM applies. A Biomedical Concept is the concept layer above SDTM and CDASH: it defines a clinical idea once, and SDTM Dataset Specializations and CDASH are derived from it. In USDM an `Activity` references a BC by ID.
+
+| Question | File | How to read it | Read? |
+| --- | --- | --- | --- |
+| What standardized concept does an activity measure? | `cdisc_bc/cdisc_biomedical_concepts.xlsx` | `python scripts/read_xlsx.py cdisc_biomedical_concepts --sheet biomedical_concepts`. One row per BC parameter; the `system`/code columns carry a LOINC code where the concept is a measurement, at the result-row level only. | no |
+| What does each BC field mean, and how was it populated? | `cdisc_bc/BC_Curation_Principles_and_Completion_GLs.xlsx` | The field dictionary for the export above. `python scripts/read_xlsx.py BC_Curation_Principles_and_Completion_GLs`. | no |
+| What is a Biomedical Concept, conceptually? | `cdisc_bc/BC_Overview_Training.pdf` | Not registered in `read_pdf.py`; open directly. Grounding only; the searchable PDF, not the 13 MB pptx. | no |
+
 ### Crosswalks between standards
 
 Manifest: `raw_usdm_mappings.json`. Both run **into** USDM, verified from their column headers.
@@ -97,6 +107,11 @@ Recorded so these do not resurface.
 | `Deliverables/UML/USDM_UML.png` | The whole-model class diagram as an image, 1.1 MB. Superseded by `DDF_USDM_Model_Informative.pdf`, which is the same view in vector form with extractable text, so it can be searched rather than only looked at. Decided 2026-08-18. |
 | `USDM_UML.qea`, `UML_EA.DTD`, `*.graffle`, `HowTos/` | Editor project files and authoring tutorials for CDISC's own toolchain. Reviewed 2026-08-18. |
 | `Documents/CORE Test Data Template/` | Was justified as the route into "what does CORE actually check". That question is now largely answered by the JSONata rules below, so the case has weakened. Reviewed 2026-08-18. |
+| COSMoS `cdisc_sdtm_dataset_specializations_latest.*` | BC-to-SDTM variable mappings. Downstream, SDTM-side; the USDM `Activity`-to-BC link this project needs does not use it. Pull if a bridge to SDTM ever appears. Reviewed 2026-08-25. |
+| COSMoS `cdisc_biomedical_concepts_hierarchy_latest.csv` | The BC parent/child hierarchy, already present as sheets inside the pinned `cdisc_biomedical_concepts.xlsx` bundle. Holding it separately would duplicate. Reviewed 2026-08-25. |
+| COSMoS `cdisc_crf_specializations_draft.*` | BC-to-CRF/CDASH mappings, marked draft by CDISC. CDASH-side and not stable. Reviewed 2026-08-25. |
+| COSMoS `bc_starter_package/doc/` governance set | Governance process, COSMoS charters, DEC templates, reviewer tip sheets: CDISC's own BC-authoring machinery. This project consumes BCs, it does not author them. The two consumption-relevant files from that folder (Completion GLs, Overview Training) are held above. Reviewed 2026-08-25. |
+| LOINC dataset (Regenstrief) | The BC export already carries LOINC codes inline, so mapping does not need the LOINC database. Only pulling it would validate those codes or add LOINC's own attributes, and it requires a Regenstrief licence (not open like the CDISC files). Deferred. Reviewed 2026-08-25. |
 
 ### Unassessed
 

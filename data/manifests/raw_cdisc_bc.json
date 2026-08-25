@@ -1,0 +1,39 @@
+{
+  "standard": "CDISC Biomedical Concepts (COSMoS)",
+  "version": "rolling export, pinned by commit",
+  "released": "2026-07-21",
+  "source_repo": "https://github.com/cdisc-org/COSMoS",
+  "pinned_commit": "031429b1d14823721991cd23ee88a11616686ce3",
+  "commit_message": "Remove 'utilities/' from exclude list",
+  "retrieved": "2026-08-25",
+  "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (401), so the Biomedical Concepts are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding.",
+  "files": [
+    {
+      "name": "cdisc_biomedical_concepts_latest.xlsx",
+      "path": "export/cdisc_biomedical_concepts_latest.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/export/cdisc_biomedical_concepts_latest.xlsx",
+      "format": "XLSX",
+      "bytes": 1368920,
+      "sha256": "6c004f592c62ea2f06877ff86788a9c11d2a721d9f8a08809e7dc6f14d1fe1e6",
+      "local": "data/raw/cdisc_bc/cdisc_biomedical_concepts.xlsx"
+    },
+    {
+      "name": "BC Curation Principles and Completion GLs.xlsx",
+      "path": "bc_starter_package/doc/BC Curation Principles and Completion GLs.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/bc_starter_package/doc/BC%20Curation%20Principles%20and%20Completion%20GLs.xlsx",
+      "format": "XLSX",
+      "bytes": 64009,
+      "sha256": "55fbe35b9125a02ffd4d703c71b3937a0af5d73e4857d61b66e95e08378ce3b8",
+      "local": "data/raw/cdisc_bc/BC_Curation_Principles_and_Completion_GLs.xlsx"
+    },
+    {
+      "name": "BC Overview Training.pdf",
+      "path": "bc_starter_package/doc/BC Overview Training.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/bc_starter_package/doc/BC%20Overview%20Training.pdf",
+      "format": "PDF",
+      "bytes": 1783874,
+      "sha256": "482447cfa8173c20b5600afce8560e3d6546065d71cf0c4531dea00a13f71bfd",
+      "local": "data/raw/cdisc_bc/BC_Overview_Training.pdf"
+    }
+  ]
+}
