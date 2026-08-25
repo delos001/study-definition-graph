@@ -38,6 +38,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -146,6 +147,32 @@ def worked_examples() -> int:
     return len([d for d in (RAW / "usdm_examples").iterdir() if d.is_dir()])
 
 
+def examples_with_estimands() -> int:
+    """Worked-example studies whose USDM JSON defines at least one estimand.
+
+    Estimands hang off each studyDesign. Counted because PLAN.md leans on their
+    scarcity, only one of the three examples defines any, to justify why Phase 1
+    must select for documents that actually define estimands. If the corpus
+    grows or an example gains an estimand, that argument has to move with it.
+    """
+    count = 0
+    for directory in (RAW / "usdm_examples").iterdir():
+        if not directory.is_dir():
+            continue
+
+        # An example ships a PDF, an .xlsx and one USDM export; the export is
+        # the only .json, so the glob cannot pick up the wrong file.
+        exports = list(directory.glob("*.json"))
+        if not exports:
+            continue
+
+        document = json.loads(exports[0].read_text(encoding="utf-8"))
+        designs = document["study"]["versions"][0]["studyDesigns"]
+        if any(design.get("estimands") for design in designs):
+            count += 1
+    return count
+
+
 # Each entry is (label, measurement, regex capturing the figure as stated).
 # The regex must be specific enough that it cannot match an unrelated number;
 # a loose pattern would report a false match and defeat the point.
@@ -161,6 +188,11 @@ FACTS = [
     # Written as a word in prose, so the check accepts either form. Kept narrow
     # enough that "three" elsewhere in a sentence cannot match.
     ("worked example studies", worked_examples,  r"(?:(\d+)|(?i:(three)|(two)|(four))) (?:real protocols|worked example)"),
+    # The count of examples that define an estimand, as stated in PLAN.md. The
+    # trailing literal "of the three pinned examples defines" anchors it so the
+    # captured number is the leading count, not the "three" later in the phrase.
+    ("examples with estimands", examples_with_estimands,
+     r"(?:(\d+)|(?i:(one)|(two)|(three))) of the three pinned examples defines"),
 ]
 
 
@@ -170,7 +202,7 @@ FACTS = [
 # Small counts are often written as words in prose. Mapping them here keeps the
 # check honest without forcing the documents to use digits where words read
 # better.
-WORD_NUMBERS = {"two": "2", "three": "3", "four": "4"}
+WORD_NUMBERS = {"one": "1", "two": "2", "three": "3", "four": "4"}
 
 
 def stated_values(pattern: str) -> list[tuple[str, int]]:
