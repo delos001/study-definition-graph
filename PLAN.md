@@ -176,13 +176,25 @@ Building it settled two things by measurement:
 
 ## Next session, in order
 
-Phase 0 scaffolding is finished. What follows is pipeline work.
+Phase 0 scaffolding is finished. The two orientation walks are done. What follows is pipeline work.
 
-**1. The Alexion walk.** Trace one activity end to end through `data/raw/usdm_examples/Alexion_NCT04573309_Wilsons/`: from the printed Schedule of Activities in the protocol PDF, to the row a human wrote in the `mainTimeline` sheet, to the USDM objects it became in the JSON.
+**1. The walks, done 2026-08-25.** Traced one activity (12-lead ECG, triplicate) through all three forms of the Alexion example: printed SoA grid, hand-authored `mainTimeline` row, USDM JSON objects. Alexion defines no estimand, so a second walk traced the primary endpoint and its estimand through the CDISC_Pilot example. Kept conversational; the value is the findings below, not an artifact.
 
-The point is not the artifact. It is that reading a schema does not tell you how it applies to a protocol, and this is the only place where the same activity can be seen in all three forms at once. It also defines what Phases 1 to 3 actually have to reproduce, which is a better input to designing them than a spec is.
+### What the two walks showed, and how it shapes Phase 1
 
-**2. Then design Phase 1** against what the walk actually showed, rather than against the specification.
+Grounded in the examples rather than the spec. Each finding gates a specific Phase 1 decision.
+
+1. **A heading does not tell you what a section contains.** The CDISC_Pilot estimand content lived under "Efficacy Criteria" (3.9.1.2) and "Times of Analyses" (4.3.2), because that protocol is from 2006, thirteen years before ICH E9(R1) named the estimand concept. So Phase 1 locates section *boundaries* deterministically but must never infer *content* from a title. This is the concrete reason Phase 1 (boundaries) and Phase 2 (AI classification of content) are separate stages, not one.
+
+2. **PDF addressability varies, and Phase 1 must handle both kinds.** Alexion carried embedded bookmarks; CDISC_Pilot carried none, only numbered headings in the body text. The section locator needs both paths, the same split `read_pdf.py` already draws for the pinned standards. A protocol with no bookmarks must degrade to heading detection, not fail.
+
+3. **Grids need structure-aware extraction, not flat text.** The SoA collapses to unreadable linear text under a plain extract; `fitz.find_tables()` recovered its rows, columns, and footnote markers. Phase 1 must preserve the grid and its footnote links. Already the P1 verification criterion; the walk confirms it is load-bearing rather than nice-to-have.
+
+4. **A target concept may simply be absent from a document.** Alexion defines zero estimands; only one of the three pinned examples defines any at all. This is why acquisition selects for a separate protocol and SAP where the SAP actually defines estimands, and, per finding 1, detecting "defines estimands" is itself hard because the content is unlabeled. Acquisition likely gathers candidates loosely and confirms estimand presence in a later, content-aware pass.
+
+5. **The worked examples are interpretive, and at least one is wrong.** The single CDISC_Pilot estimand records its intercurrent-event strategy as "Treatment Policy", but the protocol (3.9.1.2 and 4.3.2) restricts the primary analysis to pre-interruption data, which is a "While on Treatment" strategy, the opposite one (E9(R1) A.3.2, source-read). The likely cause is conflating the ITT *population* with the treatment-policy *strategy*. Consequence for eval: the reference examples cannot be treated as infallible ground truth. Phase 3/5 scoring needs a way to flag suspected-bad reference data rather than penalise a correct extraction that disagrees with a human error.
+
+**2. Design Phase 1** against these five findings rather than against the specification. Sub-questions, in the order they gate each other: what Phase 1 must *produce* (the intermediate representation Phase 2 consumes); how acquisition applies the estimand-bearing selection criterion; and how section location degrades gracefully when a PDF has no bookmarks.
 
 ### Still open, none of it blocking
 
