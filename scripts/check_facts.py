@@ -13,9 +13,13 @@ Description: Recomputes every countable fact asserted in the project's markdown
              A number in prose has no owner. This script makes the pinned files
              the owner and the prose the thing that has to keep up.
 
-             Only countable claims are checked. Judgements, decisions and
-             reasoning are out of scope and always will be; those are reviewed
-             by reading.
+             Only countable claims derived from the pinned corpus are checked.
+             Judgements, decisions and reasoning are out of scope and always
+             will be; those are reviewed by reading. Figures attributed to an
+             external source (a cited paper's benchmark, say) are out of scope
+             too: they cannot be recomputed from the pinned files, so their
+             owner is the citation and its access date, not this script. Such
+             figures live behind a [n] reference marker instead.
 
 Inputs:      data/raw/**            (read-only, pinned)
              *.md and docs/*.md     (read-only, scanned for the stated figure)
