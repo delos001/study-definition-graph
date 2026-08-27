@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Rules for this repo, on top of the global `~/.claude/CLAUDE.md`. `README.md` is what the project is and how to run it; `PLAN.md` is the build sequence and the decision record; `docs/sources.md` is which file answers which question. Keep each to its own job.
+Rules for this repo, on top of the global `~/.claude/CLAUDE.md`. `README.md` is what the project is and how to run it; `PLAN.md` is the build sequence; `DECISIONS.md` is the record of choices made and why; `docs/sources.md` is which file answers which question. Keep each to its own job.
 
 This repo is de-identified: no company, no people, no locations, no partnerships. Anything learned from a conversation is written as a design constraint, a target problem or an open question, which is what it is here.
 
@@ -11,8 +11,9 @@ Scripts run in the `sdg` conda environment. `README.md` has the rest of the setu
 ## Session start
 
 1. `BACKGROUND.md` - why the project exists and the design constraints.
-2. `PLAN.md`, "Next session, in order" - what was agreed last time.
-3. `docs/sources.md`, first half - every pinned file, and whether it has been read.
+2. `PLAN.md` - the build plan: phases, scope, and how each is verified.
+3. GitHub Issues - current status and what to work on next.
+4. `docs/sources.md`, first half - every pinned file, and whether it has been read.
 
 ## Grounding
 
@@ -32,7 +33,7 @@ Scripts run in the `sdg` conda environment. `README.md` has the rest of the setu
 
 1. A standard covers it - follow it, cite it.
 2. Not covered, but the content must be captured - use USDM's extension mechanism (IG 6.4) and record every extension in `docs/`.
-3. A process or design question rather than a data-shape one - decide, label it **unguided**, record it in `PLAN.md`.
+3. A process or design question rather than a data-shape one - decide, label it **unguided**, record it in `DECISIONS.md`.
 
 ## Data
 
