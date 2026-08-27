@@ -15,6 +15,14 @@ Scripts run in the `sdg` conda environment. `README.md` has the rest of the setu
 3. GitHub Issues - current status and what to work on next.
 4. `docs/sources.md`, first half - every pinned file, and whether it has been read.
 
+## Issue tracking
+
+GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS.md` records why. Keep them consistent.
+
+- Before working a phase, check its parent issue. If it has no sub-issues, break the phase down and create them first.
+- When work deviates from `PLAN.md` (a task added, dropped, or changed), reconcile in the same session: update or close the affected issue(s), and if the plan itself changed, update `PLAN.md` and record why in `DECISIONS.md`.
+- Close a phase's parent when its sub-issues are done.
+
 ## Grounding
 
 **No claim about what a pinned standard means, or how it maps to protocol content, without reading the source first.**
