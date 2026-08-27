@@ -2,33 +2,33 @@
 
 The document contains the record of choices made and why. This is an append-only log: entries are added as decisions are made and are not rewritten as work progresses.
 
-For the build plan itself, see `PLAN.md`;
-For the problem and background, see `BACKGROUND.md`.
+- For the build plan itself, see `PLAN.md`.
+- For the problem and background, see `BACKGROUND.md`.
 
 ## Foundational choices
 
 | Decision | Choice | Why |
 | --- | --- | --- |
 | Output | Working code first | Design write-up deferred, not dropped. |
-| Corpus | Protocol + SAP for the same study, growing to about 3 studies | Smallest set where classifying a document is a real decision and linking across documents is real. |
+| Corpus | Protocol + SAP for the same study, growing to about 3 studies | Smallest set where document classification can be measured and linking information across documents is possible. |
 | Graph store | Neo4j in Docker | Docker 29.6.2 already installed. The visual browser is the main argument. |
-| Neo4j version | Pinned to `5.26.29-community` (5.26 LTS) | The `5-community` tag floats to the newest 5.x on every pull. Same reasoning as the pinned USDM spec: a version moving mid-project makes a failure unattributable. Digest recorded in `docker-compose.yml`. |
+| Neo4j version | Pinned to `5.26.29-community` (5.26 LTS) | The `5-community` tag floats to the newest 5.x on every pull. A version moving mid-project makes a failure unattributable. Digest recorded in `docker-compose.yml`. |
 | Standard | USDM v4.0, pinned | Current published version. |
 | Model provider | Anthropic (Claude) | Key already in use in `langgraph_sandbox/spike/spike.py` via `langchain_anthropic`. |
-| Orchestration | Plain Python through Phase 4, LangGraph at Phase 5 | See the routing-complexity assessment below. |
+| Orchestration | Plain Python through Phase 4, LangGraph at Phase 5 | See the routing complexity assessment below. |
 | Source material | All five official USDM standards pinned, plus CDISC's worked examples | See below. The API specification alone was not enough. |
 
 ## Which USDM sources we hold, and why
 
-USDM is five official CDISC standards (IG p.6), not one file. The project originally held only the API specification, which is generated from the model and discards every attribute definition, every cardinality, and the target class of every relationship. Design work built on it was reasoning from the one artifact with no semantics in it.
+USDM is five official CDISC standards (IG p.6), not one file. The model's API specification discards attribute definitions, cardinality, and the target class of every relationship, so it is not a sufficient basis for design work.
 
 All five are now pinned to DDF-RA commit `aa303cb`, with the worked examples and two crosswalks. Inventory and hashes in `data/manifests/`.
 
 The UML deliverable is the one that mattered most. `dataStructure.yml` types every ID reference (`epochId` to `StudyEpoch`, `activityIds` to `Activity`), which the API specification leaves as a bare string. That is the edge list Phase 4 needs and it is published, not something we have to infer.
 
-## Mapping crosswalks: two taken, three dropped
+## Mapping crosswalks used
 
-`Documents/Mappings/` holds five crosswalks between USDM and other standards.
+`Documents/Mappings/` holds five crosswalks between USDM and other standards. Two were taken. Three were dropped.
 
 **Taken:**
 
@@ -41,11 +41,11 @@ The UML deliverable is the one that mattered most. `dataStructure.yml` types eve
 - `cpt_mapping.xlsx`. TransCelerate authoring template. Our sources do not use it.
 - `sdtm_mapping.xlsx`. Maps USDM to SDTM, which is downstream of this project and runs in the opposite direction.
 
-One caveat resolved rather than carried: `Documents/README.md` calls all five provisional and v3.1x-era. That README is stale. Both files we took declare USDM v4.0.0 in their own `Readme` sheet, and `m11_mapping` is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching IG p.8.
+One caveat resolved rather than carried: `data/raw/usdm_mappings/DDF-RA_Documents_README.md` (CDISC's own, shipped with the crosswalks) calls all five provisional and v3.1x-era. That README is stale. Both files we took declare USDM v4.0.0 in their own `Readme` sheet, and `m11_mapping` is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching IG p.8.
 
 ## Standards outside CDISC, added 2026-08-18
 
-The source sweep had stopped at one GitHub repository. Widening it found two standards the project needs and did not hold. Both are pinned; `docs/sources.md` says what each answers.
+The source sweep had stopped at one GitHub repository. Widening it found two standards the project needs and did not hold. Both are listed below and pinned; `docs/sources.md` says what each answers.
 
 **ICH M11 CeSHarP**, Step 4, adopted 2025-11-19. Earlier reasoning dismissed it as reference-only because our protocols are not authored in it. Too narrow: its template describes protocol structure whether or not a given protocol follows it, and Phases 1 and 2 need that.
 
@@ -53,31 +53,27 @@ The source sweep had stopped at one GitHub repository. Widening it found two sta
 
 **Drift between the two bodies is expected, not a defect.** USDM v4.0 is aligned to an M11 Step 2 draft; M11 went Step 4 eight months later. Different organisations, different release cycles. Do not try to reconcile them.
 
-**Unverified:** whether M11 Step 4 creates an obligation on protocol authors, and by when. `BACKGROUND.md` still calls it an expectation rather than a mandate. Re-check before relying on either reading.
-
 ## Section addressing, fixed 2026-08-18
 
-`read_pdf.py` returned whole pages for a section, so a section starting mid-page arrived with the previous one attached, and one spilling past a page break was silently cut short. E9(R1) A.3.3 returned 1 of its 4 estimand attributes with no sign the rest existed. In the USDM IG, 32 of 54 sections shared a page range with another, and 4.22 and 4.23 returned byte-identical text.
-
-The cause was one line: the section end was set to the page before the next section starts, which discards whatever the section holds on that page. It now ends on that page and `read_pdf.py` trims both shared pages at the headings, matching on the section number because the IG puts number and title on one line while E9(R1) splits them. Where a heading cannot be found the output says so rather than guessing, since a boundary chosen silently is the failure being fixed.
-
-All 66 sections across both bookmarked documents extract cleanly, each starting at its own heading. `docs/usdm_ig_map.md` was regenerated, since 40 of its 52 page ranges changed.
+`read_pdf.py` addressed sections by page range, not by heading, so a section starting mid-page kept the previous one and one spilling past a page break was cut short (E9(R1) A.3.3 returned only 1 of its 4 estimand attributes). The fix: end each section at the next heading, and where a heading cannot be found, say so rather than guess; a silently chosen boundary is the failure being fixed. All 66 sections across both bookmarked documents now extract cleanly, each at its own heading.
 
 ## Declined: section addressing for the M11 PDFs
 
 The M11 PDFs carry no bookmarks, so `read_pdf.py` cannot address them by section. Supporting that needs a different mechanism, not a parameterisation of what exists. Not doing it: the Technical Specification is a lookup reference rather than a linear read, so `--find` is the access pattern it wants and a term search lands on one or two pages.
 
-## Routing complexity, and where LangGraph earns its place
+## Routing complexity
 
-Counting the actual branch points in Phases 0 to 4:
+The question: does the pipeline need an orchestration framework (LangGraph), and if so when? It turns on control-flow complexity: LangGraph earns its place when there are cycles, or when the model decides what runs next.
 
-- Section category selects which extraction prompt. That is a dictionary lookup, not routing.
+In the pipeline as currently planned (Phases 0 to 4), the branch points are few:
+
+- Section category selects which extraction prompt. A dictionary lookup, not routing.
 - Confidence below a threshold sends a record to a review queue. One `if`.
 - Entity resolution goes candidate, then adjudicate, then merge or queue. One branch.
 
-No cycles. Nothing where the model decides what happens next. That is a fan-out over a list with a dispatch table, and LangGraph around it would be scaffolding on a `for` loop.
+No cycles, and nothing where the model decides what happens next: a fan-out over a list with a dispatch table, where LangGraph would be scaffolding on a `for` loop. A production workflow would add real routing (QC gates, human-in-the-loop, rework loops, escalation), and those are cycles, exactly where LangGraph would earn its place. That is deferred, not assumed away.
 
-A real cycle appears exactly once, in Phase 5: generate, score against a checklist, and if it fails, revise the prompt and regenerate. Cycles are what LangGraph is for.
+The first real cycle in this build appears in Phase 5: generate, score against a checklist, and if it fails, revise the prompt and regenerate. Cycles are what LangGraph is for.
 
 **Decision:** write every stage as a pure function taking and returning an explicit state object, in plain Python. Adopt LangGraph at Phase 5. Written this way the migration is mechanical, since each function becomes a node. The cost of deferring is near zero; the cost of adopting now is debugging two unfamiliar things at once when only one of them is the subject.
 
@@ -112,7 +108,7 @@ It splits cleanly.
 
 Consequence: none. The `usdm` PyPI package stays out of scope, and the model, controlled terminology, and conformance rule specifications all come from the public `cdisc-org/DDF-RA` repo, which was already the plan. **Membership is not worth buying for this project.**
 
-**Biomedical Concepts: same gate, same resolution, confirmed 2026-08-25.** The COSMoS BC API (`GET .../api/cosmos/v1/mdr/bc/packages`) also returns "Members-only content" (401), so live BC lookups are out too. It does not matter: the full BC set is published in the public `cdisc-org/COSMoS` repo export, now pinned to commit `031429b` (manifest `raw_cdisc_bc.json`). BC mapping is therefore feasible without membership, contrary to the earlier worry. It stays a Phase 3 enrichment layer, not a prerequisite: an `Activity` references a BC by ID, so structural extraction comes first and BC IDs attach afterward. The worked examples confirm it is optional, ECG carries no BC mapping while Vitals does.
+**Biomedical Concepts: same gate, same resolution, confirmed 2026-08-25.** The COSMoS BC API (`GET .../api/cosmos/v1/mdr/bc/packages`) also returns "Members-only content" (401), so live BC lookups are out too. It does not matter: the full BC set is published in the public `cdisc-org/COSMoS` repo export, now pinned to commit `031429b` (manifest `raw_cdisc_bc.json`). BC mapping is therefore feasible without membership, contrary to the earlier worry. It stays a Phase 3 enrichment layer, not a prerequisite: an `Activity` references a BC by ID, so structural extraction comes first and BC IDs attach afterward. The worked examples confirm it is optional: ECG carries no BC mapping while Vitals does.
 
 ## Source navigation, built 2026-08-18
 
@@ -129,6 +125,6 @@ Building it settled two things by measurement:
 
 ## The orientation walks, done 2026-08-25
 
-Traced one activity (12-lead ECG, triplicate) through all three forms of the Alexion example: printed SoA grid, hand-authored `mainTimeline` row, USDM JSON objects. Alexion defines no estimand, so a second walk traced the primary endpoint and its estimand through the CDISC_Pilot example. Kept conversational; the value is the five findings, which now shape Phase 1 and are recorded there under "Design inputs" in `PLAN.md`.
+Traced one activity (12-lead ECG, triplicate) through all three forms of the Alexion example: printed SoA grid, hand-authored `mainTimeline` row, USDM JSON objects. Alexion defines no estimand, so a second walk traced the primary endpoint and its estimand through the CDISC_Pilot example. Kept conversational; the value is the five findings, which now shape Phase 1 and are recorded there under "Design considerations" in `PLAN.md`.
 
 The one substantive correction the walks surfaced, kept here because it is a finding about the source material: the single CDISC_Pilot estimand records its intercurrent-event strategy as "Treatment Policy", but the protocol (3.9.1.2 and 4.3.2) restricts the primary analysis to pre-interruption data, which is a "While on Treatment" strategy, the opposite one (E9(R1) A.3.2, source-read). The likely cause is conflating the ITT *population* with the treatment-policy *strategy*. Consequence: the reference examples cannot be treated as infallible ground truth, which is why Phase 5 scoring must be able to flag suspected-bad reference data.
