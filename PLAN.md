@@ -2,13 +2,13 @@
 
 ## Context
 
-Why the project exists is in `BACKGROUND.md`. This file is the build sequence and the record of what was decided and why.
+This file is the build sequence and the record of what was decided and why.  See `BACKGROUND.md` for information on the background and problem this project is attempting to address.
 
-This plan is a starting point, not a contract. Where it names a tool you have not used, Phase 0 exists to get hands on it before anything depends on it. Phases 3 to 5 are deliberately sketches, to be designed when we reach them.
+Phase 0 exists to get hands on exposure to tools the user may not have used before. Phases 3 to 5 are deliberately sketches, to be designed in more details when we reach them.
 
 ## Location and naming
 
-Standalone repo, not a folder inside `programming_sandbox`: this needs its own conda environment, a Docker service and a `data/` tree, none of which belong in a repo whose README reads "miscellaneous data wrangling scripts." Splitting git history out later costs more than starting clean.
+This project uses its own conda environment, a Docker service and a `data/` tree.
 
 ## Decisions made so far
 
@@ -137,6 +137,38 @@ Building it settled two things by measurement:
 
 
 ## The pipeline
+
+## Target hard cases
+
+The extraction cases the project aims at, chosen because each is content that the document's own layout does not express:
+
+1. **Footnotes containing conditionals.** A footnote marker on a schedule cell that changes whether or when the activity happens.
+2. **Patient routing rules in large unstructured text.** Dose escalation and de-escalation, stratification, rescue branching, expressed as prose.
+3. **Rules written as sentences.** Eligibility criteria are a set of logical conditions rendered as a bulleted list. Nothing on the page marks which combine, which are thresholds, or which depend on another.
+4. **The same thing under two names in two documents.** An endpoint in the protocol and its estimand in the SAP, where neither document states that they correspond.
+
+The first two live inside a protocol's schedule. The second two are the reason the target is documents rather than one table.
+
+## Design constraints
+
+- **Greenfield ingestion.** Assume no existing document ingestion pipeline to build on. Per-document-type handling is built here, not inherited.
+- **How far USDM reaches beyond the protocol is undecided, on purpose.** USDM models a study's *plan*. A protocol fits it, a SAP fits it partly, an Investigator's Brochure largely does not. Three approaches are visible and none is chosen: map only the parts that fit and drop the rest, which is simple but silently loses content; extend USDM through its own extension mechanism, which keeps everything in one model at the cost of carrying extensions forever; or give non-protocol document types their own target model, which fits each document better but makes cross-document linking a translation problem. This is expected to be settled by working through a real document rather than decided in advance, and it is directly connected to the second failure mode below.
+- **The ontology is a governed dependency, not ours to change.** In this class of system, ontology ownership typically sits with a data science function separate from whoever configures a customer. Design so that schema change is a release with change control, not a config edit.
+- **ICH M11 structured protocol content is a regulatory expectation, not a verified mandate.** Do not design as though a deadline exists.
+- **Two failure modes to design against**, both observed in this product category:
+  1. Customer-authored prompts reaching production unvalidated, then not working. The structural fix is treating customer-authored prompts as in scope for validation with a documented go-live gate.
+  2. Content with no home in the standard, which the customer experiences as the tool being inflexible rather than as a modelling gap.
+- **Open question to measure, not assume.** When extraction output is wrong, is the dominant cause the prompt, or what got retrieved and linked in the first place? Practitioner opinion in this space leans prompt. This project should produce evidence rather than inherit the assumption.
+- **Whether a graph beats a text search here is not assumed.** Phase 4 is built to test it with one question needing a chain of relationships across two documents. If a plain text search answers it just as well, that is a finding worth recording rather than a failure to hide.
+
+
+## Evaluation and provenance practice
+
+- **Golden dataset entry shape**: input, expert-validated expected output, and metadata (category, difficulty, edge-case flag). Practitioner guidance suggests 20 to 50 reviewed items catches gross regressions.
+- **Acceptance thresholds are agreed before testing begins**, and benchmarked at or above the performance of whatever process is being replaced.
+- **Regression evaluation** re-runs a fixed set after every model, prompt, retriever, or tool change, compared against the last passing baseline.
+- **Named failure mode: silent quality loss.** An edit makes output friendlier and drops a required element. Fluent and wrong is worse than obviously broken.
+- **An observed evaluation pattern in this product category**: generate section by section rather than whole-document; a second model scores each section against a configurable checklist; a third rewrites the prompt when the check fails. Generation is anchored to a structured definition rather than model memory. Structure first, prose second.
 
 ### Build phases
 
