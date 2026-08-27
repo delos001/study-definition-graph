@@ -2,7 +2,7 @@
 
 USDM (Unified Study Definitions Model) is CDISC's clinical study plan data model developed with TransCelerate through the Digital Data Flow (DDF) initiative [1][2]. Version 4.0, released June 2025 [3], aligns with ICH M11 [1], but is not mandatory as of Q2 2026. Complementary process guidance, conformance support, and relationship mapping to other industry standards have been developed concurrently [1].
 
-Development and release of these models and resources provide an opportunity to extract and transform the requirements in study planning and design documents to be utilized by almost all downstream processes within drug and device development.  Combined with technology, such as AI, these standards and processes have the potential to disrupt the status quo, substantially improving the speed and safety with which the industry brings treatments to patients.  Commercial vendors already generate USDM-conformant outputs from clinical documents using AI and/or generate USDM standard documents from scratch [4].
+Development and release of these models and resources provide an opportunity to extract and transform the requirements in study planning and design documents to be utilized by almost all downstream processes within drug and device development.  Combined with technology, such as AI and careful deterministic programming, these standards and processes have the potential to disrupt the status quo, substantially improving the speed and safety with which the industry brings treatments to patients.  Commercial vendors already generate USDM-conformant outputs from clinical documents using AI and/or generate USDM standard documents from scratch [4].
 
 ## Why this project exists
 
