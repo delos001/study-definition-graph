@@ -12,7 +12,7 @@ To attack the premise, unstructured clinical documents will be ingested into a s
 
 - Data Acquisition: define data needs, oversight and risk, procure data sources/providers, verify data conformance
 - Clinical Monitoring: site management, SDR, protocol compliance, regulatory compliance
-- Data Quality: data validation, clinical validation for centralized and decentralized data
+- Data Quality: data validation, clinical validation for centralized and decentralized data, RBM, CSM
 - Standardization Mapping
 - Data Analysis
 - Medical Writing
