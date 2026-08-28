@@ -1,4 +1,6 @@
-# Overview
+# study-definition-graph
+
+## Overview
 
 This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph, preserving the content and the relationships within and across documents while keeping everything computer-readable and queryable. It builds on published USDM standards, not an ontology invented here.
 
