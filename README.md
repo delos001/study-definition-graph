@@ -2,7 +2,7 @@
 
 This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph, preserving the content and the relationships within and across documents while keeping everything computer-readable and queryable. It builds on published USDM standards, not an ontology invented here.
 
-A single study is spread across several planning documents, protocol, Statistical Analysis Plan, Investigator's Brochure, written at different times, from different perspectives, for different purposes, within different content and structures. As prose, the study exists only in the head of whoever has read them all, and programatically extracting text out of a PDF flattens the structure and drops the relationships along the way. This project makes the study queryable instead: the information and the links between it, each fact traceable to the sentence it came from.
+A single study is spread across several planning documents, protocol, Statistical Analysis Plan, Investigator's Brochure, written at different times, from different perspectives and purposes, with different content and structure. Read as prose, the study exists only in the head of whoever has read them all. The challenge is not extracting the text. Instead, the challenge is recovering the structure that extraction destroys or leaves implicit: a Schedule of Activities grid that flattens a timing graph, or one analysis population that appears as "Intent-to-Treat" in one document and "Full Analysis Set" in another. This project aims to produce a method to recover that structure and make it queryable while maintaining data traceability.
 
 See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in full.
 
