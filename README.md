@@ -1,36 +1,29 @@
 # study-definition-graph
 
-Turning clinical study documents into a knowledge graph, built on published standards rather than an ontology invented here.
+This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph, preserving the content and the relationships within and across documents while keeping everything computer-readable and queryable. It builds on published USDM standards, not an ontology invented here.
 
-A clinical study is described across several documents. The protocol says what will be done, the Statistical Analysis Plan says how the data will be analysed, the Investigator's Brochure carries what is already known about the drug, the synopsis is a compressed retelling of the protocol. They are written at different times by different people, and they refer to the same things in different words. Read as prose, the study only ever exists in a reader's head. The point of this project is to put it somewhere a query can reach: things, and the relationships between them, with every extracted fact traceable back to the sentence it came from.
+A single study is spread across several planning documents, protocol, Statistical Analysis Plan, Investigator's Brochure, written at different times, from different perspectives, for different purposes, within different content and structures. As prose, the study exists only in the head of whoever has read them all, and programatically extracting text out of a PDF flattens the structure and drops the relationships along the way. This project makes the study queryable instead: the information and the links between it, each fact traceable to the sentence it came from.
 
-It starts with the protocol, because that is the densest and most structured of them and because CDISC publishes a model for exactly its content. Other document types follow.
-
-The difficulty is not pulling text out of a PDF. It is that the content carrying the most structure, a Schedule of Activities grid, eligibility criteria, dose modification rules, is exactly what a text extractor flattens. [BACKGROUND.md](BACKGROUND.md) has why the project exists, what it is up against, the design constraints, and what is still open.
+See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in full.
 
 ## Status
 
-Phase 0: foundation and orientation.
-
-| Phase | What | State |
-| --- | --- | --- |
-| 0 | Environment, Neo4j, pinned standards, readers | in progress |
-| 1 | Fetch protocol + SAP pairs, parse and segment (no AI) | not started |
-| 2 | Classify documents and sections | not started |
-| 3 | Extract into USDM shape, schema-forced, with provenance | sketch |
-| 4 | Load the graph, resolve entities, test the multi-hop query | sketch |
-| 5 | Schedule of Activities reconstruction | sketch |
-
-The corpus is protocol and SAP pairs to begin with, because that is the smallest set where classifying a document is a real decision and linking across documents is real. Other document types are added once the pipeline handles two.
+This project has 6 phases (Phase 0-5):
+- Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
+- the build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 
 ## Setup
 
 Commands are PowerShell. The same steps work on macOS or Linux with that shell's syntax.
 
-You need Git, [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/), [Docker Desktop](https://www.docker.com/products/docker-desktop/) running, and your own [Anthropic API key](https://console.anthropic.com/). Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
+You need:
+- Git, [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) running,
+- your own [Anthropic API key](https://console.anthropic.com/).
+- Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
 
 ```powershell
-git clone <repo-url> ; cd study-definition-graph
+git clone <repo-url> ; cd ...\study-definition-graph
 git config core.hooksPath .githooks   # pre-commit checks, see below
 
 # 1. Python environment. Python 3.12, pinned in environment.yml.
@@ -68,22 +61,21 @@ Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefini
 
 ## Working in this repo
 
-- `data/raw/` is immutable. Nothing edits a file there after download. Downstream writes to `data/interim/` or `data/processed/`.
-- Every download gets a `data/manifests/` entry in the same breath. `data/` is gitignored, so an unrecorded file cannot be restored and is indistinguishable from a pinned one.
-- Pinned versions never move: not the standards, not the Neo4j image, not a model identifier. A version that changes mid-project makes a failure unattributable.
-- Any number written into a document has to be recomputable. Add it to `scripts/check_facts.py` and run that after changing the corpus.
-- Prompts live in versioned files under `prompts/`, never as string literals in code.
-- The repo is de-identified. No company, no people, no locations, no partnerships. Anything learned from a conversation is written up as a design constraint, a target problem, or an open question.
+A few load-bearing rules; [CLAUDE.md](CLAUDE.md) has the full set, including the source-file conventions every script follows.
 
-[CLAUDE.md](CLAUDE.md) is the full version of these rules, including the source-file conventions every script follows.
+- `data/raw/` is immutable, and every download is recorded in `data/manifests/` in the same breath.
+- `data/` is gitignored, so an unrecorded file cannot be restored.
+- Pinned versions never move: not the standards, not the Neo4j image, not a model identifier. A version that changes mid-project makes a failure unattributable.
+- The repo is de-identified: no company, no people, no locations, no partnerships.
 
 ## Layout
 
 ```
 study-definition-graph/
   README.md                  # this file
-  BACKGROUND.md              # why the project exists, and its design constraints
-  PLAN.md                    # build sequence and decision record
+  BACKGROUND.md              # why the project exists, and the problem
+  PLAN.md                    # build sequence and per-phase verification
+  DECISIONS.md               # decisions made, and why
   CLAUDE.md                  # working rules
   environment.yml
   docker-compose.yml         # neo4j, pinned
@@ -105,8 +97,10 @@ study-definition-graph/
 
 | For | Read |
 | --- | --- |
-| Why it exists, design constraints, open questions | [BACKGROUND.md](BACKGROUND.md) |
-| Build sequence and decision record | [PLAN.md](PLAN.md) |
+| Why it exists and the problem | [BACKGROUND.md](BACKGROUND.md) |
+| Build sequence and per-phase verification | [PLAN.md](PLAN.md) |
+| Decisions made, and why | [DECISIONS.md](DECISIONS.md) |
+| Current status and task backlog | [GitHub Issues](https://github.com/delos001/study-definition-graph/issues) |
 | Working rules | [CLAUDE.md](CLAUDE.md) |
 | Which pinned file answers which question | [docs/sources.md](docs/sources.md) |
 | How the standards feed each other | [docs/standards_map.html](docs/standards_map.html) |
