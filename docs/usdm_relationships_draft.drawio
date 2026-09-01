@@ -1,0 +1,401 @@
+<mxfile host="app.diagrams.net" pages="5">
+  <diagram id="uW_1rAh7m6e06MaClSEp" name="Relationships_CDISC">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-12" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-1" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="IUvGFbA2D_ujiFxW7Prj-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=ellipse;perimeter=ellipsePerimeter;shapeInside=1;" value="National Cancer Institiute (NCI) Enterprise Vocabulary Services (EVS)" vertex="1">
+          <mxGeometry height="80" width="145" x="447.5" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-7" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-2" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="BsAlmoZAQublagHLwS_n-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="CDISC Controlled Terminology" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-11" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.008;exitY=0.4;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;exitPerimeter=0;" target="IUvGFbA2D_ujiFxW7Prj-2">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="690" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Protocol Entities Terminology Teams" vertex="1">
+          <mxGeometry height="45" width="120" x="630" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-15" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="IUvGFbA2D_ujiFxW7Prj-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Glossary Team" vertex="1">
+          <mxGeometry height="45" width="120" x="630" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="DDF Terminology" vertex="1">
+          <mxGeometry height="45" width="120" x="630" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-11" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S6BQwKDUHu_WiZ4YNIy1-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-13" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S6BQwKDUHu_WiZ4YNIy1-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-15" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="S6BQwKDUHu_WiZ4YNIy1-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="USDM" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-14" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="BsAlmoZAQublagHLwS_n-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-16" edge="1" parent="1" source="S6BQwKDUHu_WiZ4YNIy1-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="BsAlmoZAQublagHLwS_n-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-5" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-9" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="S6BQwKDUHu_WiZ4YNIy1-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="SDTM IG" vertex="1">
+          <mxGeometry height="30" width="80" x="890" y="425" as="geometry" />
+        </mxCell>
+        <mxCell id="IUvGFbA2D_ujiFxW7Prj-18" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-7" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;" target="IUvGFbA2D_ujiFxW7Prj-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-2" edge="1" parent="1" source="0qKsj35EQfk1HwFz3v6c-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="IUvGFbA2D_ujiFxW7Prj-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="0qKsj35EQfk1HwFz3v6c-1" parent="1" style="whiteSpace=wrap;html=1;shapeInside=1;shape=label;fixedSize=1;rounded=0;" value="Biomedical Research Integrated Domain Group (BRIDG)" vertex="1">
+          <mxGeometry height="60" width="120" x="90" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-3" edge="1" parent="1" source="dibO7cg0xNlDi-dLzGC3-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="IUvGFbA2D_ujiFxW7Prj-8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="dibO7cg0xNlDi-dLzGC3-1" parent="1" style="whiteSpace=wrap;html=1;shapeInside=1;shape=label;fixedSize=1;rounded=0;" value="Protocol Representation Model (PRM)" vertex="1">
+          <mxGeometry height="60" width="120" x="272.5" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-7" edge="1" parent="1" source="IVMDr0yS0wZhNoOGvum7-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="dibO7cg0xNlDi-dLzGC3-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="332.5" y="280" />
+              <mxPoint x="332.5" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="66DLnX07QmjluKN62fmg-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="ClinicalTrial.gov" vertex="1">
+          <mxGeometry height="30" width="145" x="260" y="165" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-6" edge="1" parent="1" source="66DLnX07QmjluKN62fmg-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" target="dibO7cg0xNlDi-dLzGC3-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="430" y="180" />
+              <mxPoint x="430" y="260" />
+              <mxPoint x="360" y="260" />
+              <mxPoint x="360" y="290" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="IVMDr0yS0wZhNoOGvum7-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="World Health Organization" vertex="1">
+          <mxGeometry height="30" width="145" x="260" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-5" edge="1" parent="1" source="VjtzOg8Zh2kidm213iQi-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="0qKsj35EQfk1HwFz3v6c-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="VjtzOg8Zh2kidm213iQi-1" parent="1" style="shape=ellipse;html=1;strokeWidth=2;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;perimeter=ellipsePerimeter;shapeInside=1;" value="HL7 FHIR" vertex="1">
+          <mxGeometry height="30" width="120" x="90" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-4" edge="1" parent="1" source="VjtzOg8Zh2kidm213iQi-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="0qKsj35EQfk1HwFz3v6c-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="70" y="175" />
+              <mxPoint x="70" y="270" />
+              <mxPoint x="120" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="VjtzOg8Zh2kidm213iQi-2" parent="1" style="shape=ellipse;html=1;strokeWidth=2;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;perimeter=ellipsePerimeter;shapeInside=1;" value="ISO" vertex="1">
+          <mxGeometry height="30" width="120" x="90" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-13" edge="1" parent="1" source="IUvGFbA2D_ujiFxW7Prj-8" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="BsAlmoZAQublagHLwS_n-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-8" edge="1" parent="1" source="2Jae7ECE7_1bSpObPZYX-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.25;entryY=0;entryDx=0;entryDy=0;" target="dibO7cg0xNlDi-dLzGC3-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="220" y="135" />
+              <mxPoint x="220" y="270" />
+              <mxPoint x="302.5" y="270" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="2Jae7ECE7_1bSpObPZYX-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Eudra CT" vertex="1">
+          <mxGeometry height="30" width="145" x="260" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-8" edge="1" parent="1" source="BsAlmoZAQublagHLwS_n-1" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="IUvGFbA2D_ujiFxW7Prj-8" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="USDM CDISC CT" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-6" edge="1" parent="1" source="BsAlmoZAQublagHLwS_n-9" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="BsAlmoZAQublagHLwS_n-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="SDTM" vertex="1">
+          <mxGeometry height="60" width="80" x="730" y="410" as="geometry" />
+        </mxCell>
+        <mxCell id="BsAlmoZAQublagHLwS_n-12" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="SDTM Trial Design Datasets" vertex="1">
+          <mxGeometry height="45" width="120" x="710" y="547.5" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-3" edge="1" parent="1" source="S6BQwKDUHu_WiZ4YNIy1-1" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="IUvGFbA2D_ujiFxW7Prj-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-1" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;rounded=1;perimeter=ellipsePerimeter;shapeInside=1;" value="ICH E3 Structure and Content of Clinical Study Reports (Annex IIIa, IIIb)" vertex="1">
+          <mxGeometry height="70" width="180" x="840" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="Trial Design Model" vertex="1">
+          <mxGeometry height="30" width="80" x="890" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="Clinical Trial Registry (CTR)-XML" vertex="1">
+          <mxGeometry height="45" width="120" x="710" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="7jf1DGu23U2WmeHczhOX-1" edge="1" parent="1" source="S6BQwKDUHu_WiZ4YNIy1-10" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="S6BQwKDUHu_WiZ4YNIy1-9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-10" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="ClinicalTrial.gov" vertex="1">
+          <mxGeometry height="30" width="145" x="890" y="627.5" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-16" edge="1" parent="1" source="S6BQwKDUHu_WiZ4YNIy1-12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="S6BQwKDUHu_WiZ4YNIy1-14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="Operational Design Model (ODM)" vertex="1">
+          <mxGeometry height="45" width="120" x="710" y="693" as="geometry" />
+        </mxCell>
+        <mxCell id="S6BQwKDUHu_WiZ4YNIy1-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="Study/Trial Design Model (SDM-XML)" vertex="1">
+          <mxGeometry height="45" width="120" x="610" y="766" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="uSRFUXW7d2miK1tWhW5a" name="Relationships_Other">
+    <mxGraphModel dx="1414" dy="838" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-3" edge="1" parent="1" source="XPTUF30cJUxwoH8oRUKO-1" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="XPTUF30cJUxwoH8oRUKO-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="XPTUF30cJUxwoH8oRUKO-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ICH Mll" vertex="1">
+          <mxGeometry height="30" width="120" x="440" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-2" edge="1" parent="1" source="XPTUF30cJUxwoH8oRUKO-2" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="4JMDUCxSOlkez7NIq0lp-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="XPTUF30cJUxwoH8oRUKO-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="CeSHarp Template" vertex="1">
+          <mxGeometry height="30" width="120" x="440" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;shape=label;boundedLbl=1;" value="USDM" vertex="1">
+          <mxGeometry height="60" width="120" x="440" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-9" edge="1" parent="1" source="4JMDUCxSOlkez7NIq0lp-4" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4JMDUCxSOlkez7NIq0lp-5">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="HL7 FHIR" vertex="1">
+          <mxGeometry height="30" width="120" x="670" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-7" edge="1" parent="1" source="4JMDUCxSOlkez7NIq0lp-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="4JMDUCxSOlkez7NIq0lp-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-8" edge="1" parent="1" source="4JMDUCxSOlkez7NIq0lp-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="4JMDUCxSOlkez7NIq0lp-6">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Vulcan Schedule of Activities (SoA) Project" vertex="1">
+          <mxGeometry height="50" width="120" x="670" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Electronic Health Records" vertex="1">
+          <mxGeometry height="30" width="120" x="790" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-11" edge="1" parent="1" source="4JMDUCxSOlkez7NIq0lp-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="4JMDUCxSOlkez7NIq0lp-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="4JMDUCxSOlkez7NIq0lp-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ISO IDMP" vertex="1">
+          <mxGeometry height="30" width="120" x="240" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="n1_FQnu4WTJOgNnKWIvf-4" edge="1" parent="1" source="n1_FQnu4WTJOgNnKWIvf-1" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="XPTUF30cJUxwoH8oRUKO-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n1_FQnu4WTJOgNnKWIvf-1" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;rounded=0;perimeter=ellipsePerimeter;shapeInside=1;" value="ICH E9(R1)&lt;div&gt;Statistical Principles for Clinical Trials&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="430" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="n1_FQnu4WTJOgNnKWIvf-2" parent="1" style="shape=ellipse;whiteSpace=wrap;html=1;rounded=0;perimeter=ellipsePerimeter;shapeInside=1;" value="ICH E6&lt;br&gt;&lt;div&gt;Good Clinical Practice: Consolidated Guidance&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="430" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n1_FQnu4WTJOgNnKWIvf-3" edge="1" parent="1" source="n1_FQnu4WTJOgNnKWIvf-2" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="n1_FQnu4WTJOgNnKWIvf-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzkG8KIXh1bMzGaissLK-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="SNOMED" vertex="1">
+          <mxGeometry height="30" width="120" x="50" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="ZzkG8KIXh1bMzGaissLK-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="LOINC" vertex="1">
+          <mxGeometry height="30" width="120" x="80" y="320" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="oNSBHmcAneBc5ISVJu7b" name="CT">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="NCIt Terminology" vertex="1">
+          <mxGeometry height="60" width="120" x="110" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Biomedical Concepts" vertex="1">
+          <mxGeometry height="60" width="120" x="210" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="CDASH" vertex="1">
+          <mxGeometry height="60" width="120" x="610" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="SDTM" vertex="1">
+          <mxGeometry height="60" width="120" x="800" y="400" as="geometry" />
+        </mxCell>
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-7" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Form" vertex="1">
+          <mxGeometry height="40" width="120" x="600" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-8" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="Domain" vertex="1">
+          <mxGeometry height="40" width="120" x="800" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="AR2pGcyN7oJIX-nyRQai-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="LOINC" vertex="1">
+          <mxGeometry height="60" width="120" x="310" y="230" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="mGaExxaahYwUR8rnsR2K" name="Targets">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Digital Protocol" vertex="1">
+          <mxGeometry height="60" width="120" x="430" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Digital SAP" vertex="1">
+          <mxGeometry height="60" width="120" x="290" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Digital IB" vertex="1">
+          <mxGeometry height="60" width="120" x="570" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Centralized Data Acquisition" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Decentralized Data Acquisition" vertex="1">
+          <mxGeometry height="60" width="120" x="500" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Data Conformance" vertex="1">
+          <mxGeometry height="60" width="120" x="340" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Data Quality" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-8" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Data Mapping" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="740" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-9" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Submission Mapping" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-10" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Clinical Reporting" vertex="1">
+          <mxGeometry height="60" width="120" x="460" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-11" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Clinical Trial Planning" vertex="1">
+          <mxGeometry height="60" width="120" x="180" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-12" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Clinical Monitoring" vertex="1">
+          <mxGeometry height="60" width="120" x="30" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="zxuvnsyPwC1QkW9J9Xpn-13" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Data Management Planning" vertex="1">
+          <mxGeometry height="60" width="120" x="190" y="350" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="Page-1" id="mJBTlq4qh0TE5k5IaNZn">
+    <mxGraphModel dx="1488" dy="882" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="UbngEKWVsBN_7mUv3Qp--3" parent="1" style="shape=card;whiteSpace=wrap;html=1;" value="ICH E9(R1)&lt;div&gt;Statistical Principles for Clinical Trials&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="460" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="UbngEKWVsBN_7mUv3Qp--4" parent="1" style="shape=card;whiteSpace=wrap;html=1;" value="ICH E6&lt;br&gt;&lt;div&gt;Good Clinical Practice: Consolidated Guidance&lt;/div&gt;" vertex="1">
+          <mxGeometry height="70" width="140" x="460" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="UbngEKWVsBN_7mUv3Qp--12" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.direct_data;whiteSpace=wrap;" value="clintrial.gov&lt;div&gt;API&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="100" x="660" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="UbngEKWVsBN_7mUv3Qp--13" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="USDM_UML.xmi" vertex="1">
+          <mxGeometry height="60" width="190" x="340" y="365" as="geometry" />
+        </mxCell>
+        <mxCell id="Z7AUjhx0CtoORHErgglb-2" edge="1" parent="1" source="UbngEKWVsBN_7mUv3Qp--4" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;entryPerimeter=0;" target="UbngEKWVsBN_7mUv3Qp--3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-5" edge="1" parent="1" source="HFkIH-72N9nkeoE3q7Tm-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="HFkIH-72N9nkeoE3q7Tm-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-1" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="USDM" vertex="1">
+          <mxGeometry height="60" width="190" x="470" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-2" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="CDISC Biomedical&amp;nbsp;&lt;div&gt;Concepts&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="190" x="680" y="540" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-3" parent="1" style="shape=label;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;rounded=0;" value="EDC Automation" vertex="1">
+          <mxGeometry height="30" width="120" x="830" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-6" parent="1" style="shape=label;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;rounded=0;" value="ePRO" vertex="1">
+          <mxGeometry height="30" width="90" x="830" y="690" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-7" parent="1" style="shape=label;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;rounded=0;" value="Digital Health Technologies" vertex="1">
+          <mxGeometry height="30" width="165" x="830" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-8" parent="1" style="shape=label;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;rounded=0;" value="Central Lab" vertex="1">
+          <mxGeometry height="30" width="90" x="830" y="810" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-9" parent="1" style="shape=label;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;rounded=0;" value="Central ECG" vertex="1">
+          <mxGeometry height="30" width="90" x="830" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-10" parent="1" style="shape=label;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;rounded=0;" value="Central Imaging" vertex="1">
+          <mxGeometry height="30" width="90" x="830" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-12" parent="1" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.annotation_2;align=left;labelPosition=right;pointerEvents=1;" value="" vertex="1">
+          <mxGeometry height="250" width="50" x="800" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-13" edge="1" parent="1" source="HFkIH-72N9nkeoE3q7Tm-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="HFkIH-72N9nkeoE3q7Tm-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-14" edge="1" parent="1" source="HFkIH-72N9nkeoE3q7Tm-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;entryPerimeter=0;" target="HFkIH-72N9nkeoE3q7Tm-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-15" parent="1" style="shape=document;html=1;strokeWidth=2;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;boundedLbl=1;" value="ICH M11 CeSHarP&lt;div&gt;(clinical electronic&amp;nbsp;&lt;/div&gt;&lt;div&gt;harmonized protocol)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="150" x="220" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-16" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="SDTM" vertex="1">
+          <mxGeometry height="30" width="190" x="60" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-18" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="USDM Conformance&amp;nbsp;&lt;div&gt;Rules&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="190" x="350" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-27" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="SDTM IG" vertex="1">
+          <mxGeometry height="30" width="190" x="65" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-30" edge="1" parent="1" source="HFkIH-72N9nkeoE3q7Tm-28" style="edgeStyle=none;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="HFkIH-72N9nkeoE3q7Tm-29">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-28" parent="1" style="whiteSpace=wrap;html=1;shapeInside=1;shape=trapezoid;perimeter=trapezoidPerimeter;fixedSize=1;" value="National Cancer Institute (NCI) Enterprise Vocabulary Services (EVS)" vertex="1">
+          <mxGeometry height="85" width="120" x="840" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-29" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="CDISC Standards" vertex="1">
+          <mxGeometry height="40" width="150" x="825" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="HFkIH-72N9nkeoE3q7Tm-31" parent="1" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;" value="DDF" vertex="1">
+          <mxGeometry height="40" width="150" x="700" y="240" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

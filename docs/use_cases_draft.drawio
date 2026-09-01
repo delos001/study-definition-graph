@@ -1,0 +1,132 @@
+<mxfile host="app.diagrams.net" pages="5">
+  <diagram name="Main" id="vznq3V5o-VerDajYUdrb">
+    <mxGraphModel dx="1768" dy="1048" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Protocol" vertex="1">
+          <mxGeometry height="40" width="120" x="70" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Investigator Brochure" vertex="1">
+          <mxGeometry height="40" width="120" x="70" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Statistical Analysis Plan" vertex="1">
+          <mxGeometry height="40" width="120" x="70" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ICH/GCP" vertex="1">
+          <mxGeometry height="30" width="120" x="400" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-5" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="CFR" vertex="1">
+          <mxGeometry height="30" width="120" x="400" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-6" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="SOPs" vertex="1">
+          <mxGeometry height="40" width="120" x="240" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-7" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="WI" vertex="1">
+          <mxGeometry height="40" width="120" x="240" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;" value="Forms / Templates" vertex="1">
+          <mxGeometry height="40" width="120" x="240" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-9" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Define Centralized Data" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-10" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Define Decentralized Data" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-11" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Centralized Data Conformance" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-12" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Decentralized Data Conformance" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-13" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Data Quality Surveillance" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-14" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Operational Oversight" vertex="1">
+          <mxGeometry height="50" width="130" x="500" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-15" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Risk Based Monitoring" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-16" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Clinical Surveillance" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="990" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-17" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Autogenous Quality Surveillance" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="850" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-18" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Exogenous Quality Surveillance" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="920" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-19" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Centralized Statistical Monitoring" vertex="1">
+          <mxGeometry height="50" width="130" x="490" y="1060" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-20" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Protocol&amp;nbsp; Compliance Surveillance" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-21" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Regulatory Compliance Surveillance" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-22" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Clinical Monitoring" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="520" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-23" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Site Management" vertex="1">
+          <mxGeometry height="50" width="120" x="160" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-24" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Clinical Operations" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-25" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Risk Based Monitoring Design" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="2pgBMU80UwDJmOdsGUvq-26" parent="1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" value="Centralized Statistical Monitoring Design" vertex="1">
+          <mxGeometry height="50" width="130" x="320" y="1060" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="zchTcEigOxZT7cnR5U8n" name="Operations">
+    <mxGraphModel dx="1020" dy="708" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mXvgNewNme-42t7scwBP-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Operations" vertex="1">
+          <mxGeometry height="60" width="120" x="180" y="160" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="GDEWNjmtHXEmRUhKKJJE" name="Data Sciences">
+    <mxGraphModel dx="1414" dy="838" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bhGxqcSEA609ZMVYGgaa-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="hold" vertex="1">
+          <mxGeometry height="60" width="120" x="210" y="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="TTNjbDi2Fkf3APqQJI9z" name="Decentralized Data Acquisition">
+    <mxGraphModel dx="1020" dy="708" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="mCq3VNkWltxhOthabkzY-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="hold" vertex="1">
+          <mxGeometry height="60" width="120" x="250" y="180" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="XtYB7HOeVSppwWU2OE_V" name="Centralized Data Acquisition">
+    <mxGraphModel dx="1020" dy="708" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="gyupTVk5C7Z_yQkplMP7-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="hold" vertex="1">
+          <mxGeometry height="60" width="120" x="180" y="140" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
