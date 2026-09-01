@@ -27,7 +27,9 @@ Pinned to DDF-RA commit `aa303cb`. Manifest: `raw_usdm_v4.json`.
 | Is a document conformant? | `usdm_v4/USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"`. 259 rules. | no |
 | What does the whole model look like at once? | `usdm_v4/DDF_USDM_Model_Informative.pdf` | `python scripts/read_pdf.py --doc model-diagram --find "<class>"`. One page, vector, text extracts. **Informative, not complete**: it omits classes the data dictionary has, so never treat an absence here as an absence from the model. | no |
 | What changed between v3.0 and v4.0? | `usdm_v4/uml/UML_DELTA_3-0-0_4-0-0.csv` | Grep it. 1302 rows: class, Added/Deleted/Modified, attribute, old value. Needed to read v3.1x-era material such as the crosswalks and the published prior art. | no |
-| What does a class diagram look like? | `usdm_v4/uml/UML_Views/*.png` | 14 images. Cannot be grepped or extracted; must be viewed. **None has been opened.** | no |
+| What does a class diagram look like? | `usdm_v4/uml/UML_Views/*.png` | 14 images, one per subject area (not one per class); each shows a cluster of related classes, with attributes drawn only on a class's home diagram. Cannot be grepped or extracted; must be viewed. Reviewed 2026-09-01. | yes |
+
+**The three CORE rule counts, reconciled.** `USDM_CORE_Rules.xlsx` holds 259 rules covering USDM v3.0 and v4.0 together. Column F, labeled "Version 4.0", marks which of those apply to v4: 210 rows say "Y". Of those 210, the `cdisc-jsonata-rules` repo (listed under "Unassessed" below) has written 93 as runnable code. Same rule family, three nested counts: 259 total, 210 apply to v4, 93 of those are coded. They look like a contradiction only until you see they are three different slices.
 
 ### CDISC worked examples
 

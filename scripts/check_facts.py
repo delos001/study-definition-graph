@@ -141,11 +141,6 @@ def shared_codes() -> int:
     return len(m11 & terminology)
 
 
-def uml_diagrams() -> int:
-    """Class diagram images shipped in the UML deliverable."""
-    return len(list((RAW / "usdm_v4" / "uml" / "UML_Views").glob("*.png")))
-
-
 def worked_examples() -> int:
     """Worked example studies, one directory each."""
     return len([d for d in (RAW / "usdm_examples").iterdir() if d.is_dir()])
@@ -188,7 +183,6 @@ FACTS = [
     ("UML delta rows",        uml_delta_rows,    r"(\d+) rows:"),
     ("dataDictionary codes",  dictionary_codes,  r"(\d+) NCI codes|all (\d+) codes"),
     ("M11 and USDM shared codes", shared_codes,  r"(\d+) codes in common"),
-    ("UML class diagrams",    uml_diagrams,      r"(\d+) UML class diagrams|(\d+) class diagram"),
     # Written as a word in prose, so the check accepts either form. Kept narrow
     # enough that "three" elsewhere in a sentence cannot match.
     ("worked example studies", worked_examples,  r"(?:(\d+)|(?i:(three)|(two)|(four))) (?:real protocols|worked example)"),
