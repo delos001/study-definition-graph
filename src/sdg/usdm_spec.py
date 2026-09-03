@@ -1,27 +1,30 @@
 """
 Script:      usdm_spec.py
-Description: The single doorway to the pinned USDM model. It reads one file,
+Description: The single path to access the pinned USDM model. It reads
              dataStructure.yml (the USDM v4.0 UML deliverable), and answers
              questions about the standard's classes and their attributes.
 
-             Design. The file is parsed once into its native form (the nested
-             dicts and lists exactly as CDISC published them) and every function
-             works off that one parse. Nothing here re-models USDM into a new
-             set of names. Simple accessors hand back a slice of the parsed data
-             unchanged; the only reshaping anywhere is targets(), which unwraps
-             the "$ref" string USDM wraps every type reference in.
+             Design: The file is parsed once into its native form (the nested
+             dicts and lists exactly as CDISC published them).  Every function
+             works off that one parse.
+             - Nothing here re-models USDM into a new set of names.
+             - Simple accessors hand back a slice of the parsed data unchanged;
+             - Exception: USDM wraps every type in "$ref" string and this script
+             unwraps the "$ref" string  using targets().
 
              Reading the standard anywhere in this project goes through this
              module, so there is one way to obtain any fact about USDM and no
-             second representation to keep faithful. Cross-cutting queries the
-             flat file cannot answer directly (which classes reference a given
-             class; the whole-model edge list) will be added here as later
-             phases need them, not built up front.
+             second representation to keep faithful.
+
+             Cross-cutting queries the flat file cannot answer directly
+             (which classes reference a given class; the whole-model edge list)
+             will be added here as later phases need them, not built up front.
 
              Before reading the file, load() checks it against the sha256
              recorded in data/manifests/, reusing verify_manifests.py. A
-             changed or swapped pin fails closed here rather than parsing and
-             passing wrong content downstream; --allow-unpinned overrides it.
+             changed or swapped pin fails here rather than parsing and
+             passing wrong content downstream;
+             - Override is possible but should be used with caution: --allow-unpinned
 
              Why this file and not USDM_API.json: the API spec discards the
              target class of every relationship and every cardinality, which is
@@ -34,17 +37,20 @@ Outputs:     Plain text on stdout. Writes nothing to disk.
 
 Usage:       python -m sdg.usdm_spec --list-classes
                  print every class name in the standard, abstract ones marked
-             python -m sdg.usdm_spec --fields Activity
+             python -m sdg.usdm_spec --attributes <class>
                  print one class's attributes: type, cardinality, kind
+                 e.g.  python -m sdg.usdm_spec --attributes Activity
              python -m sdg.usdm_spec --list-classes --allow-unpinned
                  run even if the pinned file no longer matches its fingerprint
 
 Exit codes:  0  success
-             1  the pinned spec is missing, or the requested class is unknown
-             2  invalid command line, or the spec is present but not the shape
-                this module expects (a USDM version that changed underneath us)
+             1  the pinned spec file is missing (run scripts/fetch_sources.py)
+             2  invalid command line (argparse's own fixed code)
              3  the spec does not match its recorded fingerprint (a changed or
                 swapped file); rerun with --allow-unpinned to read it anyway
+             4  the spec is present but not the shape this module expects
+                (a USDM version that changed underneath us)
+             5  the requested class is not found
 
 Date:        2026-09-02
 Owner:       Jason Delosh
@@ -257,10 +263,10 @@ def _print_classes(spec: dict) -> None:
           file=sys.stderr)
 
 
-def _print_fields(spec: dict, class_name: str) -> int:
+def _print_attributes(spec: dict, class_name: str) -> int:
     """Print one class's attributes: name, type(s), cardinality, kind.
 
-    Returns 1 and prints guidance if the class is unknown, so a typo yields the
+    Returns 5 and prints guidance if the class is unknown, so a typo yields the
     remedy rather than a traceback.
     """
     try:
@@ -268,7 +274,7 @@ def _print_fields(spec: dict, class_name: str) -> int:
     except KeyError:
         print(f"unknown class {class_name!r}; run --list-classes to see them all",
               file=sys.stderr)
-        return 1
+        return 5
 
     modifier = "abstract" if is_abstract(spec, class_name) else "concrete"
     print(f"{class_name}  ({modifier})")
@@ -304,7 +310,7 @@ def main(argv: list[str] | None = None) -> int:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--list-classes", action="store_true",
                        help="print every class name, abstract ones marked")
-    group.add_argument("--fields", metavar="CLASS",
+    group.add_argument("--attributes", metavar="CLASS",
                        help="print one class's attributes")
     # A modifier, not a mode: it works with either listing, so it sits outside
     # the mutually exclusive group.
@@ -326,12 +332,12 @@ def main(argv: list[str] | None = None) -> int:
         return 3
     except SpecShapeError as exc:
         print(f"spec is present but not the expected shape: {exc}", file=sys.stderr)
-        return 2
+        return 4
 
     if args.list_classes:
         _print_classes(spec)
         return 0
-    return _print_fields(spec, args.fields)
+    return _print_attributes(spec, args.attributes)
 
 
 if __name__ == "__main__":
