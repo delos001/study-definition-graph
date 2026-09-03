@@ -18,6 +18,11 @@ Description: The single doorway to the pinned USDM model. It reads one file,
              class; the whole-model edge list) will be added here as later
              phases need them, not built up front.
 
+             Before reading the file, load() checks it against the sha256
+             recorded in data/manifests/, reusing verify_manifests.py. A
+             changed or swapped pin fails closed here rather than parsing and
+             passing wrong content downstream; --allow-unpinned overrides it.
+
              Why this file and not USDM_API.json: the API spec discards the
              target class of every relationship and every cardinality, which is
              exactly what makes the standard a graph. See DECISIONS.md, "Which
@@ -31,11 +36,15 @@ Usage:       python -m sdg.usdm_spec --list-classes
                  print every class name in the standard, abstract ones marked
              python -m sdg.usdm_spec --fields Activity
                  print one class's attributes: type, cardinality, kind
+             python -m sdg.usdm_spec --list-classes --allow-unpinned
+                 run even if the pinned file no longer matches its fingerprint
 
 Exit codes:  0  success
              1  the pinned spec is missing, or the requested class is unknown
              2  invalid command line, or the spec is present but not the shape
                 this module expects (a USDM version that changed underneath us)
+             3  the spec does not match its recorded fingerprint (a changed or
+                swapped file); rerun with --allow-unpinned to read it anyway
 
 Date:        2026-09-02
 Owner:       Jason Delosh
@@ -73,7 +82,72 @@ class SpecShapeError(Exception):
     """
 
 
-def load(path: Path | None = None) -> dict:
+class IntegrityError(Exception):
+    """The pinned spec file does not match the fingerprint recorded for it.
+
+    Raised so a silently changed or swapped file stops here, before it is
+    parsed and its content flows downstream as quietly wrong output. Its message
+    carries the recovery paths.
+    """
+
+
+# The recovery paths shown when the file fails its fingerprint check. Re-pinning
+# to a new version is deliberately not spelled out here: it is a multi-step act
+# (new url, re-fetch, recompute) that will get its own tooling, not an edit to
+# do from an error message.
+_INTEGRITY_MESSAGE = (
+    "dataStructure.yml no longer matches its pinned fingerprint in "
+    "data/manifests/raw_usdm_v4.json.\n"
+    "  changed by accident    -> remove the file, then  python scripts/fetch_sources.py\n"
+    "  run anyway (once)       -> add  --allow-unpinned\n"
+    "  a real new version      -> deliberate re-pin (new url, re-fetch, recompute); not a quick edit"
+)
+
+# verify_manifests.py owns how a manifest is located, parsed and hashed. Loaded
+# here by path and cached, the way check_facts.py loads read_pdf.py, so the
+# fingerprint rules live in one place; a second copy would be somewhere for them
+# to drift, which is why fetch_sources.py imports it rather than reimplementing.
+_manifest_module = None
+
+
+def _manifest_tools():
+    """Return the verify_manifests module, importing it by path once."""
+    global _manifest_module
+    if _manifest_module is None:
+        import importlib.util
+
+        path = REPO_ROOT / "scripts" / "verify_manifests.py"
+        module_spec = importlib.util.spec_from_file_location("verify_manifests", path)
+        module = importlib.util.module_from_spec(module_spec)
+        module_spec.loader.exec_module(module)
+        _manifest_module = module
+    return _manifest_module
+
+
+def _verify_pinned(path: Path) -> None:
+    """Confirm the file matches the sha256 and size recorded in its manifest.
+
+    Reuses verify_manifests.check_entry, so this asks exactly the question the
+    manual check asks, at the moment the file is opened. Raises IntegrityError
+    with the recovery paths if the file has drifted, or if no manifest records
+    it (nothing to check it against).
+    """
+    tools = _manifest_tools()
+    manifests, _errors = tools.load_manifests("raw_usdm_v4")
+    target = path.resolve()
+
+    for _manifest_path, manifest in manifests:
+        for entry in manifest.get("files", []):
+            if (REPO_ROOT / entry.get("local", "")).resolve() == target:
+                status, _detail = tools.check_entry(entry)
+                if status != "ok":
+                    raise IntegrityError(_INTEGRITY_MESSAGE)
+                return
+
+    raise IntegrityError(_INTEGRITY_MESSAGE)
+
+
+def load(path: Path | None = None, verify: bool = True) -> dict:
     """Read dataStructure.yml and return it in its native form.
 
     Returns the parsed YAML as-is: a dict keyed by class name, each value the
@@ -82,10 +156,28 @@ def load(path: Path | None = None) -> dict:
     carry (Modifier, Attributes), so a structurally different file fails here
     with a clear message instead of deep inside a caller.
 
-    Raises FileNotFoundError if the pinned file is absent, SpecShapeError if it
-    parsed but does not look like the USDM structure this module reads.
+    With verify=True (the default) the file is checked against the sha256
+    recorded in data/manifests/ before it is read, so a changed or swapped copy
+    stops here rather than flowing downstream. Pass verify=False to read a file
+    that is not the pinned one (a test fixture), which the CLI exposes as
+    --allow-unpinned.
+
+    Raises FileNotFoundError if the pinned file is absent, IntegrityError if it
+    does not match its recorded fingerprint, SpecShapeError if it parsed but
+    does not look like the USDM structure this module reads.
     """
-    spec = yaml.safe_load((path or DEFAULT_SPEC).read_text(encoding="utf-8"))
+    target = path or DEFAULT_SPEC
+
+    if not target.exists():
+        raise FileNotFoundError(target)
+
+    # Verify the bytes are the pinned ones before trusting the content: a
+    # silently changed file would otherwise parse cleanly and pass its wrong
+    # content downstream, which is the whole failure this guards against.
+    if verify:
+        _verify_pinned(target)
+
+    spec = yaml.safe_load(target.read_text(encoding="utf-8"))
 
     if not isinstance(spec, dict) or not spec:
         raise SpecShapeError("spec is empty or not a mapping of classes")
@@ -214,17 +306,24 @@ def main(argv: list[str] | None = None) -> int:
                        help="print every class name, abstract ones marked")
     group.add_argument("--fields", metavar="CLASS",
                        help="print one class's attributes")
+    # A modifier, not a mode: it works with either listing, so it sits outside
+    # the mutually exclusive group.
+    parser.add_argument("--allow-unpinned", action="store_true",
+                        help="run even if the spec no longer matches its fingerprint")
     args = parser.parse_args(argv)
 
-    # A missing pinned file and a structurally wrong one are different failures
-    # with different exit codes, so a caller can tell "not downloaded" from
-    # "USDM changed shape".
+    # A missing file, a changed one, and a structurally wrong one are three
+    # different failures with three different exit codes, so a caller can tell
+    # "not downloaded" from "fingerprint changed" from "USDM changed shape".
     try:
-        spec = load()
+        spec = load(verify=not args.allow_unpinned)
     except FileNotFoundError:
         print(f"pinned spec not found at {DEFAULT_SPEC.relative_to(REPO_ROOT)}; "
               f"run scripts/fetch_sources.py", file=sys.stderr)
         return 1
+    except IntegrityError as exc:
+        print(exc, file=sys.stderr)
+        return 3
     except SpecShapeError as exc:
         print(f"spec is present but not the expected shape: {exc}", file=sys.stderr)
         return 2
