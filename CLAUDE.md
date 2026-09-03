@@ -79,7 +79,7 @@ Owner:       Jason Delosh
 And carries:
 
 - `###` banner headers grouping the file into named sections.
-- A docstring on every function: what it does, what it returns, and why it works that way where that is not obvious.
+- A docstring on every function that opens with what it reads or takes in and what it produces, then why it works that way where that is not obvious. Naming the inputs it consumes and the result it yields beats "returns a value," which the signature and the final line already show.
 - A comment on every non-obvious block, every `try`/`except` (what it absorbs, what happens instead), and every workaround or non-standard library.
 - Comments explain why. Never restate the code.
 
