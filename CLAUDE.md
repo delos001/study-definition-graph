@@ -15,6 +15,8 @@ Scripts run in the `sdg` conda environment. `README.md` has the rest of the setu
 3. GitHub Issues - current status and what to work on next.
 4. `docs/sources.md`, first half - every pinned file, and whether it has been read.
 
+Read all four before doing any work, even when the first message is a concrete task. The orientation reads, `docs/sources.md` above all, are what keep the work grounded; jumping to a named task and pulling only the obviously-relevant files is how ungrounded guessing starts (a figure quoted from an issue instead of the pinned source, a file's location asked for when the map already answers it).
+
 ## Issue tracking
 
 GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS.md` records why. Keep them consistent.
