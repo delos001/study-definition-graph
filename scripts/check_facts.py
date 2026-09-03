@@ -120,6 +120,21 @@ def dictionary_codes() -> int:
     return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
+def usdm_concrete_classes() -> int:
+    """Concrete USDM classes, counted through the model loader.
+
+    Goes through sdg.usdm_spec, the one doorway to the standard, rather than
+    re-parsing dataStructure.yml here, so a single place reads the model.
+    extensionAttributes sits on every one of these classes, which is the claim
+    usdm_ig_map.md makes. Imported lazily so this script still loads when the
+    sdg package is not installed, matching how pinned_pdf_pages loads read_pdf.
+    """
+    from sdg import usdm_spec
+
+    spec = usdm_spec.load()
+    return sum(1 for c in usdm_spec.class_names(spec) if not usdm_spec.is_abstract(spec, c))
+
+
 def shared_codes() -> int:
     """NCI codes appearing in both the M11 Technical Specification and USDM's CT.
 
@@ -182,6 +197,7 @@ FACTS = [
     ("M11 data elements",     m11_elements,      r"(\d+) elements"),
     ("UML delta rows",        uml_delta_rows,    r"(\d+) rows:"),
     ("dataDictionary codes",  dictionary_codes,  r"(\d+) NCI codes|all (\d+) codes"),
+    ("USDM concrete classes", usdm_concrete_classes, r"all (\d+) concrete class"),
     ("M11 and USDM shared codes", shared_codes,  r"(\d+) codes in common"),
     # Written as a word in prose, so the check accepts either form. Kept narrow
     # enough that "three" elsewhere in a sentence cannot match.

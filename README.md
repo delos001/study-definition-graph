@@ -32,6 +32,11 @@ git config core.hooksPath .githooks   # pre-commit checks, see below
 conda env create -f environment.yml
 conda activate sdg
 
+# 1b. Install this repo's own package (src/sdg/) in editable mode, so that
+#     `python -m sdg.<module>` resolves and code edits take effect with no
+#     reinstall. Dependencies stay owned by environment.yml, not this install.
+pip install -e .
+
 # 2. Neo4j, pinned to 5.26.29-community. The graph persists in Docker volumes,
 #    so `docker compose down` keeps your data and `down -v` discards it.
 docker compose up -d
@@ -51,12 +56,13 @@ Nothing here overwrites a file that already exists, so the fetch is safe to re-r
 
 The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes. It is read-only, instant, and uses only the standard library, so it works whether or not the `sdg` environment is active.
 
-Then confirm it worked. All three should exit 0:
+Then confirm it worked. All four should exit 0:
 
 ```powershell
 python scripts/verify_manifests.py    # every pinned file present and matching its recorded hash
 python scripts/check_facts.py         # every number stated in the docs re-derived from those files
 python scripts/read_pdf.py --docs     # lists each registered document as present or NOT DOWNLOADED
+python -m sdg.usdm_spec --list-classes # lists the USDM classes read from the pinned model spec
 ```
 
 Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`. That password is set in `docker-compose.yml` and is for local development only.
@@ -90,7 +96,7 @@ study-definition-graph/
     processed/               # extracted entities, graph load files
     eval/                    # hand-built correct answers
   prompts/                   # one file per prompt, versioned
-  src/sdg/
+  src/sdg/                   # the sdg Python package (source code), installed with pip install -e .
   scripts/                   # run by hand; README.md here is generated
   tests/
 ```
