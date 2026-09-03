@@ -138,3 +138,44 @@ Holds: all 84 dictionary classes are in the UML file (which adds the two extensi
 Fails in two places, both measured 2026-09-02. **Codelist bindings:** 67 attributes carry a `Codelist Ref` in the dictionary (e.g. `Address.country` to ISO 3166-1) that the UML file has no field for; the per-attribute pointer lives only in the dictionary, the values themselves in `USDM_CT.xlsx`. **Abstract-class codes:** for 27 attributes across the six abstract classes, the UML file's `NCI C-Code` and `Preferred Term` are copied from a concrete child and are wrong at the abstract level. Abstract `Identifier.text` carries `C215581` "Administrable Product Identifier Text" where the dictionary correctly has `C215450` "Identifier Text"; concrete-class codes are correct.
 
 Consequence: the loader and concrete-class extraction need only the UML file, since abstract classes never serialise and concrete codes are right. Anything that binds coded values (a Phase 3 enrichment) needs the dictionary or `USDM_CT.xlsx`, not the UML file. This qualifies the earlier note above (line ~123) that "the three files do not disagree", which was about class counts, not per-attribute codes.
+
+## Phase 1 design, decided 2026-09-03
+
+Phase 1 reads a downloaded protocol or statistics plan and turns it into one structured hand-off document that the next phase consumes. This entry records the design in plain terms. The full working detail sits in GitHub issue #11; this is the readable summary.
+
+### What the hand-off holds
+
+For each document we keep:
+
+- Which document it is: the study number, the document type (protocol vs. statistics plan), a version marker, and a version date. This is the minimum needed so two documents from the same study, like an original protocol and its amendment, never get mistaken for each other.
+- A check-value of the file's raw bytes, kept only to prove the file has not changed since we fetched it. It is an integrity check, not part of the document's identity: the same document saved as Word vs. PDF has different bytes, so this value names a file, not a document.
+- The list of sections. For each section: its title, where it starts and stops, and its text (the words under that heading).
+- The Schedule of Activities kept as a real grid, rows and columns, not flattened into one long line. The little footnote letters stay attached to the words they mark, and the footnote definitions below the grid are captured too.
+- A short list of what each section is made of: plain text, images, tables, unusual characters. This is mechanical, no judgment, and it exists so a later step knows which reader to send a section to.
+
+What the hand-off never holds is any judgment about what a section means or is for. That is the next phase's job, and keeping it out is the whole reason the reading step and the judging step are separate: if a later answer is wrong, we can tell whether the reading or the judging caused it.
+
+### The schedule now, and the schedule later
+
+Right now the grid is pulled out with an automatic table reader and stamped "extracted, not verified", with a page number pointing back to the source. That reader is imperfect on messy tables, so we never trust it blind; a person checks it against the real page. The accurate version of the schedule is built much later (Phase 5) by handing the page to the model as a picture, which avoids the garbage that pulling it out as text produces. The hand-off describes the schedule by what it is, not by how it was made, so the better method can later fill the same slot without breaking anything downstream. We only switch the schedule over to the accurate method once it is actually measured to beat the current one.
+
+### How studies are chosen
+
+Two hard requirements and one soft preference.
+
+- Hard: the study must post both a protocol and a statistics plan. This is checkable straight from the catalog, no reading inside the files.
+- Hard: the statistics plan must actually define estimands. This is not in the catalog, so it is a content check done by reading the candidates that pass the first requirement.
+- Soft: prefer variety across sponsor, disease area, and study phase. Start strict, and loosen only if too few studies qualify.
+
+Choosing which documents to build against is set-up work, not part of the pipeline itself, so it is free to use AI or manual review. The pipeline that runs on every document stays AI-free, for the attribution reason above; picking a good test set once does not.
+
+### How sections are found
+
+Two paths, both first-class, not a main way with a backup.
+
+- If a document has a built-in table of contents, use it. This already exists in `scripts/read_pdf.py`.
+- If it does not, find the sections by spotting numbered heading lines in the text, like "2. INTRODUCTION" or "1.3 Schedule of Activities". The hard part is telling a real heading from a line that merely starts with a number, like "3.5 mg was administered".
+
+Documents with no table of contents are rare across protocols, statistics plans, and investigator's brochures, so the second path is built lean. It is tested by taking a document that has a table of contents, stripping it out, and checking that the second path rebuilds the same sections the built-in one gave.
+
+The code layout (one file or several) is deliberately not fixed yet. It will follow from how much the two paths actually share once both are written, rather than being guessed from one example.
