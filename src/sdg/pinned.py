@@ -213,12 +213,9 @@ class PinnedFile:
     manifest: str
 
     def read_text(self, encoding: str = "utf-8") -> str:
-        """Produces the file's content as text."""
+        """Produces the file's content as text. A caller that needs the raw
+        bytes (a PDF, a workbook) opens `path` itself."""
         return self.path.read_text(encoding=encoding)
-
-    def read_bytes(self) -> bytes:
-        """Produces the file's raw bytes."""
-        return self.path.read_bytes()
 
 
 def _as_local(target: str | Path) -> str:

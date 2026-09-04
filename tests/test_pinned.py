@@ -42,10 +42,11 @@ import pytest
 
 from sdg import pinned as pinned_mod
 from sdg.pinned import IntegrityError, NotInRepoError, PinnedFile, pinned
+# The real pinned file these checks use as their example of a recorded one.
+from sdg.usdm_spec import PINNED_LOCAL
 
 FIXTURE = Path(__file__).resolve().parent / "fixtures" / "usdm_three_classes.yml"
 FIXTURE_LOCAL = "tests/fixtures/usdm_three_classes.yml"
-PINNED_LOCAL = "data/raw/usdm_v4/uml/dataStructure.yml"
 
 needs_pinned_file = pytest.mark.skipif(
     not (pinned_mod.REPO_ROOT / PINNED_LOCAL).exists(),
