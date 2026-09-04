@@ -57,7 +57,7 @@ Exit codes:  0  success
              6  the package is not running from inside its repo (installed
                 without -e); the message gives the install command
 
-Date:        2026-09-02
+Date:        2026-09-03
 Owner:       Jason Delosh
 """
 
@@ -67,13 +67,13 @@ import argparse
 import sys
 from pathlib import Path
 
-# pyyaml is a conda dependency declared in environment.yml.
+# pyyaml is declared in environment.yml (installed there through pip).
 # dataStructure.yml is YAML, so reading it is a one-call job for this library.
 import yaml
 
 # The one way to obtain a pinned file, verified against its manifest, with the
 # repo root and the two integrity exceptions callers may need to catch.
-from sdg.pinned import REPO_ROOT, IntegrityError, NotInRepoError, pinned
+from sdg.pinned import REPO_ROOT, IntegrityError, NotInRepoError, pinned, require_repo
 
 # Where the pinned model file is, named the way its manifest records it. The
 # repo root, and the verification of the file against its manifest, come from
@@ -131,6 +131,13 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     - SpecShapeError if it parsed but does not look like the USDM structure this module
     reads.
     """
+    # Confirmed before the file is looked for, not inside pinned(). Installed
+    # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
+    # there, so an existence check that ran first would report "not
+    # downloaded" for a file that is downloaded, and --allow-unpinned (which
+    # never reaches pinned()) would never check at all.
+    require_repo()
+
     target = path or DEFAULT_SPEC
 
     if not target.exists():

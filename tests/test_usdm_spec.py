@@ -341,15 +341,20 @@ def test_cli_unverifiable_spec_exits_3(monkeypatch, capsys):
     assert "no manifest entry records it" in capsys.readouterr().err
 
 
+@pytest.mark.parametrize("extra", [[], ["--allow-unpinned"]], ids=["verify", "allow-unpinned"])
 @negative
-def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys):
+def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
     """When the package is not running from inside its repo, the command exits 6
-    and prints the install command, rather than reporting the spec as missing."""
+    and prints the install command, rather than reporting the spec as missing.
+    Staged as it really happens: the root the package takes to be the repo is a
+    folder with no repo in it, and the spec path, which follows that root, does
+    not exist there. Checked with and without --allow-unpinned, since that flag
+    bypasses the manifest check and must not bypass this one."""
     from sdg import pinned as pinned_mod
 
     monkeypatch.setattr(pinned_mod, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
-    assert usdm_spec.main(["--list-classes"]) == 6
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", tmp_path / "data" / "nope.yml")
+    assert usdm_spec.main(["--list-classes", *extra]) == 6
     err = capsys.readouterr().err
     assert "pip install -e ." in err and "fetch_sources" not in err
 
