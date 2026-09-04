@@ -63,6 +63,7 @@ python scripts/verify_manifests.py    # every pinned file present and matching i
 python scripts/check_facts.py         # every number stated in the docs re-derived from those files
 python scripts/read_pdf.py --docs     # lists each registered document as present or NOT DOWNLOADED
 python -m sdg.usdm_spec --list-classes # lists the USDM classes read from the pinned model spec
+pytest                                # runs the automated checks in tests/; tests/README.md explains them
 ```
 
 Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`. That password is set in `docker-compose.yml` and is for local development only.
@@ -98,7 +99,7 @@ study-definition-graph/
   prompts/                   # one file per prompt, versioned
   src/sdg/                   # the sdg Python package (source code), installed with pip install -e .
   scripts/                   # run by hand; README.md here is generated
-  tests/
+  tests/                     # automated checks and validation records; README.md there explains them
 ```
 
 ## Where to look

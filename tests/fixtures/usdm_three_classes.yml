@@ -1,0 +1,227 @@
+# Three classes copied verbatim from the pinned USDM v4.0 dataStructure.yml
+# (DDF-RA commit aa303cb, manifest data/manifests/raw_usdm_v4.json).
+# Extracted 2026-09-04 with:
+#   awk '/^(Identifier|StudyIdentifier|Condition):/{p=1} p&&/^[A-Za-z]/&&!/^(Identifier|StudyIdentifier|Condition):/{p=0} p' dataStructure.yml
+#
+# Why these three: Identifier is abstract, StudyIdentifier is its concrete child
+# with inherited attributes, and Condition holds the five-way reference
+# (appliesToIds). Together they exercise every shape the loader reads, in a file
+# small enough to read whole. test_usdm_spec.py proves each class is identical to
+# the pinned one, so this is a sample, not a stand-in. Do not edit the classes.
+Condition:
+  NCI C-Code: C25457
+  Preferred Term: Condition
+  Definition: A state of being.
+  Modifier: Concrete
+  Super Classes:
+  - $ref: '#/SyntaxTemplate'
+  Attributes:
+    id:
+      Type:
+      - $ref: '#/string'
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: id
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    name:
+      Type:
+      - $ref: '#/string'
+      NCI C-Code: C207483
+      Preferred Term: Condition Name
+      Definition: The literal identifier (i.e., distinctive designation) of the condition.
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: name
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    label:
+      Type:
+      - $ref: '#/string'
+      NCI C-Code: C207482
+      Preferred Term: Condition Label
+      Definition: The short descriptive designation for the condition.
+      Cardinality: 0..1
+      Relationship Type: Value
+      Model Name: label
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    description:
+      Type:
+      - $ref: '#/string'
+      NCI C-Code: C207481
+      Preferred Term: Condition Description
+      Definition: A narrative representation of the condition.
+      Cardinality: 0..1
+      Relationship Type: Value
+      Model Name: description
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    text:
+      Type:
+      - $ref: '#/string'
+      NCI C-Code: C207484
+      Preferred Term: Condition Text
+      Definition: An instance of structured text that represents the condition.
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: text
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    notes:
+      Type:
+      - $ref: '#/CommentAnnotation'
+      NCI C-Code: C215552
+      Preferred Term: Condition Notes
+      Definition: A brief written record relevant to the condition.
+      Cardinality: 0..*
+      Relationship Type: Value
+      Model Name: notes
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    dictionaryId:
+      Type:
+      - $ref: '#/SyntaxTemplateDictionary'
+      Definition: A USDM relationship between the Condition and SyntaxTemplateDictionary
+        classes which provides the set of dictionary entries related to conditions.
+      Cardinality: 0..1
+      Relationship Type: Ref
+      Model Name: dictionary
+      Model Representation: Relationship
+      Inherited From:
+      - $ref: '#/SyntaxTemplate'
+    contextIds:
+      Type:
+      - $ref: '#/Activity'
+      - $ref: '#/ScheduledActivityInstance'
+      Definition: A USDM relationship between the Condition and the ScheduledActivityInstance
+        or Activity classes which identifies the scheduled activity instance or activity
+        to which the condition belongs.
+      Cardinality: 0..*
+      Relationship Type: Ref
+      Model Name: context
+      Model Representation: Relationship
+    appliesToIds:
+      Type:
+      - $ref: '#/BiomedicalConceptCategory'
+      - $ref: '#/Procedure'
+      - $ref: '#/Activity'
+      - $ref: '#/BiomedicalConcept'
+      - $ref: '#/BiomedicalConceptSurrogate'
+      Definition: A USDM relationship between the Condition and the Activity, Procedure,
+        BiomedicalConcept, BiomedicalConceptSurrogate, or BiomedicalConceptCategory
+        classes which identifies the procedure, activity, biomedical concept, biomedical
+        concept surrogate, or biomedical concept category that applies to the condition.
+      Cardinality: 0..*
+      Relationship Type: Ref
+      Model Name: appliesTo
+      Model Representation: Relationship
+    extensionAttributes:
+      Type:
+      - $ref: '#/ExtensionAttribute'
+      Cardinality: 0..*
+      Relationship Type: Value
+    instanceType:
+      Type:
+      - $ref: '#/string'
+      Cardinality: '1'
+      Relationship Type: Value
+Identifier:
+  NCI C-Code: C25364
+  Preferred Term: Identifier
+  Definition: One or more characters used to identify, name, or characterize the nature,
+    properties, or contents of a thing.
+  Modifier: Abstract
+  Sub Classes:
+  - $ref: '#/AdministrableProductIdentifier'
+  - $ref: '#/MedicalDeviceIdentifier'
+  - $ref: '#/ReferenceIdentifier'
+  - $ref: '#/StudyIdentifier'
+  Attributes:
+    id:
+      Type:
+      - $ref: '#/string'
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: id
+      Model Representation: Attribute
+    text:
+      Type:
+      - $ref: '#/string'
+      NCI C-Code: C215581
+      Preferred Term: Administrable Product Identifier Text
+      Definition: An instance of structured text that represents the administrable
+        product.
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: text
+      Model Representation: Attribute
+    scopeId:
+      Type:
+      - $ref: '#/Organization'
+      Definition: A USDM relationship between the AdministrableProductIdentifier and
+        Organization class which provides the details associated with which provides
+        the details associated with each organization that has assigned the administrable
+        product identifier.
+      Cardinality: '1'
+      Relationship Type: Ref
+      Model Name: scope
+      Model Representation: Relationship
+StudyIdentifier:
+  NCI C-Code: C83082
+  Preferred Term: Study Identifier
+  Definition: A sequence of characters used to identify, name, or characterize the
+    study.
+  Modifier: Concrete
+  Super Classes:
+  - $ref: '#/Identifier'
+  Attributes:
+    id:
+      Type:
+      - $ref: '#/string'
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: id
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/Identifier'
+    text:
+      Type:
+      - $ref: '#/string'
+      NCI C-Code: C215507
+      Preferred Term: Study Identifier Text
+      Definition: An instance of structured text that represents the study identifier.
+      Cardinality: '1'
+      Relationship Type: Value
+      Model Name: text
+      Model Representation: Attribute
+      Inherited From:
+      - $ref: '#/Identifier'
+    scopeId:
+      Type:
+      - $ref: '#/Organization'
+      Definition: A USDM relationship between the StudyIdentifier and Organization
+        classes which provides the details associated with each organization that
+        has assigned the study identifier.
+      Cardinality: '1'
+      Relationship Type: Ref
+      Model Name: scope
+      Model Representation: Relationship
+      Inherited From:
+      - $ref: '#/Identifier'
+    extensionAttributes:
+      Type:
+      - $ref: '#/ExtensionAttribute'
+      Cardinality: 0..*
+      Relationship Type: Value
+    instanceType:
+      Type:
+      - $ref: '#/string'
+      Cardinality: '1'
+      Relationship Type: Value

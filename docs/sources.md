@@ -19,7 +19,7 @@ Pinned to DDF-RA commit `aa303cb`. Manifest: `raw_usdm_v4.json`.
 | Question | File | How to read it | Read? |
 | --- | --- | --- | --- |
 | What does a class or attribute **mean**? | `usdm_v4/uml/dataDictionary.MD` | Grep it. One row per attribute: definition, cardinality, NCI code, codelist ref. | partly |
-| What does an ID **point at**? | `usdm_v4/uml/dataStructure.yml` | Load with pyyaml. Gives target class, cardinality, `Ref` vs `Value`. | partly |
+| What does an ID **point at**? | `usdm_v4/uml/dataStructure.yml` | `python -m sdg.usdm_spec --attributes <class>`. Gives target class, cardinality, `Ref` vs `Value`; the module checks the file against its manifest first. | partly |
 | What is the model itself? | `usdm_v4/uml/USDM_UML.xmi` | The hand-authored master. Everything else machine-readable is generated from it. Not directly readable; go to the two files above. | no |
 | How does this map to real protocol content? | `usdm_v4/USDM-IG.pdf` | `python scripts/read_pdf.py <section>`. Section map and read ledger: [usdm_ig_map.md](usdm_ig_map.md). | 3 of 54 sections |
 | What does the payload look like? | `usdm_v4/USDM_API.json` | Shape only. **No definitions, no cardinalities, no relationship targets.** Never answer a meaning question from this file. | n/a |

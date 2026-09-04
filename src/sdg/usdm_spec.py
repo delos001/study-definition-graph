@@ -9,8 +9,8 @@ Description: The single way to access the pinned USDM model. It reads
              works off that one parse.
              - Nothing here re-models USDM into a new set of names.
              - Simple accessors hand back a slice of the parsed data unchanged;
-             - Exception: USDM wraps every type in a "$ref" string and this script
-             unwraps the "$ref" string using targets().
+             - Exception: USDM wraps every reference in a "$ref" string and this
+             script takes that wrapping off, in one helper (_unwrap()).
 
              Reading the standard anywhere in this project goes through this
              module, so there is one way to obtain any fact about USDM and no
@@ -46,8 +46,10 @@ Usage:       python -m sdg.usdm_spec --list-classes
 Exit codes:  0  success
              1  the pinned spec file is missing (run scripts/fetch_sources.py)
              2  invalid command line (argparse's own fixed code)
-             3  the spec does not match its recorded checksum (a changed or
-                swapped file); rerun with --allow-unpinned to read it anyway
+             3  the spec cannot be verified against data/manifests/, or does not
+                match it; the message names which (mismatch, unreadable or
+                absent manifest, malformed entry, file not recorded) and how to
+                recover. A mismatch can be read anyway with --allow-unpinned
              4  the spec is present but not the shape this module expects
                 (a USDM version that changed underneath us)
              5  the requested class is not found
@@ -99,19 +101,25 @@ class SpecShapeError(Exception):
 
 
 class IntegrityError(Exception):
-    """The pinned spec file does not match the checksum recorded for it.
+    """The pinned spec file could not be verified against its manifest, or does not
+    match it.
 
     Raised so a silently changed or swapped file stops here before it is
-    parsed and its content flows downstream as quietly wrong output.
-    Its message carries the recovery paths.
+    parsed and its content flows downstream as quietly wrong output. One cause,
+    one message: a checksum or size mismatch, an unreadable or absent manifest, a
+    malformed entry, and a file no entry records each say what happened and how
+    to recover, so the remedy for one cause is never shown for another.
     """
 
 
-# The message carried by IntegrityError: what the user sees when load()'s checksum
-# check against the manifest fails, plus the paths back to a good state.
-_INTEGRITY_MESSAGE = (
-    "dataStructure.yml no longer matches its recorded checksum in "
-    "data/manifests/raw_usdm_v4.json.\n"
+# The manifest set that records dataStructure.yml. Named once so every message
+# below points at the same file.
+MANIFEST_SET = "raw_usdm_v4"
+
+# Recovery paths shown when the pinned file's checksum or size does not match.
+# Only this cause has three ways back; the other causes in _verify_pinned() each
+# carry a one-line remedy of their own.
+_MISMATCH_RECOVERY = (
     "  changed by accident   -> remove the file, then use python scripts/fetch_sources.py\n"
     "  run anyway (once)     -> re-run command, adding --allow-unpinned\n"
     "  a real new version    -> deliberate re-pin (new url, re-fetch, recompute); not a quick edit"
@@ -152,18 +160,54 @@ def _verify_pinned(path: Path) -> None:
     scripts/verify_manifests.py runs by hand, automatically when load() opens the file.
     """
     tools = _manifest_tools()
-    manifests, _errors = tools.load_manifests("raw_usdm_v4")
-    target = path.resolve()
+    manifests, errors = tools.load_manifests(MANIFEST_SET)
+    manifest_file = f"data/manifests/{MANIFEST_SET}.json"
 
+    # An unreadable or absent manifest is a manifest problem, not a data problem.
+    # Named as such, or the remedy would send the user to re-download a file that
+    # is fine.
+    if errors:
+        raise IntegrityError(
+            f"cannot verify the spec: {manifest_file} is unreadable\n"
+            + "".join(f"  {error}\n" for error in errors)
+            + f"  fix -> restore {manifest_file} (git checkout), then re-run"
+        )
+    if not manifests:
+        raise IntegrityError(
+            f"cannot verify the spec: {manifest_file} is not there\n"
+            f"  fix -> restore {manifest_file} (git checkout), then re-run"
+        )
+
+    target = path.resolve()
     for _manifest_path, manifest in manifests:
         for entry in manifest.get("files", []):
-            if (REPO_ROOT / entry.get("local", "")).resolve() == target:
-                status, _detail = tools.check_entry(entry)
-                if status != "ok":
-                    raise IntegrityError(_INTEGRITY_MESSAGE)
-                return
+            if (REPO_ROOT / entry.get("local", "")).resolve() != target:
+                continue
 
-    raise IntegrityError(_INTEGRITY_MESSAGE)
+            status, detail = tools.check_entry(entry)
+            if status == "ok":
+                return
+            # check_entry's detail already says whether size or sha256 differs,
+            # so it is passed through rather than summarised.
+            if status == "mismatch":
+                raise IntegrityError(
+                    f"{detail}\n  (recorded in {manifest_file})\n{_MISMATCH_RECOVERY}"
+                )
+            # "malformed": the entry has no sha256, so nothing can be checked.
+            # "missing": cannot occur here because load() confirmed the file exists,
+            # but reported rather than assumed away should check_entry change.
+            raise IntegrityError(
+                f"cannot verify the spec: its manifest entry is {status} ({detail})\n"
+                f"  fix -> repair that entry in {manifest_file}, then re-run"
+            )
+
+    # The file exists but the manifest never recorded it: a test fixture, or a
+    # pinned file whose manifest row was never written.
+    raise IntegrityError(
+        f"cannot verify the spec: no entry in {manifest_file} records {path}\n"
+        "  a pinned file   -> add its manifest entry (url, sha256, bytes)\n"
+        "  a test fixture  -> call load(path, verify=False)"
+    )
 
 
 def load(path: Path | None = None, verify: bool = True) -> dict:
@@ -172,18 +216,22 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     - a dict keyed by class name, where each value is the class's own dict of NCI code,
     definition, modifier and attributes.
     Nothing is reshaped.
-    A check exists to confirm Modifier and Attributes are present for every class,
+    Two shape checks run before the dict is returned: every class has Modifier and
+    Attributes, and every attribute has Type, Cardinality and Relationship Type,
     so a structurally different file fails here instead of deep inside a caller.
 
     - Pass verify=True (the default) and the file is checked against the checksum
     recorded in data/manifests/ before it is read: a changed or swapped copy
-    stops here rather than flowing downstream.
-    - Pass verify=False to read a file that is not the pinned one (a test fixture),
-    which the CLI exposes as --allow-unpinned.
+    stops here rather than flowing downstream. The CLI's --allow-unpinned flag
+    sets verify=False for the pinned file only; it never reads another path.
+    - Pass `path` with verify=False to read a file that is not the pinned one (a
+    test fixture). With verify=True such a file fails, since no manifest entry
+    records it.
 
     Raises
     - FileNotFoundError if the pinned file is absent,
-    - IntegrityError if it does not match its recorded checksum,
+    - IntegrityError if it cannot be verified against its manifest or does not
+    match it,
     - SpecShapeError if it parsed but does not look like the USDM structure this module
     reads.
     """
@@ -216,6 +264,23 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
                 f"class {name!r} has unexpected Modifier {body['Modifier']!r}"
             )
 
+    # Make sure every attribute carries the three keys the accessors and the
+    # printer index directly (all 833 attributes do, measured), so a renamed key
+    # in a future USDM is named here rather than surfacing as a KeyError traceback.
+    for name, body in spec.items():
+        if not isinstance(body["Attributes"], dict):
+            raise SpecShapeError(f"class {name!r}: Attributes is not a mapping")
+        for attr_name, attr in body["Attributes"].items():
+            missing = [
+                key
+                for key in ("Type", "Cardinality", "Relationship Type")
+                if not isinstance(attr, dict) or key not in attr
+            ]
+            if missing:
+                raise SpecShapeError(
+                    f"attribute {name}.{attr_name} is missing {', '.join(missing)}"
+                )
+
     return spec
 
 
@@ -224,8 +289,9 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
 #
 # Small accessors over the spec that Loading produced.
 # Each takes a dict (and a class name where one is needed) and hands back a slice of
-# USDM in native form. No reshaping occurs with the exception of targets(), which
-# reads a single attribute and unwraps the "$ref" prefix USDM puts on every type.
+# USDM in native form. No reshaping occurs with the exception of _unwrap(), which
+# takes the "$ref" wrapping off a list of references; targets() and the printer
+# both go through it.
 
 
 def class_names(spec: dict) -> list[str]:
@@ -257,9 +323,14 @@ def attributes(spec: dict, class_name: str) -> dict:
     them onto each concrete class (tagged 'Inherited From'); this does no
     flattening of its own. Raises KeyError naming the class if it is unknown.
     """
-    if class_name not in spec:
-        raise KeyError(class_name)
     return spec[class_name]["Attributes"]
+
+
+def _unwrap(refs: list[dict]) -> tuple[str, ...]:
+    """Takes a list of USDM references, each {'$ref': '#/X'}, and produces the
+    names X as a tuple. The one place the '$ref' wrapping is taken off, so the
+    rule lives once; both Type and Inherited From use this shape."""
+    return tuple(ref["$ref"].removeprefix("#/") for ref in refs)
 
 
 def targets(attribute: dict) -> tuple[str, ...]:
@@ -271,10 +342,9 @@ def targets(attribute: dict) -> tuple[str, ...]:
     USDM writes every type as a list of {'$ref': '#/X'}, where X is a class name
     or one of five primitives (string, boolean, integer, float, date). Most
     attributes reference one type; four reference several (e.g. Condition.appliesToIds),
-    so the result is always a tuple. This is the only place a '$ref' is unwrapped,
-    so no caller has to repeat it.
+    so the result is always a tuple.
     """
-    return tuple(ref["$ref"].removeprefix("#/") for ref in attribute.get("Type", []))
+    return _unwrap(attribute.get("Type", []))
 
 
 #######################################################################################
@@ -338,12 +408,8 @@ def _print_attributes(spec: dict, class_name: str) -> int:
         # Relationship Type is USDM's own Value/Ref label, always present; it is
         # carried through, not interpreted. inherited_from is shown only when
         # set, so the common own-attribute case stays uncluttered.
-        inherited = attr.get("Inherited From")
-        origin = (
-            f"  (inherited from {inherited[0]['$ref'].removeprefix('#/')})"
-            if inherited
-            else ""
-        )
+        inherited = _unwrap(attr.get("Inherited From", []))
+        origin = f"  (inherited from {', '.join(inherited)})" if inherited else ""
         print(f"  {fname}")
         print(f"     type        {', '.join(targets(attr)) or '(none)'}")
         print(f"     cardinality {attr['Cardinality']}")
