@@ -1,78 +1,133 @@
 # Code map
 
-What calls what. One box per Python file in `scripts/`, `src/sdg/` and `tests/`, with `data/` as the layer underneath. An arrow means "uses": an import, or reading a folder. Kept by hand; update it when a file is added or an import changes. Correct as of 2026-09-04.
+How the code runs: the order of steps, and what each step produces for the next. One high-level workflow first, then one detail sheet per step that has enough inside it to need one. Arrows are files or folders flowing from one step to the next, not imports. A table of imports (what depends on what) is at the bottom for reference. Kept by hand; update it when a step or a file is added. Correct as of 2026-09-04.
+
+## The workflow
 
 ```mermaid
-flowchart LR
-    subgraph scripts["scripts/ (run by hand)"]
-        fetch[fetch_sources.py]
-        verify[verify_manifests.py]
-        facts[check_facts.py]
-        readpdf[read_pdf.py]
-        readxlsx[read_xlsx.py]
-        index[build_index.py]
-    end
+flowchart TD
+    manifests[("data/manifests/<br/>one JSON per source set:<br/>url, sha256, size")]
+    raw[("data/raw/<br/>the pinned files<br/>(gitignored, never edited)")]
 
-    subgraph pkg["src/sdg/ (imported)"]
-        usdm[usdm_spec.py]
-        pinned[pinned.py]
-    end
+    step1["1. Get the pinned sources<br/>fetch_sources.py, verify_manifests.py"]
+    step2["2. Read sources by hand<br/>read_pdf.py, read_xlsx.py<br/>(orientation, not pipeline)"]
+    step3["3. Pipeline: read the USDM model<br/>pinned.py, usdm_spec.py"]
+    later["Later phases, in PLAN.md order:<br/>acquire documents, locate sections,<br/>classify, extract, load the graph<br/>(not built yet)"]
+    step4["4. Prove it<br/>pytest, check_facts.py, build_index.py"]
 
-    subgraph tests["tests/"]
-        tusdm[test_usdm_spec.py]
-        tpinned[test_pinned.py]
-        treport[test_validation_report.py]
-        conftest[conftest.py]
-    end
-
-    subgraph data["data/"]
-        manifests[("manifests/*.json")]
-        raw[("raw/ (pinned files)")]
-    end
-
-    usdm --> pinned
-    fetch --> pinned
-    verify --> pinned
-    facts --> usdm
-    facts -. "by file path" .-> readpdf
-
-    pinned --> manifests
-    pinned --> raw
-    fetch --> raw
-    verify --> raw
-    readpdf --> raw
-    readxlsx --> raw
-    index -. "reads headers of" .-> scripts
-
-    tusdm --> usdm
-    tusdm --> pinned
-    tpinned --> pinned
-    conftest --> pinned
-    treport -. "copies" .-> conftest
+    manifests --> step1
+    step1 --> raw
+    raw --> step2
+    raw --> step3
+    manifests --> step3
+    step3 --> later
+    step3 --> step4
+    raw --> step4
 ```
 
-## Each arrow, in words
+Step 2 is a side branch: a person runs those two scripts to look at a standard while working; nothing downstream consumes their output. Steps 1, 3 and 4 each have a sheet below.
 
-| From | To | What for |
+## Sheet 1. Get the pinned sources
+
+Once per machine, and again whenever a manifest changes. Everything the project reads is downloaded here, verified against its recorded fingerprint, and never edited afterwards.
+
+```mermaid
+flowchart TD
+    manifests[("data/manifests/*.json")]
+    fetch["fetch_sources.py<br/>for each entry: download if missing,<br/>hash, compare to recorded sha256,<br/>put in place only if it matches"]
+    raw[("data/raw/")]
+    verify["verify_manifests.py<br/>for each entry: present? size? sha256?<br/>and: any file in data/raw/ no manifest records?"]
+    report["report on the terminal<br/>exit 0 clean, 1 drifted, 2 unrecorded, 3 bad manifest"]
+
+    manifests --> fetch
+    fetch --> raw
+    manifests --> verify
+    raw --> verify
+    verify --> report
+```
+
+Both scripts use the same manifest-reading and hashing code, which lives in `src/sdg/pinned.py` (sheet 3), so the check run by hand here is the check the pipeline runs automatically.
+
+## Sheet 3. Pipeline: read the USDM model
+
+The only pipeline step built so far. Everything that needs a fact about USDM goes through `usdm_spec.py`, and everything that needs a pinned file goes through `pinned.py`.
+
+```mermaid
+flowchart TD
+    manifests[("data/manifests/")]
+    raw[("data/raw/usdm_v4/uml/dataStructure.yml")]
+
+    subgraph pinned["pinned.py"]
+        p1["require_repo(): am I running<br/>from inside the repo?"]
+        p2["find the file's manifest entry"]
+        p3["check size, then sha256"]
+        p4["PinnedFile: content + identity<br/>(sha256, url with the version)"]
+        p1 --> p2 --> p3 --> p4
+    end
+
+    subgraph usdm["usdm_spec.py"]
+        u1["load(): parse the YAML"]
+        u2["shape check: every class has<br/>Modifier and Attributes; every attribute<br/>has Type, Cardinality, Relationship Type"]
+        u3["accessors: class_names, is_abstract,<br/>attributes, targets"]
+        u1 --> u2 --> u3
+    end
+
+    cli["command line<br/>python -m sdg.usdm_spec --list-classes / --attributes"]
+    facts["check_facts.py<br/>(the concrete-class count)"]
+    tests["tests/"]
+    later["later phases: schemas for extraction,<br/>the graph's edge list, provenance stamps"]
+
+    manifests --> p2
+    raw --> p3
+    p4 --> u1
+    u3 --> cli
+    u3 --> facts
+    u3 --> tests
+    u3 --> later
+```
+
+Every failure has its own exit code and message: file missing (1), cannot be verified or does not match (3), wrong shape (4), unknown class (5), not running from inside the repo (6). If a source ever comes from an API instead of a manifest, the inside of `pinned.py` changes and nothing to its right does.
+
+## Sheet 4. Prove it
+
+Three separate proofs, run by hand. None feeds the pipeline; each guards something the pipeline or the documents claim.
+
+```mermaid
+flowchart TD
+    testfiles["tests/test_*.py<br/>+ tests/fixtures/"]
+    pytest["pytest<br/>every check, positive and negative"]
+    terminal["pass / fail on the terminal<br/>(development runs write nothing)"]
+    record["tests/validation/*.md<br/>only with --validation-report:<br/>the auditable record, committed"]
+
+    docs["README.md, BACKGROUND.md, docs/"]
+    raw[("data/raw/")]
+    facts["check_facts.py<br/>re-derive every number the docs state"]
+    factsout["drift report, exit 0 or 1"]
+
+    headers["scripts/*.py header blocks"]
+    index["build_index.py"]
+    scriptsreadme["scripts/README.md (generated)"]
+
+    testfiles --> pytest --> terminal
+    pytest -- "--validation-report" --> record
+    docs --> facts
+    raw --> facts
+    facts --> factsout
+    headers --> index --> scriptsreadme
+```
+
+## Reference: what imports what
+
+For "if I change this file, what else is affected". Third-party libraries omitted; `environment.yml` lists them.
+
+| File | Imports from the repo | For |
 | --- | --- | --- |
-| `usdm_spec.py` | `pinned.py` | Obtains the verified `dataStructure.yml` (and the repo root) before parsing it. The only path by which the loader touches disk. |
-| `fetch_sources.py` | `pinned.py` | The manifest reader, the hashing function and the repo root, so a download is verified with the same code the pipeline uses. |
-| `verify_manifests.py` | `pinned.py` | The manifest reader, the per-entry check and the folder locations. The script keeps only the corpus walk and the printed report. |
-| `check_facts.py` | `usdm_spec.py` | Re-derives the concrete-class count (80) through the loader rather than parsing the file itself. |
-| `check_facts.py` | `read_pdf.py` | Loads it by file path (`importlib`) to count IG sections. The one remaining by-file-path import in the repo, the pattern removed from `usdm_spec.py` on 2026-09-04; it works because both files are in `scripts/`. |
-| `pinned.py` | `data/manifests/` | Reads every manifest to find a file's entry. |
-| `pinned.py` | `data/raw/` | Hashes the file named, read-only. |
-| `fetch_sources.py` | `data/raw/` | The one writer: downloads missing files into place after verifying them. |
-| `verify_manifests.py` | `data/raw/` | Walks it for files no manifest records. |
-| `read_pdf.py`, `read_xlsx.py` | `data/raw/` | Open the pinned PDFs and workbooks to print parts of them. Each locates the repo on its own (walks up from its file), the same assumption `pinned.py` makes. |
-| `build_index.py` | `scripts/*.py` | Reads each script's header block and writes `scripts/README.md`. |
-| `test_usdm_spec.py` | `usdm_spec.py`, `pinned.py` | Checks the loader; points `pinned.py` at a temporary manifests folder for the failure cases. |
-| `test_pinned.py` | `pinned.py` | Checks every way obtaining a pinned file can succeed or fail. |
-| `conftest.py` | `pinned.py` | The two shared fixtures that stage a temporary manifest. |
-| `test_validation_report.py` | `conftest.py` | Copies it into throwaway suites to prove the record-writer. |
-
-## What is not on the map
-
-- `read_pdf.py`, `read_xlsx.py` and `build_index.py` import nothing from the repo. They are leaves.
-- `check_facts.py` also reads the project's Markdown (`README.md`, `BACKGROUND.md`, `docs/`) to find the figures it re-derives.
-- Third-party libraries (`yaml`, `fitz`, `openpyxl`, `httpx`, `pytest`) are omitted; `environment.yml` lists them.
+| `src/sdg/usdm_spec.py` | `sdg.pinned` | the verified model file and the repo root |
+| `scripts/fetch_sources.py` | `sdg.pinned` | manifest reading, hashing, repo root |
+| `scripts/verify_manifests.py` | `sdg.pinned` | manifest reading, per-entry check, folder locations |
+| `scripts/check_facts.py` | `sdg.usdm_spec`; `read_pdf.py` (by file path, same folder) | the class count; the registered-PDF table |
+| `scripts/read_pdf.py`, `read_xlsx.py`, `build_index.py` | nothing | leaves |
+| `tests/test_usdm_spec.py` | `sdg.usdm_spec`, `sdg.pinned` | the loader; a temporary manifests folder for failure cases |
+| `tests/test_pinned.py` | `sdg.pinned` | every success and failure case |
+| `tests/conftest.py` | `sdg.pinned` | the two shared manifest-staging fixtures |
+| `tests/test_validation_report.py` | `conftest.py` (copied into throwaway suites) | the record-writer |
