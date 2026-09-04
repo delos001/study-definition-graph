@@ -76,12 +76,12 @@ def pinned_pdf_pages() -> int:
     that a PDF present but unregistered does not silently inflate the count that
     CLAUDE.md's "never read one whole" rule is scaled against.
     """
-    import importlib.util
+    # A plain import resolves because Python puts the running script's own folder
+    # (scripts/) first on its search path, and read_pdf.py does nothing at import
+    # time beyond defining its table.
+    from read_pdf import DOCUMENTS
 
-    spec = importlib.util.spec_from_file_location("rp", REPO_ROOT / "scripts" / "read_pdf.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return sum(len(fitz.open(entry["path"])) for entry in module.DOCUMENTS.values())
+    return sum(len(fitz.open(entry["path"])) for entry in DOCUMENTS.values())
 
 
 def ig_sections() -> int:

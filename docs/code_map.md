@@ -125,7 +125,7 @@ For "if I change this file, what else is affected". Third-party libraries omitte
 | `src/sdg/usdm_spec.py` | `sdg.pinned` | the verified model file and the repo root |
 | `scripts/fetch_sources.py` | `sdg.pinned` | manifest reading, hashing, repo root |
 | `scripts/verify_manifests.py` | `sdg.pinned` | manifest reading, per-entry check, folder locations |
-| `scripts/check_facts.py` | `sdg.usdm_spec`; `read_pdf.py` (by file path, same folder) | the class count; the registered-PDF table |
+| `scripts/check_facts.py` | `sdg.usdm_spec`; `read_pdf.py` (plain import, same folder) | the class count; the registered-PDF table |
 | `scripts/read_pdf.py`, `read_xlsx.py`, `build_index.py` | nothing | leaves |
 | `tests/test_usdm_spec.py` | `sdg.usdm_spec`, `sdg.pinned` | the loader; a temporary manifests folder for failure cases |
 | `tests/test_pinned.py` | `sdg.pinned` | every success and failure case |

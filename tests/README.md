@@ -143,3 +143,6 @@ Because the record is written before the validating commit exists, its commit ha
 
 | Component | Record | State it validates |
 | --- | --- | --- |
+| `src/sdg/pinned.py` | [validation/pinned_2026-09-04_246dfd5.md](validation/pinned_2026-09-04_246dfd5.md) | First version: pinned files behind one function, one message per failure cause, the in-repo check. |
+| `src/sdg/usdm_spec.py` | [validation/usdm_spec_2026-09-04_246dfd5.md](validation/usdm_spec_2026-09-04_246dfd5.md) | After the 2026-09-04 review: per-cause errors, reference-shape checks, loading through `pinned.py`, exit code 6. |
+| `tests/conftest.py` (the record-writer) | [validation/validation_report_2026-09-04_246dfd5.md](validation/validation_report_2026-09-04_246dfd5.md) | Verdict taken from pytest's exit status; clean-up and set-up failures recorded as error; a record still written when no test ran. |
