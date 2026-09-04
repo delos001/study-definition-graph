@@ -268,6 +268,38 @@ def test_attribute_missing_several_keys_lists_them(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@negative
+def test_type_that_is_not_a_reference_list_is_named(variant):
+    """A Type holding a plain word instead of a list of '$ref' entries is refused,
+    naming Class.attribute and the field, rather than failing later inside the
+    printer when it tries to walk the value."""
+    broken = variant(lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", "string"))
+    with pytest.raises(usdm_spec.SpecShapeError, match="Condition.name: Type is not a list"):
+        usdm_spec.load(broken, verify=False)
+
+
+@negative
+def test_empty_type_list_is_refused(variant):
+    """An empty Type list is refused the same way: an attribute with no type is
+    not a shape this module can answer questions about."""
+    broken = variant(lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", []))
+    with pytest.raises(usdm_spec.SpecShapeError, match="Condition.name: Type is not a list"):
+        usdm_spec.load(broken, verify=False)
+
+
+@negative
+def test_inherited_from_without_ref_is_named(variant):
+    """An Inherited From entry lacking its '$ref' is refused, naming the
+    attribute and the field, so the printer never indexes a missing key."""
+    broken = variant(
+        lambda d: d["StudyIdentifier"]["Attributes"]["id"].__setitem__("Inherited From", [{"ref": "x"}])
+    )
+    with pytest.raises(
+        usdm_spec.SpecShapeError, match="StudyIdentifier.id: Inherited From is not a list"
+    ):
+        usdm_spec.load(broken, verify=False)
+
+
 #######################################################################################
 ### Refusing a file that cannot be trusted (IntegrityError, exit 3) ###
 #
@@ -394,6 +426,16 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
     assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 4
     assert "'Condition'" in capsys.readouterr().err
+
+
+@negative
+def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
+    """A file whose Type values are not reference lists makes --attributes exit 4
+    with the attribute named, not crash with a traceback while printing."""
+    broken = variant(lambda d: d["StudyIdentifier"]["Attributes"]["scopeId"].__setitem__("Type", None))
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
+    assert usdm_spec.main(["--attributes", "StudyIdentifier", "--allow-unpinned"]) == 4
+    assert "StudyIdentifier.scopeId: Type is not a list" in capsys.readouterr().err
 
 
 @positive

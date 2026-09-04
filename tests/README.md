@@ -57,6 +57,9 @@ The `Proves` column is the first line of each check's docstring; the full docstr
 | `test_attributes_not_a_mapping_is_named` | negative | Attributes that is not a dict is refused, naming the class |
 | `test_attribute_missing_a_key_is_named` | negative | an attribute missing a required key is refused, naming Class.attribute and the key |
 | `test_attribute_missing_several_keys_lists_them` | negative | several missing keys are all listed in one message |
+| `test_type_that_is_not_a_reference_list_is_named` | negative | a Type holding a plain word instead of a list of `$ref` entries is refused, naming the attribute and field |
+| `test_empty_type_list_is_refused` | negative | an empty Type list is refused the same way |
+| `test_inherited_from_without_ref_is_named` | negative | an Inherited From entry lacking `$ref` is refused, naming the attribute and field |
 
 ### Refusing a file that cannot be trusted (`IntegrityError`, exit 3)
 
@@ -78,6 +81,7 @@ The `Proves` column is the first line of each check's docstring; the full docstr
 | `test_cli_missing_spec_exits_1` | negative | pinned file not downloaded exits 1 and names fetch_sources.py |
 | `test_cli_unverifiable_spec_exits_3` | negative | file present but unverifiable exits 3 |
 | `test_cli_wrong_shape_exits_4` | negative | file not shaped like USDM exits 4 |
+| `test_cli_malformed_type_exits_4_not_traceback` | negative | malformed Type values make --attributes exit 4 with the attribute named, not a traceback |
 | `test_cli_allow_unpinned_reads_the_file` | positive | --allow-unpinned skips the manifest check and lists classes, exit 0 |
 | `test_cli_attributes_prints_type_cardinality_kind` | positive | --attributes prints type, cardinality, kind and inheritance, exit 0 |
 | `test_cli_unknown_class_exits_5` | negative | an unknown class exits 5 and points at --list-classes |

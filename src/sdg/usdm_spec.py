@@ -267,6 +267,9 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     # Make sure every attribute carries the three keys the accessors and the
     # printer index directly (all 833 attributes do, measured), so a renamed key
     # in a future USDM is named here rather than surfacing as a KeyError traceback.
+    # The two reference-valued keys, Type (always) and Inherited From (when
+    # present), must also hold a list of {'$ref': '#/X'} entries, since _unwrap()
+    # walks them; an empty or misshapen value would otherwise fail there instead.
     for name, body in spec.items():
         if not isinstance(body["Attributes"], dict):
             raise SpecShapeError(f"class {name!r}: Attributes is not a mapping")
@@ -280,8 +283,24 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
                 raise SpecShapeError(
                     f"attribute {name}.{attr_name} is missing {', '.join(missing)}"
                 )
+            for key in ("Type", "Inherited From"):
+                if key in attr and not _is_ref_list(attr[key]):
+                    raise SpecShapeError(
+                        f"attribute {name}.{attr_name}: {key} is not a list of "
+                        "{'$ref': '#/...'} entries"
+                    )
 
     return spec
+
+
+def _is_ref_list(value) -> bool:
+    """Takes one attribute field and reports whether it is a non-empty list whose
+    every item is a dict carrying a string '$ref', the only shape _unwrap() reads."""
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(isinstance(item, dict) and isinstance(item.get("$ref"), str) for item in value)
+    )
 
 
 #######################################################################################
