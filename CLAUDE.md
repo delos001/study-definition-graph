@@ -76,6 +76,8 @@ Date:        YYYY-MM-DD
 Owner:       Jason Delosh
 ```
 
+`Date` is the day the file was first committed, and it never changes. When a file last changed is git's answer, not the header's: `git log -1 --format=%cd -- <file>`. A hand-kept "last changed" field is one that is wrong most of the time.
+
 `Owner` is who is accountable for the file and who to ask about it, not who wrote it. Authorship is recorded per commit in git, model attribution included, so it stays accurate as humans and models both edit a file over time. `git log --follow <file>` and `git blame <file>` are the answers to who wrote a given line. `Owner` changes only when ownership actually transfers.
 
 And carries:

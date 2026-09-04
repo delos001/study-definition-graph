@@ -1,6 +1,6 @@
 # Code map
 
-How the code runs: the order of steps, and what each step produces for the next. One high-level workflow first, then one detail sheet per step that has enough inside it to need one. Arrows are files or folders flowing from one step to the next, not imports. A table of imports (what depends on what) is at the bottom for reference. Kept by hand; update it when a step or a file is added. Correct as of 2026-09-04.
+How the code runs: the order of steps, and what each step produces for the next. One high-level workflow first, then one detail sheet per step that has enough inside it to need one. Arrows are files or folders flowing from one step to the next, not imports. A table of imports (what depends on what) is at the bottom for reference. Kept by hand; update it when a step or a file is added. Correct as of 2026-09-04. Scripts are imported by name in `tests/` because `pyproject.toml` puts `scripts/` on pytest's import path.
 
 ## The workflow
 
@@ -37,7 +37,7 @@ flowchart TD
     fetch["fetch_sources.py<br/>for each entry: download if missing,<br/>hash, compare to recorded sha256,<br/>put in place only if it matches"]
     raw[("data/raw/")]
     verify["verify_manifests.py<br/>for each entry: present? size? sha256?<br/>and: any file in data/raw/ no manifest records?"]
-    report["report on the terminal<br/>exit 0 clean, 1 drifted, 2 unrecorded, 3 bad manifest"]
+    report["report on the terminal<br/>exit 0 clean, 1 drifted, 2 unrecorded,<br/>3 bad manifest, 6 package installed wrongly"]
 
     manifests --> fetch
     fetch --> raw
@@ -46,7 +46,7 @@ flowchart TD
     verify --> report
 ```
 
-Both scripts use the same manifest-reading and hashing code, which lives in `src/sdg/pinned.py` (sheet 3), so the check run by hand here is the check the pipeline runs automatically.
+Both scripts use the same manifest-reading and hashing code, which lives in `src/sdg/pinned.py` (sheet 3), so the check run by hand here is the check the pipeline runs automatically. Both confirm they are running from inside the repo first (exit 6 if not, the same code as everywhere else).
 
 ## Sheet 3. Pipeline: read the USDM model
 
@@ -94,15 +94,15 @@ Three separate proofs, run by hand. None feeds the pipeline; each guards somethi
 
 ```mermaid
 flowchart TD
-    testfiles["tests/test_*.py<br/>+ tests/fixtures/"]
+    testfiles["tests/test_*.py<br/>+ tests/fixtures/<br/>(one file per module in src/sdg/<br/>and per script in scripts/)"]
     pytest["pytest<br/>every check, positive and negative"]
     terminal["pass / fail on the terminal<br/>(development runs write nothing)"]
     record["tests/validation/*.md<br/>only with --validation-report:<br/>the auditable record, committed"]
 
     docs["README.md, BACKGROUND.md, docs/"]
     raw[("data/raw/")]
-    facts["check_facts.py<br/>re-derive every number the docs state"]
-    factsout["drift report, exit 0 or 1"]
+    facts["check_facts.py<br/>re-derive every number the docs state;<br/>every file read is verified through pinned() first"]
+    factsout["drift report: exit 0 or 1;<br/>2 file missing, 3 cannot verify, 4 wrong shape,<br/>6 installed wrongly, 7 not installed"]
 
     headers["scripts/*.py header blocks"]
     index["build_index.py"]
@@ -125,9 +125,12 @@ For "if I change this file, what else is affected". Third-party libraries omitte
 | `src/sdg/usdm_spec.py` | `sdg.pinned` | the verified model file and the repo root |
 | `scripts/fetch_sources.py` | `sdg.pinned` | manifest reading, hashing, repo root |
 | `scripts/verify_manifests.py` | `sdg.pinned` | manifest reading, per-entry check, folder locations |
-| `scripts/check_facts.py` | `sdg.usdm_spec`; `read_pdf.py` (plain import, same folder) | the class count; the registered-PDF table |
+| `scripts/check_facts.py` | `sdg.usdm_spec`, `sdg.pinned`; `read_pdf.py` (plain import, same folder) | the class count; every pinned file, verified; the registered-PDF table |
 | `scripts/read_pdf.py`, `read_xlsx.py`, `build_index.py` | nothing | leaves |
 | `tests/test_usdm_spec.py` | `sdg.usdm_spec`, `sdg.pinned` | the loader; a temporary manifests folder for failure cases |
 | `tests/test_pinned.py` | `sdg.pinned` | every success and failure case |
-| `tests/conftest.py` | `sdg.pinned` | the two shared manifest-staging fixtures |
+| `tests/conftest.py` | `sdg.pinned` | the shared fixtures that stage manifests and a throwaway repo |
+| `tests/test_verify_manifests.py`, `test_fetch_sources.py` | the script, `sdg.pinned` | the script's `main()`; repointing the repo at the fake one |
+| `tests/test_check_facts.py` | `check_facts.py`, `sdg.pinned`, `sdg.usdm_spec` | the script's `main()`; the exception classes it maps to exit codes |
+| `tests/test_build_index.py` | `build_index.py` | the script's `main()` |
 | `tests/test_validation_report.py` | `conftest.py` (copied into throwaway suites) | the record-writer |
