@@ -41,6 +41,9 @@ Exit codes:  0  every recorded file is present and matches its recorded sha256
              1  a download failed, or a downloaded file did not match its hash
              2  a file already on disk disagrees with its manifest; not touched
              3  no manifests found, or one could not be parsed
+             6  the sdg package is installed but not from inside its repo
+                (installed without -e), so data/ cannot be found; the message
+                gives the install command. Same meaning as in sdg.usdm_spec
 
              1 outranks 2 when both occur, because a failed fetch leaves the
              corpus incomplete while a disagreeing file at least still has
@@ -63,7 +66,7 @@ import httpx
 # before reading it), and a second copy of that knowledge here is exactly the
 # drift this script was written to remove. Needs the package installed
 # editable (pip install -e ., README.md step 1b).
-from sdg.pinned import REPO_ROOT, load_manifests, sha256_of
+from sdg.pinned import REPO_ROOT, NotInRepoError, load_manifests, require_repo, sha256_of
 
 
 ### Constants ##################################################################
@@ -163,9 +166,11 @@ def place_or_discard(target: Path, recorded_hash: str, actual_hash: str, say) ->
 ### Entry point ################################################################
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """
-    Walk every manifest, fetch what is missing, verify what is present.
+    Takes the command-line arguments (None means sys.argv, as when run from a
+    terminal), walks every manifest, fetches what is missing, verifies what is
+    present, and produces the exit code.
 
     Returns the process exit code. Problems are counted rather than raised so
     that the run reports the state of the whole corpus in one pass instead of
@@ -181,9 +186,18 @@ def main() -> int:
     )
     parser.add_argument("--set", dest="only", help="one manifest only, by filename stem")
     parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     say = make_reporter(args.quiet)
+
+    # Checked before any path is used. Installed without -e, the manifests
+    # folder is looked for in the wrong place and the run would report "no
+    # manifests found", which sends the user to the wrong fix.
+    try:
+        require_repo()
+    except NotInRepoError as exc:
+        say(str(exc))
+        return 6
 
     manifests, load_errors = load_manifests(args.only)
 

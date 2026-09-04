@@ -32,6 +32,9 @@ Exit codes:  0  every recorded file is present and matches, no unrecorded files
              1  a recorded file is missing, or its checksum does not match
              2  a file under data/raw/ is not recorded in any manifest
              3  no manifests found, or one could not be parsed
+             6  the sdg package is installed but not from inside its repo
+                (installed without -e), so data/ cannot be found; the message
+                gives the install command. Same meaning as in sdg.usdm_spec
 
              1 outranks 2 when both occur, because a corrupted pin is worse
              than an undocumented one.
@@ -49,7 +52,15 @@ import sys
 # code the pipeline runs before it reads any pinned file, so the check run by
 # hand here is the check run automatically there. Needs the package installed
 # editable (pip install -e ., README.md step 1b).
-from sdg.pinned import MANIFEST_DIR, RAW_DIR, REPO_ROOT, check_entry, load_manifests
+from sdg.pinned import (
+    MANIFEST_DIR,
+    RAW_DIR,
+    REPO_ROOT,
+    NotInRepoError,
+    check_entry,
+    load_manifests,
+    require_repo,
+)
 
 
 ### Constants ##################################################################
@@ -101,9 +112,10 @@ def find_unrecorded(recorded: set[str]) -> list[str]:
 ### Entry point ################################################################
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """
-    Check every manifest, print a report, and return a shell exit code.
+    Takes the command-line arguments (None means sys.argv, as when run from a
+    terminal), checks every manifest, prints a report, and produces the exit code.
 
     Output is organised by manifest so a failure can be traced to the set it
     belongs to, and therefore to the url it should be re-downloaded from.
@@ -119,12 +131,21 @@ def main() -> int:
     parser.add_argument("--set", help="check one manifest only, e.g. raw_ich_m11")
     parser.add_argument("--verbose", action="store_true", help="list files that passed")
     parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     def say(line: str = "") -> None:
         """Print unless --quiet. Wrapped so no check has to test the flag."""
         if not args.quiet:
             print(line)
+
+    # Checked before any path is used. Installed without -e, the manifests
+    # folder is looked for in the wrong place and the run would report "no
+    # manifests found", which sends the user to the wrong fix.
+    try:
+        require_repo()
+    except NotInRepoError as exc:
+        say(str(exc))
+        return 6
 
     manifests, load_errors = load_manifests(args.set)
 
