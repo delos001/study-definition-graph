@@ -21,7 +21,8 @@ Description: Recomputes every countable fact asserted in the project's markdown
              owner is the citation and its access date, not this script. Such
              figures live behind a [n] reference marker instead.
 
-Inputs:      data/raw/**            (read-only, pinned)
+Inputs:      data/raw/**            (read-only, pinned, each verified via sdg.pinned)
+             data/manifests/*.json  (read-only, via sdg.pinned)
              *.md and docs/*.md     (read-only, scanned for the stated figure)
 
 Outputs:     A report on stdout. Writes nothing to disk.
@@ -32,8 +33,25 @@ Usage:       python scripts/check_facts.py
                  also show facts that match
 
 Exit codes:  0  every stated figure matches the source it came from
-             1  at least one figure has drifted, or is asserted nowhere
+             1  at least one figure has drifted. A fact that no document
+                asserts is reported but does not fail the run
              2  a pinned file needed for a check is missing
+             3  a pinned file needed for a check is on disk but is not the
+                pinned one, or the manifest recording it is unreadable or has
+                no entry for it; the message names the file, which of those it
+                is, and how to recover
+             4  the USDM model file is the pinned one but is not shaped like
+                USDM v4; the message names the class or attribute that broke
+             5  not used here. In sdg.usdm_spec it means an unknown class name,
+                which cannot happen in this script; left unassigned so the
+                number keeps one meaning across the repo
+             6  the sdg package is installed but not from inside its repo
+                (installed without -e), so it cannot find data/; the message
+                gives the install command
+             7  the sdg package is not installed at all
+
+             Codes 3, 4 and 6 mean the same thing as in sdg.usdm_spec, so one
+             number names one cause wherever it appears.
 
 Date:        2026-08-18
 Owner:       Jason Delosh
@@ -51,6 +69,21 @@ from pathlib import Path
 import fitz
 import openpyxl
 
+# The model loader, and the three ways it can refuse the pinned file. Guarded
+# rather than plain, so that a missing sdg package (never installed) is reported
+# by main() as exit 7 with the install command, instead of a traceback before
+# any check runs. The three exception classes are needed at module level so the
+# measurement loop can give each cause its own exit code.
+try:
+    from sdg import usdm_spec
+    from sdg.pinned import IntegrityError, NotInRepoError, pinned
+    from sdg.usdm_spec import SpecShapeError
+    SDG_MISSING: ImportError | None = None
+except ImportError as exc:
+    usdm_spec = pinned = None
+    IntegrityError = NotInRepoError = SpecShapeError = ()  # never matched
+    SDG_MISSING = exc
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RAW = REPO_ROOT / "data" / "raw"
 
@@ -67,6 +100,12 @@ DOCS = ["README.md", "BACKGROUND.md", "PLAN.md", "CLAUDE.md",
 # One function per countable fact. Each returns the true value, computed from a
 # pinned file. They are deliberately small and independent so that a failing
 # measurement names exactly one fact.
+#
+# Every file is obtained through sdg.pinned.pinned(), which checks it against
+# its manifest before it is read. A figure certified here is only worth
+# something if it was derived from the file that was actually pinned; a swapped
+# or edited copy fails the check (exit 3) instead of quietly certifying the
+# documents against the wrong source.
 
 
 def pinned_pdf_pages() -> int:
@@ -81,18 +120,18 @@ def pinned_pdf_pages() -> int:
     # time beyond defining its table.
     from read_pdf import DOCUMENTS
 
-    return sum(len(fitz.open(entry["path"])) for entry in DOCUMENTS.values())
+    return sum(len(fitz.open(pinned(entry["path"]).path)) for entry in DOCUMENTS.values())
 
 
 def ig_sections() -> int:
     """Bookmarks in the USDM Implementation Guide, which is what a section is."""
-    return len(fitz.open(RAW / "usdm_v4" / "USDM-IG.pdf").get_toc())
+    return len(fitz.open(pinned(RAW / "usdm_v4" / "USDM-IG.pdf").path).get_toc())
 
 
 def core_rules() -> int:
     """Rows carrying a rule ID in the conformance rules workbook."""
     sheet = openpyxl.load_workbook(
-        RAW / "usdm_v4" / "USDM_CORE_Rules.xlsx", read_only=True
+        pinned(RAW / "usdm_v4" / "USDM_CORE_Rules.xlsx").path, read_only=True
     )["Version 3.0 and 4.0 CORE rules"]
     return sum(1 for row in list(sheet.iter_rows(values_only=True))[1:] if row[0])
 
@@ -104,19 +143,19 @@ def m11_elements() -> int:
     is the document's own delimiter rather than a heuristic of ours.
     """
     text = "".join(page.get_text() for page in
-                   fitz.open(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf"))
+                   fitz.open(pinned(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf").path))
     return len(re.findall(r"Term \(Variable\)\s*\n\s*<([^>]{1,80})>", text))
 
 
 def uml_delta_rows() -> int:
     """Lines in the v3.0-to-v4.0 change file, header included, as quoted."""
     path = RAW / "usdm_v4" / "uml" / "UML_DELTA_3-0-0_4-0-0.csv"
-    return len(path.read_text(encoding="utf-8").splitlines())
+    return len(pinned(path).read_text().splitlines())
 
 
 def dictionary_codes() -> int:
     """Distinct NCI C-codes named in the data dictionary."""
-    text = (RAW / "usdm_v4" / "uml" / "dataDictionary.MD").read_text(encoding="utf-8")
+    text = pinned(RAW / "usdm_v4" / "uml" / "dataDictionary.MD").read_text()
     return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
@@ -126,11 +165,9 @@ def usdm_concrete_classes() -> int:
     Goes through sdg.usdm_spec, the one doorway to the standard, rather than
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
-    usdm_ig_map.md makes. Imported lazily so this script still loads when the
-    sdg package is not installed, matching how pinned_pdf_pages loads read_pdf.
+    usdm_ig_map.md makes. The loader also checks the file is shaped like USDM
+    v4, the one failure only this measurement can raise (exit 4).
     """
-    from sdg import usdm_spec
-
     spec = usdm_spec.load()
     return sum(1 for c in usdm_spec.class_names(spec) if not usdm_spec.is_abstract(spec, c))
 
@@ -144,11 +181,11 @@ def shared_codes() -> int:
     change the conclusion, not just the caption.
     """
     text = "".join(page.get_text() for page in
-                   fitz.open(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf"))
+                   fitz.open(pinned(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf").path))
     m11 = set(re.findall(r"\b(C\d{4,6})\b", text))
 
     terminology = set()
-    for sheet in openpyxl.load_workbook(RAW / "usdm_v4" / "USDM_CT.xlsx", read_only=True):
+    for sheet in openpyxl.load_workbook(pinned(RAW / "usdm_v4" / "USDM_CT.xlsx").path, read_only=True):
         for row in sheet.iter_rows(values_only=True):
             for cell in row:
                 if cell:
@@ -157,7 +194,12 @@ def shared_codes() -> int:
 
 
 def worked_examples() -> int:
-    """Worked example studies, one directory each."""
+    """Worked example studies, one directory each.
+
+    A count of folders, not a read of any file's contents, so there is nothing
+    for pinned() to verify here; the files inside are verified where they are
+    read, in examples_with_estimands.
+    """
     return len([d for d in (RAW / "usdm_examples").iterdir() if d.is_dir()])
 
 
@@ -180,7 +222,7 @@ def examples_with_estimands() -> int:
         if not exports:
             continue
 
-        document = json.loads(exports[0].read_text(encoding="utf-8"))
+        document = json.loads(pinned(exports[0]).read_text())
         designs = document["study"]["versions"][0]["studyDesigns"]
         if any(design.get("estimands") for design in designs):
             count += 1
@@ -240,26 +282,45 @@ def stated_values(pattern: str) -> list[tuple[str, int]]:
     return found
 
 
-def main() -> int:
-    """Recompute every fact, compare it to what the documents say, report drift."""
+def main(argv: list[str] | None = None) -> int:
+    """Takes the command-line arguments (None means sys.argv, as when run from a
+    terminal), recomputes every fact, compares it to what the documents say, and
+    produces the exit code."""
     sys.stdout.reconfigure(encoding="utf-8")
 
     parser = argparse.ArgumentParser(
         description="Check countable claims in the markdown against the pinned files."
     )
     parser.add_argument("--verbose", action="store_true", help="also show facts that match")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
+
+    # Reported before any measurement, since one of them needs the package and
+    # the fix is the same one-line install either way.
+    if SDG_MISSING is not None:
+        print(f"the sdg package is not installed ({SDG_MISSING})")
+        print("  fix -> from the repo root: pip install -e .")
+        return 7
 
     drifted = unasserted = 0
 
     for label, measure, pattern in FACTS:
-        # A missing pinned file is a different failure from a wrong number, and
-        # cannot be reported as drift because nothing can be measured.
+        # Each way a measurement can fail is a different root cause with a
+        # different remedy, so each gets its own exit code (see header). None
+        # can be reported as drift, because nothing was measured.
         try:
             actual = measure()
         except (FileNotFoundError, KeyError, OSError) as exc:
             print(f"  UNMEASURABLE  {label}: {exc}")
             return 2
+        except NotInRepoError as exc:
+            print(f"  NOT IN REPO   {label}: {exc}")
+            return 6
+        except IntegrityError as exc:
+            print(f"  UNVERIFIED    {label}: {exc}")
+            return 3
+        except SpecShapeError as exc:
+            print(f"  WRONG SHAPE   {label}: {exc}")
+            return 4
 
         occurrences = stated_values(pattern)
 
