@@ -22,10 +22,9 @@ Description: Automated checks for src/sdg/usdm_spec.py, the one module that read
              (the broken thing fails, and the error names the right cause).
 
 Inputs:      tests/fixtures/usdm_three_classes.yml         (read-only)
-             data/manifests/raw_usdm_v4.json                (read-only)
+             data/manifests/raw_usdm_v4.json                (read-only, via sdg.pinned)
              data/raw/usdm_v4/uml/dataStructure.yml         (read-only; real-file
                                                              checks only)
-             scripts/verify_manifests.py                    (imported by the loader)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              conftest.py writes tests/validation/ records when asked.
@@ -45,7 +44,6 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -96,40 +94,6 @@ def variant(tmp_path):
         return path
 
     return make
-
-
-@pytest.fixture
-def manifest_dir(tmp_path, monkeypatch):
-    """Produces a function that takes manifest JSON text (or None for no manifest
-    at all), writes it as raw_usdm_v4.json in a temporary folder, and points the
-    loader's manifest reader at that folder for the rest of the test. monkeypatch
-    puts the real folder back afterwards."""
-    tools = usdm_spec._manifest_tools()
-    monkeypatch.setattr(tools, "MANIFEST_DIR", tmp_path)
-
-    def make(text: str | None) -> None:
-        if text is not None:
-            (tmp_path / f"{usdm_spec.MANIFEST_SET}.json").write_text(text, encoding="utf-8")
-
-    return make
-
-
-def manifest_recording(path: Path, **overrides) -> str:
-    """Takes a file path and produces manifest JSON with one entry for it, correct
-    in size, with any field overridden (a wrong sha256, a wrong size, a missing key
-    via None) so a test can stage exactly one defect."""
-    entry = {
-        "name": "fixture",
-        "local": path.relative_to(usdm_spec.REPO_ROOT).as_posix(),
-        "sha256": "0" * 64,
-        "bytes": path.stat().st_size,
-    }
-    for key, value in overrides.items():
-        if value is None:
-            entry.pop(key)
-        else:
-            entry[key] = value
-    return json.dumps({"files": [entry]})
 
 
 #######################################################################################
@@ -303,9 +267,9 @@ def test_inherited_from_without_ref_is_named(variant):
 #######################################################################################
 ### Refusing a file that cannot be trusted (IntegrityError, exit 3) ###
 #
-# The loader checks the file against data/manifests/ before parsing. Each cause
-# of failure must produce its own message with its own remedy; these checks stage
-# one cause each and assert the message says that cause and not another.
+# The per-cause messages are sdg.pinned's and are proven in test_pinned.py. These
+# two prove the loader is wired to it: a file no manifest records, and a file
+# whose fingerprint differs, are refused through load() with the same messages.
 
 
 @negative
@@ -317,67 +281,26 @@ def test_missing_file_raises_filenotfound(tmp_path):
 
 
 @negative
-def test_unrecorded_file_says_no_entry_records_it():
+def test_unrecorded_file_is_refused_through_load():
     """A file no manifest entry records (this fixture, with the check left on)
-    is refused with a message saying exactly that and pointing at verify=False,
-    not with the checksum-mismatch remedy."""
+    is refused by load() with sdg.pinned's message saying exactly that, not with
+    the fingerprint-mismatch remedy."""
     with pytest.raises(usdm_spec.IntegrityError) as caught:
         usdm_spec.load(FIXTURE)
     message = str(caught.value)
-    assert "no entry in" in message and "verify=False" in message
-    assert "checksum" not in message
-
-
-@negative
-def test_unreadable_manifest_says_unreadable(manifest_dir):
-    """A manifest that is not valid JSON is reported as unreadable, with the
-    remedy pointing at the manifest, not at re-downloading the data file."""
-    manifest_dir("{not json")
-    with pytest.raises(usdm_spec.IntegrityError) as caught:
-        usdm_spec.load(FIXTURE)
-    message = str(caught.value)
-    assert "is unreadable" in message and "git checkout" in message
+    assert "no manifest entry records it" in message
     assert "fetch_sources" not in message
 
 
 @negative
-def test_absent_manifest_says_not_there(manifest_dir):
-    """No manifest file at all is reported as 'not there', with the same
-    restore-the-manifest remedy."""
-    manifest_dir(None)
-    with pytest.raises(usdm_spec.IntegrityError, match="is not there"):
-        usdm_spec.load(FIXTURE)
-
-
-@negative
-def test_entry_without_sha256_says_malformed(manifest_dir):
-    """A manifest entry for the file that carries no sha256 is reported as
-    malformed, with the remedy pointing at that entry."""
-    manifest_dir(manifest_recording(FIXTURE, sha256=None))
-    with pytest.raises(usdm_spec.IntegrityError, match="manifest entry is malformed"):
-        usdm_spec.load(FIXTURE)
-
-
-@negative
-def test_checksum_mismatch_shows_both_hashes_and_recovery(manifest_dir):
-    """A recorded sha256 that differs from the file's is reported with both
-    values and the three recovery paths, including --allow-unpinned."""
+def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_recording):
+    """A file whose recorded sha256 differs is refused by load() with both values
+    and the recovery paths, including --allow-unpinned."""
     manifest_dir(manifest_recording(FIXTURE))  # sha256 is the all-zero placeholder
     with pytest.raises(usdm_spec.IntegrityError) as caught:
         usdm_spec.load(FIXTURE)
     message = str(caught.value)
-    assert "sha256" in message and "manifest says 0000" in message
-    assert "--allow-unpinned" in message and "fetch_sources" in message
-
-
-@negative
-def test_size_mismatch_is_reported_as_size(manifest_dir):
-    """A recorded byte count that differs from the file's is reported as a size
-    difference (checked before the hash, since it usually means a truncated
-    download), with the same recovery paths."""
-    manifest_dir(manifest_recording(FIXTURE, bytes=1))
-    with pytest.raises(usdm_spec.IntegrityError, match="size .* bytes, manifest says 1"):
-        usdm_spec.load(FIXTURE)
+    assert "manifest says 0000" in message and "--allow-unpinned" in message
 
 
 #######################################################################################
@@ -415,7 +338,20 @@ def test_cli_unverifiable_spec_exits_3(monkeypatch, capsys):
     command exits 3 and prints the cause."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes"]) == 3
-    assert "no entry in" in capsys.readouterr().err
+    assert "no manifest entry records it" in capsys.readouterr().err
+
+
+@negative
+def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys):
+    """When the package is not running from inside its repo, the command exits 6
+    and prints the install command, rather than reporting the spec as missing."""
+    from sdg import pinned as pinned_mod
+
+    monkeypatch.setattr(pinned_mod, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
+    assert usdm_spec.main(["--list-classes"]) == 6
+    err = capsys.readouterr().err
+    assert "pip install -e ." in err and "fetch_sources" not in err
 
 
 @negative

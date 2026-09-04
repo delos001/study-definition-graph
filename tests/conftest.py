@@ -1,7 +1,10 @@
 """
 Script:      conftest.py
 Description: pytest's per-folder setup file, read automatically before any test
-             in tests/ runs. It adds one thing: the --validation-report flag.
+             in tests/ runs. It adds the --validation-report flag, and two
+             fixtures (manifest_dir, manifest_recording) that test_pinned.py and
+             test_usdm_spec.py both use to stage a manifest of their own in a
+             temporary folder.
 
              Without the flag, a test run prints to the terminal and writes
              nothing, which is what development wants. With the flag, the run
@@ -91,6 +94,57 @@ EXIT_MEANING = {
     4: "pytest was given a bad command line",
     5: "no tests were collected",
 }
+
+
+#######################################################################################
+### Shared fixtures ###
+#
+# Two helpers both test_pinned.py and test_usdm_spec.py need to stage a manifest
+# of their own: one that points the package at a temporary manifests folder, and
+# one that writes a manifest entry with exactly one chosen defect.
+
+
+@pytest.fixture
+def manifest_dir(tmp_path, monkeypatch):
+    """Produces a function that takes manifest JSON text (or None for no manifest
+    at all), writes it as raw_usdm_v4.json in a temporary folder, and points
+    sdg.pinned at that folder for the rest of the test. monkeypatch puts the real
+    folder back afterwards."""
+    from sdg import pinned as pinned_mod
+
+    monkeypatch.setattr(pinned_mod, "MANIFEST_DIR", tmp_path)
+
+    def make(text: str | None) -> None:
+        if text is not None:
+            (tmp_path / "raw_usdm_v4.json").write_text(text, encoding="utf-8")
+
+    return make
+
+
+@pytest.fixture
+def manifest_recording():
+    """Produces a function that takes a file path and gives back manifest JSON
+    with one entry for it, correct in size, with any field overridden (a wrong
+    sha256, a wrong size, a different local path, a missing key via None) so a
+    test can stage exactly one defect."""
+    from sdg import pinned as pinned_mod
+
+    def make(path: Path, **overrides) -> str:
+        entry = {
+            "name": "fixture",
+            "url": "https://example.invalid/fixture",
+            "local": path.relative_to(pinned_mod.REPO_ROOT).as_posix(),
+            "sha256": "0" * 64,
+            "bytes": path.stat().st_size,
+        }
+        for key, value in overrides.items():
+            if value is None:
+                entry.pop(key)
+            else:
+                entry[key] = value
+        return json.dumps({"files": [entry]})
+
+    return make
 
 
 #######################################################################################

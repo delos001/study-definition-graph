@@ -20,10 +20,10 @@ Description: The single way to access the pinned USDM model. It reads
              (which classes reference a given class; the whole-model edge list)
              will be added here as later phases need them, not built up front.
 
-             Before reading the file, load() checks it against the checksum
-             recorded in data/manifests/, reusing verify_manifests.py. A
-             changed or swapped pin fails here rather than parsing and
-             passing wrong content downstream;
+             Before reading the file, load() obtains it through sdg.pinned,
+             which checks it against the fingerprint recorded in
+             data/manifests/. A changed or swapped pin fails here rather than
+             parsing and passing wrong content downstream;
              - Override is possible but should be used with caution: --allow-unpinned
 
              Why this file and not USDM_API.json: the API spec discards the
@@ -32,6 +32,7 @@ Description: The single way to access the pinned USDM model. It reads
              USDM sources we hold."
 
 Inputs:      data/raw/usdm_v4/uml/dataStructure.yml   (read-only, pinned)
+             data/manifests/*.json                    (read-only, via sdg.pinned)
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
@@ -53,6 +54,8 @@ Exit codes:  0  success
              4  the spec is present but not the shape this module expects
                 (a USDM version that changed underneath us)
              5  the requested class is not found
+             6  the package is not running from inside its repo (installed
+                without -e); the message gives the install command
 
 Date:        2026-09-02
 Owner:       Jason Delosh
@@ -68,27 +71,28 @@ from pathlib import Path
 # dataStructure.yml is YAML, so reading it is a one-call job for this library.
 import yaml
 
-# This module lives at src/sdg/usdm_spec.py, so the repo root is three parents
-# up. Resolving from __file__ keeps the path correct wherever the process is
-# launched from, matching the convention in scripts/read_pdf.py.
-REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_SPEC = REPO_ROOT / "data" / "raw" / "usdm_v4" / "uml" / "dataStructure.yml"
+# The one way to obtain a pinned file, verified against its manifest, with the
+# repo root and the two integrity exceptions callers may need to catch.
+from sdg.pinned import REPO_ROOT, IntegrityError, NotInRepoError, pinned
+
+# Where the pinned model file is, named the way its manifest records it. The
+# repo root, and the verification of the file against its manifest, come from
+# sdg.pinned; nothing here locates or checks files on its own.
+PINNED_LOCAL = "data/raw/usdm_v4/uml/dataStructure.yml"
+DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 
 #######################################################################################
 ### Loading ###
 #
 # This section turns the pinned dataStructure.yml into the in-memory spec the rest of
-# the module reads:
-# verify the file's checksum, parse the YAML, confirm its shape, and return the
-# parsed dict.
-# The exceptions and message here are what that path raises when the file is changed
-# or structurally wrong.
-
-# About classes:
-# Exceptions are defined as classes here so the specific kind of failure can be caught
-# and reported with a specific exit code (see header for error codes) rather than
-# getting a generic exception or traceback that does not distinguish between a changed
-# file and a structurally different file.
+# the module reads: obtain the verified file through sdg.pinned, parse the YAML,
+# confirm its shape, and return the parsed dict.
+#
+# Exceptions are classes so the specific kind of failure can be caught and reported
+# with a specific exit code (see header) rather than a generic traceback. The shape
+# failure is this module's own. The integrity failures (a changed or unverifiable
+# file, a package not running from its repo) are sdg.pinned's, imported above so
+# callers can catch them from here as well.
 
 
 class SpecShapeError(Exception):
@@ -98,116 +102,6 @@ class SpecShapeError(Exception):
     the assumption is named. Raised rather than letting a later KeyError surface far
     from its cause.
     """
-
-
-class IntegrityError(Exception):
-    """The pinned spec file could not be verified against its manifest, or does not
-    match it.
-
-    Raised so a silently changed or swapped file stops here before it is
-    parsed and its content flows downstream as quietly wrong output. One cause,
-    one message: a checksum or size mismatch, an unreadable or absent manifest, a
-    malformed entry, and a file no entry records each say what happened and how
-    to recover, so the remedy for one cause is never shown for another.
-    """
-
-
-# The manifest set that records dataStructure.yml. Named once so every message
-# below points at the same file.
-MANIFEST_SET = "raw_usdm_v4"
-
-# Recovery paths shown when the pinned file's checksum or size does not match.
-# Only this cause has three ways back; the other causes in _verify_pinned() each
-# carry a one-line remedy of their own.
-_MISMATCH_RECOVERY = (
-    "  changed by accident   -> remove the file, then use python scripts/fetch_sources.py\n"
-    "  run anyway (once)     -> re-run command, adding --allow-unpinned\n"
-    "  a real new version    -> deliberate re-pin (new url, re-fetch, recompute); not a quick edit"
-)
-
-
-# create cached storage for verify_manifests; starts empty so the first call to
-# _manifest_tools() imports it by path and stores it here so it's loaded once
-# instead of re-loading each time load() runs
-_manifest_module = None
-
-
-def _manifest_tools():
-    """Imports scripts/verify_manifests.py by path and yields that module, cached.
-
-    verify_manifests.py owns how a manifest is located, parsed and hashed; loading
-    it here once and reusing it keeps the checksum logic in one place rather than
-    reimplemented.
-    """
-    global _manifest_module
-    if _manifest_module is None:  # empty on first call, after that doesn't re-import
-        import importlib.util
-
-        path = REPO_ROOT / "scripts" / "verify_manifests.py"
-        module_spec = importlib.util.spec_from_file_location("verify_manifests", path)
-        module = importlib.util.module_from_spec(module_spec)
-        module_spec.loader.exec_module(module)
-        _manifest_module = module
-    return _manifest_module
-
-
-def _verify_pinned(path: Path) -> None:
-    """Takes a file path and checks it against the checksum and size recorded for it
-    in the manifest; produces nothing on a match.
-    Raises IntegrityError on a mismatch or if no manifest records the file.
-
-    Reuses verify_manifests.check_entry, so it runs the same check that
-    scripts/verify_manifests.py runs by hand, automatically when load() opens the file.
-    """
-    tools = _manifest_tools()
-    manifests, errors = tools.load_manifests(MANIFEST_SET)
-    manifest_file = f"data/manifests/{MANIFEST_SET}.json"
-
-    # An unreadable or absent manifest is a manifest problem, not a data problem.
-    # Named as such, or the remedy would send the user to re-download a file that
-    # is fine.
-    if errors:
-        raise IntegrityError(
-            f"cannot verify the spec: {manifest_file} is unreadable\n"
-            + "".join(f"  {error}\n" for error in errors)
-            + f"  fix -> restore {manifest_file} (git checkout), then re-run"
-        )
-    if not manifests:
-        raise IntegrityError(
-            f"cannot verify the spec: {manifest_file} is not there\n"
-            f"  fix -> restore {manifest_file} (git checkout), then re-run"
-        )
-
-    target = path.resolve()
-    for _manifest_path, manifest in manifests:
-        for entry in manifest.get("files", []):
-            if (REPO_ROOT / entry.get("local", "")).resolve() != target:
-                continue
-
-            status, detail = tools.check_entry(entry)
-            if status == "ok":
-                return
-            # check_entry's detail already says whether size or sha256 differs,
-            # so it is passed through rather than summarised.
-            if status == "mismatch":
-                raise IntegrityError(
-                    f"{detail}\n  (recorded in {manifest_file})\n{_MISMATCH_RECOVERY}"
-                )
-            # "malformed": the entry has no sha256, so nothing can be checked.
-            # "missing": cannot occur here because load() confirmed the file exists,
-            # but reported rather than assumed away should check_entry change.
-            raise IntegrityError(
-                f"cannot verify the spec: its manifest entry is {status} ({detail})\n"
-                f"  fix -> repair that entry in {manifest_file}, then re-run"
-            )
-
-    # The file exists but the manifest never recorded it: a test fixture, or a
-    # pinned file whose manifest row was never written.
-    raise IntegrityError(
-        f"cannot verify the spec: no entry in {manifest_file} records {path}\n"
-        "  a pinned file   -> add its manifest entry (url, sha256, bytes)\n"
-        "  a test fixture  -> call load(path, verify=False)"
-    )
 
 
 def load(path: Path | None = None, verify: bool = True) -> dict:
@@ -220,18 +114,20 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     Attributes, and every attribute has Type, Cardinality and Relationship Type,
     so a structurally different file fails here instead of deep inside a caller.
 
-    - Pass verify=True (the default) and the file is checked against the checksum
-    recorded in data/manifests/ before it is read: a changed or swapped copy
-    stops here rather than flowing downstream. The CLI's --allow-unpinned flag
-    sets verify=False for the pinned file only; it never reads another path.
+    - Pass verify=True (the default) and the file is obtained through
+    sdg.pinned, which checks it against its manifest before it is read: a changed
+    or swapped copy stops here rather than flowing downstream. The CLI's
+    --allow-unpinned flag sets verify=False for the pinned file only; it never
+    reads another path.
     - Pass `path` with verify=False to read a file that is not the pinned one (a
     test fixture). With verify=True such a file fails, since no manifest entry
     records it.
 
     Raises
     - FileNotFoundError if the pinned file is absent,
-    - IntegrityError if it cannot be verified against its manifest or does not
-    match it,
+    - NotInRepoError if the package is not running from inside its repo,
+    - IntegrityError if the file cannot be verified against its manifest or does
+    not match it,
     - SpecShapeError if it parsed but does not look like the USDM structure this module
     reads.
     """
@@ -240,13 +136,15 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     if not target.exists():
         raise FileNotFoundError(target)
 
-    # Verify the input file matches its recorded checksum in the manifest before
-    # trusting the content.
-    # Guards against a clean parse silently passing wrong content from a modified spec.
+    # Obtain the file through sdg.pinned (manifest entry, size, fingerprint) before
+    # trusting the content. Guards against a clean parse silently passing wrong
+    # content from a modified spec.
     if verify:
-        _verify_pinned(target)
+        text = pinned(target).read_text()
+    else:
+        text = target.read_text(encoding="utf-8")
 
-    spec = yaml.safe_load(target.read_text(encoding="utf-8"))
+    spec = yaml.safe_load(text)
 
     if not isinstance(spec, dict) or not spec:
         raise SpecShapeError("spec is empty or not a mapping of classes")
@@ -469,9 +367,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # A missing file, a changed one, and a structurally wrong one are three
-    # different failures with three different exit codes, so a caller can tell
-    # "not downloaded" from "checksum changed" from "USDM changed shape".
+    # A missing file, a changed one, a structurally wrong one, and a package not
+    # running from its repo are four different failures with four different exit
+    # codes, so a caller can tell "not downloaded" from "checksum changed" from
+    # "USDM changed shape" from "installed the wrong way".
     try:
         spec = load(verify=not args.allow_unpinned)
     except FileNotFoundError:
@@ -481,6 +380,9 @@ def main(argv: list[str] | None = None) -> int:
             file=sys.stderr,
         )
         return 1
+    except NotInRepoError as exc:
+        print(exc, file=sys.stderr)
+        return 6
     except IntegrityError as exc:
         print(exc, file=sys.stderr)
         return 3

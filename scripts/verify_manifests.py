@@ -43,25 +43,16 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import argparse
-import hashlib
-import json
 import sys
-from pathlib import Path
+
+# The manifest reading, entry checking and hashing live in sdg.pinned: the same
+# code the pipeline runs before it reads any pinned file, so the check run by
+# hand here is the check run automatically there. Needs the package installed
+# editable (pip install -e ., README.md step 1b).
+from sdg.pinned import MANIFEST_DIR, RAW_DIR, REPO_ROOT, check_entry, load_manifests
 
 
 ### Constants ##################################################################
-
-# Paths are resolved from this file's own location rather than the working
-# directory, so the script behaves the same whether it is run from the repo root
-# or from inside scripts/.
-REPO_ROOT = Path(__file__).resolve().parents[1]
-MANIFEST_DIR = REPO_ROOT / "data" / "manifests"
-RAW_DIR = REPO_ROOT / "data" / "raw"
-
-# Files hashed in 1 MB chunks rather than read whole. The corpus includes a
-# 5.9 MB PDF and a 3.8 MB one, and reading those into memory to hash them is
-# needless when hashlib accepts a stream.
-CHUNK_BYTES = 1024 * 1024
 
 # Placeholder files that exist only to keep an empty directory in git. They are
 # not data and are never recorded in a manifest, so they must not be reported
@@ -76,100 +67,7 @@ IGNORED_NAMES = {".gitkeep"}
 IGNORED_PREFIXES = ("~$",)
 
 
-### Hashing ####################################################################
-
-
-def sha256_of(path: Path) -> str:
-    """
-    Return the hex sha256 of a file, read in chunks.
-
-    Chunked rather than path.read_bytes() so that memory use stays flat
-    regardless of file size. The corpus is already multi-megabyte and the ICH
-    technical specification alone is 3.8 MB.
-    """
-    digest = hashlib.sha256()
-
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(CHUNK_BYTES), b""):
-            digest.update(chunk)
-
-    return digest.hexdigest()
-
-
-### Manifest loading ###########################################################
-
-
-def load_manifests(only: str | None) -> tuple[list[tuple[Path, dict]], list[str]]:
-    """
-    Read every manifest, or just the one named by --set.
-
-    Returns the loaded manifests and a list of load errors. Errors are collected
-    and returned rather than raised, so that one malformed manifest does not
-    hide the state of every other set. The caller decides what to do with them.
-
-    The --set argument is matched against the filename stem, so both
-    "raw_ich_m11" and "raw_ich_m11.json" work.
-    """
-    errors: list[str] = []
-    loaded: list[tuple[Path, dict]] = []
-
-    wanted = only.removesuffix(".json") if only else None
-
-    for path in sorted(MANIFEST_DIR.glob("*.json")):
-        if wanted and path.stem != wanted:
-            continue
-
-        # A manifest that will not parse is a hard problem worth naming
-        # precisely, since every downstream check depends on it. Absorbed here
-        # so the remaining manifests are still checked.
-        try:
-            loaded.append((path, json.loads(path.read_text(encoding="utf-8"))))
-        except (json.JSONDecodeError, OSError) as exc:
-            errors.append(f"{path.name}: cannot read ({exc})")
-
-    return loaded, errors
-
-
-### Checking ###################################################################
-
-
-def check_entry(entry: dict) -> tuple[str, str]:
-    """
-    Check one manifest entry against the file on disk.
-
-    Returns (status, detail) where status is one of "ok", "missing",
-    "mismatch" or "malformed".
-
-    Size is checked before the hash, and reported separately, because the two
-    failures mean different things. A size difference is usually a truncated or
-    replaced download; a size match with a hash difference means the content
-    changed while staying the same length, which is the case worth looking at
-    closely.
-    """
-    local = entry.get("local")
-    recorded_hash = entry.get("sha256")
-
-    # An entry missing either field cannot be checked at all. Reported rather
-    # than skipped, because a manifest row that verifies nothing is a silent
-    # hole in the guarantee this script exists to provide.
-    if not local or not recorded_hash:
-        return "malformed", f"{entry.get('name', '?')}: entry has no local path or no sha256"
-
-    path = REPO_ROOT / local
-
-    if not path.exists():
-        return "missing", local
-
-    recorded_size = entry.get("bytes")
-    actual_size = path.stat().st_size
-    if recorded_size is not None and actual_size != recorded_size:
-        return "mismatch", f"{local}: size {actual_size} bytes, manifest says {recorded_size}"
-
-    actual_hash = sha256_of(path)
-    if actual_hash != recorded_hash:
-        return "mismatch", f"{local}: sha256 {actual_hash[:16]}..., manifest says {recorded_hash[:16]}..."
-
-    return "ok", local
+### Checking ##################################################################
 
 
 def find_unrecorded(recorded: set[str]) -> list[str]:

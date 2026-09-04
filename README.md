@@ -97,7 +97,7 @@ study-definition-graph/
     processed/               # extracted entities, graph load files
     eval/                    # hand-built correct answers
   prompts/                   # one file per prompt, versioned
-  src/sdg/                   # the sdg Python package (source code), installed with pip install -e .
+  src/sdg/                   # the sdg Python package (source code), installed with pip install -e .; README.md in src/ and src/sdg/ list what is there
   scripts/                   # run by hand; README.md here is generated
   tests/                     # automated checks and validation records; README.md there explains them
 ```
@@ -114,6 +114,7 @@ study-definition-graph/
 | Which pinned file answers which question | [docs/sources.md](docs/sources.md) |
 | How the standards feed each other | [docs/standards_map.html](docs/standards_map.html) |
 | USDM guide section map | [docs/usdm_ig_map.md](docs/usdm_ig_map.md) |
+| Which script or module calls which | [docs/code_map.md](docs/code_map.md) |
 | What each script does | [scripts/README.md](scripts/README.md) |
 
 [scripts/README.md](scripts/README.md) is a generated index of every script and how to invoke it. It is rebuilt from the scripts' own header blocks by `python scripts/build_index.py`, so it cannot drift from them.

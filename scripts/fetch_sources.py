@@ -58,12 +58,12 @@ from pathlib import Path
 
 import httpx
 
-# Imported rather than reimplemented. verify_manifests.py already owns how a
-# manifest is located, parsed and hashed, and a second copy of that knowledge
-# here is exactly the drift this script was written to remove. Python puts the
-# running script's own directory first on sys.path, so a plain import resolves
-# even though scripts/ is not a package.
-from verify_manifests import REPO_ROOT, load_manifests, sha256_of
+# Imported rather than reimplemented. sdg.pinned owns how a manifest is located,
+# parsed and hashed (the same code the pipeline uses to verify a pinned file
+# before reading it), and a second copy of that knowledge here is exactly the
+# drift this script was written to remove. Needs the package installed
+# editable (pip install -e ., README.md step 1b).
+from sdg.pinned import REPO_ROOT, load_manifests, sha256_of
 
 
 ### Constants ##################################################################

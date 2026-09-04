@@ -16,7 +16,8 @@ pytest --validation-report   # run every check and write a validation record (se
 
 | Path | What it is |
 | --- | --- |
-| `conftest.py` | pytest's setup file for this folder. Adds the `--validation-report` flag and the `positive` / `negative` markers. |
+| `conftest.py` | pytest's setup file for this folder. Adds the `--validation-report` flag, the `positive` / `negative` markers, and two shared fixtures for staging a manifest in a temporary folder. |
+| `test_pinned.py` | The checks for `src/sdg/pinned.py`, the one way to obtain a pinned file verified against its manifest. |
 | `test_usdm_spec.py` | The checks for `src/sdg/usdm_spec.py`, the loader for the pinned USDM model. |
 | `test_validation_report.py` | The checks for the record-writer in `conftest.py`: above all, that a record can never say PASS when pytest said the run failed. |
 | `fixtures/usdm_three_classes.yml` | Three classes copied verbatim from the pinned `dataStructure.yml`: `Identifier` (abstract), `StudyIdentifier` (its concrete child, with inherited attributes) and `Condition` (holds the five-way reference). The input for the logic checks. |
@@ -63,15 +64,13 @@ The `Proves` column is the first line of each check's docstring; the full docstr
 
 ### Refusing a file that cannot be trusted (`IntegrityError`, exit 3)
 
+The per-cause messages belong to `sdg.pinned` and are proven in `test_pinned.py` (below). These prove the loader is wired to it.
+
 | Check | Kind | Proves |
 | --- | --- | --- |
 | `test_missing_file_raises_filenotfound` | negative | a path that does not exist is a different failure (exit 1) from a verification failure |
-| `test_unrecorded_file_says_no_entry_records_it` | negative | a file no manifest records says so, and does not show the checksum remedy |
-| `test_unreadable_manifest_says_unreadable` | negative | a manifest that is not valid JSON is reported as unreadable, remedy points at the manifest |
-| `test_absent_manifest_says_not_there` | negative | no manifest file is reported as not there |
-| `test_entry_without_sha256_says_malformed` | negative | an entry with no sha256 is reported as malformed |
-| `test_checksum_mismatch_shows_both_hashes_and_recovery` | negative | a wrong sha256 shows both values and the three recovery paths |
-| `test_size_mismatch_is_reported_as_size` | negative | a wrong byte count is reported as a size difference |
+| `test_unrecorded_file_is_refused_through_load` | negative | a file no manifest records is refused through `load()` with that message, not the mismatch remedy |
+| `test_fingerprint_mismatch_is_refused_through_load` | negative | a wrong sha256 is refused through `load()` with both values and the recovery paths |
 
 ### Command line exit codes
 
@@ -80,6 +79,7 @@ The `Proves` column is the first line of each check's docstring; the full docstr
 | `test_cli_no_mode_exits_2` | negative | no mode flag exits 2 |
 | `test_cli_missing_spec_exits_1` | negative | pinned file not downloaded exits 1 and names fetch_sources.py |
 | `test_cli_unverifiable_spec_exits_3` | negative | file present but unverifiable exits 3 |
+| `test_cli_not_inside_repo_exits_6` | negative | package not running from inside its repo exits 6 with the install command |
 | `test_cli_wrong_shape_exits_4` | negative | file not shaped like USDM exits 4 |
 | `test_cli_malformed_type_exits_4_not_traceback` | negative | malformed Type values make --attributes exit 4 with the attribute named, not a traceback |
 | `test_cli_allow_unpinned_reads_the_file` | positive | --allow-unpinned skips the manifest check and lists classes, exit 0 |
@@ -94,6 +94,25 @@ The `Proves` column is the first line of each check's docstring; the full docstr
 | `test_pinned_file_has_86_classes_80_concrete` | positive | 86 classes, 80 concrete, 6 abstract, naming the six |
 | `test_pinned_file_types_are_classes_or_five_primitives` | positive | every type is a class or one of five primitives; exactly four multi-target attributes |
 | `test_fixture_classes_are_identical_to_pinned` | positive | the fixture's three classes are identical to the pinned ones |
+
+### Obtaining a pinned file (`test_pinned.py`)
+
+`sdg.pinned.pinned(<path>)` is the one way any code gets a pinned file: it finds the manifest entry, checks size and fingerprint, and returns the file with its identity. The failure cases stage a manifest in a temporary folder (the `manifest_dir` and `manifest_recording` fixtures in `conftest.py`) against the three-class fixture file, which no real manifest records.
+
+| Check | Kind | Proves |
+| --- | --- | --- |
+| `test_running_from_inside_the_repo` | positive | the folder the package takes to be the repo holds pyproject.toml and data/manifests/ |
+| `test_real_pinned_file_comes_back_with_its_identity` | positive | the pinned USDM file verifies and returns the manifest's sha256 and url (skips when `data/` is absent) |
+| `test_string_and_path_name_the_same_file` | positive | a repo-relative string and a full path give the same record (skips when `data/` is absent) |
+| `test_recorded_fixture_verifies` | positive | a file whose entry has the right size and fingerprint comes back readable |
+| `test_not_inside_the_repo_names_the_install_fix` | negative | a package not running from its repo is refused with where it was found and `pip install -e .` |
+| `test_recorded_but_not_downloaded_raises_filenotfound` | negative | a recorded file missing from disk raises FileNotFoundError |
+| `test_unrecorded_file_says_no_entry_records_it` | negative | a file no manifest records says so, without the mismatch remedy |
+| `test_unreadable_manifest_says_unreadable` | negative | a manifest that is not valid JSON is reported as unreadable, remedy points at the manifests folder |
+| `test_no_manifests_at_all_says_so` | negative | an empty manifests folder is reported as no manifests found |
+| `test_entry_without_sha256_says_malformed` | negative | an entry with no sha256 is reported as malformed |
+| `test_fingerprint_mismatch_shows_both_values_and_recovery` | negative | a wrong sha256 shows both values, the manifest that records it, and the three recovery paths |
+| `test_size_mismatch_is_reported_as_size` | negative | a wrong byte count is reported as a size difference |
 
 ### The record-writer itself (`test_validation_report.py`)
 
