@@ -9,3 +9,9 @@ requires-python = ">=3.12"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.pytest.ini_options]
+# tests/ imports the hand-run scripts by name (import verify_manifests), which
+# needs scripts/ on the import path. Declared here once, not in each test file.
+pythonpath = ["scripts"]
+testpaths = ["tests"]

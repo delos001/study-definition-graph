@@ -1,6 +1,6 @@
 # tests/
 
-Automated checks for the code in `src/sdg/`, and the validation records that prove a component was checked at a given point. Kept by hand.
+Automated checks for the code in `src/sdg/` and the hand-run scripts in `scripts/`, and the validation records that prove a component was checked at a given point. Kept by hand.
 
 ## How to run
 
@@ -16,9 +16,13 @@ pytest --validation-report   # run every check and write a validation record (se
 
 | Path | What it is |
 | --- | --- |
-| `conftest.py` | pytest's setup file for this folder. Adds the `--validation-report` flag, the `positive` / `negative` markers, and two shared fixtures for staging a manifest in a temporary folder. |
+| `conftest.py` | pytest's setup file for this folder. Adds the `--validation-report` flag, the `positive` / `negative` markers, and the shared fixtures for staging pinned data in a temporary folder: `manifest_dir` and `manifest_recording` (one manifest for one file) and `fake_repo` (a whole throwaway repo with its own manifests and raw files, for the script checks). |
 | `test_pinned.py` | The checks for `src/sdg/pinned.py`, the one way to obtain a pinned file verified against its manifest. |
 | `test_usdm_spec.py` | The checks for `src/sdg/usdm_spec.py`, the loader for the pinned USDM model. |
+| `test_verify_manifests.py` | The checks for `scripts/verify_manifests.py`: one exit code per state of the corpus. |
+| `test_fetch_sources.py` | The checks for `scripts/fetch_sources.py`: download, verify, then place, against a fake network. |
+| `test_check_facts.py` | The checks for `scripts/check_facts.py`: drift is caught, and each way a measurement can fail has its own exit code. |
+| `test_build_index.py` | The checks for `scripts/build_index.py`: the generated index and the `--check` the pre-commit hook runs. |
 | `test_validation_report.py` | The checks for the record-writer in `conftest.py`: above all, that a record can never say PASS when pytest said the run failed. |
 | `fixtures/usdm_three_classes.yml` | Three classes copied verbatim from the pinned `dataStructure.yml`: `Identifier` (abstract), `StudyIdentifier` (its concrete child, with inherited attributes) and `Condition` (holds the five-way reference). The input for the logic checks. |
 | `validation/` | Validation records, one file per component per validated state. Written only when asked; committed. |
@@ -33,6 +37,8 @@ Each check sets up a situation, runs the code, and compares what happened to wha
 The logic checks use the small fixture file rather than the real pinned file, because they have to break their input on purpose (delete a key, swap a dict for a list) and the fixture is small enough to read whole and see the break. The fixture is not invented: `test_fixture_classes_are_identical_to_pinned` proves each of its classes is key-for-key identical to the pinned file, so the logic checks ran on real USDM shapes. Broken variants are made in memory from the fixture and written to a temporary folder pytest owns; the fixture on disk is never touched, and the change each variant makes is stated in that check's docstring.
 
 The real-file checks read the pinned `dataStructure.yml` in place and assert the measured facts about it. They need `data/` downloaded (`python scripts/fetch_sources.py`) and skip, with that reason, when it is not.
+
+The script checks call each script's `main()` in-process with an argument list, the way `sdg.usdm_spec.main()` is called, rather than through a subprocess, so a failure shows a Python traceback instead of captured output. `pyproject.toml` puts `scripts/` on pytest's import path for this. Each check stages one state of the corpus in a throwaway repo built by the `fake_repo` fixture (its own `pyproject.toml`, `data/manifests/` and `data/raw/`, with `sdg.pinned` pointed at it), so the real `data/` is never read or written. `fetch_sources.py`'s network is replaced with a function that serves bytes, or raises, per url; no check fetches anything.
 
 ## The checks, by group
 
@@ -114,6 +120,75 @@ The per-cause messages belong to `sdg.pinned` and are proven in `test_pinned.py`
 | `test_fingerprint_mismatch_shows_both_values_and_recovery` | negative | a wrong sha256 shows both values, the manifest that records it, and the three recovery paths |
 | `test_size_mismatch_is_reported_as_size` | negative | a wrong byte count is reported as a size difference |
 
+### The corpus check (`test_verify_manifests.py`)
+
+Each check stages one state of a one-file corpus and asserts the exit code and the report line the script's header promises for it.
+
+| Check | Kind | Proves |
+| --- | --- | --- |
+| `test_clean_corpus_exits_0` | positive | every file present and matching, nothing unrecorded: exit 0 |
+| `test_verbose_lists_passing_files` | positive | `--verbose` lists each passing file |
+| `test_quiet_prints_nothing` | positive | `--quiet` prints nothing |
+| `test_placeholder_and_lock_files_are_not_unrecorded` | positive | `.gitkeep` and Excel `~$` lock files are not reported as unrecorded |
+| `test_missing_file_exits_1` | negative | a recorded file not on disk is MISSING, exit 1 |
+| `test_changed_content_exits_1` | negative | changed bytes at the same size is a sha256 MISMATCH showing both values, exit 1 |
+| `test_unrecorded_file_exits_2` | negative | a file no manifest records is listed by path, exit 2 |
+| `test_mismatch_outranks_unrecorded` | negative | with both, exit 1 |
+| `test_malformed_entry_is_a_problem` | negative | an entry with no sha256 is MALFORMED, not skipped |
+| `test_unreadable_manifest_exits_3` | negative | invalid JSON is MANIFEST UNREADABLE, exit 3, other sets still checked |
+| `test_no_manifests_exits_3` | negative | an empty manifests folder exits 3 |
+| `test_not_inside_the_repo_exits_6` | negative | package installed wrongly exits 6 with the install command |
+| `test_set_checks_one_manifest_and_skips_the_unrecorded_scan` | positive | `--set` narrows to one manifest and skips the unrecorded scan |
+
+### The downloader (`test_fetch_sources.py`)
+
+The network is faked per url. A check that must not download installs a fake that fails the test if called.
+
+| Check | Kind | Proves |
+| --- | --- | --- |
+| `test_missing_file_is_downloaded_verified_and_placed` | positive | a missing file is fetched, hash-checked, then placed; no `.part` left |
+| `test_present_and_matching_file_is_not_fetched` | positive | a matching file is counted as present and the network is not touched |
+| `test_dry_run_lists_and_writes_nothing` | positive | `--dry-run` lists what it would fetch, no network, no write |
+| `test_quiet_prints_nothing` | positive | `--quiet` prints nothing |
+| `test_present_but_changed_file_is_left_alone_exits_2` | negative | a file disagreeing with its manifest is reported and not touched, exit 2 |
+| `test_download_with_wrong_hash_is_discarded_exits_1` | negative | a download with the wrong hash never reaches its final name, exit 1 |
+| `test_network_failure_is_reported_exits_1` | negative | a dead url is FAILED, no `.part` left, exit 1 |
+| `test_failure_outranks_disagreement` | negative | with both, exit 1 |
+| `test_entry_missing_a_field_counts_as_disagreement` | negative | an entry with no url is a manifest defect, exit 2 |
+| `test_unreadable_manifest_exits_3` | negative | invalid JSON stops the run, exit 3 |
+| `test_set_with_no_match_exits_3` | negative | `--set` naming no manifest exits 3 |
+| `test_not_inside_the_repo_exits_6` | negative | package installed wrongly exits 6 with the install command |
+
+### The fact check (`test_check_facts.py`)
+
+The script's list of measurements is replaced by one fake fact and one one-line document, so each check controls both the measured and the stated number.
+
+| Check | Kind | Proves |
+| --- | --- | --- |
+| `test_matching_figure_exits_0` | positive | a correct figure passes; `--verbose` shows the ok line |
+| `test_drifted_figure_exits_1` | negative | a wrong figure is DRIFTED with both values, exit 1 |
+| `test_every_occurrence_is_checked` | negative | a stale second copy is caught even when the first is correct |
+| `test_unasserted_fact_is_reported_but_passes` | positive | a fact no document states is reported, exit 0 |
+| `test_number_written_as_a_word_is_read` | positive | "three" matches 3 |
+| `test_each_measurement_failure_has_its_own_exit_code` | negative | file missing 2, cannot verify 3, wrong shape 4, not in repo 6, each labelled with its cause |
+| `test_package_not_installed_exits_7_before_measuring` | negative | sdg not installed exits 7 before any measurement |
+| `test_real_documents_match_real_corpus` | positive | the committed documents match the pinned corpus (skips when `data/` is absent) |
+
+### The index generator (`test_build_index.py`)
+
+| Check | Kind | Proves |
+| --- | --- | --- |
+| `test_writes_first_paragraph_and_usage_with_indent_kept` | positive | the index holds the first Description paragraph and the Usage block with its indentation |
+| `test_scripts_are_listed_in_name_order` | positive | scripts appear alphabetically |
+| `test_check_passes_when_index_is_current` | positive | `--check` exits 0 and writes nothing when current |
+| `test_check_fails_when_index_is_stale_or_missing` | negative | `--check` exits 1 when the index is missing or stale |
+| `test_quiet_prints_nothing` | positive | `--quiet` prints nothing |
+| `test_missing_field_exits_2_and_writes_nothing` | negative | a header missing fields exits 2, naming them; index not written |
+| `test_no_docstring_exits_2` | negative | no docstring is no header, exit 2 |
+| `test_unparseable_script_exits_3_and_outranks_2` | negative | invalid Python exits 3, and outranks 2 |
+| `test_no_scripts_exits_3` | negative | an empty folder exits 3 |
+| `test_real_index_is_current` | positive | the real `scripts/README.md` is current, the pre-commit hook's check |
+
 ### The record-writer itself (`test_validation_report.py`)
 
 Each check builds a tiny throwaway suite in a temporary folder, gives it a copy of `conftest.py`, runs pytest on it as a separate process with the record pointed at a temporary folder, and reads the record that comes out. Nothing lands in `validation/`.
@@ -134,7 +209,7 @@ Development runs write nothing. When a component is declared ready, run `pytest 
 A record is meant to be auditable, so it identifies what was tested, how, when, by whom, and the outcome:
 
 - **Verdict**: PASS only when pytest itself exited 0, and the exit status is shown with its meaning. pytest's exit status already accounts for every kind of failure (a test's checks, its set-up, its clean-up, a file that will not load), so the record cannot say PASS when the terminal said fail. Counts of passed / failed / error / skipped and the duration follow. If pytest failed before any test ran, a record is still written saying so, named `run_<date>_<commit>.md`.
-- **What was tested**: the component; the code commit, flagged if uncommitted changes were present at run time; the test file and its sha256; every fixture file and its sha256; the pinned USDM data version (the manifest's recorded url, which carries the DDF-RA commit, and sha256), and whether that file was present.
+- **What was tested**: the component (`src/sdg/<x>.py` or `scripts/<x>.py`, whichever `test_<x>.py` names); the code commit, flagged if uncommitted changes were present at run time; the test file and its sha256; every fixture file and its sha256; the pinned USDM data version (the manifest's recorded url, which carries the DDF-RA commit, and sha256), and whether that file was present.
 - **How**: the exact command line, Python and pytest versions, operating system.
 - **When and by whom**: local timestamp with time zone, git user name.
 - **Per check**: name, kind (positive or negative), what it proves (the first paragraph of its docstring), and its outcome, with the reason if skipped.

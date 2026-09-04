@@ -231,9 +231,11 @@ def render(entries: list[tuple[str, dict[str, list[str]]]]) -> str:
 ### Entry point ################################################################
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """
-    Parse every script's header, then write or check the index.
+    Takes the command-line arguments (None means sys.argv, as when run from a
+    terminal), parses every script's header, then writes or checks the index and
+    produces the exit code.
 
     Returns the process exit code. Header problems are collected across all
     scripts before returning, so one run names every script that needs fixing
@@ -248,7 +250,7 @@ def main() -> int:
         help="report whether the index is current; write nothing",
     )
     parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     def say(message: str = "") -> None:
         if not args.quiet:

@@ -1,10 +1,12 @@
 """
 Script:      conftest.py
 Description: pytest's per-folder setup file, read automatically before any test
-             in tests/ runs. It adds the --validation-report flag, and two
-             fixtures (manifest_dir, manifest_recording) that test_pinned.py and
-             test_usdm_spec.py both use to stage a manifest of their own in a
-             temporary folder.
+             in tests/ runs. It adds the --validation-report flag, and three
+             fixtures for staging pinned data in a temporary folder: manifest_dir
+             and manifest_recording (one manifest for one file, used by
+             test_pinned.py and test_usdm_spec.py) and fake_repo (a whole
+             throwaway repo with its own manifests and raw files, used by the
+             script tests). The real data/ is never touched.
 
              Without the flag, a test run prints to the terminal and writes
              nothing, which is what development wants. With the flag, the run
@@ -75,11 +77,14 @@ from pathlib import Path
 
 import pytest
 
+# The pinned model's repo-relative path, from the module that reads it, so the
+# record names the same file the loader verifies.
+from sdg.usdm_spec import PINNED_LOCAL
+
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parent
 FIXTURE_DIR = TESTS_DIR / "fixtures"
 MANIFEST = REPO_ROOT / "data" / "manifests" / "raw_usdm_v4.json"
-PINNED_LOCAL = "data/raw/usdm_v4/uml/dataStructure.yml"
 
 # pytest's helper for running a throwaway test suite inside a test. Off by
 # default; tests/test_validation_report.py needs it.
@@ -145,6 +150,71 @@ def manifest_recording():
         return json.dumps({"files": [entry]})
 
     return make
+
+
+class FakeRepo:
+    """A throwaway repo on disk: pyproject.toml, data/manifests/ and data/raw/,
+    with helpers to put files and manifests in it. Every path is relative to
+    the fake root, written the way manifests write it (forward slashes)."""
+
+    def __init__(self, root: Path):
+        self.root = root
+        (root / "data" / "manifests").mkdir(parents=True)
+        (root / "data" / "raw").mkdir(parents=True)
+        (root / "pyproject.toml").write_text("[project]\nname = 'fake'\n", encoding="utf-8")
+
+    def raw(self, local: str, content: bytes) -> Path:
+        """Takes a repo-relative path and content, writes that file, and
+        produces its full path."""
+        path = self.root / local
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(content)
+        return path
+
+    def entry(self, local: str, **overrides) -> dict:
+        """Takes a repo-relative path and produces a manifest entry for it that
+        is correct (sha256 and bytes computed from the file if it exists), with
+        any field overridden or, via None, removed, so a test can stage one
+        defect."""
+        path = self.root / local
+        entry = {
+            "name": Path(local).name,
+            "url": f"https://example.invalid/{Path(local).name}",
+            "local": local,
+        }
+        if path.exists():
+            entry["bytes"] = path.stat().st_size
+            entry["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
+        for key, value in overrides.items():
+            if value is None:
+                entry.pop(key, None)
+            else:
+                entry[key] = value
+        return entry
+
+    def manifest(self, name: str, entries: list[dict] | str) -> Path:
+        """Takes a manifest name and either its entries or raw text (to stage
+        an unreadable one), writes data/manifests/<name>.json, and produces
+        its path."""
+        path = self.root / "data" / "manifests" / f"{name}.json"
+        text = entries if isinstance(entries, str) else json.dumps({"files": entries})
+        path.write_text(text, encoding="utf-8")
+        return path
+
+
+@pytest.fixture
+def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
+    """Produces a FakeRepo in a temporary folder and points sdg.pinned's three
+    locations (repo root, manifests, raw) at it for the rest of the test. A
+    script that imported those names at load time must be repointed by the
+    test as well; the script test files each have a fixture for that."""
+    from sdg import pinned as pinned_mod
+
+    repo = FakeRepo(tmp_path / "repo")
+    monkeypatch.setattr(pinned_mod, "REPO_ROOT", repo.root)
+    monkeypatch.setattr(pinned_mod, "MANIFEST_DIR", repo.root / "data" / "manifests")
+    monkeypatch.setattr(pinned_mod, "RAW_DIR", repo.root / "data" / "raw")
+    return repo
 
 
 #######################################################################################
@@ -390,8 +460,19 @@ def pytest_sessionfinish(session, exitstatus):
         return
 
     for file, rows in by_file.items():
+        # test_<x>.py validates src/sdg/<x>.py or scripts/<x>.py, whichever
+        # exists; a test file with neither (test_validation_report.py) validates
+        # the record-writer in conftest.py, so it names itself.
         component = file.stem.removeprefix("test_")
-        src = REPO_ROOT / "src" / "sdg" / f"{component}.py"
-        component_line = f"`src/sdg/{component}.py`" if src.exists() else f"`tests/{file.name}` itself"
+        candidates = [
+            REPO_ROOT / "src" / "sdg" / f"{component}.py",
+            REPO_ROOT / "scripts" / f"{component}.py",
+        ]
+        found = next((c for c in candidates if c.exists()), None)
+        component_line = (
+            f"`{found.relative_to(REPO_ROOT).as_posix()}`"
+            if found
+            else f"`tests/{file.name}` itself"
+        )
         test_file_line = f"`tests/{file.name}` sha256 `{_sha256(file)}`"
         write(component, component_line, test_file_line, rows)
