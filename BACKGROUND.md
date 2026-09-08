@@ -60,7 +60,7 @@ That shape recurs outside the schedule and outside the protocol, which is why th
 
 ## References
 
-Web sources are living pages; each entry records the date it was accessed. Pinned standards (the USDM artifacts themselves) are tracked in `data/manifests/`, not here.
+Web sources are living pages; each entry records the date it was accessed. Pinned standards (the USDM artifacts themselves) are tracked in `manifests/`, not here.
 
 [1] CDISC. "Digital Data Flow (DDF) for Clinical Trial Protocols." https://www.cdisc.org/ddf (accessed 2026-08-27). Supports the CDISC/TransCelerate collaboration, ICH M11 alignment, and the supporting deliverable suite.
 

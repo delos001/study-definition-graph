@@ -36,7 +36,7 @@ No pipeline work; the point is to stand up the tools and pin the sources, and to
   - conda environment,
   - repo skeleton,
   - Neo4j running in Docker, with a few nodes and edges created and queried by hand,
-  - USDM v4.0 artifacts pinned to `data/raw/usdm_v4/` with the commit recorded,
+  - USDM v4.0 artifacts pinned to `standards/cdisc/usdm_v4/` with the commit recorded,
   - loader that lists USDM classes and their fields from the pinned spec,
   - determination of whether the DDF conformance endpoint and CORE are usable without member credentials.
 - **Verification:**
@@ -124,7 +124,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - bidirectional:
     - conformance-check the output,
     - and reconcile each USDM element back to the source text it came from,
-  - score against `data/eval/` as precision and recall per case, not one accuracy number,
+  - score against `eval/` as precision and recall per case, not one accuracy number,
   - comparable published work sits around 76% clean, so expect it to be poor at first.
 
 ## Scope and constraints

@@ -45,10 +45,11 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 2. Not covered, but the content must be captured - use USDM's extension mechanism (IG 6.4) and record every extension in `docs/`.
 3. A process or design question rather than a data-shape one - decide, label it **unguided**, record it in `DECISIONS.md`.
 
-## Data
+## Pinned files and data
 
-- `data/raw/` is immutable. Downstream reads from it and writes to `data/interim/` or `data/processed/`.
-- Every download gets a `data/manifests/` entry in the same breath, never a record inside `data/raw/`. `data/` is gitignored, so an unrecorded file cannot be restored and is indistinguishable from a pinned one.
+- Pinned files are never edited: the standards under `standards/`, the worked examples under `data/usdm_examples/`, and study documents under `data/raw/`. The pipeline reads from those and writes to `data/interim/` or `data/processed/`.
+- Every download gets a `manifests/` entry in the same breath, never a record beside the file. `standards/` and `data/` are gitignored apart from their READMEs, so an unrecorded file cannot be restored and is indistinguishable from a pinned one.
+- Hand-built answer keys go in `eval/`, which is committed; they cannot be regenerated.
 - Pinned versions never move. Never fetch latest.
 - `python scripts/verify_manifests.py` checks them: 0 clean, 1 missing or altered, 2 unrecorded, 3 unreadable manifest.
 - Any count written into a document must be recomputable. Add it to `scripts/check_facts.py`, which re-derives every stated figure from the pinned files. Run it after changing the corpus.

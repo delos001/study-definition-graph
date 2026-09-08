@@ -45,10 +45,11 @@ docker compose up -d
 #    it is optional and a non-member key grants nothing.
 Copy-Item .env.example .env
 
-# 4. Source documents. data/ is gitignored, so a fresh clone has none of them.
-#    Every pinned file is recorded in data/manifests/ with its URL and sha256.
-#    This downloads them all and verifies each hash. Add --dry-run to see what
-#    it would fetch without touching the network.
+# 4. Pinned sources. The standards under standards/ and the worked examples
+#    under data/ are gitignored, so a fresh clone has none of them. Every
+#    pinned file is recorded in manifests/ with its URL and sha256. This
+#    downloads them all and verifies each hash. Add --dry-run to see what it
+#    would fetch without touching the network.
 python scripts/fetch_sources.py
 ```
 
@@ -72,8 +73,8 @@ Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefini
 
 A few load-bearing rules; [CLAUDE.md](CLAUDE.md) has the full set, including the source-file conventions every script follows.
 
-- `data/raw/` is immutable, and every download is recorded in `data/manifests/` in the same breath.
-- `data/` is gitignored, so an unrecorded file cannot be restored.
+- Pinned files under `standards/` and `data/` are never edited, and every download is recorded in `manifests/` in the same breath.
+- `standards/` and `data/` are gitignored apart from their READMEs, so an unrecorded file cannot be restored.
 - Pinned versions never move: not the standards, not the Neo4j image, not a model identifier. A version that changes mid-project makes a failure unattributable.
 - The repo is de-identified: no company, no people, no locations, no partnerships.
 
@@ -89,13 +90,18 @@ study-definition-graph/
   environment.yml
   docker-compose.yml         # neo4j, pinned
   .env.example
-  docs/                      # source navigation and standards maps
-  data/
-    manifests/               # the only part of data/ that is committed
-    raw/                     # never modified after download
-    interim/                 # parsed pages, sections
-    processed/               # extracted entities, graph load files
-    eval/                    # hand-built correct answers
+  docs/                      # the project's maps of itself; README.md there lists them
+  manifests/                 # one record per set of pinned downloads: source, version, fingerprint
+  standards/                 # pinned standards the project depends on, by publisher; gitignored
+    cdisc/                   #   USDM v4 and the Biomedical Concepts library
+    ich/                     #   M11 and E9(R1)
+    crosswalks/              #   mappings from other systems into USDM
+  data/                      # study documents and pipeline output; gitignored
+    raw/                     #   documents as fetched, never edited
+    usdm_examples/           #   CDISC's three worked examples
+    interim/                 #   between pipeline stages
+    processed/               #   final pipeline output
+  eval/                      # hand-built answer keys and acceptance thresholds; committed
   prompts/                   # one file per prompt, versioned
   src/sdg/                   # the sdg Python package (source code), installed with pip install -e .; README.md in src/ and src/sdg/ list what is there
   scripts/                   # run by hand; README.md here is generated
@@ -112,6 +118,7 @@ study-definition-graph/
 | Current status and task backlog | [GitHub Issues](https://github.com/delos001/study-definition-graph/issues) |
 | Working rules | [CLAUDE.md](CLAUDE.md) |
 | Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
+| Where each pinned file came from, and its fingerprint | [manifests/README.md](manifests/README.md) |
 | How the standards feed each other | [docs/standards_lineage.html](docs/standards_lineage.html) |
 | USDM guide section map | [docs/usdm_ig_ledger.md](docs/usdm_ig_ledger.md) |
 | Which script or module calls which | [docs/workflow_map.md](docs/workflow_map.md) |

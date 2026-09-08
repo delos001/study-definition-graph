@@ -1,0 +1,49 @@
+{
+  "set": "cdisc_biomedical_concepts",
+  "description": "CDISC Biomedical Concepts (COSMoS): standardized definitions of clinical measurements that a USDM activity can point at, with the field guide and an overview.",
+  "publisher": "CDISC",
+  "version": "rolling export, pinned by commit; export dated 2026-07-21",
+  "source": "https://github.com/cdisc-org/COSMoS",
+  "pinned_commit": "031429b1d14823721991cd23ee88a11616686ce3",
+  "retrieved": "2026-08-25",
+  "local_dir": "standards/cdisc/biomedical_concepts",
+  "notes": {
+    "commit_message": "Remove 'utilities/' from exclude list",
+    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (401), so the Biomedical Concepts are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding."
+  },
+  "files": [
+    {
+      "name": "cdisc_biomedical_concepts_latest.xlsx",
+      "path": "export/cdisc_biomedical_concepts_latest.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/export/cdisc_biomedical_concepts_latest.xlsx",
+      "local": "standards/cdisc/biomedical_concepts/cdisc_biomedical_concepts.xlsx",
+      "format": "XLSX",
+      "read_by": "both",
+      "role": "The concept library itself, one row per Biomedical Concept parameter. Answers what standardized concept an activity measures; the code columns carry a LOINC code where the concept is a measurement.",
+      "bytes": 1368920,
+      "sha256": "6c004f592c62ea2f06877ff86788a9c11d2a721d9f8a08809e7dc6f14d1fe1e6"
+    },
+    {
+      "name": "BC Curation Principles and Completion GLs.xlsx",
+      "path": "bc_starter_package/doc/BC Curation Principles and Completion GLs.xlsx",
+      "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/bc_starter_package/doc/BC%20Curation%20Principles%20and%20Completion%20GLs.xlsx",
+      "local": "standards/cdisc/biomedical_concepts/BC_Curation_Principles_and_Completion_GLs.xlsx",
+      "format": "XLSX",
+      "read_by": "person",
+      "role": "The field dictionary for the library: what each column means and how CDISC populated it. Read before interpreting a column.",
+      "bytes": 64009,
+      "sha256": "55fbe35b9125a02ffd4d703c71b3937a0af5d73e4857d61b66e95e08378ce3b8"
+    },
+    {
+      "name": "BC Overview Training.pdf",
+      "path": "bc_starter_package/doc/BC Overview Training.pdf",
+      "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/bc_starter_package/doc/BC%20Overview%20Training.pdf",
+      "local": "standards/cdisc/biomedical_concepts/BC_Overview_Training.pdf",
+      "format": "PDF",
+      "read_by": "person",
+      "role": "What a Biomedical Concept is, conceptually, and how it sits above SDTM and CDASH. Grounding only; the searchable PDF, not the slide deck.",
+      "bytes": 1783874,
+      "sha256": "482447cfa8173c20b5600afce8560e3d6546065d71cf0c4531dea00a13f71bfd"
+    }
+  ]
+}
