@@ -9,20 +9,9 @@
   "retrieved": "2026-08-17",
   "local_dir": "data/usdm_examples",
   "notes": {
-    "excluded": "Devices and Observational examples: synthetic test data not derived from a real protocol, per Documents/Examples/README.md."
+    "excluded": "Devices and Observational examples: synthetic test data not derived from a real protocol, per CDISC's Documents/Examples/README.md at the pinned commit. That README is not held; the sentence is quoted with its url in data/usdm_examples/README.md, the authored README beside the files."
   },
   "files": [
-    {
-      "name": "README.md",
-      "path": "Documents/Examples/README.md",
-      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/Examples/README.md",
-      "local": "data/usdm_examples/README.md",
-      "format": "Markdown",
-      "read_by": "person",
-      "role": "CDISC's own description of these examples",
-      "bytes": 778,
-      "sha256": "c4f425f90ff596d5bfe52b985a334a3dc39414111c9afab70ced3bdf9d20d887"
-    },
     {
       "name": "CDISC_Pilot_Study.pdf",
       "path": "Documents/Examples/CDISC_Pilot/CDISC_Pilot_Study.pdf",

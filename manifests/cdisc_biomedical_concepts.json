@@ -9,7 +9,8 @@
   "local_dir": "standards/cdisc/biomedical_concepts",
   "notes": {
     "commit_message": "Remove 'utilities/' from exclude list",
-    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (401), so the Biomedical Concepts are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding."
+    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (401), so the Biomedical Concepts are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding.",
+    "naming_exception": "cdisc_biomedical_concepts_latest.xlsx is pinned as cdisc_biomedical_concepts.xlsx, the one departure from keeping the publisher's file name. CDISC's suffix says the file moves; this copy does not, and a pinned file named latest would contradict the pin every time the folder is read. The version is the commit above. Decided 2026-09-08."
   },
   "files": [
     {
@@ -24,7 +25,7 @@
       "sha256": "6c004f592c62ea2f06877ff86788a9c11d2a721d9f8a08809e7dc6f14d1fe1e6"
     },
     {
-      "name": "BC Curation Principles and Completion GLs.xlsx",
+      "name": "BC_Curation_Principles_and_Completion_GLs.xlsx",
       "path": "bc_starter_package/doc/BC Curation Principles and Completion GLs.xlsx",
       "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/bc_starter_package/doc/BC%20Curation%20Principles%20and%20Completion%20GLs.xlsx",
       "local": "standards/cdisc/biomedical_concepts/BC_Curation_Principles_and_Completion_GLs.xlsx",
@@ -35,7 +36,7 @@
       "sha256": "55fbe35b9125a02ffd4d703c71b3937a0af5d73e4857d61b66e95e08378ce3b8"
     },
     {
-      "name": "BC Overview Training.pdf",
+      "name": "BC_Overview_Training.pdf",
       "path": "bc_starter_package/doc/BC Overview Training.pdf",
       "url": "https://raw.githubusercontent.com/cdisc-org/COSMoS/031429b1d14823721991cd23ee88a11616686ce3/bc_starter_package/doc/BC%20Overview%20Training.pdf",
       "local": "standards/cdisc/biomedical_concepts/BC_Overview_Training.pdf",

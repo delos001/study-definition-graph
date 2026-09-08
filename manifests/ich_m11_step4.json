@@ -14,9 +14,9 @@
   },
   "files": [
     {
-      "name": "ICH_M11_Guideline.pdf",
+      "name": "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
       "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
-      "local": "standards/ich/m11_step4/ICH_M11_Guideline.pdf",
+      "local": "standards/ich/m11_step4/ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 6,
@@ -25,9 +25,9 @@
       "sha256": "28c72a19ba6062d7dc00d67154421ab3cfe09dbdf73d3d88deb2fabd03085ddc"
     },
     {
-      "name": "ICH_M11_Template.pdf",
+      "name": "ICH_Step4_M11_Final_Template_2025_1119.pdf",
       "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_Template_2025_1119.pdf",
-      "local": "standards/ich/m11_step4/ICH_M11_Template.pdf",
+      "local": "standards/ich/m11_step4/ICH_Step4_M11_Final_Template_2025_1119.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 67,
@@ -36,9 +36,9 @@
       "sha256": "89ee5c3f5ff24cb6e7b5f19223f57338e2610a521942a2c575e315a368a4f8c8"
     },
     {
-      "name": "ICH_M11_TechnicalSpecification.pdf",
+      "name": "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
       "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
-      "local": "standards/ich/m11_step4/ICH_M11_TechnicalSpecification.pdf",
+      "local": "standards/ich/m11_step4/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 245,

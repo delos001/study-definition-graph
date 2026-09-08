@@ -57,7 +57,7 @@ Nothing here overwrites a file that already exists, so the fetch is safe to re-r
 
 The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes. It is read-only, instant, and uses only the standard library, so it works whether or not the `sdg` environment is active.
 
-Then confirm it worked. All four should exit 0:
+Then confirm it worked. All five should exit 0:
 
 ```powershell
 python scripts/verify_manifests.py    # every pinned file present and matching its recorded hash
@@ -92,6 +92,7 @@ study-definition-graph/
   .env.example
   docs/                      # the project's maps of itself; README.md there lists them
   manifests/                 # one record per set of pinned downloads: source, version, fingerprint
+    data_raw/                #   one record per study fetched into data/raw/, written by the fetch script
   standards/                 # pinned standards the project depends on, by publisher; gitignored
     cdisc/                   #   USDM v4 and the Biomedical Concepts library
     ich/                     #   M11 and E9(R1)

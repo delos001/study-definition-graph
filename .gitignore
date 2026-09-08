@@ -10,6 +10,7 @@ data/**
 !data/**/
 !data/**/.gitkeep
 !data/README.md
+!data/usdm_examples/README.md
 standards/**
 !standards/**/
 !standards/**/README.md

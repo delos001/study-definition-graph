@@ -4,7 +4,7 @@ Where to look. Two sections: what we hold, and what exists that we do not hold.
 
 Skim the first section at session start to see what has and has not been read. The second section is consulted only when a question comes up; it is a pointer list, not context. For how these standards relate to each other, see [standards_lineage.html](standards_lineage.html).
 
-Provenance and checksums live in `manifests/`, one file per set. This file answers "which file holds my answer"; the manifests answer "is this file authentic". Different questions, different files.
+Provenance and checksums live in `manifests/`, one file per set of standards and, under `data_raw/`, one per fetched study. This file answers "which file holds my answer"; the manifests answer "is this file authentic". Different questions, different files.
 
 ---
 
@@ -68,9 +68,9 @@ Adopted 2025-11-19. Manifest: `ich_m11_step4.json`. **No embedded bookmarks**, s
 
 | Question | File | How to read it | Read? |
 | --- | --- | --- | --- |
-| What sections does a protocol have, and what goes in each? | `standards/ich/m11_step4/ICH_M11_Template.pdf` | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` | no |
-| What is this protocol data element, and is it required? | `standards/ich/m11_step4/ICH_M11_TechnicalSpecification.pdf` | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"`. 186 elements, each with definition, data type, cardinality, conformance. | no |
-| What is M11's scope? | `standards/ich/m11_step4/ICH_M11_Guideline.pdf` | `python scripts/read_pdf.py --doc m11-guideline --pages 1-6`. Short; the substance is in the other two. | no |
+| What sections does a protocol have, and what goes in each? | `standards/ich/m11_step4/ICH_Step4_M11_Final_Template_2025_1119.pdf` | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` | no |
+| What is this protocol data element, and is it required? | `standards/ich/m11_step4/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf` | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"`. 186 elements, each with definition, data type, cardinality, conformance. | no |
+| What is M11's scope? | `standards/ich/m11_step4/ICH_Step4_M11_Final_Guideline_2025_1119.pdf` | `python scripts/read_pdf.py --doc m11-guideline --pages 1-6`. Short; the substance is in the other two. | no |
 
 ### ICH E9(R1)
 
@@ -78,7 +78,7 @@ Manifest: `ich_e9r1.json`.
 
 | Question | File | How to read it | Read? |
 | --- | --- | --- | --- |
-| What is an estimand and what are its parts? | `standards/ich/ICH_E9R1_Addendum.pdf` | `python scripts/read_pdf.py --doc e9r1 A.3.3` | §A.3.3 only |
+| What is an estimand and what are its parts? | `standards/ich/e9r1/E9-R1_Step4_Guideline_2019_1203.pdf` | `python scripts/read_pdf.py --doc e9r1 A.3.3` | §A.3.3 only |
 
 ---
 
@@ -91,7 +91,7 @@ Only resources actually reviewed appear here. Each carries a decision, not a des
 | Resource | Where | State |
 | --- | --- | --- |
 | `cdisc-org/cdisc-rules-engine` | GitHub | The CORE engine. Phase 0 installs and runs it. Version-pin as tooling, not as hashed data. |
-| ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. Called live by decision; no snapshot worth keeping. |
+| ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. The API is called live by decision and its responses are not kept; the documents it returns are kept under `data/raw/` and recorded in `manifests/data_raw/`, because a later fetch is not guaranteed to return the same document version. |
 
 ### Reviewed and not taken
 
