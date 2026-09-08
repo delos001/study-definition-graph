@@ -2,7 +2,7 @@
 
 Where to look. Two sections: what we hold, and what exists that we do not hold.
 
-Skim the first section at session start to see what has and has not been read. The second section is consulted only when a question comes up; it is a pointer list, not context. For how these standards relate to each other, see [standards_map.html](standards_map.html).
+Skim the first section at session start to see what has and has not been read. The second section is consulted only when a question comes up; it is a pointer list, not context. For how these standards relate to each other, see [standards_lineage.html](standards_lineage.html).
 
 Provenance and checksums live in `data/manifests/`, one file per set. This file answers "which file holds my answer"; the manifests answer "is this file authentic". Different questions, different files.
 
@@ -21,7 +21,7 @@ Pinned to DDF-RA commit `aa303cb`. Manifest: `raw_usdm_v4.json`.
 | What does a class or attribute **mean**? | `usdm_v4/uml/dataDictionary.MD` | Grep it. One row per attribute: definition, cardinality, NCI code, codelist ref. | partly |
 | What does an ID **point at**? | `usdm_v4/uml/dataStructure.yml` | `python -m sdg.usdm_spec --attributes <class>`. Gives target class, cardinality, `Ref` vs `Value`; the module checks the file against its manifest first. | partly |
 | What is the model itself? | `usdm_v4/uml/USDM_UML.xmi` | The hand-authored master. Everything else machine-readable is generated from it. Not directly readable; go to the two files above. | no |
-| How does this map to real protocol content? | `usdm_v4/USDM-IG.pdf` | `python scripts/read_pdf.py <section>`. Section map and read ledger: [usdm_ig_map.md](usdm_ig_map.md). | 3 of 54 sections |
+| How does this map to real protocol content? | `usdm_v4/USDM-IG.pdf` | `python scripts/read_pdf.py <section>`. Section map and read ledger: [usdm_ig_ledger.md](usdm_ig_ledger.md). | 3 of 54 sections |
 | What does the payload look like? | `usdm_v4/USDM_API.json` | Shape only. **No definitions, no cardinalities, no relationship targets.** Never answer a meaning question from this file. | n/a |
 | Which values are legal for a coded field? | `usdm_v4/USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` | no |
 | Is a document conformant? | `usdm_v4/USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"`. 259 rules. | no |

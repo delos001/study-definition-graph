@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Rules for this repo, on top of the global `~/.claude/CLAUDE.md`. `README.md` is what the project is and how to run it; `PLAN.md` is the build sequence; `DECISIONS.md` is the record of choices made and why; `docs/sources.md` is which file answers which question. Keep each to its own job.
+Rules for this repo, on top of the global `~/.claude/CLAUDE.md`. `README.md` is what the project is and how to run it; `PLAN.md` is the build sequence; `DECISIONS.md` is the record of choices made and why; `docs/sources_index.md` is which file answers which question. Keep each to its own job.
 
 This repo is de-identified: no company, no people, no locations, no partnerships. Anything learned from a conversation is written as a design constraint, a target problem or an open question, which is what it is here.
 
@@ -13,9 +13,9 @@ Scripts run in the `sdg` conda environment. `README.md` has the rest of the setu
 1. `BACKGROUND.md` - why the project exists and the design constraints.
 2. `PLAN.md` - the build plan: phases, scope, and how each is verified.
 3. GitHub Issues - current status and what to work on next.
-4. `docs/sources.md`, first half - every pinned file, and whether it has been read.
+4. `docs/sources_index.md`, first half - every pinned file, and whether it has been read.
 
-Read all four before doing any work, even when the first message is a concrete task. The orientation reads, `docs/sources.md` above all, are what keep the work grounded; jumping to a named task and pulling only the obviously-relevant files is how ungrounded guessing starts (a figure quoted from an issue instead of the pinned source, a file's location asked for when the map already answers it).
+Read all four before doing any work, even when the first message is a concrete task. The orientation reads, `docs/sources_index.md` above all, are what keep the work grounded; jumping to a named task and pulling only the obviously-relevant files is how ungrounded guessing starts (a figure quoted from an issue instead of the pinned source, a file's location asked for when the map already answers it).
 
 ## Issue tracking
 

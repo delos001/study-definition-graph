@@ -290,7 +290,7 @@ def _print_classes(spec: dict) -> None:
 
     The summary goes to stderr (for example: 86 classes (80 concrete, 6 abstract)).
     The summary doesn't get mixed into the stdout stream so piped data isn't polluted.
-    The concrete/abstract split is the figure docs/sources.md records, printed here
+    The concrete/abstract split is the figure docs/sources_index.md records, printed here
     straight from the file.
     """
     names = class_names(spec)

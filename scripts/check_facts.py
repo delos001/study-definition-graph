@@ -87,12 +87,12 @@ except ImportError as exc:
 REPO_ROOT = Path(__file__).resolve().parents[1]
 RAW = REPO_ROOT / "data" / "raw"
 
-# Documents scanned for stated figures. docs/standards_map.html is included:
-# it is linked from docs/sources.md and a session acts on what it says, so its
+# Documents scanned for stated figures. docs/standards_lineage.html is included:
+# it is linked from docs/sources_index.md and a session acts on what it says, so its
 # numbers need the same guard as the prose. Being HTML makes no difference to a
 # regex looking for a figure.
 DOCS = ["README.md", "BACKGROUND.md", "PLAN.md", "CLAUDE.md",
-        "docs/sources.md", "docs/usdm_ig_map.md", "docs/standards_map.html"]
+        "docs/sources_index.md", "docs/usdm_ig_ledger.md", "docs/standards_lineage.html"]
 
 
 ### Measurements ###############################################################
@@ -165,7 +165,7 @@ def usdm_concrete_classes() -> int:
     Goes through sdg.usdm_spec, the one doorway to the standard, rather than
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
-    usdm_ig_map.md makes. The loader also checks the file is shaped like USDM
+    usdm_ig_ledger.md makes. The loader also checks the file is shaped like USDM
     v4, the one failure only this measurement can raise (exit 4).
     """
     spec = usdm_spec.load()

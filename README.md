@@ -111,10 +111,10 @@ study-definition-graph/
 | Decisions made, and why | [DECISIONS.md](DECISIONS.md) |
 | Current status and task backlog | [GitHub Issues](https://github.com/delos001/study-definition-graph/issues) |
 | Working rules | [CLAUDE.md](CLAUDE.md) |
-| Which pinned file answers which question | [docs/sources.md](docs/sources.md) |
-| How the standards feed each other | [docs/standards_map.html](docs/standards_map.html) |
-| USDM guide section map | [docs/usdm_ig_map.md](docs/usdm_ig_map.md) |
-| Which script or module calls which | [docs/code_map.md](docs/code_map.md) |
+| Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
+| How the standards feed each other | [docs/standards_lineage.html](docs/standards_lineage.html) |
+| USDM guide section map | [docs/usdm_ig_ledger.md](docs/usdm_ig_ledger.md) |
+| Which script or module calls which | [docs/workflow_map.md](docs/workflow_map.md) |
 | What each script does | [scripts/README.md](scripts/README.md) |
 
 [scripts/README.md](scripts/README.md) is a generated index of every script and how to invoke it. It is rebuilt from the scripts' own header blocks by `python scripts/build_index.py`, so it cannot drift from them.

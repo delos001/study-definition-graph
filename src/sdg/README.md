@@ -20,4 +20,4 @@ The `sdg` package: the project's pipeline code, as modules other code imports. E
 | --- | --- |
 | `__init__.py` | Marks the folder as a package so `import sdg` works. One docstring, no code. |
 
-Which module calls which, and what reads `data/`: `docs/code_map.md`. The checks for each module: `tests/README.md`.
+Which module calls which, and what reads `data/`: `docs/workflow_map.md`. The checks for each module: `tests/README.md`.

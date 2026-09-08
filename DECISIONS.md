@@ -45,7 +45,7 @@ One caveat resolved rather than carried: `data/raw/usdm_mappings/DDF-RA_Document
 
 ## Standards outside CDISC, added 2026-08-18
 
-The source sweep had stopped at one GitHub repository. Widening it found two standards the project needs and did not hold. Both are listed below and pinned; `docs/sources.md` says what each answers.
+The source sweep had stopped at one GitHub repository. Widening it found two standards the project needs and did not hold. Both are listed below and pinned; `docs/sources_index.md` says what each answers.
 
 **ICH M11 CeSHarP**, Step 4, adopted 2025-11-19. Earlier reasoning dismissed it as reference-only because our protocols are not authored in it. Too narrow: its template describes protocol structure whether or not a given protocol follows it, and Phases 1 and 2 need that.
 
@@ -112,15 +112,15 @@ Consequence: none. The `usdm` PyPI package stays out of scope, and the model, co
 
 ## Source navigation, built 2026-08-18
 
-`docs/sources.md` answers "which file holds my answer", which the manifests were never meant to. It has two halves: every pinned file with the question it answers and whether it has been read, then a registry of resources that exist and we do not hold. That registry is the record of what was already reviewed and rejected, so a later session does not re-litigate it; the entries live there, not here.
+`docs/sources_index.md` answers "which file holds my answer", which the manifests were never meant to. It has two halves: every pinned file with the question it answers and whether it has been read, then a registry of resources that exist and we do not hold. That registry is the record of what was already reviewed and rejected, so a later session does not re-litigate it; the entries live there, not here.
 
 Three format rules keep the registry from turning into a bibliography: every entry carries a decision rather than a description; only resources actually reviewed are entered; and the second half is never read at session start.
 
-It does not replace `docs/usdm_ig_map.md`, which the original plan said it would. That file holds a per-section read ledger for a 119-page guide, and folding 54 rows into one index row would coarsen it. The index links to it instead, and the same applies to any future document with its own ledger.
+It does not replace `docs/usdm_ig_ledger.md`, which the original plan said it would. That file holds a per-section read ledger for a 119-page guide, and folding 54 rows into one index row would coarsen it. The index links to it instead, and the same applies to any future document with its own ledger.
 
 Building it settled two things by measurement:
 
-- **Class counts.** The three files do not disagree. `dataStructure.yml` has 86 classes, 80 concrete and 6 abstract. `dataDictionary.MD` has 84, the same set minus the two extension classes, which IG 6.4 places outside the logical model. `USDM_API.json` has the 80 concrete ones plus `Wrapper`, `HTTPValidationError` and `ValidationError`, which are API plumbing. No abstract class serialises. This corrected the "81 classes" recorded in `docs/usdm_ig_map.md`.
+- **Class counts.** The three files do not disagree. `dataStructure.yml` has 86 classes, 80 concrete and 6 abstract. `dataDictionary.MD` has 84, the same set minus the two extension classes, which IG 6.4 places outside the logical model. `USDM_API.json` has the 80 concrete ones plus `Wrapper`, `HTTPValidationError` and `ValidationError`, which are API plumbing. No abstract class serialises. This corrected the "81 classes" recorded in `docs/usdm_ig_ledger.md`.
 - **Codelist references resolve.** All 517 NCI codes in `dataDictionary.MD` appear in `USDM_CT.xlsx`. Nothing dangles.
 
 ## The orientation walks, done 2026-08-25
@@ -207,3 +207,21 @@ A second review, after the tests-and-pinned work above landed, found four proble
 **The certifying script goes through the door.** `check_facts.py` read nine pinned files directly, so it could re-derive a figure from a swapped or edited file and report the documents correct. Every file it reads is now obtained through `sdg.pinned.pinned()`, the rule the previous entry set. `read_pdf.py` and `read_xlsx.py` still read directly: they are orientation tools a person reads by eye, and nothing downstream consumes their output. That exemption is now stated rather than implied.
 
 **Scripts are tested like modules.** The four scripts that share code with the package had no tests, including the new exit codes. Each now has a test file in the same positive/negative style, calling the script's `main()` in-process with an argument list (each script's `main()` now takes one, as the loader's already did) against a throwaway repo, with `fetch_sources.py`'s network faked per url. No test reads or writes the real `data/`. The two hand-run readers are not tested; they have no exit-code contract beyond found or not found, and their output is judged by reading it.
+
+## Repository folders reorganised by what each holds, decided 2026-09-08
+
+A review of the scripts began with the folder they read from and found that `data/` held no data. Everything in it was a published standard, a guideline, a worked example, or a record about one of those, filed under a raw/interim/processed layout meant for documents flowing through a pipeline. The scripts had been written against that layout, so the confusion in the folders had become confusion in the code. The folders were settled first; the scripts and manifests follow. All **unguided**.
+
+**Standards get their own folder, grouped by publisher.** `standards/` holds the published material the project depends on: `cdisc/` for USDM and the Biomedical Concepts library, `ich/` for M11 and E9(R1). A standard with several files gets a subfolder; a single document sits in the publisher folder. Publisher was chosen over role because it is the one grouping a newcomer can apply without knowing the project. The distinction that matters to the code, whether a file is read by a program or by a person, is a property of the file and will be recorded per file in the manifests rather than expressed as a folder tier.
+
+**Versions stay in folder names.** `usdm_v4` and `m11_step4` carry their version because two versions of a standard can plausibly be held at once: a sponsor is not required to move in-flight studies to a new standard, so a production pipeline could run v4 and v5 side by side. E9(R1) is one file whose name already carries its revision. The cost is that paths change on upgrade; the alternative, version only in the manifest, would make side-by-side impossible.
+
+**Crosswalks are the one exception to publisher grouping.** A crosswalk has two parents, so filing by author would scatter mappings to USDM across `cdisc/`, `hl7/` and whoever else writes one. `standards/crosswalks/` holds every mapping regardless of author, with the author recorded in the manifest. CDISC's own readme for the folder the crosswalks came from was dropped; it was held only so a quote from it was traceable, and the quote now sits in a README beside the crosswalks with its url and access date.
+
+**Manifests move to the root.** A manifest describes a download wherever the download lands, and downloads now land under both `standards/` and `data/`. One `manifests/` folder at the root keeps "do I hold everything I pinned" a single check. `docs/sources_index.md`, which answers a similar question for a person, stays in `docs/`: the scripts treat every file in `manifests/` as a manifest, and a prose file among them would be a special case.
+
+**`data/` holds only study documents and pipeline output.** `raw/` for documents as fetched, `interim/` and `processed/` for what the pipeline makes, `usdm_examples/` for CDISC's three worked examples, which are downloads. Nothing under it is committed, because everything under it is re-fetchable or regenerable, and git is the wrong store for a growing corpus of PDFs.
+
+**Hand-built evaluation material gets a committed home.** `eval/` at the root, beside `prompts/`, for answer keys a person writes and for the acceptance thresholds fixed before testing. These cannot be regenerated, so they cannot live under the ignored `data/`. The worked examples were moved out of it and back under `data/` for the same reason in reverse: they are downloads.
+
+**Documents named for what they show.** `code_map.md` became `workflow_map.md` because it shows the order steps run in and what flows between them, and that description holds when a step is not Python. `sources.md` became `sources_index.md`, `usdm_ig_map.md` became `usdm_ig_ledger.md`, `standards_map.html` became `standards_lineage.html`. Working drafts moved to `docs/draft/`. Links inside earlier entries of this file were updated to the new names, a departure from append-only: a dead link is a broken pointer, not a historical figure.

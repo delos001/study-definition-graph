@@ -3,13 +3,16 @@
 .env.*
 !.env.example
 
-# Data: everything is reproducible from manifests, so nothing is committed.
-# data/raw/ is immutable once downloaded and is never edited in place, so the
-# manifests that make it re-fetchable live outside it, in data/manifests/.
+# Pinned downloads and pipeline output: everything is reproducible from
+# manifests/ (committed, at the root), so the files themselves are not
+# committed. READMEs written in these folders are.
 data/**
 !data/**/
 !data/**/.gitkeep
-!data/manifests/**
+!data/README.md
+standards/**
+!standards/**/
+!standards/**/README.md
 
 # Model response cache
 .cache/

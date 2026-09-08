@@ -6,19 +6,9 @@
   "pinned_commit": "aa303cb32f5d3ceecc68a16803e26720d2c1fc26",
   "retrieved": "2026-08-17",
   "local_dir": "data/raw/usdm_mappings",
-  "caveat": "DDF-RA Documents/README.md describes these as provisional and written against USDM v3.1x. That README is stale: both files declare USDM v4.0.0 in their own Readme sheet, verified 2026-08-17. m11_mapping is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching USDM-IG p.8. ct-gov_mapping carries a \"v4.0 Change\" column.",
+  "caveat": "CDISC's Documents/README.md at the pinned commit describes these as provisional and written against USDM v3.1x. That README is stale: both files declare USDM v4.0.0 in their own Readme sheet, verified 2026-08-17. m11_mapping is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching USDM-IG p.8. ct-gov_mapping carries a \"v4.0 Change\" column. The quoted passage and its url are in the README beside these files.",
   "excluded": "ctis_mapping.xlsx (EU registry, out of scope), cpt_mapping.xlsx (authoring template our sources do not use), sdtm_mapping.xlsx (USDM to SDTM, downstream and opposite direction).",
   "files": [
-    {
-      "name": "DDF-RA_Documents_README.md",
-      "path": "Documents/README.md",
-      "url": "https://raw.githubusercontent.com/cdisc-org/DDF-RA/aa303cb32f5d3ceecc68a16803e26720d2c1fc26/Documents/README.md",
-      "local": "data/raw/usdm_mappings/DDF-RA_Documents_README.md",
-      "format": "Markdown",
-      "role": "CDISC's own description of the Documents directory the crosswalks live in. Held because the caveat below quotes it, and quoting a file we do not hold is untraceable.",
-      "bytes": 920,
-      "sha256": "ada747e8ab4770253e61236920bfa737737602b23701a0e1d48f838a7a607015"
-    },
     {
       "name": "m11_mapping.xlsx",
       "path": "Documents/Mappings/m11_mapping.xlsx",
