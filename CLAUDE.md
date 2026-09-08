@@ -71,7 +71,7 @@ Every script opens with:
 Script:      filename.py
 Description: what it does, and any non-obvious constraint it operates under
 Inputs:      files or services read, and whether they are read-only
-Outputs:     what it writes, or "writes nothing to disk"
+Outputs:     what it writes to disk, or "nothing on disk"; and, for a module that hands results back, what it returns
 Usage:       one line per invocation mode, with a real example
 Exit codes:  each code and what causes it
 Date:        YYYY-MM-DD
