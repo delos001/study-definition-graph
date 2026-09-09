@@ -31,19 +31,15 @@ python scripts/check_facts.py --verbose
     also show facts that match
 ```
 
-## fetch_sources.py
+## find_unrecorded_files.py
 
-Downloads every pinned source file recorded in data/manifests/ to the local path that manifest names, and verifies each one against its recorded sha256 before putting it in place.
+Lists every file in a pinned folder that no manifest records, since such a file cannot be restored from a fresh clone.
 
 ```
-python scripts/fetch_sources.py
-    download whatever is missing, verify everything present
-python scripts/fetch_sources.py --dry-run
-    list what would be downloaded; touches no network, writes nothing
-python scripts/fetch_sources.py --set raw_ich_m11
-    one manifest only
-python scripts/fetch_sources.py --quiet
-    print nothing; use the exit code. For hooks and scripts.
+python scripts/find_unrecorded_files.py
+    list every unrecorded file
+python scripts/find_unrecorded_files.py --quiet
+    print nothing; use the exit code
 ```
 
 ## read_pdf.py
@@ -88,19 +84,4 @@ python scripts/verify_headers.py
     check every file, report each problem
 python scripts/verify_headers.py --quiet
     print nothing; use the exit code. For hooks.
-```
-
-## verify_manifests.py
-
-Checks every pinned file against the checksum recorded for it in data/manifests/, and reports anything that has drifted.
-
-```
-python scripts/verify_manifests.py
-    check everything, print one line per set plus any problems
-python scripts/verify_manifests.py --verbose
-    also list every file that passed
-python scripts/verify_manifests.py --quiet
-    print nothing; use the exit code. For hooks and scripts.
-python scripts/verify_manifests.py --set raw_ich_m11
-    check one manifest only
 ```
