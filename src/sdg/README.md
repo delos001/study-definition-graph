@@ -15,6 +15,6 @@ A file used by several stages goes in the root of `sdg/`. When two or more such 
 
 A script has one objective. Generally its functionality should be distinct or perform like things. Discrete jobs upstream or downstream of the objective should generally be evaluated to determine whether they belong in a separate callable, reusable script.
 
-Every folder holds two kinds of file. An orchestrator runs steps in order and is what a person or a later stage calls; a piece does one thing and belongs to no orchestrator, so any orchestrator can use it. The whole map, with which orchestrator uses which piece, is `docs/workflow_map_outline.md`.
+Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one: it holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `docs/workflow_map_outline.md`.
 
 Installed once with `pip install -e .` (README.md, step 1b). The tools a person runs beside the pipeline are in `scripts/`, and the checks that prove this code works are in `tests/`, which mirrors these folders.

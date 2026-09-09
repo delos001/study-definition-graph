@@ -12,12 +12,14 @@ from .read_manifests import Entry, Manifest, ManifestError, NotInRepoError, entr
 from .fetch_file import FetchError, fetch, partial_path
 from .fingerprint_file import Comparison, Fingerprint, compare, fingerprint
 from .finalize_file import discard, place
+from .verify_pinned import IntegrityError, PinnedFile, verify_pinned
 
 __all__ = [
     "Comparison",
     "Entry",
     "FetchError",
     "Fingerprint",
+    "IntegrityError",
     "Manifest",
     "ManifestError",
     "NotInRepoError",
@@ -29,5 +31,7 @@ __all__ = [
     "manifests",
     "partial_path",
     "place",
+    "PinnedFile",
     "require_repo",
+    "verify_pinned",
 ]

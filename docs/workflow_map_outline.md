@@ -3,12 +3,12 @@
 # sdg/
 
 ## sources/
-### orchestrators:
+### workflows:
 - acquire_sources.py: uses read_manifests, fetch_file, fingerprint_file, finalize_file
 - verify_pinned.py: uses read_manifests, fingerprint_file
 - update_sources.py: uses fetch_file, fingerprint_file, finalize_file, write_manifests
 
-### pieces:
+### steps:
 - read_manifests.py
 - fetch_file.py
 - fingerprint_file.py
@@ -16,37 +16,37 @@
 - write_manifests.py - pending
 
 ## usdm/
-### orchestrators:
-### pieces:
+### workflows:
+### steps:
 
 -	usdm_spec.py
 
 ## locate/
-### orchestrators:
-### pieces:
+### workflows:
+### steps:
 
 -	pending phase 1
 
 ## classify/
-### orchestrators:
-### pieces:
+### workflows:
+### steps:
 
 - pending phase 2
 
 ## extract/
-### orchestrators:
-### pieces:
+### workflows:
+### steps:
 
 - pending phase 3
 
 ## graph/
-### orchestrators:
-### pieces:
+### workflows:
+### steps:
 
 - pending phase 4
 
 # scripts/
-Everything here is run by hand, so there is no orchestrator and piece split.
+Everything here is run by hand, so there is no workflow and step split.
 
 - adhoc extraction:
   - read_xlsx.py
