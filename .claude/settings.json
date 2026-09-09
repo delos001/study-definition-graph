@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/deny_pinned_edits.py\"",
+            "timeout": 10,
+            "statusMessage": "Checking the path is not a pinned file"
+          }
+        ]
+      }
+    ]
+  }
+}
