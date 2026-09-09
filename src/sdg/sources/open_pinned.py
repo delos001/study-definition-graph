@@ -1,50 +1,53 @@
 """
-Script:      pinned.py
-Description: The one way to obtain a pinned file. A pinned file is a downloaded
-             copy of an external source (a standard, a worked example) whose
-             version never moves; data/manifests/ records where each one came
-             from and its sha256 fingerprint.
+Script:      open_pinned.py
+Description: Provides a pipeline with a path of a pinned file after proving it is the
+             recorded one. A pinned file is a downloaded standard or worked
+             example whose version never moves.
 
-             pinned(<path>) finds the file's manifest entry, checks the file on
-             disk against it (size, then fingerprint), and hands back the file
-             with its identity: the fingerprint and the url it was fetched from.
-             Callers get content they can trust and a version they can stamp on
-             whatever they produce from it. A file that cannot be verified is
-             refused with a message naming the cause and the remedy.
+             open_pinned(path)
+             - finds the file's manifest entry,
+             - fingerprints the file and compares it to the entry, and
+             - hands off the path for the verified file with its identity: its sha256
+             and the url it was fetched from, which carries the source's version.
+             A stage stamps that identity on whatever it produces from the file.
+             A file that cannot be proven is refused, with a message naming the cause
+             and the remedy.
 
-             Design: the contract is the function, the manifest is only how it
-             is met today. If a source is one day fetched from an API instead,
-             the body of pinned() changes to ask the API and report its version
-             identifier; callers keep calling pinned() and keep receiving the
-             same record. Nothing about manifests leaks past this module.
+             This is the only way pipeline code obtains a pinned file. The
+             manifest is how the proof is made today; if a source is one day
+             served by an API, the inside of this module changes and the
+             stages calling it do not.
 
-             The module also holds what the hand-run scripts share with it:
-             where the repo is, how a manifest is read, how an entry is checked,
-             how a file is hashed. One copy, used by fetch_sources.py and
-             verify_manifests.py as well, so the check a script runs by hand is
-             the check the pipeline runs automatically.
+             Each step is a function in the sdg package. This module runs them
+             in order:
+             - read manifests: find the entry for the path
+             - fingerprint: compare the file to its entry
 
-             Everything here locates files relative to the repo, which is only
-             right when the package is installed editable (pip install -e .,
-             README.md step 1b). require_repo() confirms that before any path
-             is used and says how to fix it if not.
+             The package must be installed from inside the repo (pip install
+             -e .), or nothing under manifests/ can be found. That is checked
+             before any path is used.
 
-Inputs:      data/manifests/*.json     (read-only)
-             the pinned file named     (read-only, opened only to hash)
+Inputs:      manifests/*.json, manifests/data_raw/*.json   (read-only)
+             the pinned file named                          (read-only, opened only to hash)
 
-Outputs:     Writes nothing to disk.
+Outputs:     Nothing on disk. Hands back the file with its identity: local
+             path, path on this machine, sha256, url, and the manifest that
+             records it.
 
 Usage:       Not run directly; imported.
-                 from sdg.pinned import pinned
-                 spec = pinned("data/raw/usdm_v4/uml/dataStructure.yml")
-                 spec.read_text()   -> the content
-                 spec.sha256        -> its fingerprint, for provenance
-                 spec.url           -> where it came from (carries the version)
+             from sdg.sources.open_pinned import open_pinned
+                spec = open_pinned("standards/cdisc/usdm_v4/dataStructure.yml")
+                spec.read_text()   -> the content
+                spec.sha256        -> its fingerprint, for provenance
+                spec.url           -> where it came from, carrying the version
 
-Exit codes:  None; this module raises. NotInRepoError when the package is not
-             running from inside its repo; FileNotFoundError when the pinned
-             file has not been downloaded; IntegrityError when it cannot be
-             verified against its manifest or does not match it.
+Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+             and hands an error to the program using it, which decides what to
+             do. The errors it can hand back:
+             NotInRepoError      the package is not running from inside its repo
+             FileNotFoundError   the file has not been downloaded
+             IntegrityError      no entry records the file, a manifest cannot be
+                                 read, or the file does not match its entry
 
 Date:        2026-09-04
 Owner:       Jason Delosh
