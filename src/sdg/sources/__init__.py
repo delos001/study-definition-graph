@@ -10,16 +10,24 @@ See README.md.
 
 from .read_manifests import Entry, Manifest, ManifestError, NotInRepoError, entry_for, manifests, require_repo
 from .fetch_file import FetchError, fetch, partial_path
+from .fingerprint_file import Comparison, Fingerprint, compare, fingerprint
+from .finalize_file import discard, place
 
 __all__ = [
+    "Comparison",
     "Entry",
     "FetchError",
+    "Fingerprint",
     "Manifest",
     "ManifestError",
     "NotInRepoError",
+    "compare",
+    "discard",
     "entry_for",
     "fetch",
+    "fingerprint",
     "manifests",
     "partial_path",
+    "place",
     "require_repo",
 ]
