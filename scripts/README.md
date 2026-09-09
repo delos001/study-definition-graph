@@ -79,6 +79,17 @@ python scripts/read_xlsx.py --all --find "epoch"
     search every workbook under data/
 ```
 
+## verify_headers.py
+
+Checks that every Python file in the package and in scripts/ opens with the full header block CLAUDE.md requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.
+
+```
+python scripts/verify_headers.py
+    check every file, report each problem
+python scripts/verify_headers.py --quiet
+    print nothing; use the exit code. For hooks.
+```
+
 ## verify_manifests.py
 
 Checks every pinned file against the checksum recorded for it in data/manifests/, and reports anything that has drifted.
