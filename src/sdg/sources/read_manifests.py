@@ -21,7 +21,7 @@ Outputs:     Nothing on disk.
              Hands back, in memory: the manifests found, one entry, or an entry's fields.
 
 Usage:       Not run directly; imported.
-             from sdg.sources.read_manifests import manifests, entry_for
+             from sdg.sources import manifests, entry_for
                 manifests()                  -> every manifest
                 manifests("cdisc_usdm_v4")   -> one manifest, by name
                 entry_for("standards/cdisc/usdm_v4/dataStructure.yml") -> that file's
