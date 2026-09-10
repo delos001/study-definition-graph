@@ -41,7 +41,7 @@ import sys
 # The manifests are read through the package, so this script needs the
 # editable install (pip install -e ., README.md step 1b) the same as the
 # pipeline does.
-from sdg.sources import ManifestError, NotInRepoError, manifests, require_repo
+from sdg.sources import ManifestError, NotInRepoError, manifests
 from sdg.sources.read_manifests import REPO_ROOT
 
 # The one folder that holds pinned files. The Claude Code hook in
@@ -86,8 +86,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
     args = parser.parse_args(argv)
 
+    # The reader checks the package is running from inside its repo before it
+    # looks for any manifest, so the wrong install is reported as that.
     try:
-        require_repo()
         found = manifests()
     except NotInRepoError as exc:
         if not args.quiet:

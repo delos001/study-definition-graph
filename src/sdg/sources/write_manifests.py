@@ -21,9 +21,9 @@ Inputs:      one manifest file   (read, then rewritten)
 
 Outputs:     the manifest file with the entry added or replaced.
 
-Usage:       Not run directly; imported.
-             from sdg.sources import write_entry
-                write_entry(manifest, entry)   -> to be settled
+Usage:       Not run directly; imported. The function's name and arguments
+             are settled when its first user is built (issue #21); nothing is
+             importable yet.
 
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
