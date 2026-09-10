@@ -46,6 +46,7 @@ The rules for every Python file in the repo are in `CLAUDE.md` under "Source fil
 **Each check**
 
 - Is marked `@positive` (the right thing works) or `@negative` (the broken thing fails, and for the right reason).
+- Proves one promise. If the sentence saying what it proves needs an "and" joining two different claims, it is two checks. A situation that several checks look at is staged once, in a fixture, and each check asserts one thing about it.
 - Has a docstring whose first paragraph is one plain sentence saying what the check proves. That sentence is copied into the validation record, so it has to stand on its own.
 - Stages exactly one situation, runs the code, and compares what happened to what the code's own header and docstrings promise.
 - A negative check breaks exactly one thing, says which in its docstring, and asserts two things: the error type, and that the message names this cause and its remedy rather than another.
@@ -294,8 +295,4 @@ A record is meant to be auditable, so it identifies what was tested, how, when, 
 
 Because the record is written before the validating commit exists, its commit hash is the parent and it is flagged as having uncommitted changes. The commit that adds the record is the one that says "validated"; `git log` on the record file shows it.
 
-| Component | Record | State it validates |
-| --- | --- | --- |
-| `src/sdg/pinned.py` | [validation/pinned_2026-09-04_246dfd5.md](validation/pinned_2026-09-04_246dfd5.md) | First version: pinned files behind one function, one message per failure cause, the in-repo check. |
-| `src/sdg/usdm_spec.py` | [validation/usdm_spec_2026-09-04_246dfd5.md](validation/usdm_spec_2026-09-04_246dfd5.md) | After the 2026-09-04 review: per-cause errors, reference-shape checks, loading through `pinned.py`, exit code 6. |
-| `tests/conftest.py` (the record-writer) | [validation/validation_report_2026-09-04_246dfd5.md](validation/validation_report_2026-09-04_246dfd5.md) | Verdict taken from pytest's exit status; clean-up and set-up failures recorded as error; a record still written when no test ran. |
+
