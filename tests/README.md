@@ -17,13 +17,14 @@ pytest --validation-report   # run every check and write a validation record (se
 | Path | What it is |
 | --- | --- |
 | `conftest.py` | pytest's setup file for this folder. Adds the `--validation-report` flag, the `positive` / `negative` markers, and the shared fixtures for staging pinned data in a temporary folder: `manifest_dir` and `manifest_recording` (one manifest for one file) and `fake_repo` (a whole throwaway repo with its own manifests and raw files, for the script checks). |
-| `test_pinned.py` | The checks for `src/sdg/pinned.py`, the one way to obtain a pinned file verified against its manifest. |
-| `test_usdm_spec.py` | The checks for `src/sdg/usdm_spec.py`, the loader for the pinned USDM model. |
-| `test_verify_manifests.py` | The checks for `scripts/verify_manifests.py`: one exit code per state of the corpus. |
-| `test_fetch_sources.py` | The checks for `scripts/fetch_sources.py`: download, verify, then place, against a fake network. |
-| `test_check_facts.py` | The checks for `scripts/check_facts.py`: drift is caught, and each way a measurement can fail has its own exit code. |
-| `test_build_index.py` | The checks for `scripts/build_index.py`: the generated index and the `--check` the pre-commit hook runs. |
-| `test_validation_report.py` | The checks for the record-writer in `conftest.py`: above all, that a record can never say PASS when pytest said the run failed. |
+| `sources/`, `usdm/`, `scripts/` | One subfolder per code folder, mirroring `src/sdg/sources/`, `src/sdg/usdm/` and `scripts/`. A test file lives at the same relative path as the file it tests and carries its name: `tests/sources/test_fetch_file.py` tests `src/sdg/sources/fetch_file.py`. |
+| `sources/test_verify_pinned.py` | The checks for `src/sdg/sources/verify_pinned.py`, the one way to obtain a pinned file verified against its manifest. Stale: written against the former `sdg/pinned.py`; rewrite pending. |
+| `sources/test_acquire_sources.py` | The checks for `src/sdg/sources/acquire_sources.py`: download, verify, then place, against a fake network. Stale: written against the former `scripts/fetch_sources.py`; rewrite pending. |
+| `usdm/test_usdm_spec.py` | The checks for `src/sdg/usdm/usdm_spec.py`, the loader for the pinned USDM model. Stale: imports the former module path; rewrite pending. |
+| `scripts/test_find_unrecorded_files.py` | The checks for `scripts/find_unrecorded_files.py`. Stale: written against the former `scripts/verify_manifests.py`, whose per-entry checks now live in the acquire dry run; rewrite pending. |
+| `scripts/test_check_facts.py` | The checks for `scripts/check_facts.py`: drift is caught, and each way a measurement can fail has its own exit code. |
+| `scripts/test_build_index.py` | The checks for `scripts/build_index.py`: the generated index and the `--check` the pre-commit hook runs. |
+| `test_validation_report.py` | The checks for the record-writer in `conftest.py`: above all, that a record can never say PASS when pytest said the run failed. It stays at the top level because `conftest.py` does. |
 | `fixtures/usdm_three_classes.yml` | Three classes copied verbatim from the pinned `dataStructure.yml`: `Identifier` (abstract), `StudyIdentifier` (its concrete child, with inherited attributes) and `Condition` (holds the five-way reference). The input for the logic checks. |
 | `validation/` | Validation records, one file per component per validated state. Written only when asked; committed. |
 
