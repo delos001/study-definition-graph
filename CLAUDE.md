@@ -63,7 +63,7 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 
 ## Source files
 
-Reading only the comments should give an accurate picture of what a script does. `scripts/read_pdf.py` is the worked example; match it.
+Reading only the comments should give an accurate picture of what a script does. `src/sdg/sources/read_manifests.py` is the worked example; match it. The scripts under `scripts/` still carry one-line banners from before this rule was set and are converted when next edited.
 
 Every script opens with:
 
@@ -84,7 +84,7 @@ Owner:       Jason Delosh
 
 And carries:
 
-- `###` banner headers grouping the file into named sections.
+- Section banners grouping the file into named sections, two lines each: a full-width line of `#`, then `### Section name ###`.
 - A docstring on every function that opens with what it reads or takes in and what it produces, then why it works that way where that is not obvious. Naming the inputs it consumes and the result it yields beats "returns a value," which the signature and the final line already show.
 - A comment on every non-obvious block, every `try`/`except` (what it absorbs, what happens instead), and every workaround or non-standard library.
 - Comments explain why. Never restate the code.

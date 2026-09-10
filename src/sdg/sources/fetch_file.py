@@ -26,7 +26,8 @@ Description: Downloads one file from one url to one destination.
 
 Inputs:      one url   (network, read-only)
 
-Outputs:     the downloaded file at <destination>.part; nothing else on disk.
+Outputs:     the downloaded file at <destination>.part, and the destination's folder
+             if it did not exist; nothing else on disk.
              Hands back the path of that temporary file.
 
 Usage:       Not run directly; imported.
