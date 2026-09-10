@@ -2,75 +2,68 @@
 Script:      conftest.py
 Description: Supplies the conditions for the test_*.py files under tests/ to run in a
              controlled environment. This file is read automatically before any test
-             script under tests/ runs.
+             script under tests/ runs. pytest requires this file to be named
+             conftest.py.
 
-             When pytest loads conftest.py it adds the following conditions to be used
-             by the test_*.py scripts:
-               - --validation-report flag,
-               - three fixtures
-                    - manifest_dir: points the manifest reader at a temporary folder
-                    - manifest_recording: one manifest for one file
-                    - fake_repo: a throwaway repo with pyproject.toml, manifests/, inputs/.
+             When pytest loads conftest.py it adds the following for the test_*.py
+             scripts to use:
+               - the --validation-report flag,
+               - three fixtures:
+                    - manifest_dir points the manifest reader at a temporary folder,
+                    - manifest_recording writes one manifest entry for one file,
+                    - fake_repo builds a throwaway repo with pyproject.toml, manifests/
+                      and inputs/.
 
-             The --validation-report flag enables the writing of validation reports (one
-             Markdown record per test file written into tests/validation/).
+             The --validation-report flag enables the writing of validation records, one
+             Markdown record per test file, into tests/validation/.
 
              The fixtures stage the data so the real manifests/ and inputs/ are never
              touched.
 
-             A record is meant to be auditable, so it identifies:
-             - what was tested:
-                - the component,
-                - the test file and its sha256,
-                - the fixture files and their sha256s,
-                - the code commit (flagged if uncommitted changes were present), and
-                - the pinned USDM data version (the manifest's recorded url and sha256,
-                  and whether the file was present).
-             - how:
-                - the exact command line,
-                - Python and pytest versions,
-                - OS.
-             - when: local timestamp with zone.
-             - by whom: git user name.
-             - outcome:
-                - pytest's own exit status, pass/fail/error/skip counts,
-                - duration,
-                - one row per test with:
-                    - its kind,
-                    - what it proves (its docstring's first paragraph) and its result.
+             A record is meant to be auditable, so it identifies what was tested, how,
+             when, by whom, and with what outcome.
+               - What was tested is the component, the test file and its sha256, the
+                 fixture files and their sha256s, the code commit (flagged if
+                 uncommitted changes were present), and the pinned USDM data version
+                 (the manifest's recorded url and sha256, and whether the file was
+                 present).
+               - How is the exact command line, the Python and pytest versions, and the
+                 operating system.
+               - When is the local timestamp with its zone, and by whom is the git user
+                 name.
+               - The outcome is pytest's own exit status, the pass/fail/error/skip
+                 counts, the duration, and one row per test with its kind, what it
+                 proves (its docstring's first paragraph) and its result.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
-              - a test's own checks,
-              - its set-up,
-              - its clean-up,
-              - a file that fails to load,
-              - an internal error.
-             Therefore, the record can never say PASS when the terminal
-             said otherwise.
-             The per-test rows are the detail; the exit status is the verdict.
-             When pytest fails before any test ran, a record is still written, saying so.
+               - a test's own checks,
+               - its set-up,
+               - its clean-up,
+               - a file that fails to load,
+               - an internal error.
+             Therefore the record can never say PASS when the terminal said otherwise.
+             The per-test rows are the detail; the exit status is the verdict. When
+             pytest fails before any test ran, a record is still written, saying so.
 
-             It registers two markers the tests use to show which kind of test it is:
-              - @positive (the right thing works)
-              - @negative (the broken thing fails for the right reason),
+             It registers two markers the tests use to show which kind of test each is:
+               - @positive means the right thing works,
+               - @negative means the broken thing fails for the right reason.
 
              It also enables pytest's own "pytester" helper, which the record-writer's
              tests use to run small throwaway suites.
-
-             Note: conftest.py is the name provided by pytest and cannot be changed.
 
 Inputs:      git (for the commit hash, dirty flag and user name; read-only)
              manifests/cdisc_usdm_v4.json (read-only; the pinned data version)
              inputs/standards/cdisc/usdm_v4/dataStructure.yml (existence checked only)
              tests/fixtures/* (read-only; hashed)
 
-Outputs:     Nothing, unless --validation-report is given: then:
+Outputs:     Nothing, unless --validation-report is given. Then it writes:
                 - tests/validation/<folder>_<component>_<YYYY-MM-DD>_<commit>.md,
                 - one per test file, where <folder> is the test file's subfolder
-                (sources, usdm, scripts; none for a top-level file),
-                - run_<date>_<commit>.md if no test ran.
-             Never overwrites: an existing name gets a numeric suffix.
+                  (sources, usdm, scripts; none for a top-level file),
+                - or run_<date>_<commit>.md if no test ran.
+             An existing name is never overwritten; it gets a numeric suffix.
 
 Usage:       pytest
                  run every test, write nothing
@@ -106,7 +99,8 @@ FIXTURE_DIR = TESTS_DIR / "fixtures"
 # These two lines name the pinned model file and the manifest that records it.
 # They are written here as literals rather than imported from the loader, so
 # the test setup does not depend on a module the tests themselves are meant to
-# prove. The loader's own test asserts that its constant equals this one.
+# prove. The loader's test, once rewritten, is where the two are checked against
+# each other.
 PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 MANIFEST = REPO_ROOT / "manifests" / "cdisc_usdm_v4.json"
 
@@ -137,10 +131,10 @@ EXIT_MEANING = {
 # pytest creates and deletes for each test, so no test ever reads or writes the
 # real manifests/ or inputs/.
 #
-# The first two fixtures serve the tests of verify_pinned and of the model
-# loader. Each of those tests needs one manifest with one entry, broken in one
-# chosen way. The third, fake_repo, serves the workflow and script tests, which
-# need a whole small repo to walk.
+# The first two fixtures serve the model loader's tests, which stage one
+# manifest with one entry, broken in one chosen way. The third, fake_repo,
+# serves the tests of the sources package and of the scripts, which need a
+# whole small repo to walk.
 
 
 @pytest.fixture
@@ -161,6 +155,7 @@ def manifest_dir(tmp_path, monkeypatch):
     )
 
     def make(text: str | None) -> None:
+        """Writes the given text as the one manifest, or nothing when None."""
         if text is not None:
             (tmp_path / "cdisc_usdm_v4.json").write_text(text, encoding="utf-8")
 
@@ -180,6 +175,8 @@ def manifest_recording():
     from sdg.sources import read_manifests
 
     def make(path: Path, **overrides) -> str:
+        """Builds the entry for the given file, applies the overrides, and gives
+        back the manifest as JSON text."""
         entry = {
             "name": "fixture",
             "url": "https://example.invalid/fixture",
@@ -209,6 +206,7 @@ class FakeRepo:
     slashes, the same way a manifest writes it."""
 
     def __init__(self, root: Path):
+        """Creates the fake repo's folders and its pyproject.toml under root."""
         self.root = root
         (root / "manifests" / "study_documents").mkdir(parents=True)
         (root / "inputs").mkdir(parents=True)
@@ -244,9 +242,11 @@ class FakeRepo:
             "url": f"https://example.invalid/{Path(local).name}",
             "local": local,
         }
-        # Size and sha256 are measured only when the file is there. A test that
-        # wants an entry for a file that is not on disk gets one without them.
-        if path.exists():
+        # Size and sha256 are measured only when a file is there. A test that
+        # wants an entry for a file not yet on disk, or for a path where a
+        # folder sits instead of a file, gets one without them and sets them
+        # itself.
+        if path.is_file():
             entry["bytes"] = path.stat().st_size
             entry["sha256"] = hashlib.sha256(path.read_bytes()).hexdigest()
         # A value of None means leave this field out, which stages a missing

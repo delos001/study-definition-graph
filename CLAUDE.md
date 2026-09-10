@@ -85,6 +85,8 @@ Owner:       Jason Delosh
 And carries:
 
 - Section banners grouping the file into named sections, two lines each: a full-width line of `#`, then `### Section name ###`.
+- A banner is a short label saying what the code in its section does, in plain words: `### Negative checks ###`, never a label a reader has to decode. Context goes in a comment beneath the banner, not in the label; a short description of the section there is encouraged. When a file holds different kinds of code, for example checks that the right thing works and checks that the wrong thing is refused, each kind gets its own section.
+- All markup, meaning headers, banners, docstrings, comments and READMEs, is plain English in a non-technical voice, concise, with basic sentence structure. A long list written inline becomes bullets.
 - A docstring on every function that opens with what it reads or takes in and what it produces, then why it works that way where that is not obvious. Naming the inputs it consumes and the result it yields beats "returns a value," which the signature and the final line already show.
 - A comment on every non-obvious block, every `try`/`except` (what it absorbs, what happens instead), and every workaround or non-standard library.
 - Comments explain why. Never restate the code.
