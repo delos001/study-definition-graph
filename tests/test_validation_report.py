@@ -37,6 +37,9 @@ CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(en
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 
 #######################################################################################
@@ -68,6 +71,7 @@ def the_record(folder: Path) -> str:
 ### The record on a clean run ###
 
 
+@code("TST0001")
 @positive
 def test_passing_run_is_recorded_as_pass(pytester):
     """A suite whose tests all pass gets a record saying PASS with pytest exit
@@ -96,6 +100,7 @@ def test_passing_run_is_recorded_as_pass(pytester):
     assert "| `test_left_out` | unmarked | Never runs. | skipped (not today) |" in record
 
 
+@code("TST0002")
 @positive
 def test_no_flag_writes_nothing(pytester):
     """Without --validation-report, a run writes no record at all, so development
@@ -115,6 +120,7 @@ def test_no_flag_writes_nothing(pytester):
 # would miss, and asserts the record says FAIL because pytest's exit status did.
 
 
+@code("TST0003")
 @negative
 def test_cleanup_failure_is_recorded_as_fail(pytester):
     """A test whose own checks pass but whose clean-up step throws is a failed
@@ -142,6 +148,7 @@ def test_cleanup_failure_is_recorded_as_fail(pytester):
     assert "| passed |" not in record
 
 
+@code("TST0004")
 @negative
 def test_failing_assertion_is_recorded_as_fail(pytester):
     """A test whose checks fail gives a FAIL record with that row marked failed."""
@@ -159,6 +166,7 @@ def test_failing_assertion_is_recorded_as_fail(pytester):
     assert "| `test_wrong` | unmarked | Claims two and two make five. | failed |" in record
 
 
+@code("TST0005")
 @negative
 def test_setup_failure_is_recorded_as_error(pytester):
     """A test whose set-up step throws never runs; the record says FAIL and the
@@ -182,6 +190,7 @@ def test_setup_failure_is_recorded_as_error(pytester):
     assert "| `test_never_runs` | unmarked | Cannot start. | error |" in record
 
 
+@code("TST0006")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_record(pytester):
     """When a test file cannot even be loaded (a syntax error), no test runs and

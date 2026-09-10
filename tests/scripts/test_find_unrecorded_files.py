@@ -31,6 +31,9 @@ import verify_manifests as vm
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 CONTENT = b"pinned bytes\n"
 
@@ -56,6 +59,7 @@ def repo(fake_repo, monkeypatch):
 ### A clean corpus ###
 
 
+@code("SCR0019")
 @positive
 def test_clean_corpus_exits_0(repo, capsys):
     """Every recorded file present and matching, nothing unrecorded: exit 0 and
@@ -66,20 +70,24 @@ def test_clean_corpus_exits_0(repo, capsys):
     assert "1 file(s) verified, 0 problem(s), 0 unrecorded." in out
 
 
+@code("SCR0020")
 @positive
 def test_verbose_lists_passing_files(repo, capsys):
-    """--verbose adds one 'ok' line per file that passed."""
+    """With the verbose option, one ok line is printed per file that passed."""
     assert vm.main(["--verbose"]) == 0
     assert "ok        data/raw/set_a/good.txt" in capsys.readouterr().out
 
 
+@code("SCR0021")
 @positive
 def test_quiet_prints_nothing(repo, capsys):
-    """--quiet prints nothing at all; the exit code is the whole report."""
+    """With the quiet option, nothing at all is printed; the exit code is the
+    whole report."""
     assert vm.main(["--quiet"]) == 0
     assert capsys.readouterr().out == ""
 
 
+@code("SCR0022")
 @positive
 def test_placeholder_and_lock_files_are_not_unrecorded(repo):
     """A .gitkeep placeholder and an Excel ~$ lock file under data/raw/ are
@@ -93,6 +101,7 @@ def test_placeholder_and_lock_files_are_not_unrecorded(repo):
 ### Problems, one exit code each ###
 
 
+@code("SCR0023")
 @negative
 def test_missing_file_exits_1(repo, capsys):
     """A recorded file that is not on disk is reported MISSING with its path,
@@ -104,6 +113,7 @@ def test_missing_file_exits_1(repo, capsys):
     assert "MISSING   data/raw/set_a/good.txt" in out
 
 
+@code("SCR0024")
 @negative
 def test_changed_content_exits_1(repo, capsys):
     """A file whose bytes changed but whose size did not is reported as a
@@ -115,6 +125,7 @@ def test_changed_content_exits_1(repo, capsys):
     assert "manifest says" in out
 
 
+@code("SCR0025")
 @negative
 def test_unrecorded_file_exits_2(repo, capsys):
     """A file under data/raw/ that no manifest records is listed by path with
@@ -127,6 +138,7 @@ def test_unrecorded_file_exits_2(repo, capsys):
     assert "cannot be restored" in out
 
 
+@code("SCR0026")
 @negative
 def test_mismatch_outranks_unrecorded(repo):
     """With both a corrupted pin and an unrecorded file, the exit code is 1:
@@ -136,6 +148,7 @@ def test_mismatch_outranks_unrecorded(repo):
     assert vm.main([]) == 1
 
 
+@code("SCR0027")
 @negative
 def test_malformed_entry_is_a_problem(repo, capsys):
     """A manifest entry with no sha256 verifies nothing and is reported as
@@ -145,6 +158,7 @@ def test_malformed_entry_is_a_problem(repo, capsys):
     assert "MALFORMED" in capsys.readouterr().out
 
 
+@code("SCR0028")
 @negative
 def test_unreadable_manifest_exits_3(repo, capsys):
     """A manifest that is not valid JSON is reported MANIFEST UNREADABLE and
@@ -156,6 +170,7 @@ def test_unreadable_manifest_exits_3(repo, capsys):
     assert "OK    raw_set_a.json" in out
 
 
+@code("SCR0029")
 @negative
 def test_no_manifests_exits_3(repo, capsys):
     """An empty manifests folder exits 3 and names the folder it looked in."""
@@ -164,6 +179,7 @@ def test_no_manifests_exits_3(repo, capsys):
     assert "No manifests found in" in capsys.readouterr().out
 
 
+@code("SCR0030")
 @negative
 def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
     """When the package is not running from inside its repo, the run exits 6
@@ -179,11 +195,12 @@ def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
 ### Narrowing to one set ###
 
 
+@code("SCR0031")
 @positive
 def test_set_checks_one_manifest_and_skips_the_unrecorded_scan(repo, capsys):
-    """--set checks only the named manifest and does not run the unrecorded
-    scan, since every other set's files would otherwise be reported as
-    unrecorded. Accepts the stem with or without .json."""
+    """With the set option, only the named manifest is checked and the
+    unrecorded scan does not run, since every other set's files would otherwise
+    be reported as unrecorded. The name is accepted with or without .json."""
     repo.raw("data/raw/set_b/other.txt", b"other")
     repo.manifest("raw_set_b", [repo.entry("data/raw/set_b/other.txt")])
     repo.raw("data/raw/set_a/stray.txt", b"stray")

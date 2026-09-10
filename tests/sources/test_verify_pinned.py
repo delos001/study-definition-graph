@@ -39,6 +39,9 @@ from sdg.sources import IntegrityError, NotInRepoError, PinnedFile, read_manifes
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 # The real pinned model file and the manifest that records it. The checks against
 # them skip when the file is not downloaded, so a fresh clone still runs the rest.
@@ -108,6 +111,7 @@ def refused_with(error, target=LOCAL) -> str:
 # when the file is not downloaded.
 
 
+@code("SRC0096")
 @needs_pinned_file
 @positive
 def test_real_file_carries_its_recorded_identity(real_entry):
@@ -120,6 +124,7 @@ def test_real_file_carries_its_recorded_identity(real_entry):
     assert got.manifest == MANIFEST_NAME
 
 
+@code("SRC0097")
 @needs_pinned_file
 @positive
 def test_real_file_path_is_where_the_manifest_says():
@@ -130,6 +135,7 @@ def test_real_file_path_is_where_the_manifest_says():
     assert got.path == read_manifests.REPO_ROOT / PINNED_LOCAL
 
 
+@code("SRC0098")
 @needs_pinned_file
 @positive
 def test_real_file_content_reads():
@@ -138,6 +144,7 @@ def test_real_file_content_reads():
     assert verify_pinned(PINNED_LOCAL).read_text().startswith("Abbreviation:")
 
 
+@code("SRC0099")
 @needs_pinned_file
 @positive
 def test_real_file_record_is_the_same_by_string_or_path():
@@ -154,6 +161,7 @@ def test_real_file_record_is_the_same_by_string_or_path():
 # A recorded file that matches its entry comes back with its identity and reads.
 
 
+@code("SRC0100")
 @positive
 def test_recorded_file_carries_its_identity(recorded_file):
     """A file whose entry is correct comes back with the sha256, url and
@@ -164,6 +172,7 @@ def test_recorded_file_carries_its_identity(recorded_file):
     assert got.manifest == "set_a.json"
 
 
+@code("SRC0101")
 @positive
 def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
     """A verified file's path is the full path of the file on this machine, and
@@ -173,12 +182,14 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
     assert got.path == recorded_file
 
 
+@code("SRC0102")
 @positive
 def test_recorded_file_content_reads(recorded_file):
     """read_text() on a verified file gives its content."""
     assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
 
 
+@code("SRC0103")
 @positive
 def test_staged_record_is_the_same_by_string_or_path(recorded_file):
     """A repo-relative string and a full Path to the same staged file give the
@@ -195,6 +206,7 @@ def test_staged_record_is_the_same_by_string_or_path(recorded_file):
 # or to edit a manifest that is not the problem.
 
 
+@code("SRC0104")
 @negative
 def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
     """When the package is not running from inside its repo, verify_pinned()
@@ -205,6 +217,7 @@ def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
     assert "pip install -e ." in refused_with(NotInRepoError)
 
 
+@code("SRC0105")
 @negative
 def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
     """A file that a manifest records but that is not on disk raises
@@ -217,6 +230,7 @@ def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
     assert str(fake_repo.root / LOCAL) in message
 
 
+@code("SRC0106")
 @negative
 def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
     """A file that no manifest records is refused with a message saying so and
@@ -227,6 +241,7 @@ def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
     assert "add its manifest entry" in message
 
 
+@code("SRC0107")
 @negative
 def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_repo):
     """The message for an unrecorded file does not carry the mismatch remedy,
@@ -237,6 +252,7 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
     assert "acquire_sources" not in message
 
 
+@code("SRC0108")
 @negative
 def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
     """A manifest that cannot be read is reported as that, naming the manifest
@@ -248,6 +264,7 @@ def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
     assert "git checkout" in message
 
 
+@code("SRC0109")
 @negative
 def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
     """The message for an unreadable manifest does not carry the mismatch
@@ -257,6 +274,7 @@ def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
     assert "manifest says" not in refused_with(IntegrityError)
 
 
+@code("SRC0110")
 @negative
 def test_no_manifests_is_reported_as_none_found(fake_repo):
     """When the manifests folder is empty, the refusal says no manifests were
@@ -267,6 +285,7 @@ def test_no_manifests_is_reported_as_none_found(fake_repo):
     assert "git checkout" in message
 
 
+@code("SRC0111")
 @negative
 def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
     """An entry with no sha256 is refused as lacking that field, with the
@@ -278,6 +297,7 @@ def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
     assert "repair that entry" in message
 
 
+@code("SRC0112")
 @negative
 def test_mismatch_shows_both_sha256_values(mismatch_message):
     """When the bytes differ from the entry at the same size, the message shows
@@ -287,12 +307,14 @@ def test_mismatch_shows_both_sha256_values(mismatch_message):
     assert f"manifest says {SHA256[:16]}" in mismatch_message
 
 
+@code("SRC0113")
 @negative
 def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
     """The mismatch message names the manifest the file is recorded in."""
     assert "(recorded in set_a.json)" in mismatch_message
 
 
+@code("SRC0114")
 @negative
 def test_mismatch_offers_the_three_ways_back(mismatch_message):
     """The mismatch message offers the three ways back: re-fetch, read
@@ -302,6 +324,7 @@ def test_mismatch_offers_the_three_ways_back(mismatch_message):
     assert "re-pin" in mismatch_message
 
 
+@code("SRC0115")
 @negative
 def test_size_mismatch_is_reported_as_size_with_both_numbers(fake_repo):
     """When the size differs from the entry, the refusal reports a size

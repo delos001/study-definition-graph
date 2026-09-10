@@ -46,6 +46,9 @@ from sdg.sources.read_manifests import (
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 # The six manifests written by hand, one per pinned set. A study-document fetch,
 # not yet written, will add study manifests later, so the real-repo checks look
@@ -123,6 +126,7 @@ def refused_with(error, *args) -> str:
 # These checks read the real manifests/ folder as it is.
 
 
+@code("SRC0070")
 @positive
 def test_repo_root_is_the_folder_holding_pyproject():
     """require_repo() gives back the folder that holds pyproject.toml."""
@@ -131,12 +135,14 @@ def test_repo_root_is_the_folder_holding_pyproject():
     assert (root / "pyproject.toml").is_file()
 
 
+@code("SRC0071")
 @positive
 def test_every_hand_written_manifest_is_read(real_manifests):
     """manifests() reads all six hand-written manifests."""
     assert HAND_WRITTEN <= set(real_manifests)
 
 
+@code("SRC0072")
 @positive
 def test_every_hand_written_manifest_lands_under_inputs(real_manifests):
     """Every hand-written manifest says its files land under inputs/."""
@@ -144,6 +150,7 @@ def test_every_hand_written_manifest_lands_under_inputs(real_manifests):
         assert real_manifests[name].local_dir.startswith("inputs/")
 
 
+@code("SRC0073")
 @positive
 def test_every_entry_carries_the_five_required_fields(real_manifests):
     """Every entry in the hand-written manifests has a name, a url, a local
@@ -158,6 +165,7 @@ def test_every_entry_carries_the_five_required_fields(real_manifests):
             assert len(entry.sha256) == 64
 
 
+@code("SRC0074")
 @positive
 def test_every_entry_names_the_manifest_it_came_from(real_manifests):
     """Every entry remembers which manifest file it was read from."""
@@ -173,6 +181,7 @@ def test_every_entry_names_the_manifest_it_came_from(real_manifests):
 # temporary folder.
 
 
+@code("SRC0075")
 @positive
 def test_study_manifest_is_read_with_the_top_level_ones(top_level_and_study_sets):
     """A manifest under manifests/study_documents/ is read in the same call as
@@ -180,18 +189,21 @@ def test_study_manifest_is_read_with_the_top_level_ones(top_level_and_study_sets
     assert "NCT1" in [manifest.name for manifest in manifests()]
 
 
+@code("SRC0076")
 @positive
 def test_study_manifests_are_listed_after_the_top_level_ones(top_level_and_study_sets):
     """The study manifests come after the top-level ones in the list."""
     assert [manifest.name for manifest in manifests()] == ["set_a", "NCT1"]
 
 
+@code("SRC0077")
 @positive
 def test_manifests_are_listed_in_path_order(three_sets):
     """Manifests come back sorted by path, whatever order they were written in."""
     assert [manifest.name for manifest in manifests()] == ["alpha", "mid", "zeta"]
 
 
+@code("SRC0078")
 @positive
 def test_listing_order_is_the_same_on_every_call(three_sets):
     """Two calls give the manifests in the same order."""
@@ -200,12 +212,14 @@ def test_listing_order_is_the_same_on_every_call(three_sets):
     assert first == second
 
 
+@code("SRC0079")
 @positive
 def test_one_manifest_can_be_read_by_name(three_sets):
     """Asking for a manifest by name gives only that one."""
     assert [manifest.name for manifest in manifests("mid")] == ["mid"]
 
 
+@code("SRC0080")
 @positive
 def test_the_name_may_carry_the_json_suffix(three_sets):
     """Asking by the file name with its .json suffix gives that same one
@@ -213,6 +227,7 @@ def test_the_name_may_carry_the_json_suffix(three_sets):
     assert [manifest.name for manifest in manifests("mid.json")] == ["mid"]
 
 
+@code("SRC0081")
 @positive
 def test_entry_for_finds_a_recorded_file(one_recorded_file):
     """entry_for() gives back the entry that records a file, given the
@@ -222,24 +237,28 @@ def test_entry_for_finds_a_recorded_file(one_recorded_file):
     assert found.local == LOCAL
 
 
+@code("SRC0082")
 @positive
 def test_entry_for_accepts_backslashes(one_recorded_file):
     """A repo-relative path written with backslashes finds the same entry."""
     assert entry_for("inputs\\set_a\\a.txt") == entry_for(LOCAL)
 
 
+@code("SRC0083")
 @positive
 def test_entry_for_accepts_a_full_path(one_recorded_file):
     """A full Path to the file finds the same entry."""
     assert entry_for(one_recorded_file) == entry_for(LOCAL)
 
 
+@code("SRC0084")
 @positive
 def test_entry_path_is_the_file_on_this_machine(one_recorded_file):
     """An entry's path is the full path of its file on this machine."""
     assert entry_for(LOCAL).path == one_recorded_file
 
 
+@code("SRC0085")
 @positive
 def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_repo):
     """A file that no manifest records gives None, not an error."""
@@ -247,6 +266,7 @@ def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_rep
     assert entry_for("inputs/set_a/stray.txt") is None
 
 
+@code("SRC0086")
 @positive
 def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
     """A path outside the repo comes back from as_local() as its full path, so
@@ -263,6 +283,7 @@ def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
 # to fix the wrong thing.
 
 
+@code("SRC0087")
 @negative
 def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
     """When pyproject.toml does not name the sdg package, manifests() raises
@@ -274,6 +295,7 @@ def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
     assert "pip install -e ." in refused_with(NotInRepoError)
 
 
+@code("SRC0088")
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo):
     """With a wrong package name and an unreadable manifest, the error is about
@@ -285,6 +307,7 @@ def test_repo_check_runs_before_any_manifest_is_read(fake_repo):
     refused_with(NotInRepoError)
 
 
+@code("SRC0089")
 @negative
 def test_missing_manifests_folder_is_named_with_the_restore_remedy(fake_repo):
     """When manifests/ is missing, the error names the folder and says to
@@ -295,6 +318,7 @@ def test_missing_manifests_folder_is_named_with_the_restore_remedy(fake_repo):
     assert "git checkout" in message
 
 
+@code("SRC0090")
 @negative
 def test_empty_manifests_folder_is_reported_as_none_found(fake_repo):
     """When manifests/ holds no manifest, the error says none were found and
@@ -304,6 +328,7 @@ def test_empty_manifests_folder_is_reported_as_none_found(fake_repo):
     assert "git checkout" in message
 
 
+@code("SRC0091")
 @negative
 def test_unknown_manifest_name_is_refused_by_name(fake_repo):
     """Asking for a manifest by a name no file has gives an error that quotes
@@ -312,6 +337,7 @@ def test_unknown_manifest_name_is_refused_by_name(fake_repo):
     assert "no manifest named set_b" in refused_with(ManifestError, "set_b")
 
 
+@code("SRC0092")
 @negative
 def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
     """A manifest that is not valid JSON stops the whole read, even when
@@ -324,6 +350,7 @@ def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
     assert "git checkout" in message
 
 
+@code("SRC0093")
 @negative
 def test_entry_missing_fields_has_every_missing_field_named(fake_repo):
     """An entry lacking required fields is refused with one message that names
@@ -335,6 +362,7 @@ def test_entry_missing_fields_has_every_missing_field_named(fake_repo):
     assert "repair that entry in manifests/set_a.json" in message
 
 
+@code("SRC0094")
 @negative
 def test_size_that_is_not_a_whole_number_is_quoted_as_written(fake_repo):
     """A size written as "12,345" is refused as not a whole number, quoting the
@@ -346,6 +374,7 @@ def test_size_that_is_not_a_whole_number_is_quoted_as_written(fake_repo):
     assert "repair that entry in manifests/set_a.json" in message
 
 
+@code("SRC0095")
 @negative
 def test_sha256_that_is_not_lowercase_hex_is_quoted_as_written(fake_repo):
     """A sha256 in uppercase is refused as not 64 lowercase hex characters,

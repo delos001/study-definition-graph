@@ -333,6 +333,12 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "negative: proves the broken thing fails, and for the right reason"
     )
+    # The code is the check's short, permanent id in tests/validation_inventory.csv:
+    # a type prefix and four digits, such as SRC0042, assigned once and never
+    # reused.
+    config.addinivalue_line(
+        "markers", "code(id): the check's id in tests/validation_inventory.csv"
+    )
 
 
 #######################################################################################

@@ -45,6 +45,9 @@ from sdg.sources.fetch_file import FetchError, partial_path
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 # The one staged file most checks use, its bytes, and the url its entry carries.
 # The url is the one FakeRepo.entry builds for a file of that name.
@@ -217,6 +220,7 @@ def folder(fake_repo, network, capsys) -> Outcome:
 # does what the header says.
 
 
+@code("SRC0001")
 @positive
 def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
     """A recorded file not on disk ends up under its final name with the bytes
@@ -225,6 +229,7 @@ def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
     assert (fake_repo.root / LOCAL).read_bytes() == CONTENT
 
 
+@code("SRC0002")
 @positive
 def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
     """After a file is fetched and placed, nothing is left under its .part
@@ -232,6 +237,7 @@ def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
     assert not partial_path(fake_repo.root / LOCAL).exists()
 
 
+@code("SRC0003")
 @positive
 def test_fetch_is_reported(fetched):
     """The report names the file as fetching and counts it as fetched."""
@@ -239,6 +245,7 @@ def test_fetch_is_reported(fetched):
     assert "1 fetched, 0 present and matching" in fetched.out
 
 
+@code("SRC0004")
 @positive
 def test_present_matching_file_is_not_fetched(present):
     """A file already on disk that matches its entry is not downloaded, and
@@ -246,57 +253,66 @@ def test_present_matching_file_is_not_fetched(present):
     assert present.code == 0
 
 
+@code("SRC0005")
 @positive
 def test_present_matching_file_is_counted_as_present(present):
     """The report counts a matching file as present and fetches nothing."""
     assert "0 fetched, 1 present and matching" in present.out
 
 
+@code("SRC0006")
 @positive
 def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
-    """--dry-run names each missing file as one it would fetch, and counts
-    them."""
+    """With the dry-run option, each missing file is named as one the run would
+    fetch, and they are counted."""
     assert "would fetch  file.txt" in dry_run_missing.out
     assert "1 to fetch, 0 present and matching" in dry_run_missing.out
 
 
+@code("SRC0007")
 @positive
 def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
-    """--dry-run downloads nothing and writes nothing."""
+    """With the dry-run option, nothing is downloaded and nothing is written."""
     final = fake_repo.root / LOCAL
     assert not final.exists()
     assert not partial_path(final).exists()
 
 
+@code("SRC0008")
 @positive
 def test_dry_run_exits_1_when_a_file_is_missing(dry_run_missing):
-    """--dry-run exits 1 when at least one file would need fetching, because
-    the corpus is incomplete."""
+    """With the dry-run option, the run exits 1 when at least one file would
+    need fetching, because the corpus is incomplete."""
     assert dry_run_missing.code == 1
 
 
+@code("SRC0009")
 @positive
 def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys):
-    """--dry-run exits 0 when every file is present and matching, so
-    --dry-run --quiet answers whether the corpus is complete from the exit code
-    alone."""
+    """With the dry-run option, the run exits 0 when every file is present and
+    matching, so a quiet dry run answers whether the corpus is complete from
+    the exit code alone."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL)])
     network(None)
     assert run(capsys, "--dry-run", "--quiet").code == 0
 
 
+@code("SRC0010")
 @positive
 def test_quiet_prints_nothing(fake_repo, network, capsys):
-    """--quiet prints nothing at all, even when a file is fetched."""
+    """With the quiet option, nothing at all is printed, even when a file is
+    fetched."""
     fake_repo.manifest("set_a", [recorded(fake_repo, LOCAL, CONTENT)])
     network({URL: CONTENT})
     assert run(capsys, "--quiet").out == ""
 
 
+@code("SRC0011")
 @positive
 def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
-    """--set names one manifest, and only that manifest's files are fetched."""
+    """With the set option naming one manifest, only that manifest's files are
+    fetched."""
     fake_repo.manifest("set_a", [recorded(fake_repo, "inputs/set_a/a.txt", CONTENT)])
     fake_repo.manifest("set_b", [recorded(fake_repo, "inputs/set_b/b.txt", CONTENT)])
     network({"https://example.invalid/a.txt": CONTENT})
@@ -305,6 +321,7 @@ def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
     assert not (fake_repo.root / "inputs/set_b/b.txt").exists()
 
 
+@code("SRC0012")
 @positive
 def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
     """With --set, a manifest that was not named is not even read: an
@@ -325,6 +342,7 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 # alone on disk, or the exit code the header gives that state.
 
 
+@code("SRC0013")
 @negative
 def test_changed_file_is_reported_as_a_mismatch(changed):
     """A file on disk that no longer matches its entry is reported as a
@@ -333,6 +351,7 @@ def test_changed_file_is_reported_as_a_mismatch(changed):
     assert "left alone" in changed.out
 
 
+@code("SRC0014")
 @negative
 def test_changed_file_is_left_alone(changed, fake_repo):
     """A changed file is neither replaced nor deleted; its bytes are as they
@@ -340,6 +359,7 @@ def test_changed_file_is_left_alone(changed, fake_repo):
     assert (fake_repo.root / LOCAL).read_bytes() == CHANGED
 
 
+@code("SRC0015")
 @negative
 def test_changed_file_exits_2(changed):
     """A changed file on disk makes the run exit 2, and the summary says a
@@ -348,6 +368,7 @@ def test_changed_file_exits_2(changed):
     assert "disagree with their entry" in changed.out
 
 
+@code("SRC0016")
 @negative
 def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
     """A download whose bytes do not match the entry is reported as DISCARDED
@@ -358,6 +379,7 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
     assert not partial_path(final).exists()
 
 
+@code("SRC0017")
 @negative
 def test_wrong_hash_download_exits_1(wrong_hash):
     """A discarded download makes the run exit 1 and is counted as a failed
@@ -366,6 +388,7 @@ def test_wrong_hash_download_exits_1(wrong_hash):
     assert "1 fetch(es) failed" in wrong_hash.out
 
 
+@code("SRC0018")
 @negative
 def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
     """A url that cannot be fetched is reported as FAILED with the cause."""
@@ -373,12 +396,14 @@ def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
     assert "no such host" in failed_fetch.out
 
 
+@code("SRC0019")
 @negative
 def test_failed_fetch_exits_1(failed_fetch):
     """A failed fetch makes the run exit 1."""
     assert failed_fetch.code == 1
 
 
+@code("SRC0020")
 @negative
 def test_failure_outranks_disagreement(fake_repo, network, capsys):
     """With one file changed on disk and another that cannot be fetched, both
@@ -399,6 +424,7 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
     assert "FAILED" in outcome.out
 
 
+@code("SRC0021")
 @negative
 def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     """In a dry run too, a file that would need fetching outranks a changed
@@ -418,6 +444,7 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     assert "would fetch  b.txt" in outcome.out
 
 
+@code("SRC0022")
 @negative
 def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
     """A recorded file that cannot be opened is reported as CANNOT READ with
@@ -428,12 +455,14 @@ def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
     assert "left alone" in locked.out
 
 
+@code("SRC0023")
 @negative
 def test_locked_file_exits_2(locked):
     """A recorded file that cannot be opened makes the run exit 2."""
     assert locked.code == 2
 
 
+@code("SRC0024")
 @negative
 def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
     """A folder where a recorded file should be is reported as CANNOT READ, a
@@ -443,12 +472,14 @@ def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
     assert "left alone" in folder.out
 
 
+@code("SRC0025")
 @negative
 def test_folder_at_a_recorded_path_exits_2(folder):
     """A folder where a recorded file should be makes the run exit 2."""
     assert folder.code == 2
 
 
+@code("SRC0026")
 @negative
 def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, capsys):
     """An entry lacking a required field stops the run with exit 3, and the
@@ -461,6 +492,7 @@ def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, caps
     assert "lacks url" in outcome.out
 
 
+@code("SRC0027")
 @negative
 def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys):
     """A manifest that is not valid JSON stops the run with exit 3, and the
@@ -472,10 +504,11 @@ def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys)
     assert "set_a.json: cannot read" in outcome.out
 
 
+@code("SRC0028")
 @negative
 def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
-    """--set naming a manifest that does not exist exits 3, and the message
-    names it."""
+    """With the set option naming a manifest that does not exist, the run exits
+    3 and the message names it."""
     fake_repo.manifest("set_a", [])
     network(None)
     outcome = run(capsys, "--set", "set_b")
@@ -483,6 +516,7 @@ def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
     assert "no manifest named set_b" in outcome.out
 
 
+@code("SRC0029")
 @negative
 def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys):
     """A package not running from inside its repo exits 6, and the message
@@ -497,6 +531,7 @@ def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys
     assert "pip install -e ." in outcome.out
 
 
+@code("SRC0030")
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo, network, capsys):
     """With a wrong package name and an unreadable manifest, the run exits 6

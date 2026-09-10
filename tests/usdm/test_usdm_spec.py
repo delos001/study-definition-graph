@@ -63,6 +63,9 @@ needs_pinned_file = pytest.mark.skipif(
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 
 #######################################################################################
@@ -100,6 +103,7 @@ def variant(tmp_path):
 ### Reading a well-formed file ###
 
 
+@code("USD0001")
 @positive
 def test_lists_every_class_sorted(three):
     """A well-formed file loads, and class_names() gives every class in
@@ -107,6 +111,7 @@ def test_lists_every_class_sorted(three):
     assert usdm_spec.class_names(three) == sorted(FIXTURE_CLASSES)
 
 
+@code("USD0002")
 @positive
 def test_abstract_flag_comes_from_modifier(three):
     """is_abstract() reports USDM's own Modifier: Identifier (a parent never
@@ -115,6 +120,7 @@ def test_abstract_flag_comes_from_modifier(three):
     assert usdm_spec.is_abstract(three, "StudyIdentifier") is False
 
 
+@code("USD0003")
 @positive
 def test_attributes_keep_file_order_and_inheritance(three):
     """attributes() hands back a class's attributes in the order the file lists
@@ -126,6 +132,7 @@ def test_attributes_keep_file_order_and_inheritance(three):
     assert "Inherited From" not in attrs["instanceType"]
 
 
+@code("USD0004")
 @positive
 def test_targets_unwraps_one_and_many(three):
     """targets() turns USDM's '$ref: #/X' wrapping into plain names, for an
@@ -142,6 +149,7 @@ def test_targets_unwraps_one_and_many(three):
     )
 
 
+@code("USD0005")
 @negative
 def test_unknown_class_raises_keyerror_naming_it(three):
     """Asking for a class that is not in the file raises KeyError carrying that
@@ -160,6 +168,7 @@ def test_unknown_class_raises_keyerror_naming_it(three):
 # promise SpecShapeError exists to keep.
 
 
+@code("USD0006")
 @negative
 def test_empty_file_is_refused(tmp_path):
     """An empty file is refused as 'empty or not a mapping' instead of being
@@ -170,6 +179,7 @@ def test_empty_file_is_refused(tmp_path):
         usdm_spec.load(empty, verify=False)
 
 
+@code("USD0007")
 @negative
 def test_class_without_modifier_is_named(variant):
     """Deleting Modifier from one class is refused with a message naming that
@@ -179,6 +189,7 @@ def test_class_without_modifier_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0008")
 @negative
 def test_unexpected_modifier_value_is_named(variant):
     """A Modifier other than Concrete or Abstract is refused, quoting the
@@ -188,6 +199,7 @@ def test_unexpected_modifier_value_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0009")
 @negative
 def test_attributes_not_a_mapping_is_named(variant):
     """Turning a class's Attributes into a list is refused with a message naming
@@ -199,6 +211,7 @@ def test_attributes_not_a_mapping_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0010")
 @negative
 def test_attribute_missing_a_key_is_named(variant):
     """Renaming 'Relationship Type' on one attribute is refused with a message
@@ -216,6 +229,7 @@ def test_attribute_missing_a_key_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0011")
 @negative
 def test_attribute_missing_several_keys_lists_them(variant):
     """When more than one key is missing from an attribute, the message lists all
@@ -232,6 +246,7 @@ def test_attribute_missing_several_keys_lists_them(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0012")
 @negative
 def test_type_that_is_not_a_reference_list_is_named(variant):
     """A Type holding a plain word instead of a list of '$ref' entries is refused,
@@ -242,6 +257,7 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0013")
 @negative
 def test_empty_type_list_is_refused(variant):
     """An empty Type list is refused the same way: an attribute with no type is
@@ -251,6 +267,7 @@ def test_empty_type_list_is_refused(variant):
         usdm_spec.load(broken, verify=False)
 
 
+@code("USD0014")
 @negative
 def test_inherited_from_without_ref_is_named(variant):
     """An Inherited From entry lacking its '$ref' is refused, naming the
@@ -272,6 +289,7 @@ def test_inherited_from_without_ref_is_named(variant):
 # whose fingerprint differs, are refused through load() with the same messages.
 
 
+@code("USD0015")
 @negative
 def test_missing_file_raises_filenotfound(tmp_path):
     """A path that does not exist raises FileNotFoundError (exit 1 at the command
@@ -280,6 +298,7 @@ def test_missing_file_raises_filenotfound(tmp_path):
         usdm_spec.load(tmp_path / "nope.yml")
 
 
+@code("USD0016")
 @negative
 def test_unrecorded_file_is_refused_through_load():
     """A file no manifest entry records (this fixture, with the check left on)
@@ -292,6 +311,7 @@ def test_unrecorded_file_is_refused_through_load():
     assert "fetch_sources" not in message
 
 
+@code("USD0017")
 @negative
 def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_recording):
     """A file whose recorded sha256 differs is refused by load() with both values
@@ -312,6 +332,7 @@ def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_rec
 # a temporary file for the duration of the test.
 
 
+@code("USD0018")
 @negative
 def test_cli_no_mode_exits_2():
     """Running with no mode flag is a usage error: argparse prints usage and
@@ -321,6 +342,7 @@ def test_cli_no_mode_exits_2():
     assert caught.value.code == 2
 
 
+@code("USD0019")
 @negative
 def test_cli_missing_spec_exits_1(monkeypatch, capsys):
     """When the pinned file is not downloaded, the command exits 1 and tells the
@@ -332,6 +354,7 @@ def test_cli_missing_spec_exits_1(monkeypatch, capsys):
     assert "fetch_sources" in capsys.readouterr().err
 
 
+@code("USD0020")
 @negative
 def test_cli_unverifiable_spec_exits_3(monkeypatch, capsys):
     """When the file is present but cannot be verified against the manifest, the
@@ -341,6 +364,7 @@ def test_cli_unverifiable_spec_exits_3(monkeypatch, capsys):
     assert "no manifest entry records it" in capsys.readouterr().err
 
 
+@code("USD0021")
 @pytest.mark.parametrize("extra", [[], ["--allow-unpinned"]], ids=["verify", "allow-unpinned"])
 @negative
 def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
@@ -359,6 +383,7 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
     assert "pip install -e ." in err and "fetch_sources" not in err
 
 
+@code("USD0022")
 @negative
 def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     """When the file passes (or skips) verification but is not shaped like USDM,
@@ -369,6 +394,7 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     assert "'Condition'" in capsys.readouterr().err
 
 
+@code("USD0023")
 @negative
 def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
     """A file whose Type values are not reference lists makes --attributes exit 4
@@ -379,10 +405,12 @@ def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
     assert "StudyIdentifier.scopeId: Type is not a list" in capsys.readouterr().err
 
 
+@code("USD0024")
 @positive
 def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
-    """--allow-unpinned skips the manifest check and reads the file in place: the
-    fixture (unrecorded) lists its three classes and exits 0."""
+    """With the allow-unpinned option, the manifest check is skipped and the file
+    is read in place: the fixture, which no manifest records, lists its three
+    classes and exits 0."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 0
     out, err = capsys.readouterr()
@@ -390,10 +418,11 @@ def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
     assert "3 classes (2 concrete, 1 abstract)" in err
 
 
+@code("USD0025")
 @positive
 def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
-    """--attributes prints each attribute's type, cardinality and kind, and marks
-    inherited ones with their parent, exiting 0."""
+    """The attributes listing prints each attribute's type, cardinality and
+    kind, marks inherited ones with their parent, and exits 0."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--attributes", "StudyIdentifier", "--allow-unpinned"]) == 0
     out = capsys.readouterr().out
@@ -402,10 +431,11 @@ def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
     assert "cardinality 0..*" in out
 
 
+@code("USD0026")
 @negative
 def test_cli_unknown_class_exits_5(monkeypatch, capsys):
-    """--attributes with a class that does not exist exits 5 and points at
-    --list-classes, rather than ending in a traceback."""
+    """The attributes listing for a class that does not exist exits 5 and points
+    at the class listing, rather than ending in a traceback."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--attributes", "Nope", "--allow-unpinned"]) == 5
     assert "run --list-classes" in capsys.readouterr().err
@@ -419,6 +449,7 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 # checks that need data/ downloaded.
 
 
+@code("USD0027")
 @needs_pinned_file
 @positive
 def test_pinned_file_verifies_and_loads():
@@ -427,6 +458,7 @@ def test_pinned_file_verifies_and_loads():
     assert usdm_spec.load()
 
 
+@code("USD0028")
 @needs_pinned_file
 @positive
 def test_pinned_file_has_86_classes_80_concrete():
@@ -447,6 +479,7 @@ def test_pinned_file_has_86_classes_80_concrete():
     ]
 
 
+@code("USD0029")
 @needs_pinned_file
 @positive
 def test_pinned_file_types_are_classes_or_five_primitives():
@@ -471,6 +504,7 @@ def test_pinned_file_types_are_classes_or_five_primitives():
     ]
 
 
+@code("USD0030")
 @needs_pinned_file
 @positive
 def test_fixture_classes_are_identical_to_pinned():
