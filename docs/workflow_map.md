@@ -7,7 +7,7 @@ How the code runs: the order of steps, and what each step produces for the next.
 ```mermaid
 flowchart TD
     manifests[("data/manifests/<br/>one JSON per source set:<br/>url, sha256, size")]
-    raw[("data/raw/<br/>the pinned files<br/>(gitignored, never edited)")]
+    raw[("inputs/<br/>the pinned files<br/>(gitignored, never edited)")]
 
     step1["1. Get the pinned sources<br/>fetch_sources.py, verify_manifests.py"]
     step2["2. Read sources by hand<br/>read_pdf.py, read_xlsx.py<br/>(orientation, not pipeline)"]
@@ -35,8 +35,8 @@ Once per machine, and again whenever a manifest changes. Everything the project 
 flowchart TD
     manifests[("data/manifests/*.json")]
     fetch["fetch_sources.py<br/>for each entry: download if missing,<br/>hash, compare to recorded sha256,<br/>put in place only if it matches"]
-    raw[("data/raw/")]
-    verify["verify_manifests.py<br/>for each entry: present? size? sha256?<br/>and: any file in data/raw/ no manifest records?"]
+    raw[("inputs/")]
+    verify["verify_manifests.py<br/>for each entry: present? size? sha256?<br/>and: any file in inputs/ no manifest records?"]
     report["report on the terminal<br/>exit 0 clean, 1 drifted, 2 unrecorded,<br/>3 bad manifest, 6 package installed wrongly"]
 
     manifests --> fetch
@@ -55,7 +55,7 @@ The only pipeline step built so far. Everything that needs a fact about USDM goe
 ```mermaid
 flowchart TD
     manifests[("data/manifests/")]
-    raw[("data/raw/usdm_v4/uml/dataStructure.yml")]
+    raw[("inputs/standards/cdisc/usdm_v4/dataStructure.yml")]
 
     subgraph pinned["pinned.py"]
         p1["require_repo(): am I running<br/>from inside the repo?"]
@@ -100,7 +100,7 @@ flowchart TD
     record["tests/validation/*.md<br/>only with --validation-report:<br/>the auditable record, committed"]
 
     docs["README.md, BACKGROUND.md, docs/"]
-    raw[("data/raw/")]
+    raw[("inputs/")]
     facts["check_facts.py<br/>re-derive every number the docs state;<br/>every file read is verified through pinned() first"]
     factsout["drift report: exit 0 or 1;<br/>2 file missing, 3 cannot verify, 4 wrong shape,<br/>6 installed wrongly, 7 not installed"]
 

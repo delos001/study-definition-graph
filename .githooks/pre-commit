@@ -9,7 +9,7 @@
 # Only checks that need no third-party packages belong here, so the hook works
 # from any terminal whether or not the sdg conda environment is active. That
 # rules out check_facts.py (imports pymupdf and openpyxl) and
-# verify_manifests.py (hashes 41 files). Both are manual runs; see the README.
+# acquire_sources (hashes 42 files). Both are manual runs; see the README.
 
 set -e
 

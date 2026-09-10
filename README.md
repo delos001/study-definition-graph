@@ -45,25 +45,25 @@ docker compose up -d
 #    it is optional and a non-member key grants nothing.
 Copy-Item .env.example .env
 
-# 4. Pinned sources. The standards under standards/ and the worked examples
-#    under data/ are gitignored, so a fresh clone has none of them. Every
-#    pinned file is recorded in manifests/ with its URL and sha256. This
-#    downloads them all and verifies each hash. Add --dry-run to see what it
-#    would fetch without touching the network.
-python scripts/fetch_sources.py
+# 4. Pinned sources. Everything under inputs/ is gitignored, so a fresh clone
+#    has none of it. Every pinned file is recorded in manifests/ with its URL
+#    and sha256. This downloads them all and verifies each hash. Add --dry-run
+#    to see what it would fetch without touching the network.
+python -m sdg.sources.acquire_sources
 ```
 
 Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
 
 The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes. It is read-only, instant, and uses only the standard library, so it works whether or not the `sdg` environment is active.
 
-Then confirm it worked. All five should exit 0:
+Then confirm it worked. All six should exit 0:
 
 ```powershell
-python scripts/verify_manifests.py    # every pinned file present and matching its recorded hash
+python -m sdg.sources.acquire_sources --dry-run   # every pinned file present and matching its entry
+python scripts/find_unrecorded_files.py           # nothing under inputs/ that a manifest does not record
 python scripts/check_facts.py         # every number stated in the docs re-derived from those files
 python scripts/read_pdf.py --docs     # lists each registered document as present or NOT DOWNLOADED
-python -m sdg.usdm_spec --list-classes # lists the USDM classes read from the pinned model spec
+python -m sdg.usdm.usdm_spec --list-classes       # lists the USDM classes read from the pinned model spec
 pytest                                # runs the automated checks in tests/; tests/README.md explains them
 ```
 
@@ -73,8 +73,8 @@ Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefini
 
 A few load-bearing rules; [CLAUDE.md](CLAUDE.md) has the full set, including the source-file conventions every script follows.
 
-- Pinned files under `standards/` and `data/` are never edited, and every download is recorded in `manifests/` in the same breath.
-- `standards/` and `data/` are gitignored apart from their READMEs, so an unrecorded file cannot be restored.
+- Everything under `inputs/` is pinned and never edited, and every download is recorded in `manifests/` in the same breath.
+- `inputs/` is gitignored apart from its READMEs, so an unrecorded file cannot be restored.
 - Pinned versions never move: not the standards, not the Neo4j image, not a model identifier. A version that changes mid-project makes a failure unattributable.
 - The repo is de-identified: no company, no people, no locations, no partnerships.
 
@@ -92,14 +92,12 @@ study-definition-graph/
   .env.example
   docs/                      # the project's maps of itself; README.md there lists them
   manifests/                 # one record per set of pinned downloads: source, version, fingerprint
-    data_raw/                #   one record per study fetched into data/raw/, written by the fetch script
-  standards/                 # pinned standards the project depends on, by publisher; gitignored
-    cdisc/                   #   USDM v4 and the Biomedical Concepts library
-    ich/                     #   M11 and E9(R1)
-    crosswalks/              #   mappings from other systems into USDM
-  data/                      # study documents and pipeline output; gitignored
-    raw/                     #   documents as fetched, never edited
-    usdm_examples/           #   CDISC's three worked examples
+    study_documents/         #   one record per study fetched into inputs/study_documents/, written by the fetch script
+  inputs/                    # everything downloaded from outside, pinned and never edited; gitignored
+    standards/               #   the standards the project depends on, by publisher: cdisc/, ich/, crosswalks/
+    worked_examples/         #   CDISC's three worked examples
+    study_documents/         #   protocols and SAPs as fetched, one folder per study
+  data/                      # pipeline output, regenerable; gitignored
     interim/                 #   between pipeline stages
     processed/               #   final pipeline output
   eval/                      # hand-built answer keys and acceptance thresholds; committed

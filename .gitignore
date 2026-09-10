@@ -3,17 +3,21 @@
 .env.*
 !.env.example
 
-# Pinned downloads and pipeline output: everything is reproducible from
-# manifests/ (committed, at the root), so the files themselves are not
-# committed. READMEs written in these folders are.
+# Pinned downloads and pipeline output. Every download under inputs/ is
+# restorable from manifests/ (committed, at the root), so the files themselves
+# are not committed. READMEs and .gitkeep placeholders written in these
+# folders are. The worked-examples README is unignored by name, not by
+# wildcard, so a README a future download ships is not committed by accident.
+inputs/**
+!inputs/**/
+!inputs/README.md
+!inputs/standards/**/README.md
+!inputs/worked_examples/README.md
+!inputs/study_documents/.gitkeep
 data/**
 !data/**/
 !data/**/.gitkeep
 !data/README.md
-!data/usdm_examples/README.md
-standards/**
-!standards/**/
-!standards/**/README.md
 
 # Model response cache
 .cache/

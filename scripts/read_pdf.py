@@ -20,10 +20,10 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              represent, so wherever a page holds one, this script says so rather
              than silently producing incomplete text.
 
-Inputs:      data/raw/usdm_v4/USDM-IG.pdf                    (read-only, pinned)
-             data/raw/usdm_v4/DDF_USDM_Model_Informative.pdf  (read-only, pinned)
-             data/raw/ich_m11/ICH_M11_*.pdf                   (read-only, pinned)
-             data/raw/ich_e9r1/ICH_E9R1_Addendum.pdf          (read-only, pinned)
+Inputs:      inputs/standards/cdisc/usdm_v4/USDM-IG.pdf                      (read-only, pinned)
+             inputs/standards/cdisc/usdm_v4/DDF_USDM_Model_Informative.pdf   (read-only, pinned)
+             inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_*.pdf        (read-only, pinned)
+             inputs/standards/ich/e9r1/E9-R1_Step4_Guideline_2019_1203.pdf   (read-only, pinned)
              Section numbers and page ranges come from each PDF's own bookmarks.
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
@@ -68,7 +68,7 @@ import fitz
 # directory, so the script behaves the same whether it is run from the repo root
 # or from inside scripts/.
 REPO_ROOT = Path(__file__).resolve().parents[1]
-RAW = REPO_ROOT / "data" / "raw"
+STANDARDS = REPO_ROOT / "inputs" / "standards"
 
 # Every page of the USDM IG repeats the same four lines of header and footer.
 # They add roughly 15% noise to any extracted section, so they are stripped
@@ -86,7 +86,7 @@ USDM_IG_BOILERPLATE = (
 #   label        how the document is cited in output, so a claim sourced from
 #                this script can name its source and page as CLAUDE.md requires
 #   manifest     which manifest to re-download from, named in the missing-file
-#                error because data/ is gitignored and a fresh clone has none
+#                error because inputs/ is gitignored and a fresh clone has none
 #   boilerplate  per-page header and footer patterns to strip
 #
 # The M11 documents carry an empty boilerplate tuple deliberately. Their pages
@@ -96,33 +96,33 @@ USDM_IG_BOILERPLATE = (
 # would delete the content the document exists to convey.
 DOCUMENTS = {
     "ig": {
-        "path": RAW / "usdm_v4" / "USDM-IG.pdf",
+        "path": STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf",
         "label": "USDM-IG v4.0",
-        "manifest": "raw_usdm_v4.json",
+        "manifest": "cdisc_usdm_v4.json",
         "boilerplate": USDM_IG_BOILERPLATE,
     },
     "m11-guideline": {
-        "path": RAW / "ich_m11" / "ICH_M11_Guideline.pdf",
+        "path": STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
         "label": "ICH M11 Guideline (Step 4)",
-        "manifest": "raw_ich_m11.json",
+        "manifest": "ich_m11_step4.json",
         "boilerplate": (),
     },
     "m11-template": {
-        "path": RAW / "ich_m11" / "ICH_M11_Template.pdf",
+        "path": STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_Template_2025_1119.pdf",
         "label": "ICH M11 Template (Step 4)",
-        "manifest": "raw_ich_m11.json",
+        "manifest": "ich_m11_step4.json",
         "boilerplate": (),
     },
     "m11-techspec": {
-        "path": RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf",
+        "path": STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
         "label": "ICH M11 Technical Specification (Step 4)",
-        "manifest": "raw_ich_m11.json",
+        "manifest": "ich_m11_step4.json",
         "boilerplate": (),
     },
     "e9r1": {
-        "path": RAW / "ich_e9r1" / "ICH_E9R1_Addendum.pdf",
+        "path": STANDARDS / "ich" / "e9r1" / "E9-R1_Step4_Guideline_2019_1203.pdf",
         "label": "ICH E9(R1) Estimands Addendum",
-        "manifest": "raw_ich_e9r1.json",
+        "manifest": "ich_e9r1.json",
         "boilerplate": (),
     },
     # The whole USDM model as one vector diagram. Registered despite being a
@@ -130,9 +130,9 @@ DOCUMENTS = {
     # the same material do not. Everything is on page 1, so --find is the only
     # sensible mode.
     "model-diagram": {
-        "path": RAW / "usdm_v4" / "DDF_USDM_Model_Informative.pdf",
+        "path": STANDARDS / "cdisc" / "usdm_v4" / "DDF_USDM_Model_Informative.pdf",
         "label": "USDM Model Diagram (informative)",
-        "manifest": "raw_usdm_v4.json",
+        "manifest": "cdisc_usdm_v4.json",
         "boilerplate": (),
     },
 }
@@ -519,7 +519,7 @@ def main() -> int:
     args = parser.parse_args()
 
     # Mode: list the registry. Answered before opening any file, so it still
-    # works on a fresh clone where data/ has not been downloaded.
+    # works on a fresh clone where inputs/ has not been downloaded.
     if args.docs:
         for key, entry in DOCUMENTS.items():
             state = "present" if entry["path"].exists() else "NOT DOWNLOADED"
@@ -529,13 +529,13 @@ def main() -> int:
     document = DOCUMENTS[args.doc]
 
     # Fail early and specifically if the pinned file is absent. This is the one
-    # error a user is likely to hit on a fresh clone, since data/ is gitignored,
+    # error a user is likely to hit on a fresh clone, since inputs/ is gitignored,
     # so the message names the expected path and the manifest to restore from
     # rather than letting pymupdf raise.
     if not document["path"].exists():
         print(f"{document['label']} not found at {document['path']}", file=sys.stderr)
         print(
-            f"data/ is gitignored. Re-download per data/manifests/{document['manifest']}.",
+            f"inputs/ is gitignored. Re-download per manifests/{document['manifest']}.",
             file=sys.stderr,
         )
         return 1

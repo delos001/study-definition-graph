@@ -22,7 +22,7 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
              -e .), or nothing under manifests/ can be found. That is checked
              before any path is used.
 
-Inputs:      manifests/*.json, manifests/data_raw/*.json   (read-only)
+Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
              the pinned file named                  (read-only, opened only to hash)
 
 Outputs:     Nothing on disk. Hands back the file with its identity: local
@@ -31,7 +31,7 @@ Outputs:     Nothing on disk. Hands back the file with its identity: local
 
 Usage:       Not run directly; imported.
              from sdg.sources import verify_pinned
-                spec = verify_pinned("standards/cdisc/usdm_v4/dataStructure.yml")
+                spec = verify_pinned("inputs/standards/cdisc/usdm_v4/dataStructure.yml")
                 spec.read_text()   -> the content
                 spec.sha256        -> its fingerprint, for provenance
                 spec.url           -> where it came from, carrying the version

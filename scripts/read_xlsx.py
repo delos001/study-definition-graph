@@ -12,7 +12,7 @@ Description: Reads a sheet out of any of the project's pinned Excel workbooks an
              run to 58 columns. A fixed table layout is unreadable at that width,
              so --format records prints one field per line instead.
 
-Inputs:      Any .xlsx under data/. Opened read-only; nothing is written back.
+Inputs:      Any .xlsx under inputs/. Opened read-only; nothing is written back.
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
 Usage:       python scripts/read_xlsx.py <workbook>
@@ -24,7 +24,7 @@ Usage:       python scripts/read_xlsx.py <workbook>
              python scripts/read_xlsx.py <workbook> --find "Screening"
                  search every sheet for a term
              python scripts/read_xlsx.py --all --find "epoch"
-                 search every workbook under data/
+                 search every workbook under inputs/
 
 Exit codes:  0 success
              1 the workbook was not found, or the named sheet does not exist
@@ -44,7 +44,7 @@ import openpyxl
 ### Constants ##################################################################
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = REPO_ROOT / "data"
+INPUTS_DIR = REPO_ROOT / "inputs"
 
 # Excel writes a "~$name.xlsx" lock file beside any workbook that is currently
 # open. It is not a real workbook and openpyxl raises PermissionError on it, so
@@ -62,14 +62,14 @@ MAX_CELL_WIDTH = 40
 
 def find_workbooks() -> list[Path]:
     """
-    Return every real .xlsx under data/, sorted, excluding Excel lock files.
+    Return every real .xlsx under inputs/, sorted, excluding Excel lock files.
 
     Used by --all. Sorted so that repeated runs list workbooks in the same order
     and output can be diffed between sessions.
     """
     return sorted(
         path
-        for path in DATA_DIR.rglob("*.xlsx")
+        for path in INPUTS_DIR.rglob("*.xlsx")
         if not path.name.startswith(LOCK_FILE_PREFIX)
     )
 
@@ -80,7 +80,7 @@ def resolve_workbook(argument: str) -> Path | None:
 
     Accepts a full path, a path relative to the repo root, or just a filename,
     because typing the full path to a nested example workbook is tedious. A bare
-    filename is matched case-insensitively against every workbook under data/,
+    filename is matched case-insensitively against every workbook under inputs/,
     and a partial name is accepted if it matches exactly one workbook.
 
     Returns None when nothing matches or when a partial name is ambiguous; the
@@ -271,14 +271,14 @@ def main() -> int:
     parser.add_argument(
         "workbook",
         nargs="?",
-        help="path, filename, or unique fragment of a filename under data/",
+        help="path, filename, or unique fragment of a filename under inputs/",
     )
     parser.add_argument("--sheet", help="sheet to print; omit to list sheets")
     parser.add_argument("--find", help="search every sheet for a term")
     parser.add_argument(
         "--all",
         action="store_true",
-        help="apply --find across every workbook under data/",
+        help="apply --find across every workbook under inputs/",
     )
     parser.add_argument(
         "--format",
@@ -303,7 +303,7 @@ def main() -> int:
         return 0
 
     if not args.workbook:
-        print("Workbooks under data/:\n", file=sys.stderr)
+        print("Workbooks under inputs/:\n", file=sys.stderr)
         for path in find_workbooks():
             print(f"  {path.relative_to(REPO_ROOT)}", file=sys.stderr)
         return 1

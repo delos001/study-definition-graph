@@ -1,4 +1,4 @@
-# standards/ich/
+# inputs/standards/ich/
 
 Guidelines published by the International Council for Harmonisation (ICH).
 

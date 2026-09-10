@@ -33,7 +33,7 @@ python scripts/check_facts.py --verbose
 
 ## find_unrecorded_files.py
 
-Lists every file in a pinned folder that no manifest records, since such a file cannot be restored from a fresh clone.
+Lists every file under inputs/ that no manifest records, since such a file cannot be restored from a fresh clone.
 
 ```
 python scripts/find_unrecorded_files.py
@@ -72,7 +72,7 @@ python scripts/read_xlsx.py <workbook> --sheet study --format records
 python scripts/read_xlsx.py <workbook> --find "Screening"
     search every sheet for a term
 python scripts/read_xlsx.py --all --find "epoch"
-    search every workbook under data/
+    search every workbook under inputs/
 ```
 
 ## verify_headers.py

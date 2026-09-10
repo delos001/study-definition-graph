@@ -5,7 +5,7 @@
   "version": "Step 4, dated 2019-12-03",
   "source": "https://database.ich.org/sites/default/files/",
   "retrieved": "2026-08-18",
-  "local_dir": "standards/ich/e9r1",
+  "local_dir": "inputs/standards/ich/e9r1",
   "notes": {
     "pinning": "ICH publishes PDFs at stable URLs with no version control system, so there is no commit to pin. The pin here is the sha256 plus the retrieval date. Re-download and re-hash to detect a silent replacement at the same URL."
   },
@@ -13,7 +13,7 @@
     {
       "name": "E9-R1_Step4_Guideline_2019_1203.pdf",
       "url": "https://database.ich.org/sites/default/files/E9-R1_Step4_Guideline_2019_1203.pdf",
-      "local": "standards/ich/e9r1/E9-R1_Step4_Guideline_2019_1203.pdf",
+      "local": "inputs/standards/ich/e9r1/E9-R1_Step4_Guideline_2019_1203.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 22,

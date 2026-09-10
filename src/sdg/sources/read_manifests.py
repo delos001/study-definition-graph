@@ -11,11 +11,11 @@ Description: Reads the manifests and provides three pieces of information:
                 - size,
                 - fingerprint
 
-             Manifests under manifests/data_raw/ are read alongside the top-level
+             Manifests under manifests/study_documents/ are read alongside the top-level
              manifests.
              This module never downloads, hashes or checks a file against disk.
 
-Inputs:      manifests/*.json, manifests/data_raw/*.json   (read-only)
+Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
 
 Outputs:     Nothing on disk.
              Hands back, in memory: the manifests found, one entry, or an entry's fields.
@@ -24,7 +24,7 @@ Usage:       Not run directly; imported.
              from sdg.sources import manifests, entry_for
                 manifests()                  -> every manifest
                 manifests("cdisc_usdm_v4")   -> one manifest, by name
-                entry_for("standards/cdisc/usdm_v4/dataStructure.yml") -> that file's
+                entry_for("inputs/standards/cdisc/usdm_v4/dataStructure.yml") -> that file's
                   entry, or None
 
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
@@ -54,9 +54,9 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MANIFEST_DIR = REPO_ROOT / "manifests"
 
-# Study manifests are in manifests/data_raw/. The fetch script writes one per study.
+# Study manifests are in manifests/study_documents/. The fetch script writes one per study.
 # All manifests need to be read to identify documents that have been pinned.
-STUDY_MANIFEST_DIR = MANIFEST_DIR / "data_raw"
+STUDY_MANIFEST_DIR = MANIFEST_DIR / "study_documents"
 
 # Every entry must have the five fields shown below. If one is missing, the file cannot
 # be fetched, checked or placed. A missing field is reported as a mistake in
@@ -194,7 +194,7 @@ def _read_one(path: Path) -> Manifest:
 
 def manifests(only: str | None = None) -> list[Manifest]:
     """Gives back every manifest, or only the one named. The hand-written
-    manifests in manifests/ and the study manifests under data_raw/ are read together.
+    manifests in manifests/ and the study manifests under study_documents/ are read together.
     They are sorted by path so every run lists them in the same order.
     Raises ManifestError when the folder is missing or empty, when the named set does
     not exist, or when any manifest cannot be read.

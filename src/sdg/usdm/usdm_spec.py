@@ -22,7 +22,7 @@ Description: The single way to access the pinned USDM model. It reads
 
              Before reading the file, load() obtains it through sdg.pinned,
              which checks it against the fingerprint recorded in
-             data/manifests/. A changed or swapped pin fails here rather than
+             manifests/. A changed or swapped pin fails here rather than
              parsing and passing wrong content downstream;
              - Override is possible but should be used with caution: --allow-unpinned
 
@@ -31,8 +31,8 @@ Description: The single way to access the pinned USDM model. It reads
              exactly what makes the standard a graph. See DECISIONS.md, "Which
              USDM sources we hold."
 
-Inputs:      data/raw/usdm_v4/uml/dataStructure.yml   (read-only, pinned)
-             data/manifests/*.json                    (read-only, via sdg.pinned)
+Inputs:      inputs/standards/cdisc/usdm_v4/dataStructure.yml   (read-only, pinned)
+             manifests/*.json                    (read-only, via sdg.pinned)
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
@@ -47,7 +47,7 @@ Usage:       python -m sdg.usdm_spec --list-classes
 Exit codes:  0  success
              1  the pinned spec file is missing (run scripts/fetch_sources.py)
              2  invalid command line (argparse's own fixed code)
-             3  the spec cannot be verified against data/manifests/, or does not
+             3  the spec cannot be verified against manifests/, or does not
                 match it; the message names which (mismatch, unreadable or
                 absent manifest, malformed entry, file not recorded) and how to
                 recover. A mismatch can be read anyway with --allow-unpinned
@@ -78,7 +78,7 @@ from sdg.pinned import REPO_ROOT, IntegrityError, NotInRepoError, pinned, requir
 # Where the pinned model file is, named the way its manifest records it. The
 # repo root, and the verification of the file against its manifest, come from
 # sdg.pinned; nothing here locates or checks files on its own.
-PINNED_LOCAL = "data/raw/usdm_v4/uml/dataStructure.yml"
+PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 
 #######################################################################################

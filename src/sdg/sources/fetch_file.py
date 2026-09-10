@@ -13,7 +13,7 @@ Description: Downloads one file from one url to one destination.
              one.
 
              The bytes are written under a temporary name (destination plus .part).
-             For example: standards/cdisc/usdm_v4/USDM-IG.pdf.part.
+             For example: inputs/standards/cdisc/usdm_v4/USDM-IG.pdf.part.
              The file is later renamed by the place step after the fingerprint has
              matched. A .part file left behind by an earlier run is overwritten,
              because a .part file is by definition unfinished.

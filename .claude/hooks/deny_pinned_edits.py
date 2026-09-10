@@ -4,32 +4,35 @@ Description: A Claude Code hook that refuses any Write or Edit to a pinned file
              or a hand-written manifest. It runs before the tool call, reads the
              call's details from stdin, and answers deny or allow.
 
-             What counts as pinned is read from the manifests, not kept as a
-             list here. A file is pinned if a manifest entry records it, and a
-             folder is pinned if some manifest's local_dir points into it,
-             today standards/ and data/. Inside a pinned folder, only the files
-             the project writes itself are allowed: README.md and .gitkeep. The
-             six hand-written manifests at the top of manifests/ are refused
-             too; the machine-written ones under manifests/data_raw/ are not,
-             since the fetch script is meant to write them.
+             One rule decides what is pinned: everything under inputs/. That
+             folder holds only downloads recorded in a manifest, so nothing
+             there is ever edited by hand. The two files the project writes
+             into it itself, README.md and .gitkeep, are allowed. The six
+             hand-written manifests at the top of manifests/ are refused too;
+             the machine-written ones under manifests/study_documents/ are
+             not, since the fetch script is meant to write them.
+
+             The repo root is taken from CLAUDE_PROJECT_DIR, which Claude Code
+             sets to the folder the session was opened in. The call's cwd is
+             used only when that variable is absent, because cwd follows any
+             cd run in the session and would make the hook look in the wrong
+             place and allow everything.
 
              This turns the rule in CLAUDE.md, pinned files are never edited,
              into something Claude cannot break by mistake. It does not cover
              edits made through a shell command; those are still on the person
-             reviewing the session. It uses only the standard library, because
-             it must work before the package is installed. If the manifests
-             cannot be read it allows the call, so a broken manifest never
-             blocks the work of fixing it.
+             reviewing the session. It uses only the standard library and
+             reads no file, so it works before the package is installed.
 
 Inputs:      stdin  (JSON from Claude Code: tool_name, tool_input.file_path, cwd)
-             manifests/*.json, manifests/data_raw/*.json   (read-only)
+             CLAUDE_PROJECT_DIR  (environment, the repo root)
 
 Outputs:     Nothing on disk. Prints a JSON decision to stdout when the call is
              refused; prints nothing when it is allowed.
 
 Usage:       Not run by hand. Named in .claude/settings.json as a PreToolUse
              hook for Write and Edit.
-                 echo '{"tool_input":{"file_path":"standards/x.pdf"}}' | python .claude/hooks/deny_pinned_edits.py
+                 echo '{"tool_input":{"file_path":"inputs/x.pdf"}}' | python .claude/hooks/deny_pinned_edits.py
 
 Exit codes:  0  always; the decision is in the printed JSON, not the exit code
 
@@ -38,45 +41,30 @@ Owner:       Jason Delosh
 """
 
 import json
+import os
 import sys
 from pathlib import Path
 
-# Files the project writes into the pinned folders itself. The same short list
-# is in scripts/find_unrecorded_files.py; this hook cannot import it because
-# it runs before the package is installed.
+# The one folder that holds pinned files. scripts/find_unrecorded_files.py
+# walks the same folder; the two agree because there is only one name.
+PINNED_FOLDER = "inputs"
+
+# Files the project writes into the pinned folder itself.
 OWN_FILES = ("README.md", ".gitkeep")
 
 MANIFEST_FOLDER = "manifests"
 
 
-def read_manifests(root: Path) -> tuple[set[str], set[str]]:
-    """Reads every manifest under manifests/ and manifests/data_raw/ and gives
-    back two sets: the local paths every entry records, and the top-level
-    folders the manifests point into. Any manifest that cannot be read is
-    skipped, so this hook never blocks work on a broken manifest."""
-    recorded: set[str] = set()
-    roots: set[str] = set()
-    folder = root / MANIFEST_FOLDER
-    for path in list(folder.glob("*.json")) + list((folder / "data_raw").glob("*.json")):
-        try:
-            data = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
-            continue
-        local_dir = data.get("local_dir") or ""
-        if local_dir:
-            roots.add(Path(local_dir).parts[0])
-        for entry in data.get("files", []):
-            local = entry.get("local")
-            if local:
-                recorded.add(local)
-    return recorded, roots
+def repo_root(call: dict) -> Path:
+    """Gives back the repo root: CLAUDE_PROJECT_DIR when Claude Code sets it,
+    otherwise the call's cwd, otherwise the process's own working directory."""
+    root = os.environ.get("CLAUDE_PROJECT_DIR") or call.get("cwd") or str(Path.cwd())
+    return Path(root).resolve()
 
 
-def repo_relative(file_path: str, cwd: str) -> Path | None:
+def repo_relative(file_path: str, root: Path) -> Path | None:
     """Turns the path Claude is about to write into a path relative to the
-    repo root, or None if the file is outside the repo. The repo root is the
-    folder Claude Code is running in, which the hook receives as cwd."""
-    root = Path(cwd).resolve()
+    repo root, or None if the file is outside the repo."""
     target = Path(file_path)
     if not target.is_absolute():
         target = root / target
@@ -87,7 +75,7 @@ def repo_relative(file_path: str, cwd: str) -> Path | None:
         return None
 
 
-def reason_to_deny(relative: Path, recorded: set[str], roots: set[str]) -> str | None:
+def reason_to_deny(relative: Path) -> str | None:
     """Gives back the sentence explaining why this path must not be written,
     or None if writing it is fine."""
     parts = relative.parts
@@ -95,18 +83,12 @@ def reason_to_deny(relative: Path, recorded: set[str], roots: set[str]) -> str |
         return None
     local = relative.as_posix()
 
-    if local in recorded:
+    if parts[0] == PINNED_FOLDER and relative.name not in OWN_FILES:
         return (
-            f"{local} is a pinned file recorded in a manifest. Pinned files are never "
-            "edited (CLAUDE.md). To replace one, change its manifest entry and run "
-            "acquire_sources."
-        )
-
-    if parts[0] in roots and relative.name not in OWN_FILES:
-        return (
-            f"{local} is inside {parts[0]}/, a pinned folder. Only README.md and .gitkeep "
-            "are written there by hand; everything else arrives through acquire_sources "
-            "and a manifest entry."
+            f"{local} is under {PINNED_FOLDER}/, which holds only pinned downloads. "
+            "Pinned files are never edited (CLAUDE.md). Only README.md and .gitkeep are "
+            "written there by hand; everything else arrives through acquire_sources and "
+            "a manifest entry."
         )
 
     if parts[0] == MANIFEST_FOLDER and len(parts) == 2 and relative.suffix == ".json":
@@ -121,21 +103,19 @@ def reason_to_deny(relative: Path, recorded: set[str], roots: set[str]) -> str |
 
 def main() -> int:
     """Reads the tool call from stdin and prints a deny decision if the path
-    is protected. Anything unexpected in the input is treated as allow, so a
+    is pinned. Anything unexpected in the input is treated as allow, so a
     malformed message can never block ordinary work."""
     try:
         call = json.load(sys.stdin)
         file_path = call["tool_input"]["file_path"]
-        cwd = call.get("cwd") or str(Path.cwd())
     except (json.JSONDecodeError, KeyError, TypeError):
         return 0
 
-    relative = repo_relative(file_path, cwd)
+    relative = repo_relative(file_path, repo_root(call))
     if relative is None:
         return 0
 
-    recorded, roots = read_manifests(Path(cwd).resolve())
-    reason = reason_to_deny(relative, recorded, roots)
+    reason = reason_to_deny(relative)
     if reason is None:
         return 0
 
