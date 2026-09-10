@@ -19,8 +19,8 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
              stages calling it do not.
 
              The package must be installed from inside the repo (pip install
-             -e .), or nothing under manifests/ can be found. That is checked
-             before any path is used.
+             -e .), or nothing under manifests/ can be found. The manifest
+             reader checks that before it looks for anything.
 
 Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
              the pinned file named                  (read-only, opened only to hash)
@@ -54,7 +54,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .fingerprint_file import compare
-from .read_manifests import REPO_ROOT, ManifestError, as_local, entry_for, require_repo
+from .read_manifests import ManifestError, as_local, entry_for
 
 #######################################################################################
 ### Error Class ###
@@ -114,7 +114,6 @@ def verify_pinned(target: str | Path) -> PinnedFile:
     Raises FileNotFoundError if the file has not been downloaded.
     Raises IntegrityError for any other failure, each with its own message.
     """
-    require_repo()
     local = as_local(target)
 
     # A manifest that cannot be read is a manifest problem, not a file problem.

@@ -34,10 +34,16 @@ Usage:       python -m sdg.sources.acquire_sources
                  print nothing; use the exit code
 
 Exit codes:  0  every entry's file is on disk and matches its entry
-             1  a fetch failed, or what arrived did not match its entry
-             2  a file already on disk does not match its entry; left alone
+             1  the corpus is incomplete: a fetch failed, what arrived did not
+                match its entry, or, in a dry run, a file is not on disk
+             2  a file already on disk does not match its entry, or cannot be
+                read; left alone
              3  no manifests found, or one could not be read
              6  the sdg package is not running from inside its repo
+
+             1 outranks 2 when both occur. A dry run exits 1 as soon as one
+             file would need fetching, so --dry-run --quiet answers whether
+             the corpus is complete and intact from the exit code alone.
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -51,7 +57,7 @@ import sys
 from .fetch_file import FetchError, fetch
 from .finalize_file import discard, place
 from .fingerprint_file import compare
-from .read_manifests import ManifestError, NotInRepoError, manifests, require_repo
+from .read_manifests import ManifestError, NotInRepoError, manifests
 
 #######################################################################################
 ### Reporting ###
@@ -95,11 +101,10 @@ def main(argv: list[str] | None = None) -> int:
 
     say = make_reporter(args.quiet)
 
-    # The repo check runs first, in every mode. Without it, a package installed
-    # the wrong way would look for manifests in the wrong place and report the
-    # wrong problem.
+    # The reader checks that the package is running from inside its repo
+    # before it looks for any manifest, so a package installed the wrong way
+    # is reported as that and not as "no manifests found".
     try:
-        require_repo()
         found = manifests(args.only)
     except NotInRepoError as exc:
         say(str(exc))
@@ -119,9 +124,21 @@ def main(argv: list[str] | None = None) -> int:
 
         for entry in manifest.entries:
             # A file already on disk is checked, never replaced. A mismatch is
-            # a decision for a person, so it is reported and left alone.
+            # a decision for a person, so it is reported and left alone. So is
+            # a path that cannot be read at all, a folder where a file should
+            # be or a workbook Excel has locked: the run carries on and the
+            # exit code says a person has to look.
             if entry.path.exists():
-                result = compare(entry.path, entry)
+                if entry.path.is_dir():
+                    say(f"  CANNOT READ  {entry.local}: a folder, not a file; left alone")
+                    disagreements += 1
+                    continue
+                try:
+                    result = compare(entry.path, entry)
+                except OSError as exc:
+                    say(f"  CANNOT READ  {entry.local}: {exc}; left alone")
+                    disagreements += 1
+                    continue
                 if result.matched:
                     present += 1
                 else:
@@ -160,15 +177,16 @@ def main(argv: list[str] | None = None) -> int:
         say(f"{fetched} fetched, {present} present and matching")
     if disagreements:
         say(
-            f"{disagreements} file(s) on disk disagree with their entry. Delete deliberately, then re-run."
+            f"{disagreements} file(s) on disk disagree with their entry or cannot be read. Look, then delete deliberately and re-run."
         )
     if failures:
         say(f"{failures} fetch(es) failed or did not match their entry.")
 
     # 1 outranks 2: a corpus with a file missing is worse than one whose files
     # are all present but one has changed, because the second at least has
-    # known contents on disk.
-    if failures:
+    # known contents on disk. In a dry run a file that would be fetched is a
+    # file missing, and is reported with the same code for the same reason.
+    if failures or would_fetch:
         return 1
     if disagreements:
         return 2

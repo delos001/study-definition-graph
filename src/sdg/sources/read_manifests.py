@@ -31,7 +31,10 @@ Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              NotInRepoError   the package is not running from inside its repo
-             ManifestError    a manifest cannot be read, or an entry lacks a required field
+             ManifestError    a manifest cannot be read, an entry lacks a required
+                              field, or a field holds a value that can never be
+                              right: a size that is not a whole number, or a
+                              sha256 that is not 64 lowercase hex characters
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -40,6 +43,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -62,6 +66,14 @@ STUDY_MANIFEST_DIR = MANIFEST_DIR / "study_documents"
 # be fetched, checked or placed. A missing field is reported as a mistake in
 # the manifest; the entry is not skipped.
 REQUIRED_FIELDS = ("name", "url", "local", "bytes", "sha256")
+
+# Two of the fields are typed by hand and have one valid shape each. A size
+# with a comma or a space in it, or a sha256 with the wrong length or in
+# uppercase, can never match any file, so it is reported here with the value
+# as written rather than later as a mismatch that sends a person to
+# re-download a file that is fine.
+SIZE_RE = re.compile(r"[0-9]+")
+SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
 #######################################################################################
@@ -149,13 +161,29 @@ def _entry_from(raw: dict, manifest_name: str) -> Entry:
     If a required field is missing it raises ManifestError naming the manifest, the
     entry and the field."""
 
+    label = raw.get("name") or raw.get("local") or "?"
+    fix = f"  fix -> repair that entry in manifests/{manifest_name}, then re-run"
+
     missing = [field for field in REQUIRED_FIELDS if raw.get(field) in (None, "")]
     if missing:
         raise ManifestError(
-            f"{manifest_name}: entry {raw.get('name') or raw.get('local') or '?'} "
-            f"lacks {', '.join(missing)}\n"
-            f"  fix -> repair that entry in manifests/{manifest_name}, then re-run"
+            f"{manifest_name}: entry {label} lacks {', '.join(missing)}\n{fix}"
         )
+
+    # The value is shown as written, in quotes, so a person sees their own
+    # typo and not a claim that the field is missing.
+    size = str(raw["bytes"])
+    if not SIZE_RE.fullmatch(size):
+        raise ManifestError(
+            f'{manifest_name}: entry {label} has bytes "{size}", which is not a whole number\n{fix}'
+        )
+    sha256 = str(raw["sha256"])
+    if not SHA256_RE.fullmatch(sha256):
+        raise ManifestError(
+            f'{manifest_name}: entry {label} has sha256 "{sha256}", '
+            f"which is not 64 lowercase hex characters\n{fix}"
+        )
+
     return Entry(
         name=raw["name"],
         url=raw["url"],
