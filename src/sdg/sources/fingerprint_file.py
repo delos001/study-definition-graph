@@ -23,12 +23,13 @@ Description: This module measures the size and sha256 of a file, and returns whe
 Inputs:      one file   (read-only, opened only to hash)
 
 Outputs:     Nothing on disk.
-             Hands back the fingerprint (size, sha256), or the comparison result listed
-             as 'matched' or which value differed and how.
+             Hands back the fingerprint, one object carrying two values, the size in
+             bytes and the sha256; or the comparison result, listed as 'matched' or
+             which value differed and how.
 
 Usage:       Not run directly; imported.
              from sdg.sources import fingerprint, compare
-                fingerprint(path)        -> (size, sha256)
+                fingerprint(path)        -> Fingerprint: two values, .bytes and .sha256
                 compare(path, entry)     -> matched, or the difference found
 
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops

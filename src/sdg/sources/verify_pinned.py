@@ -35,6 +35,7 @@ Usage:       Not run directly; imported.
                 spec.read_text()   -> the content
                 spec.sha256        -> its fingerprint, for provenance
                 spec.url           -> where it came from, carrying the version
+             A string is read as a path from the repo root; a Path may be absolute.
 
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to

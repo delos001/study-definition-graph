@@ -87,8 +87,10 @@ class NotInRepoError(Exception):
 
 
 class ManifestError(Exception):
-    """Informs that a manifest cannot be read, none exist, or an entry lacks a required
-    field. The message names the file and the cause."""
+    """Informs that a manifest cannot be read, none exist, an entry lacks a required
+    field, or a field holds a value that can never match a file: a size that is not a
+    whole number, or a sha256 that is not 64 lowercase hex characters. The message
+    names the file and the cause, quoting a bad value as written."""
 
 
 #######################################################################################

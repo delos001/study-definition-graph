@@ -1,5 +1,7 @@
 # Code map
 
+**Stale as of 2026-09-10.** This map predates the reorganisation of 2026-09-08 and the sources package of 2026-09-09; the paths, script names and imports below no longer exist. It is kept until it is rewritten from `workflow_map_outline.md`. Do not act on it.
+
 How the code runs: the order of steps, and what each step produces for the next. One high-level workflow first, then one detail sheet per step that has enough inside it to need one. Arrows are files or folders flowing from one step to the next, not imports. A table of imports (what depends on what) is at the bottom for reference. Kept by hand; update it when a step or a file is added. Correct as of 2026-09-04. Scripts are imported by name in `tests/` because `pyproject.toml` puts `scripts/` on pytest's import path.
 
 ## The workflow
