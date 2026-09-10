@@ -18,10 +18,10 @@ Description: Acquires one or more needed source file(s) from their external loca
              A file already on disk is never replaced by this script.
 
 Inputs:      manifests/*.json   (read-only)
-             manifests/data_raw/*.json   (read-only)
+             manifests/study_documents/*.json   (read-only)
              URL for each file named (read-only)
 
-Outputs:     The files each entry names, under standards/ or data/. Nothing
+Outputs:     The files each entry names, under inputs/. Nothing
              existing is modified or deleted.
 
 Usage:       python -m sdg.sources.acquire_sources

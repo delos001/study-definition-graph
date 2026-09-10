@@ -5,7 +5,7 @@
   "version": "Step 4, adopted 2025-11-19",
   "source": "https://database.ich.org/sites/default/files/",
   "retrieved": "2026-08-18",
-  "local_dir": "standards/ich/m11_step4",
+  "local_dir": "inputs/standards/ich/m11_step4",
   "notes": {
     "caveat": "M11 reached Step 4 on 2025-11-19, after USDM v4.0 was published (2025-06-03) and after the DDF-RA m11_mapping.xlsx crosswalk was authored against the Updated Step 2 Draft of 2025-03-14. The crosswalk therefore maps USDM v4.0 to a superseded M11 draft. That is expected: USDM and M11 are maintained by different bodies on different release cycles, and a v4.0 pin pointing at its contemporaneous M11 draft is internally consistent. Do not treat the mismatch as an error to reconcile.",
     "pinning": "ICH publishes PDFs at stable URLs with no version control system, so there is no commit to pin. The pin here is the sha256 plus the retrieval date. Re-download and re-hash to detect a silent replacement at the same URL.",
@@ -16,7 +16,7 @@
     {
       "name": "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
       "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
-      "local": "standards/ich/m11_step4/ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
+      "local": "inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 6,
@@ -27,7 +27,7 @@
     {
       "name": "ICH_Step4_M11_Final_Template_2025_1119.pdf",
       "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_Template_2025_1119.pdf",
-      "local": "standards/ich/m11_step4/ICH_Step4_M11_Final_Template_2025_1119.pdf",
+      "local": "inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_Template_2025_1119.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 67,
@@ -38,7 +38,7 @@
     {
       "name": "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
       "url": "https://database.ich.org/sites/default/files/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
-      "local": "standards/ich/m11_step4/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
+      "local": "inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
       "format": "PDF",
       "read_by": "person",
       "pages": 245,

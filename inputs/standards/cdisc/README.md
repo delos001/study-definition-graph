@@ -1,4 +1,4 @@
-# standards/cdisc/
+# inputs/standards/cdisc/
 
 Standards published by CDISC.
 

@@ -7,7 +7,7 @@ Description: Generates scripts/README.md from the header block of every script
              A hand-written index is a second place the same facts live, and it
              disagrees with reality the first time someone edits a script and
              forgets it. The same reasoning produced check_facts.py, which
-             re-derives every stated number, and fetch_sources.py, which
+             re-derives every stated number, and acquire_sources, which
              replaced a README code block that nothing executed.
 
              The second purpose matters more than the index. CLAUDE.md requires
@@ -56,7 +56,7 @@ from pathlib import Path
 
 # Resolved from this file's own location rather than the working directory, so
 # the script behaves the same run from the repo root or from inside scripts/.
-# Same approach as verify_manifests.py.
+# Same approach as read_pdf.py.
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = REPO_ROOT / "scripts"
 INDEX_PATH = SCRIPTS_DIR / "README.md"

@@ -1,4 +1,4 @@
-# data/usdm_examples/
+# inputs/worked_examples/
 
 CDISC's three worked examples for USDM v4.0: real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same three forms. Pinned to DDF-RA commit `aa303cb`; the manifest is `manifests/usdm_examples.json`.
 

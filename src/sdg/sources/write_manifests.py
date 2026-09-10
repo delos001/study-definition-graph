@@ -4,7 +4,7 @@ Description: Writes one manifest entry, or updates one that exists.
 
              DRAFT. Nothing uses this yet. Its first users will be the Phase 1
              study fetcher, which records each downloaded study document under
-             manifests/data_raw/, and the update command from issue #18, which
+             manifests/study_documents/, and the update command from issue #18, which
              moves a source to a new version. The shape of what it writes is
              settled when the first of those is built.
 

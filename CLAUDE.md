@@ -47,12 +47,12 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 
 ## Pinned files and data
 
-- Pinned files are never edited: the standards under `standards/`, the worked examples under `data/usdm_examples/`, and study documents under `data/raw/`. The pipeline reads from those and writes to `data/interim/` or `data/processed/`.
-- Every download gets a `manifests/` entry in the same breath, never a record beside the file. `standards/` and `data/` are gitignored apart from their READMEs, so an unrecorded file cannot be restored and is indistinguishable from a pinned one.
+- Pinned files are never edited. Everything under `inputs/` is pinned: the standards, the worked examples and the study documents. The pipeline reads from there and writes to `data/interim/` or `data/processed/`.
+- Every download gets a `manifests/` entry in the same breath, never a record beside the file. `inputs/` is gitignored apart from its READMEs, so an unrecorded file cannot be restored and is indistinguishable from a pinned one.
 - Hand-built answer keys go in `eval/`, which is committed; they cannot be regenerated.
 - Pinned versions never move. Never fetch latest.
 - A pinned file keeps its publisher's file name, spaces replaced by underscores and nothing else. One folder per standard, named with its version, whatever the file count.
-- `python scripts/verify_manifests.py` checks them: 0 clean, 1 missing or altered, 2 unrecorded, 3 unreadable manifest.
+- `python -m sdg.sources.acquire_sources` fetches what is missing and checks what is present against its entry; `python scripts/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
 - Any count written into a document must be recomputable. Add it to `scripts/check_facts.py`, which re-derives every stated figure from the pinned files. Run it after changing the corpus.
 
 ## Pipeline

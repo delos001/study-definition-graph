@@ -36,12 +36,12 @@ No pipeline work; the point is to stand up the tools and pin the sources, and to
   - conda environment,
   - repo skeleton,
   - Neo4j running in Docker, with a few nodes and edges created and queried by hand,
-  - USDM v4.0 artifacts pinned to `standards/cdisc/usdm_v4/` with the commit recorded,
+  - USDM v4.0 artifacts pinned to `inputs/standards/cdisc/usdm_v4/` with the commit recorded,
   - loader that lists USDM classes and their fields from the pinned spec,
   - determination of whether the DDF conformance endpoint and CORE are usable without member credentials.
 - **Verification:**
   - Neo4j Browser reachable at `localhost:7474` with a query run by hand,
-  - `python -m sdg.usdm_spec --list-classes` prints class names read from the pinned file.
+  - `python -m sdg.usdm.usdm_spec --list-classes` prints class names read from the pinned file.
 
 ### Phase 1 — Acquire documents and locate their content
 

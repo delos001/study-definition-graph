@@ -21,8 +21,8 @@ Description: Recomputes every countable fact asserted in the project's markdown
              owner is the citation and its access date, not this script. Such
              figures live behind a [n] reference marker instead.
 
-Inputs:      data/raw/**            (read-only, pinned, each verified via sdg.pinned)
-             data/manifests/*.json  (read-only, via sdg.pinned)
+Inputs:      inputs/**              (read-only, pinned, each verified via sdg.pinned)
+             manifests/*.json       (read-only, via sdg.pinned)
              *.md and docs/*.md     (read-only, scanned for the stated figure)
 
 Outputs:     A report on stdout. Writes nothing to disk.
@@ -46,7 +46,7 @@ Exit codes:  0  every stated figure matches the source it came from
                 which cannot happen in this script; left unassigned so the
                 number keeps one meaning across the repo
              6  the sdg package is installed but not from inside its repo
-                (installed without -e), so it cannot find data/; the message
+                (installed without -e), so it cannot find inputs/; the message
                 gives the install command
              7  the sdg package is not installed at all
 
@@ -85,7 +85,8 @@ except ImportError as exc:
     SDG_MISSING = exc
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-RAW = REPO_ROOT / "data" / "raw"
+STANDARDS = REPO_ROOT / "inputs" / "standards"
+EXAMPLES = REPO_ROOT / "inputs" / "worked_examples"
 
 # Documents scanned for stated figures. docs/standards_lineage.html is included:
 # it is linked from docs/sources_index.md and a session acts on what it says, so its
@@ -125,13 +126,13 @@ def pinned_pdf_pages() -> int:
 
 def ig_sections() -> int:
     """Bookmarks in the USDM Implementation Guide, which is what a section is."""
-    return len(fitz.open(pinned(RAW / "usdm_v4" / "USDM-IG.pdf").path).get_toc())
+    return len(fitz.open(pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path).get_toc())
 
 
 def core_rules() -> int:
     """Rows carrying a rule ID in the conformance rules workbook."""
     sheet = openpyxl.load_workbook(
-        pinned(RAW / "usdm_v4" / "USDM_CORE_Rules.xlsx").path, read_only=True
+        pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path, read_only=True
     )["Version 3.0 and 4.0 CORE rules"]
     return sum(1 for row in list(sheet.iter_rows(values_only=True))[1:] if row[0])
 
@@ -143,19 +144,19 @@ def m11_elements() -> int:
     is the document's own delimiter rather than a heuristic of ours.
     """
     text = "".join(page.get_text() for page in
-                   fitz.open(pinned(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf").path))
+                   fitz.open(pinned(STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf").path))
     return len(re.findall(r"Term \(Variable\)\s*\n\s*<([^>]{1,80})>", text))
 
 
 def uml_delta_rows() -> int:
     """Lines in the v3.0-to-v4.0 change file, header included, as quoted."""
-    path = RAW / "usdm_v4" / "uml" / "UML_DELTA_3-0-0_4-0-0.csv"
+    path = STANDARDS / "cdisc" / "usdm_v4" / "UML_DELTA_3-0-0_4-0-0.csv"
     return len(pinned(path).read_text().splitlines())
 
 
 def dictionary_codes() -> int:
     """Distinct NCI C-codes named in the data dictionary."""
-    text = pinned(RAW / "usdm_v4" / "uml" / "dataDictionary.MD").read_text()
+    text = pinned(STANDARDS / "cdisc" / "usdm_v4" / "dataDictionary.MD").read_text()
     return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
@@ -181,11 +182,11 @@ def shared_codes() -> int:
     change the conclusion, not just the caption.
     """
     text = "".join(page.get_text() for page in
-                   fitz.open(pinned(RAW / "ich_m11" / "ICH_M11_TechnicalSpecification.pdf").path))
+                   fitz.open(pinned(STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf").path))
     m11 = set(re.findall(r"\b(C\d{4,6})\b", text))
 
     terminology = set()
-    for sheet in openpyxl.load_workbook(pinned(RAW / "usdm_v4" / "USDM_CT.xlsx").path, read_only=True):
+    for sheet in openpyxl.load_workbook(pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CT.xlsx").path, read_only=True):
         for row in sheet.iter_rows(values_only=True):
             for cell in row:
                 if cell:
@@ -200,7 +201,7 @@ def worked_examples() -> int:
     for pinned() to verify here; the files inside are verified where they are
     read, in examples_with_estimands.
     """
-    return len([d for d in (RAW / "usdm_examples").iterdir() if d.is_dir()])
+    return len([d for d in EXAMPLES.iterdir() if d.is_dir()])
 
 
 def examples_with_estimands() -> int:
@@ -212,7 +213,7 @@ def examples_with_estimands() -> int:
     grows or an example gains an estimand, that argument has to move with it.
     """
     count = 0
-    for directory in (RAW / "usdm_examples").iterdir():
+    for directory in EXAMPLES.iterdir():
         if not directory.is_dir():
             continue
 

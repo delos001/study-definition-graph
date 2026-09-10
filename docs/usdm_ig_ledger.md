@@ -1,6 +1,6 @@
 # USDM-IG v4.0 section map
 
-Routing table for `standards/cdisc/usdm_v4/USDM-IG.pdf` (119 pages, pinned commit `aa303cb`). Purpose: find the right section without reading the whole guide.
+Routing table for `inputs/standards/cdisc/usdm_v4/USDM-IG.pdf` (119 pages, pinned commit `aa303cb`). Purpose: find the right section without reading the whole guide.
 
 Read a section with:
 
