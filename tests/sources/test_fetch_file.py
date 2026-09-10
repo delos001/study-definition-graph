@@ -40,6 +40,9 @@ from sdg.sources.fetch_file import FetchError, fetch, partial_path
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 # The url every check downloads from. Nothing is at it; the fake server below
 # answers in its place.
@@ -177,6 +180,7 @@ def attempt(server, tmp_path, behavior) -> Failed:
 # temporary name, and the request is made the way the header says.
 
 
+@code("SRC0031")
 @positive
 def test_download_is_written_under_the_part_name(completed):
     """A completed download is written to <destination>.part, and that path is
@@ -185,12 +189,14 @@ def test_download_is_written_under_the_part_name(completed):
     assert completed.partial.is_file()
 
 
+@code("SRC0032")
 @positive
 def test_download_holds_the_bytes_the_server_sent(completed):
     """The .part file holds exactly the bytes the server sent, in order."""
     assert completed.partial.read_bytes() == b"".join(CHUNKS)
 
 
+@code("SRC0033")
 @positive
 def test_nothing_appears_under_the_final_name(completed):
     """A completed download does not create the final name; that is the place
@@ -198,6 +204,7 @@ def test_nothing_appears_under_the_final_name(completed):
     assert not completed.destination.exists()
 
 
+@code("SRC0034")
 @positive
 def test_missing_folders_are_created(completed):
     """The folders on the way to the destination are created when they do not
@@ -205,6 +212,7 @@ def test_missing_folders_are_created(completed):
     assert completed.destination.parent.is_dir()
 
 
+@code("SRC0035")
 @positive
 def test_leftover_part_file_is_replaced(tmp_path, server):
     """A .part file left by an earlier run is replaced by the new download, not
@@ -219,6 +227,7 @@ def test_leftover_part_file_is_replaced(tmp_path, server):
     assert leftover.read_bytes() == b"".join(CHUNKS)
 
 
+@code("SRC0036")
 @positive
 def test_request_is_a_get_on_the_given_url(completed):
     """The request is a GET on the url fetch() was given."""
@@ -226,6 +235,7 @@ def test_request_is_a_get_on_the_given_url(completed):
     assert completed.request["url"] == URL
 
 
+@code("SRC0037")
 @positive
 def test_request_asks_to_follow_redirects(completed):
     """The request asks the HTTP library to follow a redirect, so a file the
@@ -233,12 +243,14 @@ def test_request_asks_to_follow_redirects(completed):
     assert completed.request["follow_redirects"] is True
 
 
+@code("SRC0038")
 @positive
 def test_request_carries_the_module_timeout(completed):
     """The request gives up after the number of seconds the module sets."""
     assert completed.request["timeout"] == fetch_file.TIMEOUT_SECONDS
 
 
+@code("SRC0039")
 @positive
 def test_partial_path_adds_part_to_the_file_name():
     """partial_path() adds .part to the file name and keeps the folder."""
@@ -253,6 +265,7 @@ def test_partial_path_adds_part_to_the_file_name():
 # download.
 
 
+@code("SRC0040")
 @negative
 def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server):
     """A server that answers with an error status makes fetch() raise
@@ -262,6 +275,7 @@ def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server)
     assert "404" in failed.message
 
 
+@code("SRC0041")
 @negative
 def test_error_status_leaves_no_part_file(tmp_path, server):
     """After an error status, no .part file is left on disk."""
@@ -269,6 +283,7 @@ def test_error_status_leaves_no_part_file(tmp_path, server):
     assert not partial_path(failed.destination).exists()
 
 
+@code("SRC0042")
 @negative
 def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, server):
     """A connection that cannot be made makes fetch() raise FetchError, and the
@@ -278,6 +293,7 @@ def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, se
     assert "name or service not known" in failed.message
 
 
+@code("SRC0043")
 @negative
 def test_unreachable_server_leaves_no_part_file(tmp_path, server):
     """After a failed connection, no .part file is left on disk."""
@@ -285,6 +301,7 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
     assert not partial_path(failed.destination).exists()
 
 
+@code("SRC0044")
 @negative
 def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
     """A transfer that breaks after the first chunk makes fetch() raise
@@ -293,6 +310,7 @@ def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
     assert "connection reset" in failed.message
 
 
+@code("SRC0045")
 @negative
 def test_broken_transfer_removes_the_half_written_part_file(tmp_path, server):
     """After a transfer breaks part way, the half-written .part file is

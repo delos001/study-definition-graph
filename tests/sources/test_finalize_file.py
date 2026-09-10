@@ -34,6 +34,9 @@ from sdg.sources.finalize_file import discard, place
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
+# Every check carries a @code line: its short, permanent id in
+# tests/validation_inventory.csv, assigned once and never reused.
+code = pytest.mark.code
 
 # The bytes a staged download holds, and the bytes of a file that is already
 # at the final name when a check needs one there.
@@ -99,6 +102,7 @@ def plain_file(tmp_path) -> Path:
 # A .part file is placed under its final name, or deleted, as asked.
 
 
+@code("SRC0046")
 @positive
 def test_place_puts_the_file_under_its_final_name(placed):
     """After place(), the bytes are at the final name."""
@@ -106,6 +110,7 @@ def test_place_puts_the_file_under_its_final_name(placed):
     assert staged.final.read_bytes() == CONTENT
 
 
+@code("SRC0047")
 @positive
 def test_place_hands_back_the_final_path(placed):
     """place() gives back the final path."""
@@ -113,6 +118,7 @@ def test_place_hands_back_the_final_path(placed):
     assert result == staged.final
 
 
+@code("SRC0048")
 @positive
 def test_place_removes_the_part_name(placed):
     """After place(), nothing is left under the .part name."""
@@ -120,6 +126,7 @@ def test_place_removes_the_part_name(placed):
     assert not staged.partial.exists()
 
 
+@code("SRC0049")
 @positive
 def test_discard_deletes_the_part_file(part_file):
     """discard() deletes the .part file and gives back nothing."""
@@ -135,6 +142,7 @@ def test_discard_deletes_the_part_file(part_file):
 # discarded.
 
 
+@code("SRC0050")
 @negative
 def test_place_refuses_when_the_final_name_is_taken(blocked):
     """When a file already sits at the final name, place() raises
@@ -145,6 +153,7 @@ def test_place_refuses_when_the_final_name_is_taken(blocked):
     assert "acquire_sources" in message
 
 
+@code("SRC0051")
 @negative
 def test_refused_place_leaves_the_existing_file_untouched(blocked):
     """The file already at the final name keeps its bytes."""
@@ -152,6 +161,7 @@ def test_refused_place_leaves_the_existing_file_untouched(blocked):
     assert staged.final.read_bytes() == EXISTING
 
 
+@code("SRC0052")
 @negative
 def test_refused_place_leaves_the_part_file_where_it_was(blocked):
     """The .part file stays where it was, with its bytes."""
@@ -159,6 +169,7 @@ def test_refused_place_leaves_the_part_file_where_it_was(blocked):
     assert staged.partial.read_bytes() == CONTENT
 
 
+@code("SRC0053")
 @negative
 def test_place_refuses_a_missing_part_file(tmp_path):
     """place() raises FileNotFoundError naming the path when the .part file
@@ -169,6 +180,7 @@ def test_place_refuses_a_missing_part_file(tmp_path):
     assert str(partial) in str(caught.value)
 
 
+@code("SRC0054")
 @negative
 def test_place_refuses_a_name_without_the_part_suffix(plain_file):
     """place() raises ValueError naming the path when the name does not end in
@@ -177,6 +189,7 @@ def test_place_refuses_a_name_without_the_part_suffix(plain_file):
         place(plain_file)
 
 
+@code("SRC0055")
 @negative
 def test_place_leaves_a_file_it_refused_untouched(plain_file):
     """A file place() refused for its name keeps its bytes."""
@@ -185,6 +198,7 @@ def test_place_leaves_a_file_it_refused_untouched(plain_file):
     assert plain_file.read_bytes() == CONTENT
 
 
+@code("SRC0056")
 @negative
 def test_discard_refuses_a_missing_part_file(tmp_path):
     """discard() raises FileNotFoundError naming the path when the .part file
@@ -195,6 +209,7 @@ def test_discard_refuses_a_missing_part_file(tmp_path):
     assert str(partial) in str(caught.value)
 
 
+@code("SRC0057")
 @negative
 def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
     """discard() raises ValueError naming the path when the name does not end
@@ -203,6 +218,7 @@ def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
         discard(plain_file)
 
 
+@code("SRC0058")
 @negative
 def test_discard_leaves_a_file_it_refused_in_place(plain_file):
     """A file discard() refused for its name is not deleted, so a pinned file
