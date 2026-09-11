@@ -73,6 +73,7 @@ import yaml
 
 # The one way to obtain a pinned file, verified against its manifest, with the
 # repo root and the two integrity exceptions callers may need to catch.
+from sdg.console_output import use_utf8_output
 from sdg.pinned import REPO_ROOT, IntegrityError, NotInRepoError, pinned, require_repo
 
 # Where the pinned model file is, named the way its manifest records it. The
@@ -204,7 +205,10 @@ def _is_ref_list(value) -> bool:
     return (
         isinstance(value, list)
         and bool(value)
-        and all(isinstance(item, dict) and isinstance(item.get("$ref"), str) for item in value)
+        and all(
+            isinstance(item, dict) and isinstance(item.get("$ref"), str)
+            for item in value
+        )
     )
 
 
@@ -347,7 +351,9 @@ def main(argv: list[str] | None = None) -> int:
     - a zero means success
     - a non-zero means failure (see script documentation at the beginning of this file).
     """
-    sys.stdout.reconfigure(encoding="utf-8")
+    # Standard text carries characters the Windows console mangles; see
+    # sdg.console_output for why.
+    use_utf8_output()
 
     parser = argparse.ArgumentParser(
         prog="python -m sdg.usdm_spec",

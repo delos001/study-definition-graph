@@ -11,7 +11,7 @@ The `sdg` package: the pipeline, as code other code imports. It has one folder p
 | `extract/` | Phase 3: turn classified content into USDM-shaped structures, each carrying where it came from. |
 | `graph/` | Phase 4: load the structures into Neo4j, link across documents, and answer questions that span them. |
 
-A file used by several stages goes in the root of `sdg/`. When two or more such files are about the same thing, they move into a folder named for that thing. Nothing gets a folder before it has earned one.
+A file used by several stages goes in the root of `sdg/`. Today that is `console_output.py`, which makes the console print the standards' characters intact on Windows. When two or more such files are about the same thing, they move into a folder named for that thing. Nothing gets a folder before it has earned one.
 
 A script has one objective. Generally its functionality should be distinct or perform like things. Discrete jobs upstream or downstream of the objective should generally be evaluated to determine whether they belong in a separate callable, reusable script.
 

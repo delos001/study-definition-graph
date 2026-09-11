@@ -130,7 +130,9 @@ def main(argv: list[str] | None = None) -> int:
             # exit code says a person has to look.
             if entry.path.exists():
                 if entry.path.is_dir():
-                    say(f"  CANNOT READ  {entry.local}: a folder, not a file; left alone")
+                    say(
+                        f"  CANNOT READ  {entry.local}: a folder, not a file; left alone"
+                    )
                     disagreements += 1
                     continue
                 try:

@@ -33,7 +33,9 @@ from pathlib import Path
 
 import pytest
 
-CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(encoding="utf-8")
+CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(
+    encoding="utf-8"
+)
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -97,7 +99,9 @@ def test_passing_run_is_recorded_as_pass(pytester):
     assert "**PASS**: pytest exit status 0 (all tests passed)" in record
     assert "1 passed, 0 failed, 0 error, 1 skipped" in record
     assert "| `test_adds` | positive | Two and two make four. | passed |" in record
-    assert "| `test_left_out` | unmarked | Never runs. | skipped (not today) |" in record
+    assert (
+        "| `test_left_out` | unmarked | Never runs. | skipped (not today) |" in record
+    )
 
 
 @code("TST0002")
@@ -144,7 +148,10 @@ def test_cleanup_failure_is_recorded_as_fail(pytester):
     assert result.ret == 1
     record = the_record(out)
     assert "**FAIL**: pytest exit status 1" in record
-    assert "| `test_checks_pass_but_cleanup_fails` | unmarked | Passes, then its clean-up fails. | error (clean-up failed) |" in record
+    assert (
+        "| `test_checks_pass_but_cleanup_fails` | unmarked | Passes, then its clean-up fails. | error (clean-up failed) |"
+        in record
+    )
     assert "| passed |" not in record
 
 
@@ -163,7 +170,9 @@ def test_failing_assertion_is_recorded_as_fail(pytester):
     assert result.ret == 1
     record = the_record(out)
     assert "**FAIL**: pytest exit status 1" in record
-    assert "| `test_wrong` | unmarked | Claims two and two make five. | failed |" in record
+    assert (
+        "| `test_wrong` | unmarked | Claims two and two make five. | failed |" in record
+    )
 
 
 @code("TST0005")

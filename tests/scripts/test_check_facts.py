@@ -121,7 +121,9 @@ def test_unasserted_fact_is_reported_but_passes(fact, capsys):
 def test_number_written_as_a_word_is_read(fact):
     """A small count written as a word ("three") matches the measured 3, so
     prose is not forced to use digits."""
-    fact(lambda: 3, "We hold three widgets.\n", pattern=r"(?:(\d+)|(?i:(three))) widgets")
+    fact(
+        lambda: 3, "We hold three widgets.\n", pattern=r"(?:(\d+)|(?i:(three))) widgets"
+    )
     assert cf.main([]) == 0
 
 
@@ -134,14 +136,20 @@ def test_number_written_as_a_word_is_read(fact):
     "raised, code, word",
     [
         (FileNotFoundError("gone.pdf"), 2, "UNMEASURABLE"),
-        (IntegrityError("cannot verify x: no manifest entry records it"), 3, "UNVERIFIED"),
+        (
+            IntegrityError("cannot verify x: no manifest entry records it"),
+            3,
+            "UNVERIFIED",
+        ),
         (SpecShapeError("class 'X' is missing Modifier"), 4, "WRONG SHAPE"),
         (NotInRepoError("sdg is not running from inside its repo"), 6, "NOT IN REPO"),
     ],
     ids=["missing-2", "unverified-3", "wrong-shape-4", "not-in-repo-6"],
 )
 @negative
-def test_each_measurement_failure_has_its_own_exit_code(fact, capsys, raised, code, word):
+def test_each_measurement_failure_has_its_own_exit_code(
+    fact, capsys, raised, code, word
+):
     """A measurement that raises is reported under a label naming the cause,
     with the exception's own message, and the run exits with that cause's
     code: 2 file missing, 3 cannot be verified, 4 wrong shape, 6 not in repo."""

@@ -249,7 +249,9 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="report whether the index is current; write nothing",
     )
-    parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
+    parser.add_argument(
+        "--quiet", action="store_true", help="print nothing; use the exit code"
+    )
     args = parser.parse_args(argv)
 
     def say(message: str = "") -> None:
@@ -278,6 +280,11 @@ def main(argv: list[str] | None = None) -> int:
             )
             continue
 
+        # parse_header hands back either the fields or an error, never neither,
+        # so once the error is handled the fields are present. mypy cannot see the
+        # two halves of the pair move together, hence the assertion.
+        assert fields is not None
+
         missing = [field for field in REQUIRED_FIELDS if field not in fields]
 
         if missing:
@@ -294,13 +301,17 @@ def main(argv: list[str] | None = None) -> int:
 
     if incomplete:
         say()
-        say("CLAUDE.md requires the full header block on every script. Index not written.")
+        say(
+            "CLAUDE.md requires the full header block on every script. Index not written."
+        )
         return 2
 
     generated = render(entries)
 
     if args.check:
-        current = INDEX_PATH.read_text(encoding="utf-8") if INDEX_PATH.exists() else None
+        current = (
+            INDEX_PATH.read_text(encoding="utf-8") if INDEX_PATH.exists() else None
+        )
 
         if current == generated:
             say(f"scripts/README.md is current, {len(entries)} script(s)")

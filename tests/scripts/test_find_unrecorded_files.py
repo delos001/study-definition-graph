@@ -26,7 +26,6 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import pytest
-
 import verify_manifests as vm
 
 positive = pytest.mark.positive

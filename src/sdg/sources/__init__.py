@@ -8,10 +8,18 @@ See README.md.
 # in. A function not listed is still importable by its file, only the short
 # form is missing. The list grows as each file's code is written.
 
-from .read_manifests import Entry, Manifest, ManifestError, NotInRepoError, entry_for, manifests, require_repo
 from .fetch_file import FetchError, fetch, partial_path
-from .fingerprint_file import Comparison, Fingerprint, compare, fingerprint
 from .finalize_file import discard, place
+from .fingerprint_file import Comparison, Fingerprint, compare, fingerprint
+from .read_manifests import (
+    Entry,
+    Manifest,
+    ManifestError,
+    NotInRepoError,
+    entry_for,
+    manifests,
+    require_repo,
+)
 from .verify_pinned import IntegrityError, PinnedFile, verify_pinned
 
 __all__ = [

@@ -382,5 +382,7 @@ def test_sha256_that_is_not_lowercase_hex_is_quoted_as_written(fake_repo):
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, sha256="A" * 64)])
     message = refused_with(ManifestError)
-    assert f'has sha256 "{"A" * 64}", which is not 64 lowercase hex characters' in message
+    assert (
+        f'has sha256 "{"A" * 64}", which is not 64 lowercase hex characters' in message
+    )
     assert "repair that entry in manifests/set_a.json" in message

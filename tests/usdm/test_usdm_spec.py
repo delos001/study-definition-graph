@@ -127,7 +127,13 @@ def test_attributes_keep_file_order_and_inheritance(three):
     them, including the ones copied down from its parent, and each inherited one
     still names that parent."""
     attrs = usdm_spec.attributes(three, "StudyIdentifier")
-    assert list(attrs) == ["id", "text", "scopeId", "extensionAttributes", "instanceType"]
+    assert list(attrs) == [
+        "id",
+        "text",
+        "scopeId",
+        "extensionAttributes",
+        "instanceType",
+    ]
     assert attrs["id"]["Inherited From"] == [{"$ref": "#/Identifier"}]
     assert "Inherited From" not in attrs["instanceType"]
 
@@ -185,7 +191,9 @@ def test_class_without_modifier_is_named(variant):
     """Deleting Modifier from one class is refused with a message naming that
     class."""
     broken = variant(lambda d: d["Condition"].pop("Modifier"))
-    with pytest.raises(usdm_spec.SpecShapeError, match="'Condition' is missing Modifier"):
+    with pytest.raises(
+        usdm_spec.SpecShapeError, match="'Condition' is missing Modifier"
+    ):
         usdm_spec.load(broken, verify=False)
 
 
@@ -252,8 +260,12 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
     """A Type holding a plain word instead of a list of '$ref' entries is refused,
     naming Class.attribute and the field, rather than failing later inside the
     printer when it tries to walk the value."""
-    broken = variant(lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", "string"))
-    with pytest.raises(usdm_spec.SpecShapeError, match="Condition.name: Type is not a list"):
+    broken = variant(
+        lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", "string")
+    )
+    with pytest.raises(
+        usdm_spec.SpecShapeError, match="Condition.name: Type is not a list"
+    ):
         usdm_spec.load(broken, verify=False)
 
 
@@ -262,8 +274,12 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
 def test_empty_type_list_is_refused(variant):
     """An empty Type list is refused the same way: an attribute with no type is
     not a shape this module can answer questions about."""
-    broken = variant(lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", []))
-    with pytest.raises(usdm_spec.SpecShapeError, match="Condition.name: Type is not a list"):
+    broken = variant(
+        lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", [])
+    )
+    with pytest.raises(
+        usdm_spec.SpecShapeError, match="Condition.name: Type is not a list"
+    ):
         usdm_spec.load(broken, verify=False)
 
 
@@ -273,10 +289,13 @@ def test_inherited_from_without_ref_is_named(variant):
     """An Inherited From entry lacking its '$ref' is refused, naming the
     attribute and the field, so the printer never indexes a missing key."""
     broken = variant(
-        lambda d: d["StudyIdentifier"]["Attributes"]["id"].__setitem__("Inherited From", [{"ref": "x"}])
+        lambda d: d["StudyIdentifier"]["Attributes"]["id"].__setitem__(
+            "Inherited From", [{"ref": "x"}]
+        )
     )
     with pytest.raises(
-        usdm_spec.SpecShapeError, match="StudyIdentifier.id: Inherited From is not a list"
+        usdm_spec.SpecShapeError,
+        match="StudyIdentifier.id: Inherited From is not a list",
     ):
         usdm_spec.load(broken, verify=False)
 
@@ -365,7 +384,9 @@ def test_cli_unverifiable_spec_exits_3(monkeypatch, capsys):
 
 
 @code("USD0021")
-@pytest.mark.parametrize("extra", [[], ["--allow-unpinned"]], ids=["verify", "allow-unpinned"])
+@pytest.mark.parametrize(
+    "extra", [[], ["--allow-unpinned"]], ids=["verify", "allow-unpinned"]
+)
 @negative
 def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
     """When the package is not running from inside its repo, the command exits 6
@@ -399,7 +420,11 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
 def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
     """A file whose Type values are not reference lists makes --attributes exit 4
     with the attribute named, not crash with a traceback while printing."""
-    broken = variant(lambda d: d["StudyIdentifier"]["Attributes"]["scopeId"].__setitem__("Type", None))
+    broken = variant(
+        lambda d: d["StudyIdentifier"]["Attributes"]["scopeId"].__setitem__(
+            "Type", None
+        )
+    )
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
     assert usdm_spec.main(["--attributes", "StudyIdentifier", "--allow-unpinned"]) == 4
     assert "StudyIdentifier.scopeId: Type is not a list" in capsys.readouterr().err
@@ -414,7 +439,11 @@ def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 0
     out, err = capsys.readouterr()
-    assert out.splitlines() == ["Condition", "Identifier  [abstract]", "StudyIdentifier"]
+    assert out.splitlines() == [
+        "Condition",
+        "Identifier  [abstract]",
+        "StudyIdentifier",
+    ]
     assert "3 classes (2 concrete, 1 abstract)" in err
 
 
