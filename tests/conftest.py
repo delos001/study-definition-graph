@@ -229,7 +229,7 @@ class FakeRepo:
         path.write_bytes(content)
         return path
 
-    def entry(self, local: str, **overrides) -> dict:
+    def entry(self, local: str, **overrides: object) -> dict[str, object]:
         """Builds one manifest entry for a file in the fake repo.
 
         The entry is correct by default: when the file exists, its size and
@@ -237,7 +237,9 @@ class FakeRepo:
         it, or remove a field by passing None, so that exactly one thing is
         wrong."""
         path = self.root / local
-        entry = {
+        # The size is a number and the rest are text, so the entry's values are
+        # typed as anything.
+        entry: dict[str, object] = {
             "name": Path(local).name,
             "url": f"https://example.invalid/{Path(local).name}",
             "local": local,

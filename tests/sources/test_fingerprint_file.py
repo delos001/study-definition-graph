@@ -28,6 +28,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import hashlib
+from typing import Any
 
 import pytest
 
@@ -53,10 +54,12 @@ CONTENT = b"pinned bytes\n"
 # fixture writes the file most checks measure.
 
 
-def entry_for_bytes(content: bytes, **overrides) -> Entry:
+def entry_for_bytes(content: bytes, **overrides: Any) -> Entry:
     """Builds a manifest entry whose size and sha256 match the given bytes, with
     any field overridden so a check can stage exactly one difference."""
-    fields = dict(
+    # Typed as Any so the fields can be handed to Entry by name, which takes
+    # one text and one number.
+    fields: dict[str, Any] = dict(
         name="file.txt",
         url="https://example.invalid/file.txt",
         local="inputs/file.txt",
