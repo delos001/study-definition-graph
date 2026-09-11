@@ -24,19 +24,20 @@ Description: Supplies the conditions for the test_*.py files under tests/ to run
              when, by whom, and with what outcome. The run's own details are repeated
              on every row, so each file is complete on its own and any row can be
              joined to tests/validation_inventory.csv by its check code.
-               - What was tested is the component, the test file and its sha256, the
-                 fixture files and their sha256s, the code commit (flagged if
-                 uncommitted changes were present), and the pinned USDM data version
-                 (the manifest's recorded url and sha256, and whether the file was
-                 present).
-               - How is the exact command line, the Python and pytest versions, and the
-                 operating system.
+               - What was tested is the target file, the file of checks and its sha256,
+                 the fixture files and their sha256s, the code commit, and the pinned
+                 USDM data version (the manifest's recorded sha256, and whether the
+                 file was present). The commit is the parent of the commit that adds
+                 the record, since the record is written first.
+               - How is which checks were selected, and, at the far right of each row,
+                 the Python and pytest versions and the operating system.
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
-               - The outcome is pytest's own exit status and its meaning, the
-                 duration, and one row per check with its code, its kind, what it
-                 proves (its docstring's first paragraph), its result and, for a
-                 skip or a clean-up error, the reason.
+               - The outcome is the run's verdict, from pytest's own exit status, and
+                 one row per check with its code, its kind, what it proves (its
+                 docstring's first paragraph), its own outcome and, when that is not
+                 passed, the reason: the assertion message, the step that broke, or
+                 why it was skipped.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
@@ -458,8 +459,15 @@ def pytest_runtest_makereport(item, call):
     # better than it was.
     if outcome == "error" or row["outcome"] in ("passed", ""):
         row["outcome"] = outcome
-    if report.when == "teardown" and outcome == "error":
-        row["reason"] = "clean-up failed"
+    if outcome == "error":
+        row["reason"] = (
+            "clean-up failed" if report.when == "teardown" else "set-up failed"
+        )
+    if outcome == "failed":
+        # pytest keeps the one-line message of the failure, usually the
+        # assertion, on the report; that is what a reader needs first.
+        crash = getattr(report.longrepr, "reprcrash", None)
+        row["reason"] = crash.message.splitlines()[0] if crash else "failed"
     if outcome == "skipped":
         # For a skip, pytest stores the reason as the third item of a tuple of
         # file, line and reason. The reason is what a reader needs, usually
@@ -558,14 +566,14 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _pinned_data_version() -> tuple[str, str, str]:
+def _pinned_data_version() -> tuple[str, str]:
     """Say which version of the pinned model file was on the machine at run time.
 
-    The url from the manifest carries the DDF-RA commit. If the manifest cannot be
-    read, the first two values say so instead, and the record is still written.
+    The recorded sha256 identifies the version. If the manifest cannot be read, the
+    first value says so instead, and the record is still written.
 
     Returns:
-        The recorded url, the recorded sha256, and whether the file was present.
+        The recorded sha256, and whether the file was present.
     """
     present = "present" if (REPO_ROOT / PINNED_LOCAL).exists() else "absent"
     # The manifest is read directly here rather than through the package, so a
@@ -573,9 +581,9 @@ def _pinned_data_version() -> tuple[str, str, str]:
     try:
         entries = json.loads(MANIFEST.read_text(encoding="utf-8")).get("files", [])
         entry = next(e for e in entries if e.get("local") == PINNED_LOCAL)
-        return entry.get("url", "(no url)"), entry.get("sha256", "?"), present
+        return entry.get("sha256", "?"), present
     except (OSError, ValueError, StopIteration):
-        return "(manifest entry not readable)", "", present
+        return "(manifest entry not readable)", present
 
 
 def _unique(path: Path) -> Path:
@@ -611,36 +619,66 @@ def pytest_sessionstart(session):
     _started_at = time.monotonic()
 
 
-# The columns of a record, in the order they are written. The first group says
-# what the run was; the second says what each check did.
+# The columns of a record, in the order they are written: what each check proved
+# comes first, then what the run was, then the technical details a reader needs
+# only to reproduce a failure. The check columns carry the same names as
+# tests/validation_inventory.csv, so a row joins to it by check_name_code.
 RECORD_COLUMNS = (
     "run_id",
-    "verdict",
-    "pytest_exit_status",
-    "exit_meaning",
-    "started",
-    "duration_seconds",
-    "commit",
-    "uncommitted_changes",
-    "run_by",
-    "command",
-    "python_version",
-    "pytest_version",
-    "platform",
-    "pinned_usdm_url",
-    "pinned_usdm_sha256",
-    "pinned_usdm_present",
-    "fixture_sha256s",
-    "test_file",
-    "test_file_sha256",
-    "target_file",
-    "check_code",
+    "run_verdict",
+    "check_name_code",
     "check_name",
     "kind",
     "proves",
-    "outcome",
-    "reason",
+    "check_outcome",
+    "outcome_reason",
+    "check_file",
+    "target_file",
+    "pytest_exit_status",
+    "exit_meaning",
+    "started",
+    "commit",
+    "run_by",
+    "selection",
+    "check_file_sha256",
+    "fixture_sha256s",
+    "pinned_usdm_sha256",
+    "pinned_usdm_present",
+    "python_version",
+    "pytest_version",
+    "platform",
 )
+
+# pytest's own options that are not a selection of checks. Anything else on the
+# command line that names a path, or that follows -k or -m, is what was selected.
+_OWN_OPTIONS = ("--validation-report", "--validation-report-dir")
+
+
+def _selection(args: tuple[str, ...]) -> str:
+    """Say which checks the command line selected.
+
+    Args:
+        args: The command-line arguments pytest was given.
+
+    Returns:
+        The paths and the -k or -m filters given, joined with spaces, or all when
+        the whole suite was selected.
+    """
+    kept: list[str] = []
+    skip_next = False
+    for i, arg in enumerate(args):
+        if skip_next:
+            skip_next = False
+            continue
+        if arg in _OWN_OPTIONS:
+            skip_next = arg == "--validation-report-dir"
+            continue
+        if arg in ("-k", "-m") and i + 1 < len(args):
+            kept.append(f"{arg} {args[i + 1]}")
+            skip_next = True
+        elif not arg.startswith("-"):
+            kept.append(arg)
+    return " ".join(kept) or "all"
 
 
 def _target_of(test_file: Path) -> str:
@@ -690,11 +728,10 @@ def pytest_sessionfinish(session, exitstatus):
     # Everything the record states about the run is gathered once here and
     # written on every row.
     now = dt.datetime.now().astimezone()
-    duration = time.monotonic() - _started_at
-    started = now - dt.timedelta(seconds=duration)
+    started = now - dt.timedelta(seconds=time.monotonic() - _started_at)
     status = int(exitstatus)
     commit = _git("rev-parse", "--short", "HEAD")
-    url, sha256, present = _pinned_data_version()
+    sha256, present = _pinned_data_version()
     fixtures = (
         sorted(p for p in FIXTURE_DIR.glob("*") if p.is_file())
         if FIXTURE_DIR.exists()
@@ -702,19 +739,16 @@ def pytest_sessionfinish(session, exitstatus):
     )
     run = {
         "run_id": f"{now:%Y-%m-%d}_{commit}",
-        "verdict": "PASS" if status == 0 else "FAIL",
+        "run_verdict": "PASS" if status == 0 else "FAIL",
         "pytest_exit_status": status,
         "exit_meaning": EXIT_MEANING.get(status, "unknown status"),
         "started": f"{started:%Y-%m-%d %H:%M:%S %z}",
-        "duration_seconds": f"{duration:.1f}",
         "commit": commit,
-        "uncommitted_changes": "yes" if _git("status", "--porcelain") else "no",
         "run_by": _git("config", "user.name"),
-        "command": "pytest " + " ".join(session.config.invocation_params.args),
+        "selection": _selection(tuple(session.config.invocation_params.args)),
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
         "platform": platform.platform(),
-        "pinned_usdm_url": url,
         "pinned_usdm_sha256": sha256,
         "pinned_usdm_present": present,
         "fixture_sha256s": "; ".join(
@@ -731,8 +765,8 @@ def pytest_sessionfinish(session, exitstatus):
             by_file.setdefault(outcome["file"], []).append(outcome)
         for file, outcomes in by_file.items():
             per_file = {
-                "test_file": f"tests/{file.relative_to(TESTS_DIR).as_posix()}",
-                "test_file_sha256": _sha256(file),
+                "check_file": f"tests/{file.relative_to(TESTS_DIR).as_posix()}",
+                "check_file_sha256": _sha256(file),
                 "target_file": _target_of(file),
             }
             for outcome in outcomes:
@@ -740,12 +774,12 @@ def pytest_sessionfinish(session, exitstatus):
                     {
                         **run,
                         **per_file,
-                        "check_code": outcome["code"],
+                        "check_name_code": outcome["code"],
                         "check_name": outcome["name"],
                         "kind": outcome["kind"],
                         "proves": outcome["proves"],
-                        "outcome": outcome["outcome"],
-                        "reason": outcome["reason"],
+                        "check_outcome": outcome["outcome"],
+                        "outcome_reason": outcome["reason"],
                     }
                 )
     else:
@@ -754,16 +788,15 @@ def pytest_sessionfinish(session, exitstatus):
         rows.append(
             {
                 **run,
-                "test_file": "",
-                "test_file_sha256": "",
+                "check_file": "",
+                "check_file_sha256": "",
                 "target_file": "",
-                "check_code": "",
+                "check_name_code": "",
                 "check_name": "",
                 "kind": "",
                 "proves": "",
-                "outcome": "none",
-                "reason": "no check ran: pytest failed before any test ran, see the "
-                "terminal output of the command",
+                "check_outcome": "none",
+                "outcome_reason": "no check ran: pytest failed before any test ran",
             }
         )
 

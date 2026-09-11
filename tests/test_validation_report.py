@@ -131,18 +131,18 @@ def test_passing_run_is_recorded_as_pass(pytester):
     )
     assert result.ret == 0
     rows = the_record(out)
-    assert {r["verdict"] for r in rows} == {"PASS"}
+    assert {r["run_verdict"] for r in rows} == {"PASS"}
     assert {r["pytest_exit_status"] for r in rows} == {"0"}
     assert {r["exit_meaning"] for r in rows} == {"all tests passed"}
     adds = row_for(rows, "test_adds")
-    assert adds["check_code"] == "XYZ0001"
+    assert adds["check_name_code"] == "XYZ0001"
     assert adds["kind"] == "positive"
     assert adds["proves"] == "Two and two make four."
-    assert adds["outcome"] == "passed"
+    assert adds["check_outcome"] == "passed"
     left_out = row_for(rows, "test_left_out")
     assert left_out["kind"] == "unmarked"
-    assert left_out["outcome"] == "skipped"
-    assert left_out["reason"] == "not today"
+    assert left_out["check_outcome"] == "skipped"
+    assert left_out["outcome_reason"] == "not today"
 
 
 @code("TST0002")
@@ -188,18 +188,19 @@ def test_cleanup_failure_is_recorded_as_fail(pytester):
     )
     assert result.ret == 1
     rows = the_record(out)
-    assert {r["verdict"] for r in rows} == {"FAIL"}
+    assert {r["run_verdict"] for r in rows} == {"FAIL"}
     assert {r["pytest_exit_status"] for r in rows} == {"1"}
     row = row_for(rows, "test_checks_pass_but_cleanup_fails")
-    assert row["outcome"] == "error"
-    assert row["reason"] == "clean-up failed"
-    assert "passed" not in {r["outcome"] for r in rows}
+    assert row["check_outcome"] == "error"
+    assert row["outcome_reason"] == "clean-up failed"
+    assert "passed" not in {r["check_outcome"] for r in rows}
 
 
 @code("TST0004")
 @negative
 def test_failing_assertion_is_recorded_as_fail(pytester):
-    """A test whose checks fail gives a FAIL record with that row marked failed."""
+    """A test whose checks fail gives a FAIL record with that row marked failed and
+    the assertion message as its reason."""
     result, out = run_suite(
         pytester,
         '''
@@ -210,10 +211,11 @@ def test_failing_assertion_is_recorded_as_fail(pytester):
     )
     assert result.ret == 1
     rows = the_record(out)
-    assert {r["verdict"] for r in rows} == {"FAIL"}
+    assert {r["run_verdict"] for r in rows} == {"FAIL"}
     row = row_for(rows, "test_wrong")
     assert row["proves"] == "Claims two and two make five."
-    assert row["outcome"] == "failed"
+    assert row["check_outcome"] == "failed"
+    assert row["outcome_reason"].startswith("assert")
 
 
 @code("TST0005")
@@ -236,8 +238,8 @@ def test_setup_failure_is_recorded_as_error(pytester):
     )
     assert result.ret == 1
     rows = the_record(out)
-    assert {r["verdict"] for r in rows} == {"FAIL"}
-    assert row_for(rows, "test_never_runs")["outcome"] == "error"
+    assert {r["run_verdict"] for r in rows} == {"FAIL"}
+    assert row_for(rows, "test_never_runs")["check_outcome"] == "error"
 
 
 @code("TST0006")
@@ -251,8 +253,8 @@ def test_file_that_will_not_load_still_gets_a_fail_record(pytester):
     assert result.ret == 2
     rows = the_record(out)
     assert len(rows) == 1
-    assert rows[0]["verdict"] == "FAIL"
+    assert rows[0]["run_verdict"] == "FAIL"
     assert rows[0]["exit_meaning"] == "the run was interrupted"
-    assert rows[0]["outcome"] == "none"
-    assert rows[0]["reason"].startswith("no check ran")
+    assert rows[0]["check_outcome"] == "none"
+    assert rows[0]["outcome_reason"].startswith("no check ran")
     assert next(out.glob("*.csv")).name.startswith("run_")
