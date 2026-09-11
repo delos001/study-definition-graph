@@ -6,8 +6,8 @@
 # section runs after the clone. Committed rather than left in .git/hooks so a
 # fresh clone gets it.
 #
-# The first two checks use only the standard library, so they run from any
-# terminal. The third needs ruff and mypy from the sdg conda environment; its
+# The first three checks use only the standard library, so they run from any
+# terminal. The fourth needs ruff and mypy from the sdg conda environment; its
 # script finds them on the path when that environment is active and runs them
 # through conda when it is not. check_facts.py (reads every pinned file) and
 # acquire_sources (hashes 42 files) stay manual runs; see the README.
@@ -28,6 +28,14 @@ python scripts/build_index.py --check || {
 # refused here so the rule holds whoever made the edit. Standard library only.
 python scripts/verify_headers.py || {
   echo "pre-commit: fix the header blocks named above, then commit again"
+  exit 1
+}
+
+# tests/validation_inventory.csv is generated from the checks in the test files.
+# A commit that changes a check without regenerating the inventory ships a list
+# that disagrees with the checks it describes. Standard library only.
+python scripts/build_inventory.py --check || {
+  echo "pre-commit: run 'python scripts/build_inventory.py' and stage tests/validation_inventory.csv"
   exit 1
 }
 

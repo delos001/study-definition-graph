@@ -20,7 +20,7 @@ pytest --validation-report   # run every check and write a validation record (se
 | `sources/`, `usdm/`, `scripts/` | One subfolder per code folder, mirroring `src/sdg/sources/`, `src/sdg/usdm/` and `scripts/`. A test file lives at the same relative path as the file it tests and carries its name: `tests/sources/test_fetch_file.py` tests `src/sdg/sources/fetch_file.py`. |
 | `test_validation_report.py` | The checks for the record-writer in `conftest.py`. It stays at the top level because `conftest.py` does. |
 | `fixtures/` | Small input files the checks read instead of the pinned data. `usdm_three_classes.yml` holds three classes copied verbatim from the pinned `dataStructure.yml`. |
-| `validation_inventory.csv` | One row per check: the code file it targets, the test file, the check name, its permanent id (the `@code` marker), whether it is positive or negative, the one sentence it proves, its status and its version. Kept by hand. |
+| `validation_inventory.csv` | One row per check: the code file it targets, the test file, the check name, its permanent id (the `@code` marker), whether it is positive or negative, the one sentence it proves, its status and its version. Generated from the test files by `python scripts/build_inventory.py`; status and version are the hand-kept columns and are carried over by id. The pre-commit hook refuses a commit whose inventory is stale. |
 | `validation/` | Validation records, one CSV file per validation run, one row per check. Written only when asked; committed. |
 
 ## Validation records

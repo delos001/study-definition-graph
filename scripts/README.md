@@ -20,6 +20,20 @@ python scripts/build_index.py --quiet
     print nothing; use the exit code
 ```
 
+## build_inventory.py
+
+Generates tests/validation_inventory.csv, the list of every check in the test files, from the checks themselves, so the inventory cannot drift from the code it describes. Each check's name, its permanent id (the @code marker), whether it is positive or negative, and the sentence it proves (its docstring's first paragraph) are read from the file. Two columns are kept by hand and carried over from the existing inventory by id: status and version. A new check starts as active at version 1. A check that no longer exists drops out.
+
+```
+python scripts/build_inventory.py
+    regenerate the inventory
+python scripts/build_inventory.py --check
+    report whether the inventory on disk is current; write nothing.
+    For hooks.
+python scripts/build_inventory.py --quiet
+    print nothing; use the exit code
+```
+
 ## check_facts.py
 
 Recomputes every countable fact asserted in the project's markdown and compares it against what the documents actually say.

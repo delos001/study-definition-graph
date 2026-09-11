@@ -54,7 +54,7 @@ python -m sdg.sources.acquire_sources
 
 Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
 
-The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes, if any Python file under `src/sdg/` or `scripts/` lacks the full header block, or if any Python file fails ruff or mypy. The first two checks use only the standard library and run from any terminal. The ruff and mypy check needs the `sdg` environment: when it is active the tools run directly, in about a second warm; when it is not, they run through `conda run`, which is slower. `.githooks/README.md` lists every check.
+The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes, if any Python file under `src/sdg/` or `scripts/` lacks the full header block, if `tests/validation_inventory.csv` is out of date with the checks it lists, or if any Python file fails ruff or mypy. The first three checks use only the standard library and run from any terminal. The ruff and mypy check needs the `sdg` environment: when it is active the tools run directly, in about a second warm; when it is not, they run through `conda run`, which is slower. `.githooks/README.md` lists every check.
 
 Then confirm it worked. All six should exit 0:
 
