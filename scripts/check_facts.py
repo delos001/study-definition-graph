@@ -21,8 +21,8 @@ Description: Recomputes every countable fact asserted in the project's markdown
              owner is the citation and its access date, not this script. Such
              figures live behind a [n] reference marker instead.
 
-Inputs:      inputs/**              (read-only, pinned, each verified via sdg.pinned)
-             manifests/*.json       (read-only, via sdg.pinned)
+Inputs:      inputs/**              (read-only, pinned, each verified through verify_pinned)
+             manifests/*.json       (read-only, through the manifest reader)
              *.md and docs/*.md     (read-only, scanned for the stated figure)
 
 Outputs:     A report on stdout. Writes nothing to disk.
@@ -42,7 +42,7 @@ Exit codes:  0  every stated figure matches the source it came from
                 is, and how to recover
              4  the USDM model file is the pinned one but is not shaped like
                 USDM v4; the message names the class or attribute that broke
-             5  not used here. In sdg.usdm_spec it means an unknown class name,
+             5  not used here. In sdg.usdm.usdm_spec it means an unknown class name,
                 which cannot happen in this script; left unassigned so the
                 number keeps one meaning across the repo
              6  the sdg package is installed but not from inside its repo
@@ -50,7 +50,7 @@ Exit codes:  0  every stated figure matches the source it came from
                 gives the install command
              7  the sdg package is not installed at all
 
-             Codes 3, 4 and 6 mean the same thing as in sdg.usdm_spec, so one
+             Codes 3, 4 and 6 mean the same thing as in sdg.usdm.usdm_spec, so one
              number names one cause wherever it appears.
 
 Date:        2026-08-18
@@ -74,14 +74,15 @@ import openpyxl
 # any check runs. The three exception classes are needed at module level so the
 # measurement loop can give each cause its own exit code.
 try:
-    from sdg import usdm_spec
     from sdg.console_output import use_utf8_output
-    from sdg.pinned import IntegrityError, NotInRepoError, pinned
-    from sdg.usdm_spec import SpecShapeError
+    from sdg.sources.read_manifests import NotInRepoError
+    from sdg.sources.verify_pinned import IntegrityError, verify_pinned
+    from sdg.usdm import usdm_spec
+    from sdg.usdm.usdm_spec import SpecShapeError
 
     SDG_MISSING: ImportError | None = None
 except ImportError as exc:
-    usdm_spec = pinned = None
+    usdm_spec = verify_pinned = None
     IntegrityError = NotInRepoError = SpecShapeError = ()  # never matched
     SDG_MISSING = exc
 
@@ -104,13 +105,14 @@ DOCS = [
 ]
 
 
-### Measurements ###############################################################
+#######################################################################################
+### Measurements ###
 #
 # One function per countable fact. Each returns the true value, computed from a
 # pinned file. They are deliberately small and independent so that a failing
 # measurement names exactly one fact.
 #
-# Every file is obtained through sdg.pinned.pinned(), which checks it against
+# Every file is obtained through verify_pinned(), which checks it against
 # its manifest before it is read. A figure certified here is only worth
 # something if it was derived from the file that was actually pinned; a swapped
 # or edited copy fails the check (exit 3) instead of quietly certifying the
@@ -132,7 +134,9 @@ def pinned_pdf_pages() -> int:
     # time beyond defining its table.
     from read_pdf import DOCUMENTS
 
-    return sum(len(fitz.open(pinned(entry.path).path)) for entry in DOCUMENTS.values())
+    return sum(
+        len(fitz.open(verify_pinned(entry.path).path)) for entry in DOCUMENTS.values()
+    )
 
 
 def ig_sections() -> int:
@@ -143,7 +147,7 @@ def ig_sections() -> int:
     """
     return len(
         fitz.open(
-            pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path
+            verify_pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path
         ).get_toc()
     )
 
@@ -155,7 +159,7 @@ def core_rules() -> int:
         The rule count.
     """
     sheet = openpyxl.load_workbook(
-        pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path,
+        verify_pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path,
         read_only=True,
     )["Version 3.0 and 4.0 CORE rules"]
     return sum(1 for row in list(sheet.iter_rows(values_only=True))[1:] if row[0])
@@ -173,7 +177,7 @@ def m11_elements() -> int:
     text = "".join(
         page.get_text()
         for page in fitz.open(
-            pinned(
+            verify_pinned(
                 STANDARDS
                 / "ich"
                 / "m11_step4"
@@ -191,7 +195,7 @@ def uml_delta_rows() -> int:
         The line count.
     """
     path = STANDARDS / "cdisc" / "usdm_v4" / "UML_DELTA_3-0-0_4-0-0.csv"
-    return len(pinned(path).read_text().splitlines())
+    return len(verify_pinned(path).read_text().splitlines())
 
 
 def dictionary_codes() -> int:
@@ -200,14 +204,16 @@ def dictionary_codes() -> int:
     Returns:
         The code count.
     """
-    text = pinned(STANDARDS / "cdisc" / "usdm_v4" / "dataDictionary.MD").read_text()
+    text = verify_pinned(
+        STANDARDS / "cdisc" / "usdm_v4" / "dataDictionary.MD"
+    ).read_text()
     return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
 def usdm_concrete_classes() -> int:
     """Count the concrete USDM classes, through the model loader.
 
-    The count goes through sdg.usdm_spec, the one doorway to the standard, rather than
+    The count goes through sdg.usdm.usdm_spec, the one doorway to the standard, rather than
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
     usdm_ig_ledger.md makes. The loader also checks the file is shaped like USDM v4, the
@@ -236,7 +242,7 @@ def shared_codes() -> int:
     text = "".join(
         page.get_text()
         for page in fitz.open(
-            pinned(
+            verify_pinned(
                 STANDARDS
                 / "ich"
                 / "m11_step4"
@@ -248,7 +254,8 @@ def shared_codes() -> int:
 
     terminology = set()
     for sheet in openpyxl.load_workbook(
-        pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CT.xlsx").path, read_only=True
+        verify_pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CT.xlsx").path,
+        read_only=True,
     ):
         for row in sheet.iter_rows(values_only=True):
             for cell in row:
@@ -292,7 +299,7 @@ def examples_with_estimands() -> int:
         if not exports:
             continue
 
-        document = json.loads(pinned(exports[0]).read_text())
+        document = json.loads(verify_pinned(exports[0]).read_text())
         designs = document["study"]["versions"][0]["studyDesigns"]
         if any(design.get("estimands") for design in designs):
             count += 1
@@ -329,7 +336,8 @@ FACTS = [
 ]
 
 
-### Reporting ##################################################################
+#######################################################################################
+### Reporting ###
 
 
 # Small counts are often written as words in prose. Mapping them here keeps the

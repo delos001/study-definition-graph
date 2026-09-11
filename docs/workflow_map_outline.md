@@ -54,4 +54,7 @@ Everything here is run by hand, so there is no workflow and step split.
   - pending
 - upkeep:
   - build_index.py
-  - verify_doc_figures.py
+  - check_facts.py
+  - check_python_files.py
+  - find_unrecorded_files.py
+  - verify_headers.py

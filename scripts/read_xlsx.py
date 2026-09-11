@@ -44,7 +44,8 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 from sdg.console_output import use_utf8_output
 
-### Constants ##################################################################
+#######################################################################################
+### Settings ###
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 INPUTS_DIR = REPO_ROOT / "inputs"
@@ -60,7 +61,8 @@ LOCK_FILE_PREFIX = "~$"
 MAX_CELL_WIDTH = 40
 
 
-### Discovery ##################################################################
+#######################################################################################
+### Discovery ###
 
 
 def find_workbooks() -> list[Path]:
@@ -116,7 +118,8 @@ def resolve_workbook(argument: str) -> Path | None:
     return None
 
 
-### Cell handling ##############################################################
+#######################################################################################
+### Cell handling ###
 
 
 def cell_text(value: object) -> str:
@@ -160,7 +163,8 @@ def read_rows(worksheet: Worksheet) -> list[list[str]]:
     return rows
 
 
-### Output formats #############################################################
+#######################################################################################
+### Output formats ###
 
 
 def print_table(rows: list[list[str]]) -> None:
@@ -230,7 +234,8 @@ def print_records(rows: list[list[str]]) -> None:
         print()
 
 
-### Search #####################################################################
+#######################################################################################
+### Search ###
 
 
 def search_workbook(path: Path, term: str) -> list[str]:
@@ -250,6 +255,8 @@ def search_workbook(path: Path, term: str) -> list[str]:
     needle = term.lower()
     hits = []
 
+    # A read-only workbook keeps its file open until it is closed, so the close
+    # sits in a finally and happens however the search ends.
     workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
     try:
         for sheet_name in workbook.sheetnames:
@@ -274,15 +281,19 @@ def search_workbook(path: Path, term: str) -> list[str]:
     return hits
 
 
-### Entry point ################################################################
+#######################################################################################
+### Command line ###
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """Parse the arguments, run one mode, and give back the exit code.
 
     Modes are checked in order of specificity: --all --find searches every workbook,
     --find searches one, --sheet prints one sheet, and a bare workbook name lists its
     sheets.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
 
     Returns:
         The exit code, as the header block lists them.
@@ -312,7 +323,7 @@ def main() -> int:
         default="table",
         help="table (default) or records, one field per line, for wide sheets",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Mode: search every workbook. Handled before workbook resolution because
     # --all makes the positional workbook argument meaningless.
@@ -349,6 +360,7 @@ def main() -> int:
         print("\n".join(hits))
         return 0
 
+    # As in search_workbook: the file is closed however the mode ends.
     workbook = openpyxl.load_workbook(workbook_path, read_only=True, data_only=True)
     try:
         # Mode: list the sheets. This is the default because these workbooks have
@@ -392,4 +404,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

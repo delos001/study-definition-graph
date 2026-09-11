@@ -44,6 +44,9 @@ import sys
 from sdg.sources import ManifestError, NotInRepoError, manifests
 from sdg.sources.read_manifests import REPO_ROOT, Manifest
 
+#######################################################################################
+### Settings ###
+
 # The one folder that holds pinned files. The Claude Code hook in
 # .claude/hooks/ refuses edits under the same folder; the two agree because
 # there is only one name.
@@ -56,6 +59,10 @@ OWN_FILES = ("README.md", ".gitkeep")
 # Excel writes a ~$name.xlsx lock file beside any workbook that is open. It is
 # not data and goes away when the workbook is closed.
 LOCK_PREFIX = "~$"
+
+
+#######################################################################################
+### Find the unrecorded files ###
 
 
 def unrecorded_files(found: list[Manifest]) -> list[str]:
@@ -85,6 +92,10 @@ def unrecorded_files(found: list[Manifest]) -> list[str]:
             stray.append(local)
 
     return sorted(stray)
+
+
+#######################################################################################
+### Command line ###
 
 
 def main(argv: list[str] | None = None) -> int:

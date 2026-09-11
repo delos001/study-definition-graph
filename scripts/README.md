@@ -58,13 +58,20 @@ python scripts/find_unrecorded_files.py --quiet
 Reads part of any pinned PDF standard in this repo and prints it as plain text, so a working session can consult a specification without loading the whole document.
 
 ```
-python scripts/read_pdf.py --docs                 list registered documents
-python scripts/read_pdf.py 4.23                   one IG section
-python scripts/read_pdf.py "Extension"            match on title text
-python scripts/read_pdf.py --pages 26-31          explicit page range
-python scripts/read_pdf.py --find footnote        search all pages
-python scripts/read_pdf.py --list                 print the section map
+python scripts/read_pdf.py --docs
+    list the registered documents and whether each is downloaded
+python scripts/read_pdf.py 4.23
+    print one section of the USDM IG, by number
+python scripts/read_pdf.py "Extension"
+    print the section whose title contains the text
+python scripts/read_pdf.py --pages 26-31
+    print an explicit page range
+python scripts/read_pdf.py --find footnote
+    search every page for a term
+python scripts/read_pdf.py --list
+    print the section map
 python scripts/read_pdf.py --doc m11-techspec --find "Number of Participants"
+    the same modes on another registered document
 python scripts/read_pdf.py --doc m11-template --pages 12-14
 python scripts/read_pdf.py --doc model-diagram --find Encounter
 ```
