@@ -53,6 +53,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Callable
 
 from .fetch_file import FetchError, fetch
 from .finalize_file import discard, place
@@ -63,7 +64,7 @@ from .read_manifests import ManifestError, NotInRepoError, manifests
 ### Reporting ###
 
 
-def make_reporter(quiet: bool):
+def make_reporter(quiet: bool) -> Callable[..., None]:
     """Returns a print function that stays silent when --quiet was given.
     Passing the function around means nothing below has to remember to check
     the flag before printing."""

@@ -42,7 +42,7 @@ import sys
 # editable install (pip install -e ., README.md step 1b) the same as the
 # pipeline does.
 from sdg.sources import ManifestError, NotInRepoError, manifests
-from sdg.sources.read_manifests import REPO_ROOT
+from sdg.sources.read_manifests import REPO_ROOT, Manifest
 
 # The one folder that holds pinned files. The Claude Code hook in
 # .claude/hooks/ refuses edits under the same folder; the two agree because
@@ -58,7 +58,7 @@ OWN_FILES = ("README.md", ".gitkeep")
 LOCK_PREFIX = "~$"
 
 
-def unrecorded_files(found) -> list[str]:
+def unrecorded_files(found: list[Manifest]) -> list[str]:
     """Walks inputs/ and gives back the repo-relative paths of files no entry
     records, sorted, with the project's own files left out."""
     recorded = {entry.local for manifest in found for entry in manifest.entries}

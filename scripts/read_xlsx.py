@@ -40,6 +40,7 @@ import sys
 from pathlib import Path
 
 import openpyxl
+from openpyxl.worksheet.worksheet import Worksheet
 
 from sdg.console_output import use_utf8_output
 
@@ -113,7 +114,7 @@ def resolve_workbook(argument: str) -> Path | None:
 ### Cell handling ##############################################################
 
 
-def cell_text(value) -> str:
+def cell_text(value: object) -> str:
     """
     Render one cell value as a single-line string.
 
@@ -130,7 +131,7 @@ def cell_text(value) -> str:
     return str(value).replace("\n", " ").replace("\r", " ").strip()
 
 
-def read_rows(worksheet) -> list[list[str]]:
+def read_rows(worksheet: Worksheet) -> list[list[str]]:
     """
     Read a worksheet into a list of string rows, dropping fully empty rows.
 
