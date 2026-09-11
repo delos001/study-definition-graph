@@ -1,6 +1,6 @@
 """
 Script:      test_usdm_spec.py
-Description: Automated checks for src/sdg/usdm_spec.py, the one module that reads
+Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              the pinned USDM model. Each check sets up a situation, runs the
              loader, and compares what happened to what the loader's own
              documentation promises. Run them all with one command; green means
@@ -15,23 +15,24 @@ Description: Automated checks for src/sdg/usdm_spec.py, the one module that read
              - Real-file checks read the pinned dataStructure.yml itself and
                assert the measured facts about it (86 classes, four multi-target
                attributes, and that the fixture's classes are identical to the
-               pinned ones). They skip, with a reason, when data/ is not
+               pinned ones). They skip, with a reason, when inputs/ is not
                downloaded, so the logic checks still run on a fresh clone.
 
              Every check is marked positive (the right thing works) or negative
              (the broken thing fails, and the error names the right cause).
 
-Inputs:      tests/fixtures/usdm_three_classes.yml         (read-only)
-             data/manifests/raw_usdm_v4.json                (read-only, via sdg.pinned)
-             data/raw/usdm_v4/uml/dataStructure.yml         (read-only; real-file
-                                                             checks only)
+Inputs:      tests/fixtures/usdm_three_classes.yml               (read-only)
+             manifests/cdisc_usdm_v4.json                         (read-only, through
+                                                                   the manifest reader)
+             inputs/standards/cdisc/usdm_v4/dataStructure.yml     (read-only; real-file
+                                                                   checks only)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              conftest.py writes tests/validation/ records when asked.
 
-Usage:       pytest tests/test_usdm_spec.py
+Usage:       pytest tests/usdm/test_usdm_spec.py
                  run these checks
-             pytest tests/test_usdm_spec.py -v
+             pytest tests/usdm/test_usdm_spec.py -v
                  one line per check with its result
              pytest --validation-report
                  also write the validation record (see conftest.py)
@@ -49,16 +50,16 @@ from pathlib import Path
 import pytest
 import yaml
 
-from sdg import usdm_spec
+from sdg.usdm import usdm_spec
 
-FIXTURE = Path(__file__).resolve().parent / "fixtures" / "usdm_three_classes.yml"
+FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "usdm_three_classes.yml"
 FIXTURE_CLASSES = ("Condition", "Identifier", "StudyIdentifier")
 
-# The real-file checks need the pinned download. On a clone without data/ they
+# The real-file checks need the pinned download. On a clone without inputs/ they
 # skip and say why, rather than fail and hide the logic checks' results.
 needs_pinned_file = pytest.mark.skipif(
     not usdm_spec.DEFAULT_SPEC.exists(),
-    reason="pinned dataStructure.yml not downloaded; run scripts/fetch_sources.py",
+    reason="pinned dataStructure.yml not downloaded; run python -m sdg.sources.acquire_sources",
 )
 
 positive = pytest.mark.positive
@@ -78,18 +79,35 @@ code = pytest.mark.code
 
 @pytest.fixture
 def three() -> dict:
-    """Produces the fixture file parsed by the loader itself, with the checksum
-    check off because no manifest records a test fixture."""
+    """Give a check the fixture file, parsed by the module itself.
+
+    The manifest check is off, because no manifest records a test fixture.
+
+    Returns:
+        The parsed fixture, a dict keyed by class name.
+    """
     return usdm_spec.load(FIXTURE, verify=False)
 
 
 @pytest.fixture
 def variant(tmp_path):
-    """Produces a function that takes one change to apply to the fixture's parsed
-    form, writes the changed copy to a temporary file, and hands back that path.
-    The fixture on disk is never touched."""
+    """Give a check a function for writing a deliberately broken copy of the fixture.
+
+    The fixture on disk is never touched; the changed copy goes to a temporary file.
+
+    Returns:
+        The function that makes a variant.
+    """
 
     def make(change) -> Path:
+        """Apply one change to the fixture's parsed form and write the result.
+
+        Args:
+            change: A function that alters the parsed fixture in place.
+
+        Returns:
+            The path of the changed copy.
+        """
         data = yaml.safe_load(FIXTURE.read_text(encoding="utf-8"))
         change(data)
         path = tmp_path / "variant.yml"
@@ -303,8 +321,9 @@ def test_inherited_from_without_ref_is_named(variant):
 #######################################################################################
 ### Refusing a file that cannot be trusted (IntegrityError, exit 3) ###
 #
-# The per-cause messages are sdg.pinned's and are proven in test_pinned.py. These
-# two prove the loader is wired to it: a file no manifest records, and a file
+# The per-cause messages are the pinned-file check's and are proven in
+# tests/sources/test_verify_pinned.py. These two prove the module is wired to it: a
+# file no manifest records, and a file
 # whose fingerprint differs, are refused through load() with the same messages.
 
 
@@ -321,13 +340,13 @@ def test_missing_file_raises_filenotfound(tmp_path):
 @negative
 def test_unrecorded_file_is_refused_through_load():
     """A file no manifest entry records (this fixture, with the check left on)
-    is refused by load() with sdg.pinned's message saying exactly that, not with
-    the fingerprint-mismatch remedy."""
+    is refused by load() with the pinned-file check's message saying exactly that,
+    not with the fingerprint-mismatch remedy."""
     with pytest.raises(usdm_spec.IntegrityError) as caught:
         usdm_spec.load(FIXTURE)
     message = str(caught.value)
     assert "no manifest entry records it" in message
-    assert "fetch_sources" not in message
+    assert "acquire_sources" not in message
 
 
 @code("USD0017")
@@ -365,12 +384,12 @@ def test_cli_no_mode_exits_2():
 @negative
 def test_cli_missing_spec_exits_1(monkeypatch, capsys):
     """When the pinned file is not downloaded, the command exits 1 and tells the
-    user to run fetch_sources.py."""
+    user to run the acquire workflow."""
     # A path under the repo, because the message prints it relative to the repo
     # root, as it does for the real pinned path. Nothing is written there.
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE.with_name("nope.yml"))
     assert usdm_spec.main(["--list-classes"]) == 1
-    assert "fetch_sources" in capsys.readouterr().err
+    assert "acquire_sources" in capsys.readouterr().err
 
 
 @code("USD0020")
@@ -395,13 +414,13 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
     folder with no repo in it, and the spec path, which follows that root, does
     not exist there. Checked with and without --allow-unpinned, since that flag
     bypasses the manifest check and must not bypass this one."""
-    from sdg import pinned as pinned_mod
+    from sdg.sources import read_manifests
 
-    monkeypatch.setattr(pinned_mod, "REPO_ROOT", tmp_path)
-    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", tmp_path / "data" / "nope.yml")
+    monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path)
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", tmp_path / "inputs" / "nope.yml")
     assert usdm_spec.main(["--list-classes", *extra]) == 6
     err = capsys.readouterr().err
-    assert "pip install -e ." in err and "fetch_sources" not in err
+    assert "pip install -e ." in err and "acquire_sources" not in err
 
 
 @code("USD0022")
@@ -475,7 +494,7 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 #
 # These prove the assumptions the logic checks rely on hold for the actual
 # standard, and that the fixture is a faithful sample of it. They are the only
-# checks that need data/ downloaded.
+# checks that need inputs/ downloaded.
 
 
 @code("USD0027")
