@@ -14,14 +14,16 @@ Description: Supplies the conditions for the test_*.py files under tests/ to run
                     - fake_repo builds a throwaway repo with pyproject.toml, manifests/
                       and inputs/.
 
-             The --validation-report flag enables the writing of validation records, one
-             Markdown record per test file, into tests/validation/.
+             The --validation-report flag enables the writing of a validation record:
+             one CSV file per run, one row per check, into tests/validation/.
 
              The fixtures stage the data so the real manifests/ and inputs/ are never
              touched.
 
              A record is meant to be auditable, so it identifies what was tested, how,
-             when, by whom, and with what outcome.
+             when, by whom, and with what outcome. The run's own details are repeated
+             on every row, so each file is complete on its own and any row can be
+             joined to tests/validation_inventory.csv by its check code.
                - What was tested is the component, the test file and its sha256, the
                  fixture files and their sha256s, the code commit (flagged if
                  uncommitted changes were present), and the pinned USDM data version
@@ -31,9 +33,10 @@ Description: Supplies the conditions for the test_*.py files under tests/ to run
                  operating system.
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
-               - The outcome is pytest's own exit status, the pass/fail/error/skip
-                 counts, the duration, and one row per test with its kind, what it
-                 proves (its docstring's first paragraph) and its result.
+               - The outcome is pytest's own exit status and its meaning, the
+                 duration, and one row per check with its code, its kind, what it
+                 proves (its docstring's first paragraph), its result and, for a
+                 skip or a clean-up error, the reason.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
@@ -43,8 +46,9 @@ Description: Supplies the conditions for the test_*.py files under tests/ to run
                - a file that fails to load,
                - an internal error.
              Therefore the record can never say PASS when the terminal said otherwise.
-             The per-test rows are the detail; the exit status is the verdict. When
-             pytest fails before any test ran, a record is still written, saying so.
+             The rows are the detail; the exit status is the verdict. When pytest
+             fails before any test ran, a record is still written, with one row
+             saying that no check ran.
 
              It registers two markers the tests use to show which kind of test each is:
                - @positive means the right thing works,
@@ -58,17 +62,14 @@ Inputs:      git (for the commit hash, dirty flag and user name; read-only)
              inputs/standards/cdisc/usdm_v4/dataStructure.yml (existence checked only)
              tests/fixtures/* (read-only; hashed)
 
-Outputs:     Nothing, unless --validation-report is given. Then it writes:
-                - tests/validation/<folder>_<component>_<YYYY-MM-DD>_<commit>.md,
-                - one per test file, where <folder> is the test file's subfolder
-                  (sources, usdm, scripts; none for a top-level file),
-                - or run_<date>_<commit>.md if no test ran.
+Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
+             tests/validation/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
              An existing name is never overwritten; it gets a numeric suffix.
 
 Usage:       pytest
                  run every test, write nothing
              pytest --validation-report
-                 run every test and write the record(s) to tests/validation/
+                 run every test and write the record to tests/validation/
              pytest --validation-report --validation-report-dir <folder>
                  same, writing to another folder (the record-writer's own
                  tests use this to write into a temporary folder)
@@ -82,6 +83,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import csv
 import datetime as dt
 import hashlib
 import json
@@ -444,6 +446,7 @@ def pytest_runtest_makereport(item, call):
         item.nodeid,
         {
             "file": Path(str(item.fspath)),
+            "code": _code(item),
             "name": item.name,
             "kind": _kind(item),
             "proves": _first_paragraph(item.obj.__doc__),
@@ -467,6 +470,19 @@ def pytest_runtest_makereport(item, call):
             else str(report.longrepr)
         )
         row["reason"] = reason.removeprefix("Skipped: ")
+
+
+def _code(item) -> str:
+    """Read a check's permanent id off its code marker.
+
+    Args:
+        item: The check.
+
+    Returns:
+        The id, or an empty string when the check carries no code marker.
+    """
+    marker = item.get_closest_marker("code")
+    return str(marker.args[0]) if marker and marker.args else ""
 
 
 def _kind(item) -> str:
@@ -542,29 +558,24 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _pinned_data_version() -> str:
+def _pinned_data_version() -> tuple[str, str, str]:
     """Say which version of the pinned model file was on the machine at run time.
 
-    The line holds the url from the manifest, which carries the DDF-RA commit, the
-    recorded sha256, and whether the file was present on disk. If the manifest cannot be
-    read, the line says so instead, and the record is still written.
+    The url from the manifest carries the DDF-RA commit. If the manifest cannot be
+    read, the first two values say so instead, and the record is still written.
 
     Returns:
-        One line for the record.
+        The recorded url, the recorded sha256, and whether the file was present.
     """
-    present = (
-        "present"
-        if (REPO_ROOT / PINNED_LOCAL).exists()
-        else "absent (real-file checks skipped)"
-    )
+    present = "present" if (REPO_ROOT / PINNED_LOCAL).exists() else "absent"
     # The manifest is read directly here rather than through the package, so a
     # broken package cannot stop the record from being written.
     try:
         entries = json.loads(MANIFEST.read_text(encoding="utf-8")).get("files", [])
         entry = next(e for e in entries if e.get("local") == PINNED_LOCAL)
-        return f"{entry.get('url', '(no url)')}, sha256 `{entry.get('sha256', '?')}`, {present}"
+        return entry.get("url", "(no url)"), entry.get("sha256", "?"), present
     except (OSError, ValueError, StopIteration):
-        return f"(manifest entry not readable), {present}"
+        return "(manifest entry not readable)", "", present
 
 
 def _unique(path: Path) -> Path:
@@ -600,11 +611,74 @@ def pytest_sessionstart(session):
     _started_at = time.monotonic()
 
 
-def pytest_sessionfinish(session, exitstatus):
-    """Write the records after the whole run, if asked.
+# The columns of a record, in the order they are written. The first group says
+# what the run was; the second says what each check did.
+RECORD_COLUMNS = (
+    "run_id",
+    "verdict",
+    "pytest_exit_status",
+    "exit_meaning",
+    "started",
+    "duration_seconds",
+    "commit",
+    "uncommitted_changes",
+    "run_by",
+    "command",
+    "python_version",
+    "pytest_version",
+    "platform",
+    "pinned_usdm_url",
+    "pinned_usdm_sha256",
+    "pinned_usdm_present",
+    "fixture_sha256s",
+    "test_file",
+    "test_file_sha256",
+    "target_file",
+    "check_code",
+    "check_name",
+    "kind",
+    "proves",
+    "outcome",
+    "reason",
+)
 
-    Nothing is written unless --validation-report was given. The verdict is PASS only
-    when pytest's own exit number is 0.
+
+def _target_of(test_file: Path) -> str:
+    """Name the code file a test file proves.
+
+    tests/ mirrors the code. A test file in tests/scripts/ tests the script of the
+    same name in scripts/. A test file in any other subfolder tests the file of the
+    same name in that folder under src/sdg/. A test file at the top level has no code
+    file to mirror; the one there, test_validation_report.py, tests the record-writer
+    in this file, so its target is the test file itself.
+
+    Args:
+        test_file: The test file's path.
+
+    Returns:
+        The target's repo-relative path, marked when it was not found at run time.
+    """
+    relative = test_file.relative_to(TESTS_DIR)
+    folder = relative.parent.as_posix()
+    component = test_file.stem.removeprefix("test_")
+    if folder == ".":
+        return f"tests/{relative.as_posix()}"
+    if folder == "scripts":
+        mirrored = REPO_ROOT / "scripts" / f"{component}.py"
+    else:
+        mirrored = REPO_ROOT / "src" / "sdg" / folder / f"{component}.py"
+    name = mirrored.relative_to(REPO_ROOT).as_posix()
+    # The mirrored file is named even when it is not there, so the gap shows.
+    return name if mirrored.exists() else f"{name} (not found at run time)"
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """Write the record after the whole run, if asked.
+
+    Nothing is written unless --validation-report was given. One CSV file is written
+    per run, one row per check, with the run's own details repeated on every row so
+    the file is complete on its own. The verdict is PASS only when pytest's own exit
+    number is 0.
 
     Args:
         session: The pytest run.
@@ -614,135 +688,93 @@ def pytest_sessionfinish(session, exitstatus):
         return
 
     # Everything the record states about the run is gathered once here and
-    # shared by every record written below.
+    # written on every row.
     now = dt.datetime.now().astimezone()
     duration = time.monotonic() - _started_at
+    started = now - dt.timedelta(seconds=duration)
     status = int(exitstatus)
-    verdict = "PASS" if status == 0 else "FAIL"
     commit = _git("rev-parse", "--short", "HEAD")
-    dirty = bool(_git("status", "--porcelain"))
-    user = _git("config", "user.name")
-    command = "pytest " + " ".join(session.config.invocation_params.args)
+    url, sha256, present = _pinned_data_version()
     fixtures = (
         sorted(p for p in FIXTURE_DIR.glob("*") if p.is_file())
         if FIXTURE_DIR.exists()
         else []
     )
-    fixture_note = (
-        "<br>".join(
-            f"`tests/fixtures/{p.name}` sha256 `{_sha256(p)}`" for p in fixtures
-        )
-        or "(none)"
-    )
-    dirty_note = " (uncommitted changes present at run time)" if dirty else ""
+    run = {
+        "run_id": f"{now:%Y-%m-%d}_{commit}",
+        "verdict": "PASS" if status == 0 else "FAIL",
+        "pytest_exit_status": status,
+        "exit_meaning": EXIT_MEANING.get(status, "unknown status"),
+        "started": f"{started:%Y-%m-%d %H:%M:%S %z}",
+        "duration_seconds": f"{duration:.1f}",
+        "commit": commit,
+        "uncommitted_changes": "yes" if _git("status", "--porcelain") else "no",
+        "run_by": _git("config", "user.name"),
+        "command": "pytest " + " ".join(session.config.invocation_params.args),
+        "python_version": platform.python_version(),
+        "pytest_version": pytest.__version__,
+        "platform": platform.platform(),
+        "pinned_usdm_url": url,
+        "pinned_usdm_sha256": sha256,
+        "pinned_usdm_present": present,
+        "fixture_sha256s": "; ".join(
+            f"tests/fixtures/{p.name}={_sha256(p)}" for p in fixtures
+        ),
+    }
 
-    # One record is written per test file, so the rows are grouped by the file
-    # each test came from.
-    by_file: dict[Path, list[dict]] = {}
-    for row in _outcomes.values():
-        by_file.setdefault(row["file"], []).append(row)
+    rows: list[dict] = []
+    if _outcomes:
+        # Rows keep the order the checks ran in, grouped by test file. The
+        # per-file values are worked out once per file, not once per row.
+        by_file: dict[Path, list[dict]] = {}
+        for outcome in _outcomes.values():
+            by_file.setdefault(outcome["file"], []).append(outcome)
+        for file, outcomes in by_file.items():
+            per_file = {
+                "test_file": f"tests/{file.relative_to(TESTS_DIR).as_posix()}",
+                "test_file_sha256": _sha256(file),
+                "target_file": _target_of(file),
+            }
+            for outcome in outcomes:
+                rows.append(
+                    {
+                        **run,
+                        **per_file,
+                        "check_code": outcome["code"],
+                        "check_name": outcome["name"],
+                        "kind": outcome["kind"],
+                        "proves": outcome["proves"],
+                        "outcome": outcome["outcome"],
+                        "reason": outcome["reason"],
+                    }
+                )
+    else:
+        # No outcome was collected, so pytest failed before any check ran. One
+        # row is written saying so, so a broken run still leaves a record.
+        rows.append(
+            {
+                **run,
+                "test_file": "",
+                "test_file_sha256": "",
+                "target_file": "",
+                "check_code": "",
+                "check_name": "",
+                "kind": "",
+                "proves": "",
+                "outcome": "none",
+                "reason": "no check ran: pytest failed before any test ran, see the "
+                "terminal output of the command",
+            }
+        )
 
     report_dir = Path(session.config.getoption("--validation-report-dir"))
     report_dir.mkdir(parents=True, exist_ok=True)
+    target = _unique(report_dir / f"run_{now:%Y-%m-%d}_{commit}.csv")
+    with target.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=RECORD_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-
-    def write(
-        name: str, component_line: str, test_file_line: str, rows: list[dict]
-    ) -> None:
-        """Write one record file.
-
-        Used both for the normal case, one record per test file, and for the case where
-        no check ran at all.
-
-        Args:
-            name: The record's file name.
-            component_line: The line saying which code file was tested.
-            test_file_line: The line saying which test file ran.
-            rows: One row per check, with its name, kind, what it proves and its
-                outcome.
-        """
-        counts = {
-            k: sum(1 for r in rows if r["outcome"] == k)
-            for k in ("passed", "failed", "error", "skipped")
-        }
-        lines = [
-            f"# Validation record: {name}",
-            "",
-            f"Written by `pytest --validation-report` on {now:%Y-%m-%d %H:%M %Z}. "
-            "Design and rationale for these tests: `tests/README.md`.",
-            "",
-            "| | |",
-            "| --- | --- |",
-            f"| Verdict | **{verdict}**: pytest exit status {status} "
-            f"({EXIT_MEANING.get(status, 'unknown status')}) |",
-            f"| Counts | {counts['passed']} passed, {counts['failed']} failed, "
-            f"{counts['error']} error, {counts['skipped']} skipped, in {duration:.1f} s |",
-            f"| Component | {component_line} |",
-            f"| Code commit | `{commit}`{dirty_note} |",
-            f"| Test file | {test_file_line} |",
-            f"| Fixtures | {fixture_note} |",
-            f"| Pinned USDM data | {_pinned_data_version()} |",
-            f"| Command | `{command}` |",
-            f"| Run by | {user} |",
-            f"| When | {now:%Y-%m-%d %H:%M:%S %Z} |",
-            f"| Python / pytest | {platform.python_version()} / {pytest.__version__} |",
-            f"| Platform | {platform.platform()} |",
-            "",
-        ]
-        if rows:
-            lines += ["| Test | Kind | Proves | Outcome |", "| --- | --- | --- | --- |"]
-            for r in rows:
-                outcome = r["outcome"] + (f" ({r['reason']})" if r["reason"] else "")
-                lines.append(
-                    f"| `{r['name']}` | {r['kind']} | {r['proves']} | {outcome} |"
-                )
-        else:
-            lines.append(
-                "No test outcomes were recorded: pytest failed before any test ran "
-                "(a test file that would not load, or an internal error). "
-                "See the terminal output of the command above."
-            )
-        target = _unique(report_dir / f"{name}_{now:%Y-%m-%d}_{commit}.md")
-        target.write_text("\n".join(lines) + "\n", encoding="utf-8")
-        if terminal is not None:
-            terminal.write_line(f"validation record written: {target.as_posix()}")
-
-    # No outcome was collected, so pytest failed before any test ran. One
-    # record is written saying so.
-    if not by_file:
-        write("run", "(none: no test ran)", "(none)", [])
-        return
-
-    for file, rows in by_file.items():
-        # tests/ mirrors the code. A test file in tests/scripts/ tests the
-        # script of the same name in scripts/. A test file in any other
-        # subfolder tests the file of the same name in that folder under
-        # src/sdg/. A test file at the top level has no code file to mirror;
-        # the one there, test_validation_report.py, tests the record-writer in
-        # this file, so its record names the test file itself.
-        relative = file.relative_to(TESTS_DIR)
-        folder = relative.parent.as_posix()
-        component = file.stem.removeprefix("test_")
-        if folder == ".":
-            mirrored = None
-        elif folder == "scripts":
-            mirrored = REPO_ROOT / "scripts" / f"{component}.py"
-        else:
-            mirrored = REPO_ROOT / "src" / "sdg" / folder / f"{component}.py"
-
-        if mirrored is None:
-            component_line = f"`tests/{relative.as_posix()}` itself"
-        elif mirrored.exists():
-            component_line = f"`{mirrored.relative_to(REPO_ROOT).as_posix()}`"
-        else:
-            # The mirrored file is not there. The record still names it, and
-            # says it was not found, rather than hiding the gap.
-            component_line = f"`{mirrored.relative_to(REPO_ROOT).as_posix()}` (not found at run time)"
-
-        test_file_line = f"`tests/{relative.as_posix()}` sha256 `{_sha256(file)}`"
-        # The record's file name carries the subfolder, so two folders can each
-        # hold a test file of the same name without their records colliding.
-        record_name = (
-            component if folder == "." else f"{folder.replace('/', '_')}_{component}"
-        )
-        write(record_name, component_line, test_file_line, rows)
+    if terminal is not None:
+        terminal.write_line(f"validation record written: {target.as_posix()}")

@@ -21,8 +21,8 @@ pytest --validation-report   # run every check and write a validation record (se
 | `test_validation_report.py` | The checks for the record-writer in `conftest.py`. It stays at the top level because `conftest.py` does. |
 | `fixtures/` | Small input files the checks read instead of the pinned data. `usdm_three_classes.yml` holds three classes copied verbatim from the pinned `dataStructure.yml`. |
 | `validation_inventory.csv` | One row per check: the code file it targets, the test file, the check name, its permanent id (the `@code` marker), whether it is positive or negative, the one sentence it proves, its status and its version. Kept by hand. |
-| `validation/` | Validation records, one file per component per validated state. Written only when asked; committed. |
+| `validation/` | Validation records, one CSV file per validation run, one row per check. Written only when asked; committed. |
 
 ## Validation records
 
-Development runs write nothing. When a component is declared ready, run `pytest --validation-report`. `conftest.py` then writes one record per test file into `validation/`, named for the component, the date and the commit. Commit that file. A record says PASS only when pytest itself exited 0, and lists every check with its outcome.
+Development runs write nothing. When the code is declared ready, run `pytest --validation-report`. `conftest.py` then writes one CSV file into `validation/`, named for the date and the commit, with one row per check. Every row carries the run's details, meaning the verdict, the commit, the command, who ran it, when, the tool versions and the pinned data version, and then the check's code, name, kind, what it proves and its outcome, so a row joins to the inventory by its code. Commit that file. A record says PASS only when pytest itself exited 0.

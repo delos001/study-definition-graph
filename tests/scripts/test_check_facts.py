@@ -85,7 +85,7 @@ def fact(tmp_path, monkeypatch):
 ### Comparing a figure to the documents ###
 
 
-@code("SCR0011")
+@code("HRS0011")
 @positive
 def test_matching_figure_exits_0(fact, capsys):
     """A document stating the measured number passes: exit 0, and --verbose
@@ -97,7 +97,7 @@ def test_matching_figure_exits_0(fact, capsys):
     assert "1 fact(s) checked, 0 drifted, 0 asserted nowhere." in out
 
 
-@code("SCR0012")
+@code("HRS0012")
 @negative
 def test_drifted_figure_exits_1(fact, capsys):
     """A document stating a different number is reported DRIFTED with the
@@ -109,7 +109,7 @@ def test_drifted_figure_exits_1(fact, capsys):
     assert "1 drifted" in out
 
 
-@code("SCR0013")
+@code("HRS0013")
 @negative
 def test_every_occurrence_is_checked(fact, capsys):
     """When the same figure appears twice and one copy is stale, the stale one
@@ -119,7 +119,7 @@ def test_every_occurrence_is_checked(fact, capsys):
     assert "says 5, actual 3" in capsys.readouterr().out
 
 
-@code("SCR0014")
+@code("HRS0014")
 @positive
 def test_unasserted_fact_is_reported_but_passes(fact, capsys):
     """A fact no document states is reported NOT ASSERTED with its measured
@@ -132,7 +132,7 @@ def test_unasserted_fact_is_reported_but_passes(fact, capsys):
     assert "1 asserted nowhere" in out
 
 
-@code("SCR0015")
+@code("HRS0015")
 @positive
 def test_number_written_as_a_word_is_read(fact):
     """A small count written as a word ("three") matches the measured 3, so
@@ -147,7 +147,7 @@ def test_number_written_as_a_word_is_read(fact):
 ### When a measurement cannot be made, one exit code per cause ###
 
 
-@code("SCR0016")
+@code("HRS0016")
 @pytest.mark.parametrize(
     "raised, code, word",
     [
@@ -180,7 +180,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
     assert f"{word}" in out and str(raised) in out
 
 
-@code("SCR0017")
+@code("HRS0017")
 @negative
 def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsys):
     """When the sdg package could not be imported, the run exits 7 with the
@@ -201,7 +201,7 @@ def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsy
 ### The real corpus ###
 
 
-@code("SCR0018")
+@code("HRS0018")
 @needs_pinned_file
 @positive
 def test_real_documents_match_real_corpus():
