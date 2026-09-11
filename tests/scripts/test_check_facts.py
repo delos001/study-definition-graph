@@ -1,22 +1,22 @@
 """
 Script:      test_check_facts.py
-Description: Automated checks for scripts/check_facts.py, the hand-run check
-             that every count stated in the project's documents can be
-             re-derived from the pinned files. The script is a list of
-             measurements and a loop that compares each to what the documents
-             say; the checks here replace that list with one small fake fact
-             (a measurement that returns, or raises, whatever the check needs)
-             and a one-line document in a temporary folder, then assert the
-             report and the exit code. One check runs the real thing against
-             the real corpus and skips when data/ is not downloaded.
+Description: Checks for scripts/check_facts.py, the hand-run script that
+             re-derives every count stated in the project's documents from the
+             pinned files. The script is a list of measurements and a loop that
+             compares each to what the documents say. The checks here replace
+             that list with one small fake fact, a measurement that returns, or
+             raises, whatever the check needs, and a one-line document in a
+             temporary folder, then assert the report and the exit code. One
+             check runs the real thing against the real corpus and skips when
+             inputs/ is not downloaded.
 
-Inputs:      data/raw/**  (read-only; the one real-corpus check only, skips if absent)
+Inputs:      inputs/**  (read-only; the one real-corpus check only, skips if absent)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest tests/test_check_facts.py
+Usage:       pytest tests/scripts/test_check_facts.py
                  run these checks
-             pytest tests/test_check_facts.py -v
+             pytest tests/scripts/test_check_facts.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -30,8 +30,9 @@ from __future__ import annotations
 import pytest
 
 import check_facts as cf
-from sdg.pinned import IntegrityError, NotInRepoError
-from sdg.usdm_spec import PINNED_LOCAL, SpecShapeError
+from sdg.sources.read_manifests import NotInRepoError
+from sdg.sources.verify_pinned import IntegrityError
+from sdg.usdm.usdm_spec import PINNED_LOCAL, SpecShapeError
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -41,24 +42,39 @@ code = pytest.mark.code
 
 needs_pinned_file = pytest.mark.skipif(
     not (cf.REPO_ROOT / PINNED_LOCAL).exists(),
-    reason="pinned corpus not downloaded; run scripts/fetch_sources.py",
+    reason="pinned corpus not downloaded; run python -m sdg.sources.acquire_sources",
 )
 
 
 #######################################################################################
-### Helpers ###
+### Shared staging ###
+#
+# One fixture replaces the script's whole list of facts with a single fake one, and
+# its list of documents with a single one-line file, so each check controls both the
+# measured number and the stated one.
 
 
 @pytest.fixture
 def fact(tmp_path, monkeypatch):
-    """Produces a function that takes a measurement (a callable), the text of
-    one document, and optionally the regex that finds the figure, and installs
-    them as the script's only fact and only document; the check then calls
-    main()."""
+    """Give a check a function that installs one fake fact and one document.
+
+    The script's repo root is pointed at a temporary folder and its document list at
+    one file there, for the length of the check.
+
+    Returns:
+        The installing function.
+    """
     monkeypatch.setattr(cf, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(cf, "DOCS", ["facts.md"])
 
     def install(measure, doc_text: str, pattern: str = r"(\d+) widgets") -> None:
+        """Write the document and make the measurement the script's only fact.
+
+        Args:
+            measure: A function that produces the measured number, or raises.
+            doc_text: The whole text of the one document.
+            pattern: The regular expression that finds the stated figure in it.
+        """
         (tmp_path / "facts.md").write_text(doc_text, encoding="utf-8")
         monkeypatch.setattr(cf, "FACTS", [("widgets", measure, pattern)])
 
@@ -155,6 +171,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
     code: 2 file missing, 3 cannot be verified, 4 wrong shape, 6 not in repo."""
 
     def measure():
+        """Raise the staged error in place of measuring."""
         raise raised
 
     fact(measure, "We hold 3 widgets.\n")
@@ -170,6 +187,7 @@ def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsy
     install command before any measurement runs."""
 
     def measure():
+        """Fail the check if a measurement is attempted."""
         raise AssertionError("must not be called")
 
     fact(measure, "We hold 3 widgets.\n")

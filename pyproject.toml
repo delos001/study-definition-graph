@@ -45,10 +45,6 @@ mypy_path = ["src", "scripts", "."]
 # With explicit package bases every test file is named tests.<folder>.<file>, so
 # one override pattern below covers the whole folder, present and future.
 explicit_package_bases = true
-# The two test files below still import retired module paths and wait on their
-# rewrite (issue 20). They are left out so the pre-commit hook can gate on mypy
-# meanwhile. Remove this line when they are rewritten.
-exclude = ["tests/scripts/test_check_facts.py", "tests/scripts/test_find_unrecorded_files.py"]
 disallow_untyped_defs = true
 warn_unused_ignores = true
 warn_redundant_casts = true
