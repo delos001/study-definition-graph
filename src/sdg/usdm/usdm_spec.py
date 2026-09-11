@@ -20,8 +20,8 @@ Description: The single way to access the pinned USDM model. It reads
              (which classes reference a given class; the whole-model edge list)
              will be added here as later phases need them, not built up front.
 
-             Before reading the file, load() obtains it through sdg.pinned,
-             which checks it against the fingerprint recorded in
+             Before reading the file, load() obtains it through the pinned-file
+             check in sdg.sources, which checks it against the fingerprint recorded in
              manifests/. A changed or swapped pin fails here rather than
              parsing and passing wrong content downstream;
              - Override is possible but should be used with caution: --allow-unpinned
@@ -32,20 +32,20 @@ Description: The single way to access the pinned USDM model. It reads
              USDM sources we hold."
 
 Inputs:      inputs/standards/cdisc/usdm_v4/dataStructure.yml   (read-only, pinned)
-             manifests/*.json                    (read-only, via sdg.pinned)
+             manifests/*.json                    (read-only, through the manifest reader)
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
-Usage:       python -m sdg.usdm_spec --list-classes
+Usage:       python -m sdg.usdm.usdm_spec --list-classes
                  print every class name in the standard, abstract ones marked
-             python -m sdg.usdm_spec --attributes <class>
+             python -m sdg.usdm.usdm_spec --attributes <class>
                  print one class's attributes: type, cardinality, kind
-                 e.g.  python -m sdg.usdm_spec --attributes Activity
-             python -m sdg.usdm_spec --list-classes --allow-unpinned
+                 e.g.  python -m sdg.usdm.usdm_spec --attributes Activity
+             python -m sdg.usdm.usdm_spec --list-classes --allow-unpinned
                  run even if the pinned file no longer matches its checksum
 
 Exit codes:  0  success
-             1  the pinned spec file is missing (run scripts/fetch_sources.py)
+             1  the pinned spec file is missing (run python -m sdg.sources.acquire_sources)
              2  invalid command line (argparse's own fixed code)
              3  the spec cannot be verified against manifests/, or does not
                 match it; the message names which (mismatch, unreadable or
@@ -71,14 +71,15 @@ from pathlib import Path
 # dataStructure.yml is YAML, so reading it is a one-call job for this library.
 import yaml
 
-# The one way to obtain a pinned file, verified against its manifest, with the
-# repo root and the two integrity exceptions callers may need to catch.
+# The pinned-file check hands back a verified file; the manifest reader gives the
+# repo root, the install check, and the two errors callers may need to catch.
 from sdg.console_output import use_utf8_output
-from sdg.pinned import REPO_ROOT, IntegrityError, NotInRepoError, pinned, require_repo
+from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
+from sdg.sources.verify_pinned import IntegrityError, verify_pinned
 
 # Where the pinned model file is, named the way its manifest records it. The
 # repo root, and the verification of the file against its manifest, come from
-# sdg.pinned; nothing here locates or checks files on its own.
+# sdg.sources; nothing here locates or checks files on its own.
 PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 
@@ -86,13 +87,13 @@ DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 ### Loading ###
 #
 # This section turns the pinned dataStructure.yml into the in-memory spec the rest of
-# the module reads: obtain the verified file through sdg.pinned, parse the YAML,
+# the module reads: obtain the verified file through verify_pinned(), parse the YAML,
 # confirm its shape, and return the parsed dict.
 #
 # Exceptions are classes so the specific kind of failure can be caught and reported
 # with a specific exit code (see header) rather than a generic traceback. The shape
 # failure is this module's own. The integrity failures (a changed or unverifiable
-# file, a package not running from its repo) are sdg.pinned's, imported above so
+# file, a package not running from its repo) are the sources package's, imported above so
 # callers can catch them from here as well.
 
 
@@ -137,11 +138,11 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
         SpecShapeError: The file parsed but is not shaped like the USDM structure this
             module reads.
     """
-    # Confirmed before the file is looked for, not inside pinned(). Installed
+    # Confirmed before the file is looked for, not inside verify_pinned(). Installed
     # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
     # there, so an existence check that ran first would report "not
     # downloaded" for a file that is downloaded, and --allow-unpinned (which
-    # never reaches pinned()) would never check at all.
+    # never reaches verify_pinned()) would never check at all.
     require_repo()
 
     target = path or DEFAULT_SPEC
@@ -149,11 +150,11 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     if not target.exists():
         raise FileNotFoundError(target)
 
-    # Obtain the file through sdg.pinned (manifest entry, size, fingerprint) before
+    # Obtain the file through verify_pinned() (manifest entry, size, fingerprint) before
     # trusting the content. Guards against a clean parse silently passing wrong
     # content from a modified spec.
     if verify:
-        text = pinned(target).read_text()
+        text = verify_pinned(target).read_text()
     else:
         text = target.read_text(encoding="utf-8")
 
@@ -326,7 +327,7 @@ def targets(attribute: dict) -> tuple[str, ...]:
 ### Command line ###
 #
 # The command line interface (CLI): runs when the module is invoked from a terminal,
-# e.g. python -m sdg.usdm_spec --list-classes.
+# e.g. python -m sdg.usdm.usdm_spec --list-classes.
 # main() parses the flags, loads the spec once, and dispatches to one of the two
 # listings below.
 # The process exit code reports the outcome.
@@ -411,7 +412,7 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_output()
 
     parser = argparse.ArgumentParser(
-        prog="python -m sdg.usdm_spec",
+        prog="python -m sdg.usdm.usdm_spec",
         description="Read the pinned USDM model (dataStructure.yml).",
     )
     # Exactly one mode per invocation; argparse reports a missing or double mode
@@ -444,7 +445,7 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError:
         print(
             f"pinned spec not found at {DEFAULT_SPEC.relative_to(REPO_ROOT)}; "
-            f"run scripts/fetch_sources.py",
+            f"run python -m sdg.sources.acquire_sources",
             file=sys.stderr,
         )
         return 1
@@ -468,7 +469,7 @@ def main(argv: list[str] | None = None) -> int:
 ### Entry point ###
 #
 # __name__ equals "__main__" only when this file is run directly (python -m
-# sdg.usdm_spec), not when it is imported. So main() runs here as a script, while
+# sdg.usdm.usdm_spec), not when it is imported. So main() runs here as a script, while
 # importing the module for its functions does not trigger it. main()'s return value
 # becomes the process exit code.
 
