@@ -199,7 +199,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     return spec
 
 
-def _is_ref_list(value) -> bool:
+def _is_ref_list(value: object) -> bool:
     """Takes one attribute field and reports whether it is a non-empty list whose
     every item is a dict carrying a string '$ref', the only shape _unwrap() reads."""
     return (
