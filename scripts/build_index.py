@@ -62,7 +62,8 @@ SCRIPTS_DIR = REPO_ROOT / "scripts"
 INDEX_PATH = SCRIPTS_DIR / "README.md"
 
 
-### Constants ##################################################################
+#######################################################################################
+### Settings ###
 
 # Every field the writing_python_files rule requires. Presence is checked for all of them, though
 # only Description and Usage are printed. Checking the full set is the point: a
@@ -91,7 +92,8 @@ GENERATED_NOTICE = (
 )
 
 
-### Header parsing #############################################################
+#######################################################################################
+### Header parsing ###
 
 
 def parse_header(path: Path) -> tuple[dict[str, list[str]] | None, str | None]:
@@ -203,7 +205,8 @@ def first_paragraph(lines: list[str]) -> str:
     return " ".join(paragraph)
 
 
-### Rendering ##################################################################
+#######################################################################################
+### Rendering ###
 
 
 def render(entries: list[tuple[str, dict[str, list[str]]]]) -> str:
@@ -246,7 +249,8 @@ def render(entries: list[tuple[str, dict[str, list[str]]]]) -> str:
     return "\n".join(out).rstrip("\n") + "\n"
 
 
-### Entry point ################################################################
+#######################################################################################
+### Command line ###
 
 
 def main(argv: list[str] | None = None) -> int:

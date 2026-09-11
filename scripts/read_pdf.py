@@ -28,13 +28,20 @@ Inputs:      inputs/standards/cdisc/usdm_v4/USDM-IG.pdf                      (re
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
-Usage:       python scripts/read_pdf.py --docs                 list registered documents
-             python scripts/read_pdf.py 4.23                   one IG section
-             python scripts/read_pdf.py "Extension"            match on title text
-             python scripts/read_pdf.py --pages 26-31          explicit page range
-             python scripts/read_pdf.py --find footnote        search all pages
-             python scripts/read_pdf.py --list                 print the section map
+Usage:       python scripts/read_pdf.py --docs
+                 list the registered documents and whether each is downloaded
+             python scripts/read_pdf.py 4.23
+                 print one section of the USDM IG, by number
+             python scripts/read_pdf.py "Extension"
+                 print the section whose title contains the text
+             python scripts/read_pdf.py --pages 26-31
+                 print an explicit page range
+             python scripts/read_pdf.py --find footnote
+                 search every page for a term
+             python scripts/read_pdf.py --list
+                 print the section map
              python scripts/read_pdf.py --doc m11-techspec --find "Number of Participants"
+                 the same modes on another registered document
              python scripts/read_pdf.py --doc m11-template --pages 12-14
              python scripts/read_pdf.py --doc model-diagram --find Encounter
 
@@ -64,7 +71,8 @@ import fitz
 
 from sdg.console_output import use_utf8_output
 
-### Constants ##################################################################
+#######################################################################################
+### Settings ###
 
 # Paths are resolved from this file's own location rather than the working
 # directory, so the script behaves the same whether it is run from the repo root
@@ -174,7 +182,8 @@ SECTION_NUMBER_PATTERN = re.compile(
 )
 
 
-### Table of contents ##########################################################
+#######################################################################################
+### Table of contents ###
 
 
 def load_toc(doc: fitz.Document) -> list[dict]:
@@ -262,7 +271,8 @@ def find_section(sections: list[dict], wanted: str) -> dict | None:
     return None
 
 
-### Text extraction ############################################################
+#######################################################################################
+### Text extraction ###
 
 
 def heading_offset(text: str, number: str) -> int | None:
@@ -443,7 +453,8 @@ def extract_pages(
     return "\n\n".join(blocks)
 
 
-### Search #####################################################################
+#######################################################################################
+### Search ###
 
 
 def searchable(text: str) -> str:
@@ -522,16 +533,20 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
     return hits
 
 
-### Entry point ################################################################
+#######################################################################################
+### Command line ###
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """Parse the arguments, run one mode, and give back the exit code.
 
     Modes are checked in order of specificity: --docs, --list and --find are explicit
     requests, --pages bypasses section lookup, and a bare positional argument is
     resolved as a section. Running with no arguments prints the section map, on the
     assumption that a user who does not know what to ask for wants the menu.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
 
     Returns:
         The exit code, as the header block lists them.
@@ -565,7 +580,7 @@ def main() -> int:
         action="store_true",
         help="keep the repeated page headers and footers",
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # Mode: list the registry. Answered before opening any file, so it still
     # works on a fresh clone where inputs/ has not been downloaded.
@@ -674,4 +689,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    sys.exit(main())

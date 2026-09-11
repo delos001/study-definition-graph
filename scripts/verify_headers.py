@@ -44,12 +44,19 @@ from pathlib import Path
 # so the plain import resolves without the package being installed.
 from build_index import REQUIRED_FIELDS, parse_header
 
+#######################################################################################
+### Settings ###
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CHECKED_FOLDERS = (REPO_ROOT / "src" / "sdg", REPO_ROOT / "scripts")
 
 # The Date field is the day the file was first committed, written as a plain
 # calendar date. Anything else, a time, a range, a word, is a mistake.
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+#######################################################################################
+### Find and check the files ###
 
 
 def files_to_check() -> list[Path]:
@@ -101,6 +108,10 @@ def problems_in(path: Path) -> tuple[list[str], bool]:
         problems.append(f"Date is {date!r}, not YYYY-MM-DD")
 
     return problems, True
+
+
+#######################################################################################
+### Command line ###
 
 
 def main(argv: list[str] | None = None) -> int:
