@@ -6,10 +6,11 @@
 # section runs after the clone. Committed rather than left in .git/hooks so a
 # fresh clone gets it.
 #
-# Only checks that need no third-party packages belong here, so the hook works
-# from any terminal whether or not the sdg conda environment is active. That
-# rules out check_facts.py (imports pymupdf and openpyxl) and
-# acquire_sources (hashes 42 files). Both are manual runs; see the README.
+# The first two checks use only the standard library, so they run from any
+# terminal. The third needs ruff and mypy from the sdg conda environment; its
+# script finds them on the path when that environment is active and runs them
+# through conda when it is not. check_facts.py (reads every pinned file) and
+# acquire_sources (hashes 42 files) stay manual runs; see the README.
 
 set -e
 
@@ -23,9 +24,17 @@ python scripts/build_index.py --check || {
 }
 
 # Every Python file in the package and in scripts/ opens with the header block
-# CLAUDE.md requires. A file that lacks one, or has its fields out of order, is
+# the writing_python_files rule requires. A file that lacks one, or has its fields out of order, is
 # refused here so the rule holds whoever made the edit. Standard library only.
 python scripts/verify_headers.py || {
   echo "pre-commit: fix the header blocks named above, then commit again"
+  exit 1
+}
+
+# Every Python file passes ruff format, ruff check and mypy, as configured in
+# pyproject.toml. Each tool prints its own report, so a refused commit names
+# the file and the line.
+python scripts/check_python_files.py --quiet || {
+  echo "pre-commit: fix what ruff or mypy reported above, then commit again"
   exit 1
 }

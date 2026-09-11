@@ -64,11 +64,13 @@ MAX_CELL_WIDTH = 40
 
 
 def find_workbooks() -> list[Path]:
-    """
-    Return every real .xlsx under inputs/, sorted, excluding Excel lock files.
+    """List every real .xlsx under inputs/, with Excel's lock files left out.
 
-    Used by --all. Sorted so that repeated runs list workbooks in the same order
-    and output can be diffed between sessions.
+    Used by --all. Sorted so that repeated runs list workbooks in the same order and
+    output can be compared between sessions.
+
+    Returns:
+        The workbook paths, sorted.
     """
     return sorted(
         path
@@ -78,16 +80,19 @@ def find_workbooks() -> list[Path]:
 
 
 def resolve_workbook(argument: str) -> Path | None:
-    """
-    Turn a user-supplied workbook argument into a real path.
+    """Turn a user-supplied workbook argument into a real path.
 
-    Accepts a full path, a path relative to the repo root, or just a filename,
+    A full path, a path relative to the repo root, or just a filename is accepted,
     because typing the full path to a nested example workbook is tedious. A bare
-    filename is matched case-insensitively against every workbook under inputs/,
-    and a partial name is accepted if it matches exactly one workbook.
+    filename is matched case-insensitively against every workbook under inputs/, and a
+    partial name is accepted when it matches exactly one workbook.
 
-    Returns None when nothing matches or when a partial name is ambiguous; the
-    caller reports the failure.
+    Args:
+        argument: What the user typed.
+
+    Returns:
+        The workbook's path, or None when nothing matches or a partial name is
+            ambiguous. The caller reports the failure.
     """
     direct = Path(argument)
     if direct.is_file():
@@ -115,16 +120,19 @@ def resolve_workbook(argument: str) -> Path | None:
 
 
 def cell_text(value: object) -> str:
-    """
-    Render one cell value as a single-line string.
+    """Render one cell value as a single-line string.
 
-    Empty cells come back from openpyxl as None and are rendered as an empty
-    string rather than the literal "None", which would otherwise fill the sparse
-    Schedule of Activities grid with noise.
+    Empty cells come back from openpyxl as None and are rendered as an empty string
+    rather than the literal "None", which would otherwise fill the sparse Schedule of
+    Activities grid with noise. Newlines inside a cell are replaced rather than kept,
+    because a multi-line cell would break row alignment in table format. Protocol
+    spreadsheets do use multi-line cells for footnote text, so this is not a rare case.
 
-    Newlines inside a cell are replaced rather than kept, because a multi-line
-    cell would break row alignment in table format. Protocol spreadsheets do use
-    multi-line cells for footnote text, so this is not a rare case.
+    Args:
+        value: The cell's value, of whatever type openpyxl read.
+
+    Returns:
+        The value as one line of text, empty for an empty cell.
     """
     if value is None:
         return ""
@@ -132,12 +140,17 @@ def cell_text(value: object) -> str:
 
 
 def read_rows(worksheet: Worksheet) -> list[list[str]]:
-    """
-    Read a worksheet into a list of string rows, dropping fully empty rows.
+    """Read a worksheet into rows of strings, dropping fully empty rows.
 
-    Trailing empty rows are common in these workbooks because openpyxl reports
-    max_row from the sheet dimensions, which often overshoot the real data.
-    Dropping empty rows keeps the output honest about how much content there is.
+    Trailing empty rows are common in these workbooks because openpyxl reports max_row
+    from the sheet dimensions, which often overshoot the real data. Dropping them keeps
+    the output honest about how much content there is.
+
+    Args:
+        worksheet: The open worksheet.
+
+    Returns:
+        One list of cell strings per non-empty row.
     """
     rows = []
     for raw_row in worksheet.iter_rows(values_only=True):
@@ -151,12 +164,14 @@ def read_rows(worksheet: Worksheet) -> list[list[str]]:
 
 
 def print_table(rows: list[list[str]]) -> None:
-    """
-    Print rows as a column-aligned table with the first row treated as a header.
+    """Print rows as a column-aligned table, with the first row treated as a header.
 
-    Column widths are computed from the content so narrow columns stay narrow.
-    Cells longer than MAX_CELL_WIDTH are truncated with an ellipsis; the full
-    value is still available via --format records, so nothing is unrecoverable.
+    Column widths are computed from the content so narrow columns stay narrow. Cells
+    longer than MAX_CELL_WIDTH are truncated with an ellipsis; the full value is still
+    available through --format records, so nothing is unrecoverable.
+
+    Args:
+        rows: The rows, the first one being the header.
     """
     if not rows:
         print("(sheet is empty)")
@@ -189,13 +204,15 @@ def print_table(rows: list[list[str]]) -> None:
 
 
 def print_records(rows: list[list[str]]) -> None:
-    """
-    Print each data row as a block of "header: value" lines.
+    """Print each data row as a block of "header: value" lines.
 
-    This is the format for wide sheets. The Schedule of Activities grid runs to
-    58 columns, where a table is unreadable and truncation would hide the visit
-    column names that matter. Empty fields are skipped, which matters because
-    an SoA grid is mostly empty by design.
+    This is the format for wide sheets. The Schedule of Activities grid runs to 58
+    columns, where a table is unreadable and truncation would hide the visit column
+    names that matter. Empty fields are skipped, which matters because a grid is mostly
+    empty by design.
+
+    Args:
+        rows: The rows, the first one being the header.
     """
     if not rows:
         print("(sheet is empty)")
@@ -217,14 +234,18 @@ def print_records(rows: list[list[str]]) -> None:
 
 
 def search_workbook(path: Path, term: str) -> list[str]:
-    """
-    Find every cell in every sheet of one workbook containing term.
+    """Find every cell in every sheet of one workbook containing the term.
 
-    Reports sheet name, row number, and the full cell text. Row numbers are
-    1-indexed to match what Excel shows, so a hit can be looked up by hand.
+    Row numbers are 1-indexed to match what Excel shows, so a hit can be looked up by
+    hand. Printing is left to the caller so that --all can group output per workbook.
 
-    Returns a list of formatted lines; printing is left to the caller so that
-    --all can group output per workbook.
+    Args:
+        path: The workbook.
+        term: What to look for.
+
+    Returns:
+        One formatted line per hit: the sheet name, the row number and the full cell
+            text.
     """
     needle = term.lower()
     hits = []
@@ -257,12 +278,14 @@ def search_workbook(path: Path, term: str) -> list[str]:
 
 
 def main() -> int:
-    """
-    Parse arguments, dispatch to one mode, and return a shell exit code.
+    """Parse the arguments, run one mode, and give back the exit code.
 
-    Modes are checked in order of specificity: --all --find searches every
-    workbook, --find searches one, --sheet prints one sheet, and a bare workbook
-    name lists its sheets.
+    Modes are checked in order of specificity: --all --find searches every workbook,
+    --find searches one, --sheet prints one sheet, and a bare workbook name lists its
+    sheets.
+
+    Returns:
+        The exit code, as the header block lists them.
     """
     # Standard text carries characters the Windows console mangles; see
     # sdg.console_output for why.

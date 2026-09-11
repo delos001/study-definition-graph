@@ -62,8 +62,14 @@ def run_suite(pytester, test_source: str, *extra_args: str):
 
 
 def the_record(folder: Path) -> str:
-    """Takes the records folder and produces the text of the one record in it,
-    failing if there is not exactly one."""
+    """Read the one record the run wrote.
+
+    Args:
+        folder: Where the record was written.
+
+    Returns:
+        The record's text.
+    """
     records = list(folder.glob("*.md"))
     assert len(records) == 1, [r.name for r in records]
     return records[0].read_text(encoding="utf-8")

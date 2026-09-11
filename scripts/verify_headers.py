@@ -1,7 +1,7 @@
 """
 Script:      verify_headers.py
 Description: Checks that every Python file in the package and in scripts/ opens
-             with the full header block CLAUDE.md requires, with the eight fields
+             with the full header block the writing_python_files rule requires, with the eight fields
              in the set order and a Date in YYYY-MM-DD form. It reports each file
              that falls short and names what is wrong.
 
@@ -53,8 +53,11 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
 
 def files_to_check() -> list[Path]:
-    """Gives back every Python file under the checked folders, sorted, with
-    __init__.py files left out."""
+    """List every Python file under the checked folders, with __init__.py files left out.
+
+    Returns:
+        The files, sorted.
+    """
     found: list[Path] = []
     for folder in CHECKED_FOLDERS:
         found.extend(p for p in folder.rglob("*.py") if p.name != "__init__.py")
@@ -62,9 +65,15 @@ def files_to_check() -> list[Path]:
 
 
 def problems_in(path: Path) -> tuple[list[str], bool]:
-    """Checks one file's header and gives back the list of problems found and
-    whether the file could be parsed at all. An empty list means the header is
-    complete."""
+    """Check one file's header block.
+
+    Args:
+        path: The file to check.
+
+    Returns:
+        A pair: the list of problems found, empty when the header is complete, and
+            whether the file could be parsed at all.
+    """
     fields, error = parse_header(path)
     if error:
         return [error], "cannot parse" not in error
@@ -95,8 +104,14 @@ def problems_in(path: Path) -> tuple[list[str], bool]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Checks every file, prints each problem unless --quiet, and gives back
-    the exit code."""
+    """Check every file and print each problem, unless --quiet.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
+
+    Returns:
+        The exit code, as the header block lists them.
+    """
     parser = argparse.ArgumentParser(
         description="Check every header block in the package and scripts/."
     )

@@ -118,11 +118,14 @@ DOCS = [
 
 
 def pinned_pdf_pages() -> int:
-    """Total pages across every PDF registered in read_pdf.py.
+    """Count the pages across every PDF registered in read_pdf.py.
 
-    Reads the registry from read_pdf.py rather than listing PDFs on disk, so
-    that a PDF present but unregistered does not silently inflate the count that
-    CLAUDE.md's "never read one whole" rule is scaled against.
+    The registry is read from read_pdf.py rather than listing PDFs on disk, so that a
+    PDF present but unregistered does not silently inflate the count that CLAUDE.md's
+    "never read one whole" rule is scaled against.
+
+    Returns:
+        The page count.
     """
     # A plain import resolves because Python puts the running script's own folder
     # (scripts/) first on its search path, and read_pdf.py does nothing at import
@@ -133,7 +136,11 @@ def pinned_pdf_pages() -> int:
 
 
 def ig_sections() -> int:
-    """Bookmarks in the USDM Implementation Guide, which is what a section is."""
+    """Count the bookmarks in the USDM Implementation Guide, which is what a section is.
+
+    Returns:
+        The bookmark count.
+    """
     return len(
         fitz.open(
             pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path
@@ -142,7 +149,11 @@ def ig_sections() -> int:
 
 
 def core_rules() -> int:
-    """Rows carrying a rule ID in the conformance rules workbook."""
+    """Count the rows carrying a rule ID in the conformance rules workbook.
+
+    Returns:
+        The rule count.
+    """
     sheet = openpyxl.load_workbook(
         pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path,
         read_only=True,
@@ -151,10 +162,13 @@ def core_rules() -> int:
 
 
 def m11_elements() -> int:
-    """Data elements in the M11 Technical Specification.
+    """Count the data elements in the M11 Technical Specification.
 
-    Counted by the "Term (Variable)" label that opens each element block, which
-    is the document's own delimiter rather than a heuristic of ours.
+    Counted by the "Term (Variable)" label that opens each element block, which is the
+    document's own delimiter rather than a heuristic of ours.
+
+    Returns:
+        The element count.
     """
     text = "".join(
         page.get_text()
@@ -171,25 +185,36 @@ def m11_elements() -> int:
 
 
 def uml_delta_rows() -> int:
-    """Lines in the v3.0-to-v4.0 change file, header included, as quoted."""
+    """Count the lines in the v3.0-to-v4.0 change file, header included, as quoted.
+
+    Returns:
+        The line count.
+    """
     path = STANDARDS / "cdisc" / "usdm_v4" / "UML_DELTA_3-0-0_4-0-0.csv"
     return len(pinned(path).read_text().splitlines())
 
 
 def dictionary_codes() -> int:
-    """Distinct NCI C-codes named in the data dictionary."""
+    """Count the distinct NCI C-codes named in the data dictionary.
+
+    Returns:
+        The code count.
+    """
     text = pinned(STANDARDS / "cdisc" / "usdm_v4" / "dataDictionary.MD").read_text()
     return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
 def usdm_concrete_classes() -> int:
-    """Concrete USDM classes, counted through the model loader.
+    """Count the concrete USDM classes, through the model loader.
 
-    Goes through sdg.usdm_spec, the one doorway to the standard, rather than
+    The count goes through sdg.usdm_spec, the one doorway to the standard, rather than
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
-    usdm_ig_ledger.md makes. The loader also checks the file is shaped like USDM
-    v4, the one failure only this measurement can raise (exit 4).
+    usdm_ig_ledger.md makes. The loader also checks the file is shaped like USDM v4, the
+    one failure only this measurement can raise (exit 4).
+
+    Returns:
+        The concrete class count.
     """
     spec = usdm_spec.load()
     return sum(
@@ -198,12 +223,15 @@ def usdm_concrete_classes() -> int:
 
 
 def shared_codes() -> int:
-    """NCI codes appearing in both the M11 Technical Specification and USDM's CT.
+    """Count the NCI codes appearing in both the M11 Technical Specification and USDM's CT.
 
-    Guarded because it is the one figure on the standards map that contradicts
-    an intuition: both standards use NCI codes, so they look interchangeable,
-    and they are not. If this number ever drifts toward either total it would
-    change the conclusion, not just the caption.
+    Guarded because it is the one figure on the standards map that contradicts an
+    intuition: both standards use NCI codes, so they look interchangeable, and they are
+    not. If this number ever drifts toward either total it would change the conclusion,
+    not just the caption.
+
+    Returns:
+        The shared code count.
     """
     text = "".join(
         page.get_text()
@@ -230,22 +258,28 @@ def shared_codes() -> int:
 
 
 def worked_examples() -> int:
-    """Worked example studies, one directory each.
+    """Count the worked example studies, one directory each.
 
-    A count of folders, not a read of any file's contents, so there is nothing
-    for pinned() to verify here; the files inside are verified where they are
-    read, in examples_with_estimands.
+    A count of folders, not a read of any file's contents, so there is nothing for the
+    pinned-file check to verify here; the files inside are verified where they are read,
+    in examples_with_estimands.
+
+    Returns:
+        The study count.
     """
     return len([d for d in EXAMPLES.iterdir() if d.is_dir()])
 
 
 def examples_with_estimands() -> int:
-    """Worked-example studies whose USDM JSON defines at least one estimand.
+    """Count the worked-example studies whose USDM JSON defines at least one estimand.
 
     Estimands hang off each studyDesign. Counted because PLAN.md leans on their
-    scarcity, only one of the three examples defines any, to justify why Phase 1
-    must select for documents that actually define estimands. If the corpus
-    grows or an example gains an estimand, that argument has to move with it.
+    scarcity, only one of the three examples defines any, to justify why Phase 1 must
+    select for documents that actually define estimands. If the corpus grows or an
+    example gains an estimand, that argument has to move with it.
+
+    Returns:
+        The count of studies with an estimand.
     """
     count = 0
     for directory in EXAMPLES.iterdir():
@@ -305,11 +339,18 @@ WORD_NUMBERS = {"one": "1", "two": "2", "three": "3", "four": "4"}
 
 
 def stated_values(pattern: str) -> list[tuple[str, int]]:
-    """Every occurrence of a figure matching pattern, with the file it is in.
+    """Find every occurrence of a figure matching the pattern, with the file it is in.
 
-    Returns a list rather than a single value because the same fact is often
-    asserted in more than one document, and each occurrence has to agree
-    independently. Reporting only the first would hide a stale copy elsewhere.
+    A list comes back rather than a single value because the same fact is often asserted
+    in more than one document, and each occurrence has to agree independently. Reporting
+    only the first would hide a stale copy elsewhere.
+
+    Args:
+        pattern: The regular expression that finds the figure, with the number as its
+            capture group.
+
+    Returns:
+        One pair per occurrence: the document's name and the number it states.
     """
     found = []
     for name in DOCS:
@@ -326,9 +367,15 @@ def stated_values(pattern: str) -> list[tuple[str, int]]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Takes the command-line arguments (None means sys.argv, as when run from a
-    terminal), recomputes every fact, compares it to what the documents say, and
-    produces the exit code."""
+    """Recompute every fact, compare each to what the documents say, and give back the exit
+    code.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
+
+    Returns:
+        The exit code, as the header block lists them.
+    """
     parser = argparse.ArgumentParser(
         description="Check countable claims in the markdown against the pinned files."
     )

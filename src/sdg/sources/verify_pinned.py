@@ -62,12 +62,12 @@ from .read_manifests import ManifestError, as_local, entry_for
 
 
 class IntegrityError(Exception):
-    """Class that informs that a pinned file could not be proven to be the recorded one.
-    One cause, one message:
-    - no manifest entry records the file,
-    - a manifest cannot be read, or
-    - the file's size or sha256 differs from its entry.
-    Each message says what happened and how to recover."""
+    """Raised when a pinned file could not be proven to be the recorded one.
+
+    One cause, one message: no manifest entry records the file, a manifest cannot be
+    read, or the file's size or sha256 differs from its entry. Each message says what
+    happened and how to recover.
+    """
 
 
 # These three lines are shown when the file's size or sha256 differs from its
@@ -97,8 +97,18 @@ class PinnedFile:
     manifest: str  # the manifest file that records it, for messages
 
     def read_text(self, encoding: str = "utf-8") -> str:
-        """Returns the file's content as text. A stage that needs the raw
-        bytes, for a PDF or a workbook, opens `path` itself."""
+        """Read the file's content as text.
+
+        A stage that needs the raw bytes, for a PDF or a workbook, opens the path
+        itself.
+
+        Args:
+            encoding: The text encoding to read with, UTF-8 unless the file says
+                otherwise.
+
+        Returns:
+            The file's content as one string.
+        """
         return self.path.read_text(encoding=encoding)
 
 
@@ -107,13 +117,21 @@ class PinnedFile:
 
 
 def verify_pinned(target: str | Path) -> PinnedFile:
-    """Confirms that the file at `target` is the file its manifest entry records,
-    and returns it as a PinnedFile (see class PinnedFile): the file's path and
-    identity, which the stage uses to read the file.
+    """Prove that the file at target is the one its manifest entry records, and hand it
+    back with its identity.
 
-    Raises NotInRepoError if the package is not running from its repo.
-    Raises FileNotFoundError if the file has not been downloaded.
-    Raises IntegrityError for any other failure, each with its own message.
+    Args:
+        target: The file, as a repo-relative string or a path on this machine.
+
+    Returns:
+        The file as a PinnedFile: its path, and the identity a stage records as
+            provenance, meaning the sha256, the url and the manifest name.
+
+    Raises:
+        NotInRepoError: The package is not running from inside its repo.
+        FileNotFoundError: The file is recorded but has not been downloaded.
+        IntegrityError: No manifest entry records the file, a manifest cannot be read,
+            or the file's size or sha256 differs from its entry.
     """
     local = as_local(target)
 

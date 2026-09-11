@@ -65,11 +65,24 @@ from .read_manifests import ManifestError, NotInRepoError, manifests
 
 
 def make_reporter(quiet: bool) -> Callable[..., None]:
-    """Returns a print function that stays silent when --quiet was given.
-    Passing the function around means nothing below has to remember to check
-    the flag before printing."""
+    """Build the function the workflow prints through, silent when --quiet was given.
+
+    Passing the function around means nothing below has to remember to check the flag
+    before printing.
+
+    Args:
+        quiet: True when --quiet was given.
+
+    Returns:
+        A function that prints its message, or prints nothing when quiet.
+    """
 
     def say(message: str = "") -> None:
+        """Print the message, unless the run is quiet.
+
+        Args:
+            message: The line to print. Empty prints a blank line.
+        """
         if not quiet:
             print(message)
 
@@ -81,10 +94,17 @@ def make_reporter(quiet: bool) -> Callable[..., None]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Runs the steps over every manifest entry and returns the exit code.
-    `argv` is the command line, or None to read the real one.
+    """Run the steps over every manifest entry and give back the exit code.
+
     Problems are counted rather than raised, so one run reports the state of the whole
-    corpus instead of stopping at the first bad file."""
+    corpus instead of stopping at the first bad file.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
+
+    Returns:
+        The exit code, as the header block lists them.
+    """
 
     parser = argparse.ArgumentParser(
         description="Fetch every recorded source file not yet on disk, and check the ones that are."

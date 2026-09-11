@@ -113,8 +113,15 @@ def top_level_and_study_sets(fake_repo):
 
 
 def refused_with(error, *args) -> str:
-    """Calls manifests() with the given arguments, expects it to raise the
-    given error, and gives back the error's message."""
+    """Call manifests() with the given arguments and expect it to refuse.
+
+    Args:
+        error: The error type expected.
+        *args: The arguments to hand manifests().
+
+    Returns:
+        The error's message.
+    """
     with pytest.raises(error) as caught:
         manifests(*args)
     return str(caught.value)

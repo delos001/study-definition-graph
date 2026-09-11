@@ -51,19 +51,41 @@ from .fetch_file import PARTIAL_SUFFIX
 
 
 def _final_path(partial: Path) -> Path:
-    """Produces the final name for a .part file by removing the suffix.
-    Raises ValueError if the path does not end in .part, because then it is not
-    a download this module should touch."""
+    """Work out the final name of a .part file by removing the suffix.
+
+    Args:
+        partial: The .part file.
+
+    Returns:
+        The same path without the .part suffix.
+
+    Raises:
+        ValueError: The path does not end in .part, so it is not a download this module
+            should touch.
+    """
     if partial.name.endswith(PARTIAL_SUFFIX):
         return partial.with_name(partial.name[: -len(PARTIAL_SUFFIX)])
     raise ValueError(f"not a {PARTIAL_SUFFIX} file: {partial}")
 
 
 def place(partial: Path) -> Path:
-    """Renames a .part file to its final name and gives back that path.
-    Raises FileNotFoundError if the .part file does not exist,
-    Raises FileExistsError if a file is already at the final name; in that case nothing
-    is moved and the .part file stays where it is."""
+    """Rename a .part file to its final name.
+
+    The check for a file already at the final name comes before the rename, because a
+    rename would replace it without asking, and a pinned file is never replaced by code.
+
+    Args:
+        partial: The .part file to place.
+
+    Returns:
+        The final path the file now sits at.
+
+    Raises:
+        ValueError: The path does not end in .part.
+        FileNotFoundError: There is no .part file at the path.
+        FileExistsError: A file is already at the final name. Nothing is moved, and the
+            .part file stays where it is.
+    """
     partial = Path(partial)
     final = _final_path(partial)
 
@@ -83,8 +105,15 @@ def place(partial: Path) -> Path:
 
 
 def discard(partial: Path) -> None:
-    """Deletes a .part file.
-    Raises FileNotFoundError if it does not exist."""
+    """Delete a .part file.
+
+    Args:
+        partial: The .part file to delete.
+
+    Raises:
+        ValueError: The path does not end in .part.
+        FileNotFoundError: There is no .part file at the path.
+    """
     partial = Path(partial)
     _final_path(partial)  # refuses anything that is not a .part file
 

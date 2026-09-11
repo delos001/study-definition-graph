@@ -10,7 +10,7 @@ Description: Generates scripts/README.md from the header block of every script
              re-derives every stated number, and acquire_sources, which
              replaced a README code block that nothing executed.
 
-             The second purpose matters more than the index. CLAUDE.md requires
+             The second purpose matters more than the index. The writing_python_files rule requires
              a header block on every script, and until now nothing enforced it,
              so it held only while everyone remembered. This fails on a script
              whose header is missing or incomplete, which turns that rule into
@@ -64,7 +64,7 @@ INDEX_PATH = SCRIPTS_DIR / "README.md"
 
 ### Constants ##################################################################
 
-# Every field CLAUDE.md requires. Presence is checked for all of them, though
+# Every field the writing_python_files rule requires. Presence is checked for all of them, though
 # only Description and Usage are printed. Checking the full set is the point: a
 # script that documents what it does but not what it writes still fails.
 REQUIRED_FIELDS = (
@@ -95,16 +95,20 @@ GENERATED_NOTICE = (
 
 
 def parse_header(path: Path) -> tuple[dict[str, list[str]] | None, str | None]:
-    """
-    Read one script's header block. Returns (fields, error), exactly one of which is None.
+    """Read one script's header block.
 
-    The file is parsed with ast rather than imported, so reading a script never
-    runs it. That matters because these scripts touch the network and the
-    filesystem, and building an index must not.
+    The file is parsed with ast rather than imported, so reading a script never runs it.
+    That matters because these scripts touch the network and the filesystem, and
+    building an index must not. Field values are kept as lists of raw lines with the
+    common indent stripped, because Usage relies on relative indentation to show which
+    explanation belongs to which invocation.
 
-    Field values are kept as lists of raw lines with their leading whitespace
-    stripped of the common indent, because Usage relies on relative indentation
-    to show which explanation belongs to which invocation.
+    Args:
+        path: The script to read.
+
+    Returns:
+        A pair of the fields and an error message, exactly one of which is None. The
+            fields map each header field to its lines.
     """
     # A file that will not parse is reported rather than raised, so that one bad
     # script does not hide the state of the rest.
@@ -139,13 +143,17 @@ def parse_header(path: Path) -> tuple[dict[str, list[str]] | None, str | None]:
 
 
 def dedent_value(lines: list[str]) -> list[str]:
-    """
-    Strip the common leading indent from a field's continuation lines.
+    """Strip the common leading indent from a field's continuation lines.
 
-    The header aligns continuations under the value column, so every line after
-    the first carries the same wide indent. Removing exactly that much preserves
-    the extra indentation that Usage uses to attach an explanation to the
-    invocation above it.
+    The header aligns continuations under the value column, so every line after the
+    first carries the same wide indent. Removing exactly that much preserves the extra
+    indentation that Usage uses to attach an explanation to the invocation above it.
+
+    Args:
+        lines: The field's lines, the first one already stripped.
+
+    Returns:
+        The same lines with the common indent removed.
     """
     # The first line already has its indent consumed by the field label, so it
     # is excluded when measuring.
@@ -168,13 +176,17 @@ def dedent_value(lines: list[str]) -> list[str]:
 
 
 def first_paragraph(lines: list[str]) -> str:
-    """
-    Return a field's first paragraph as one unwrapped line.
+    """Give a field's first paragraph as one unwrapped line.
 
-    Descriptions are hard-wrapped in the source header and run to several
-    paragraphs. The index wants the opening one only, joined back into a single
-    line because this repo's markdown is one paragraph per line so that grep
-    can match a phrase.
+    Descriptions are hard-wrapped in the source header and run to several paragraphs.
+    The index wants the opening one only, joined back into a single line, because this
+    repo's markdown is one paragraph per line so that grep can match a phrase.
+
+    Args:
+        lines: The field's lines.
+
+    Returns:
+        The first paragraph as one line.
     """
     paragraph: list[str] = []
 
@@ -195,11 +207,17 @@ def first_paragraph(lines: list[str]) -> str:
 
 
 def render(entries: list[tuple[str, dict[str, list[str]]]]) -> str:
-    """
-    Build the whole of scripts/README.md from the parsed headers.
+    """Build the whole of scripts/README.md from the parsed headers.
 
-    Returns the text rather than writing it, so that --check can compare against
+    The text is handed back rather than written, so that --check can compare it against
     the file on disk without a temporary file.
+
+    Args:
+        entries: One pair per script, its file name and its header fields, in index
+            order.
+
+    Returns:
+        The complete markdown text of the index.
     """
     out = [
         "# scripts/",
@@ -232,14 +250,16 @@ def render(entries: list[tuple[str, dict[str, list[str]]]]) -> str:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """
-    Takes the command-line arguments (None means sys.argv, as when run from a
-    terminal), parses every script's header, then writes or checks the index and
-    produces the exit code.
+    """Parse every script's header, then write or check the index.
 
-    Returns the process exit code. Header problems are collected across all
-    scripts before returning, so one run names every script that needs fixing
-    rather than stopping at the first.
+    Header problems are collected across all scripts before returning, so one run names
+    every script that needs fixing rather than stopping at the first.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
+
+    Returns:
+        The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
         description="Generate scripts/README.md from each script's header block."
@@ -255,6 +275,11 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     def say(message: str = "") -> None:
+        """Print the message, unless the run is quiet.
+
+        Args:
+            message: The line to print. Empty prints a blank line.
+        """
         if not args.quiet:
             print(message)
 
@@ -302,7 +327,7 @@ def main(argv: list[str] | None = None) -> int:
     if incomplete:
         say()
         say(
-            "CLAUDE.md requires the full header block on every script. Index not written."
+            "The writing_python_files rule requires the full header block on every script. Index not written."
         )
         return 2
 

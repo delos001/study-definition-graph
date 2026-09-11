@@ -139,14 +139,17 @@ EXIT_MEANING = {
 
 @pytest.fixture
 def manifest_dir(tmp_path, monkeypatch):
-    """Gives a test a function for staging one manifest.
+    """Give a check a function for staging one manifest.
 
-    The function takes manifest text and writes it as cdisc_usdm_v4.json in a
-    temporary folder. Passing None writes nothing, which stages the case where
-    no manifest exists. Before the function is handed over, the manifest reader
-    is pointed at that folder, and its study manifests folder is pointed at a
-    subfolder that does not exist, so nothing real is read. monkeypatch puts
-    both settings back when the test ends."""
+    The function takes manifest text and writes it as cdisc_usdm_v4.json in a temporary
+    folder. Passing None writes nothing, which stages the case where no manifest exists.
+    Before the function is handed over, the manifest reader is pointed at that folder,
+    and its study manifests folder is pointed at a subfolder that does not exist, so
+    nothing real is read. monkeypatch puts both settings back when the check ends.
+
+    Returns:
+        The staging function.
+    """
     from sdg.sources import read_manifests
 
     monkeypatch.setattr(read_manifests, "MANIFEST_DIR", tmp_path)
@@ -155,7 +158,11 @@ def manifest_dir(tmp_path, monkeypatch):
     )
 
     def make(text: str | None) -> None:
-        """Writes the given text as the one manifest, or nothing when None."""
+        """Write the given text as the one manifest, or nothing when None.
+
+        Args:
+            text: The manifest's text, or None to stage no manifest at all.
+        """
         if text is not None:
             (tmp_path / "cdisc_usdm_v4.json").write_text(text, encoding="utf-8")
 
@@ -164,19 +171,30 @@ def manifest_dir(tmp_path, monkeypatch):
 
 @pytest.fixture
 def manifest_recording():
-    """Gives a test a function for writing one manifest entry with one chosen fault.
+    """Give a check a function for writing one manifest entry with one chosen fault.
 
-    The function takes the path of a file and produces manifest text with a
-    single entry for it. The entry's size is right and its sha256 is a
-    placeholder of zeros. A test can change any field by naming it, or remove a
-    field by passing None for it. That is how a test stages exactly one thing
-    wrong, such as a wrong sha256, a wrong size or a missing field, and nothing
-    else."""
+    The function takes the path of a file and produces manifest text with a single entry
+    for it. The entry's size is right and its sha256 is a placeholder of zeros. A check
+    can change any field by naming it, or remove a field by passing None for it. That is
+    how a check stages exactly one thing wrong, such as a wrong sha256, a wrong size or
+    a missing field, and nothing else.
+
+    Returns:
+        The writing function.
+    """
     from sdg.sources import read_manifests
 
     def make(path: Path, **overrides) -> str:
-        """Builds the entry for the given file, applies the overrides, and gives
-        back the manifest as JSON text."""
+        """Build the entry for the given file, apply the overrides, and give back the
+        manifest as JSON text.
+
+        Args:
+            path: The file the entry records.
+            **overrides: Any field to change, or None for a field to leave out.
+
+        Returns:
+            The manifest text.
+        """
         entry = {
             "name": "fixture",
             "url": "https://example.invalid/fixture",
@@ -197,16 +215,21 @@ def manifest_recording():
 
 
 class FakeRepo:
-    """A small pretend repo on disk, for tests that need to walk a whole one.
+    """A small pretend repo on disk, for checks that need to walk a whole one.
 
     It has the three things the manifest reader looks for: a pyproject.toml, a
-    manifests/ folder with its study_documents/ subfolder, and an inputs/
-    folder. The helpers below put files and manifests into it. Every path a
-    test gives is relative to the fake repo's root and is written with forward
-    slashes, the same way a manifest writes it."""
+    manifests/ folder with its study_documents/ subfolder, and an inputs/ folder. The
+    methods put files and manifests into it. Every path a check gives is relative to the
+    fake repo's root and is written with forward slashes, the same way a manifest writes
+    it.
+    """
 
     def __init__(self, root: Path):
-        """Creates the fake repo's folders and its pyproject.toml under root."""
+        """Create the fake repo's folders and its pyproject.toml under the root.
+
+        Args:
+            root: The temporary folder the fake repo lives in.
+        """
         self.root = root
         (root / "manifests" / "study_documents").mkdir(parents=True)
         (root / "inputs").mkdir(parents=True)
@@ -219,23 +242,37 @@ class FakeRepo:
         )
 
     def file(self, local: str, content: bytes) -> Path:
-        """Writes one file into the fake repo and gives back its full path.
+        """Write one file into the fake repo.
 
-        The path is relative to the fake root. Any folders on the way are
-        created. Tests use this for pinned files under inputs/ and for anything
-        else they want on disk."""
+        Any folders on the way are created. Checks use this for pinned files under
+        inputs/ and for anything else they want on disk.
+
+        Args:
+            local: The file's path relative to the fake root.
+            content: The bytes to write.
+
+        Returns:
+            The file's full path.
+        """
         path = self.root / local
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
         return path
 
     def entry(self, local: str, **overrides: object) -> dict[str, object]:
-        """Builds one manifest entry for a file in the fake repo.
+        """Build one manifest entry for a file in the fake repo.
 
-        The entry is correct by default: when the file exists, its size and
-        sha256 are measured from it. A test can then change any field by naming
-        it, or remove a field by passing None, so that exactly one thing is
-        wrong."""
+        The entry is correct by default: when the file exists, its size and sha256 are
+        measured from it. A check can then change any field by naming it, or remove a
+        field by passing None, so that exactly one thing is wrong.
+
+        Args:
+            local: The file's path relative to the fake root.
+            **overrides: Any field to change, or None for a field to leave out.
+
+        Returns:
+            The entry, as the JSON reader would hand it back.
+        """
         path = self.root / local
         # The size is a number and the rest are text, so the entry's values are
         # typed as anything.
@@ -263,12 +300,18 @@ class FakeRepo:
     def manifest(
         self, name: str, entries: list[dict] | str, study: bool = False
     ) -> Path:
-        """Writes one manifest file into the fake repo and gives back its path.
+        """Write one manifest file into the fake repo.
 
-        The entries may be given as a list, which is written as proper JSON, or
-        as raw text, which is written as it is so a test can stage a manifest
-        that cannot be read. With study set to True the file goes under
-        manifests/study_documents/ instead of manifests/."""
+        Args:
+            name: The manifest's file name.
+            entries: The entries as a list, written as proper JSON, or raw text, written
+                as it is so a check can stage a manifest that cannot be read.
+            study: True to put the file under manifests/study_documents/ instead of
+                manifests/.
+
+        Returns:
+            The manifest's full path.
+        """
         folder = self.root / "manifests"
         if study:
             folder = folder / "study_documents"
@@ -280,14 +323,18 @@ class FakeRepo:
 
 @pytest.fixture
 def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
-    """Gives a test a FakeRepo and points the manifest reader at it.
+    """Give a check a FakeRepo and point the manifest reader at it.
 
-    The reader keeps three locations: the repo root, the manifests folder and
-    the study manifests folder. All three are pointed at the fake repo for the
-    length of the test, and monkeypatch puts them back afterwards. A script that
-    copied one of those locations when it was first loaded, such as
-    find_unrecorded_files with its PINNED_DIR, is not covered by this; the test
-    file for that script has its own fixture to repoint it."""
+    The reader keeps three locations: the repo root, the manifests folder and the study
+    manifests folder. All three are pointed at the fake repo for the length of the
+    check, and monkeypatch puts them back afterwards. A script that copied one of those
+    locations when it was first loaded, such as find_unrecorded_files with its
+    PINNED_DIR, is not covered by this; the test file for that script has its own
+    fixture to repoint it.
+
+    Returns:
+        The fake repo.
+    """
     from sdg.sources import read_manifests
 
     repo = FakeRepo(tmp_path / "repo")
@@ -306,12 +353,16 @@ def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
 
 
 def pytest_addoption(parser):
-    """Adds two options to the pytest command line.
+    """Add two options to the pytest command line.
 
-    --validation-report is off unless given. With it, a record is written
-    after the run. --validation-report-dir says which folder the record goes
-    in. It defaults to tests/validation; the record-writer's own tests point it
-    at a temporary folder instead."""
+    --validation-report is off unless given. With it, a record is written after the run.
+    --validation-report-dir says which folder the record goes in. It defaults to
+    tests/validation; the record-writer's own checks point it at a temporary folder
+    instead.
+
+    Args:
+        parser: pytest's command-line parser.
+    """
     parser.addoption(
         "--validation-report",
         action="store_true",
@@ -326,11 +377,14 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Tells pytest about the two markers the tests use, positive and negative.
+    """Tell pytest about the markers the checks use: positive, negative and code.
 
-    A marker is a label a test carries. pytest warns about a label it has not
-    been told about, so both are declared here, each with a sentence saying
-    what it means."""
+    A marker is a label a check carries. pytest warns about a label it has not been told
+    about, so each is declared here with a sentence saying what it means.
+
+    Args:
+        config: pytest's configuration.
+    """
     config.addinivalue_line("markers", "positive: proves the right thing works")
     config.addinivalue_line(
         "markers", "negative: proves the broken thing fails, and for the right reason"
@@ -360,10 +414,15 @@ _outcomes: dict[str, dict] = {}
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Records the outcome of one step of one test into that test's row.
+    """Record the outcome of one step of one check into that check's row.
 
-    pytest calls this after each of the three steps. The row is created by the
-    first step that has something to say and updated by the later ones."""
+    pytest calls this after each of the three steps. The row is created by the first
+    step that has something to say and updated by the later ones.
+
+    Args:
+        item: The check.
+        call: The step that just ran and how it ended.
+    """
     result = yield
     report = result.get_result()
 
@@ -411,8 +470,14 @@ def pytest_runtest_makereport(item, call):
 
 
 def _kind(item) -> str:
-    """Reads a test's kind off its marker: positive, negative, or unmarked when
-    it carries neither."""
+    """Read a check's kind off its marker.
+
+    Args:
+        item: The check.
+
+    Returns:
+        positive, negative, or unmarked when it carries neither.
+    """
     if item.get_closest_marker("positive"):
         return "positive"
     if item.get_closest_marker("negative"):
@@ -421,10 +486,17 @@ def _kind(item) -> str:
 
 
 def _first_paragraph(doc: str | None) -> str:
-    """Takes a test's docstring and gives back its first paragraph as one line.
+    """Give a check's docstring's first paragraph as one line.
 
-    That paragraph is the plain statement of what the test proves, and it is
-    what the record shows for the test."""
+    That paragraph is the plain statement of what the check proves, and it is what the
+    record shows for the check.
+
+    Args:
+        doc: The docstring, or None when the check has none.
+
+    Returns:
+        The first paragraph as one line, or an empty string when there is no docstring.
+    """
     if not doc:
         return "(no docstring)"
     first = doc.strip().split("\n\n", 1)[0]
@@ -436,10 +508,17 @@ def _first_paragraph(doc: str | None) -> str:
 
 
 def _git(*args: str) -> str:
-    """Runs one git command in the repo and gives back its output, trimmed.
+    """Run one git command in the repo.
 
-    If git is not installed or the command fails, it gives back '(unknown)'
-    instead of stopping, so a record can still be written."""
+    If git is not installed or the command fails, the result is '(unknown)' instead of
+    an error, so a record can still be written.
+
+    Args:
+        *args: The git command's arguments.
+
+    Returns:
+        The command's output, trimmed, or '(unknown)'.
+    """
     try:
         return subprocess.run(
             ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=True
@@ -449,21 +528,30 @@ def _git(*args: str) -> str:
 
 
 def _sha256(path: Path) -> str:
-    """Takes a file path and gives back the file's sha256 as hex.
+    """Measure a file's sha256.
 
-    The record names the exact bytes of the test code and fixtures it ran on,
-    and this is how."""
+    The record names the exact bytes of the test code and fixtures it ran on, and this
+    is how.
+
+    Args:
+        path: The file to measure.
+
+    Returns:
+        The sha256 as hex.
+    """
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def _pinned_data_version() -> str:
-    """Gives back one line saying which version of the pinned model file was on
-    the machine at run time.
+    """Say which version of the pinned model file was on the machine at run time.
 
-    The line holds the url from the manifest, which carries the DDF-RA commit,
-    the recorded sha256, and whether the file was present on disk. If the
-    manifest cannot be read, the line says so instead, and the record is still
-    written."""
+    The line holds the url from the manifest, which carries the DDF-RA commit, the
+    recorded sha256, and whether the file was present on disk. If the manifest cannot be
+    read, the line says so instead, and the record is still written.
+
+    Returns:
+        One line for the record.
+    """
     present = (
         "present"
         if (REPO_ROOT / PINNED_LOCAL).exists()
@@ -480,10 +568,17 @@ def _pinned_data_version() -> str:
 
 
 def _unique(path: Path) -> Path:
-    """Takes a file path and gives back one that is not in use yet.
+    """Find a file name that is not in use yet.
 
-    If the path already exists, -2, -3 and so on are added to the name, so a
-    second record on the same day and commit never overwrites the first."""
+    If the path already exists, -2, -3 and so on are added to the name, so a second
+    record on the same day and commit never overwrites the first.
+
+    Args:
+        path: The name wanted.
+
+    Returns:
+        That path, or the first numbered variant of it that does not exist.
+    """
     candidate, n = path, 1
     while candidate.exists():
         n += 1
@@ -496,16 +591,25 @@ _started_at = 0.0
 
 
 def pytest_sessionstart(session):
-    """Notes the moment the run started."""
+    """Note the moment the run started.
+
+    Args:
+        session: The pytest run.
+    """
     global _started_at
     _started_at = time.monotonic()
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Runs once after the whole test run and writes the records, if asked.
+    """Write the records after the whole run, if asked.
 
-    Nothing is written unless --validation-report was given. The verdict is
-    PASS only when pytest's own exit number is 0."""
+    Nothing is written unless --validation-report was given. The verdict is PASS only
+    when pytest's own exit number is 0.
+
+    Args:
+        session: The pytest run.
+        exitstatus: pytest's exit number for the run.
+    """
     if not session.config.getoption("--validation-report"):
         return
 
@@ -545,12 +649,18 @@ def pytest_sessionfinish(session, exitstatus):
     def write(
         name: str, component_line: str, test_file_line: str, rows: list[dict]
     ) -> None:
-        """Writes one record file.
+        """Write one record file.
 
-        Takes the record's name, the two lines that say what was tested (the
-        code file and the test file), and the test rows. Used both for the
-        normal case, one record per test file, and for the case where no test
-        ran at all."""
+        Used both for the normal case, one record per test file, and for the case where
+        no check ran at all.
+
+        Args:
+            name: The record's file name.
+            component_line: The line saying which code file was tested.
+            test_file_line: The line saying which test file ran.
+            rows: One row per check, with its name, kind, what it proves and its
+                outcome.
+        """
         counts = {
             k: sum(1 for r in rows if r["outcome"] == k)
             for k in ("passed", "failed", "error", "skipped")

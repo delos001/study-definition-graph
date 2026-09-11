@@ -59,8 +59,16 @@ LOCK_PREFIX = "~$"
 
 
 def unrecorded_files(found: list[Manifest]) -> list[str]:
-    """Walks inputs/ and gives back the repo-relative paths of files no entry
-    records, sorted, with the project's own files left out."""
+    """Walk inputs/ and list the files no manifest entry records.
+
+    The project's own files, meaning the READMEs and Excel's lock files, are left out.
+
+    Args:
+        found: The manifests, as the manifest reader hands them back.
+
+    Returns:
+        The repo-relative paths of the unrecorded files, sorted.
+    """
     recorded = {entry.local for manifest in found for entry in manifest.entries}
     stray: list[str] = []
 
@@ -80,8 +88,14 @@ def unrecorded_files(found: list[Manifest]) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Reads the manifests, walks inputs/, prints each unrecorded file unless
-    --quiet, and gives back the exit code."""
+    """Read the manifests, walk inputs/, and print each unrecorded file, unless --quiet.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
+
+    Returns:
+        The exit code, as the header block lists them.
+    """
     parser = argparse.ArgumentParser(
         description="List files under inputs/ that no manifest records."
     )

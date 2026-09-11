@@ -68,21 +68,37 @@ class FakeResponse:
     """Stands in for the response that httpx.stream yields."""
 
     def __init__(self, chunks, status_error=None, break_after=None):
-        """Keeps the chunks to serve, the status error to raise if any, and the
-        chunk index at which to break if any."""
+        """Keep the chunks to serve, the status error to raise if any, and the chunk index
+        at which to break if any.
+
+        Args:
+            chunks: The pieces of the body, served one at a time.
+            status_error: The error to raise for an error status, or None for a good
+                status.
+            break_after: The number of chunks to serve before the connection breaks, or
+                None to serve them all.
+        """
         self.chunks = chunks
         self.status_error = status_error
         self.break_after = break_after
 
     def raise_for_status(self):
-        """Raises the staged status error, if there is one, the way httpx does
-        when a server answers with an error status."""
+        """Raise the staged status error, if there is one, the way httpx does when a server
+        answers with an error status.
+        """
         if self.status_error is not None:
             raise self.status_error
 
     def iter_bytes(self):
-        """Hands out the chunks one at a time, and breaks part way through when
-        the check staged that."""
+        """Hand out the chunks one at a time, and break part way through when the check
+        staged that.
+
+        Yields:
+            The body, one chunk at a time.
+
+        Raises:
+            httpx.ReadError: The staged break point was reached.
+        """
         for index, chunk in enumerate(self.chunks):
             if self.break_after is not None and index == self.break_after:
                 raise httpx.ReadError("connection reset by peer")
@@ -90,7 +106,11 @@ class FakeResponse:
 
 
 def error_status() -> httpx.HTTPStatusError:
-    """Builds the error httpx raises when a server answers 404 Not Found."""
+    """Build the error httpx raises when a server answers 404 Not Found.
+
+    Returns:
+        The error, ready to be raised by the fake response.
+    """
     return httpx.HTTPStatusError(
         "404 Not Found",
         request=httpx.Request("GET", URL),
@@ -110,13 +130,19 @@ def server(monkeypatch):
     record = {}
 
     def stage(behavior):
-        """Installs a fake httpx.stream that behaves as given and gives back the
-        record of what fetch() asked for."""
+        """Install a fake httpx.stream that behaves as given.
+
+        Args:
+            behavior: A FakeResponse to serve, or an error to raise when the connection
+                is opened.
+
+        Returns:
+            The record of what fetch() asked for, filled in when it runs.
+        """
 
         @contextlib.contextmanager
         def fake_stream(method, url, **settings):
-            """Records the request, then fails the connection or yields the
-            staged response."""
+            """Record the request, then fail the connection or yield the staged response."""
             record.update(method=method, url=url, **settings)
             if isinstance(behavior, Exception):
                 raise behavior
@@ -164,8 +190,14 @@ def completed(tmp_path, server) -> Completed:
 
 
 def attempt(server, tmp_path, behavior) -> Failed:
-    """Stages the given server behaviour, tries one download, expects a
-    FetchError, and gives back its message and the destination."""
+    """Stage the given server behaviour, try one download, and expect it to fail.
+
+    Args:
+        behavior: What the fake server does, a FakeResponse or an error.
+
+    Returns:
+        The FetchError's message and the destination, as a Failed.
+    """
     server(behavior)
     destination = tmp_path / "file.pdf"
     with pytest.raises(FetchError) as caught:

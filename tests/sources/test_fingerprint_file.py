@@ -55,8 +55,15 @@ CONTENT = b"pinned bytes\n"
 
 
 def entry_for_bytes(content: bytes, **overrides: Any) -> Entry:
-    """Builds a manifest entry whose size and sha256 match the given bytes, with
-    any field overridden so a check can stage exactly one difference."""
+    """Build a manifest entry whose size and sha256 match the given bytes.
+
+    Args:
+        content: The bytes the entry describes.
+        **overrides: Any field to change, so a check can stage exactly one difference.
+
+    Returns:
+        The entry.
+    """
     # Typed as Any so the fields can be handed to Entry by name, which takes
     # one text and one number.
     fields: dict[str, Any] = dict(
