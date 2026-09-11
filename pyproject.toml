@@ -28,6 +28,9 @@ src = ["src", "scripts", "tests"]
 # import ordering, B is common bug patterns, UP is modern syntax for the pinned
 # Python version.
 select = ["E", "W", "F", "I", "B", "UP"]
+# Line length is the formatter's job. What it cannot wrap is a string, and a
+# message split across lines is harder to grep for.
+ignore = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["sdg"]

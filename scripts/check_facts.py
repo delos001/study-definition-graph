@@ -62,7 +62,6 @@ from __future__ import annotations
 import argparse
 import json
 import re
-import sys
 from pathlib import Path
 
 # pymupdf is imported under its legacy name "fitz", matching read_pdf.py.
@@ -76,8 +75,10 @@ import openpyxl
 # measurement loop can give each cause its own exit code.
 try:
     from sdg import usdm_spec
+    from sdg.console_output import use_utf8_output
     from sdg.pinned import IntegrityError, NotInRepoError, pinned
     from sdg.usdm_spec import SpecShapeError
+
     SDG_MISSING: ImportError | None = None
 except ImportError as exc:
     usdm_spec = pinned = None
@@ -92,8 +93,15 @@ EXAMPLES = REPO_ROOT / "inputs" / "worked_examples"
 # it is linked from docs/sources_index.md and a session acts on what it says, so its
 # numbers need the same guard as the prose. Being HTML makes no difference to a
 # regex looking for a figure.
-DOCS = ["README.md", "BACKGROUND.md", "PLAN.md", "CLAUDE.md",
-        "docs/sources_index.md", "docs/usdm_ig_ledger.md", "docs/standards_lineage.html"]
+DOCS = [
+    "README.md",
+    "BACKGROUND.md",
+    "PLAN.md",
+    "CLAUDE.md",
+    "docs/sources_index.md",
+    "docs/usdm_ig_ledger.md",
+    "docs/standards_lineage.html",
+]
 
 
 ### Measurements ###############################################################
@@ -121,18 +129,25 @@ def pinned_pdf_pages() -> int:
     # time beyond defining its table.
     from read_pdf import DOCUMENTS
 
-    return sum(len(fitz.open(pinned(entry["path"]).path)) for entry in DOCUMENTS.values())
+    return sum(
+        len(fitz.open(pinned(entry["path"]).path)) for entry in DOCUMENTS.values()
+    )
 
 
 def ig_sections() -> int:
     """Bookmarks in the USDM Implementation Guide, which is what a section is."""
-    return len(fitz.open(pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path).get_toc())
+    return len(
+        fitz.open(
+            pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path
+        ).get_toc()
+    )
 
 
 def core_rules() -> int:
     """Rows carrying a rule ID in the conformance rules workbook."""
     sheet = openpyxl.load_workbook(
-        pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path, read_only=True
+        pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path,
+        read_only=True,
     )["Version 3.0 and 4.0 CORE rules"]
     return sum(1 for row in list(sheet.iter_rows(values_only=True))[1:] if row[0])
 
@@ -143,8 +158,17 @@ def m11_elements() -> int:
     Counted by the "Term (Variable)" label that opens each element block, which
     is the document's own delimiter rather than a heuristic of ours.
     """
-    text = "".join(page.get_text() for page in
-                   fitz.open(pinned(STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf").path))
+    text = "".join(
+        page.get_text()
+        for page in fitz.open(
+            pinned(
+                STANDARDS
+                / "ich"
+                / "m11_step4"
+                / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf"
+            ).path
+        )
+    )
     return len(re.findall(r"Term \(Variable\)\s*\n\s*<([^>]{1,80})>", text))
 
 
@@ -170,7 +194,9 @@ def usdm_concrete_classes() -> int:
     v4, the one failure only this measurement can raise (exit 4).
     """
     spec = usdm_spec.load()
-    return sum(1 for c in usdm_spec.class_names(spec) if not usdm_spec.is_abstract(spec, c))
+    return sum(
+        1 for c in usdm_spec.class_names(spec) if not usdm_spec.is_abstract(spec, c)
+    )
 
 
 def shared_codes() -> int:
@@ -181,12 +207,23 @@ def shared_codes() -> int:
     and they are not. If this number ever drifts toward either total it would
     change the conclusion, not just the caption.
     """
-    text = "".join(page.get_text() for page in
-                   fitz.open(pinned(STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf").path))
+    text = "".join(
+        page.get_text()
+        for page in fitz.open(
+            pinned(
+                STANDARDS
+                / "ich"
+                / "m11_step4"
+                / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf"
+            ).path
+        )
+    )
     m11 = set(re.findall(r"\b(C\d{4,6})\b", text))
 
     terminology = set()
-    for sheet in openpyxl.load_workbook(pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CT.xlsx").path, read_only=True):
+    for sheet in openpyxl.load_workbook(
+        pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CT.xlsx").path, read_only=True
+    ):
         for row in sheet.iter_rows(values_only=True):
             for cell in row:
                 if cell:
@@ -234,22 +271,29 @@ def examples_with_estimands() -> int:
 # The regex must be specific enough that it cannot match an unrelated number;
 # a loose pattern would report a false match and defeat the point.
 FACTS = [
-    ("pinned PDF pages",      pinned_pdf_pages,  r"(\d+) pages across"),
-    ("IG sections",           ig_sections,       r"of (\d+) sections"),
-    ("CORE rules",            core_rules,        r"(\d+) rules\b"),
-    ("M11 data elements",     m11_elements,      r"(\d+) elements"),
-    ("UML delta rows",        uml_delta_rows,    r"(\d+) rows:"),
-    ("dataDictionary codes",  dictionary_codes,  r"(\d+) NCI codes|all (\d+) codes"),
+    ("pinned PDF pages", pinned_pdf_pages, r"(\d+) pages across"),
+    ("IG sections", ig_sections, r"of (\d+) sections"),
+    ("CORE rules", core_rules, r"(\d+) rules\b"),
+    ("M11 data elements", m11_elements, r"(\d+) elements"),
+    ("UML delta rows", uml_delta_rows, r"(\d+) rows:"),
+    ("dataDictionary codes", dictionary_codes, r"(\d+) NCI codes|all (\d+) codes"),
     ("USDM concrete classes", usdm_concrete_classes, r"all (\d+) concrete class"),
-    ("M11 and USDM shared codes", shared_codes,  r"(\d+) codes in common"),
+    ("M11 and USDM shared codes", shared_codes, r"(\d+) codes in common"),
     # Written as a word in prose, so the check accepts either form. Kept narrow
     # enough that "three" elsewhere in a sentence cannot match.
-    ("worked example studies", worked_examples,  r"(?:(\d+)|(?i:(three)|(two)|(four))) (?:real protocols|worked example)"),
+    (
+        "worked example studies",
+        worked_examples,
+        r"(?:(\d+)|(?i:(three)|(two)|(four))) (?:real protocols|worked example)",
+    ),
     # The count of examples that define an estimand, as stated in PLAN.md. The
     # trailing literal "of the three pinned examples defines" anchors it so the
     # captured number is the leading count, not the "three" later in the phrase.
-    ("examples with estimands", examples_with_estimands,
-     r"(?:(\d+)|(?i:(one)|(two)|(three))) of the three pinned examples defines"),
+    (
+        "examples with estimands",
+        examples_with_estimands,
+        r"(?:(\d+)|(?i:(one)|(two)|(three))) of the three pinned examples defines",
+    ),
 ]
 
 
@@ -287,12 +331,12 @@ def main(argv: list[str] | None = None) -> int:
     """Takes the command-line arguments (None means sys.argv, as when run from a
     terminal), recomputes every fact, compares it to what the documents say, and
     produces the exit code."""
-    sys.stdout.reconfigure(encoding="utf-8")
-
     parser = argparse.ArgumentParser(
         description="Check countable claims in the markdown against the pinned files."
     )
-    parser.add_argument("--verbose", action="store_true", help="also show facts that match")
+    parser.add_argument(
+        "--verbose", action="store_true", help="also show facts that match"
+    )
     args = parser.parse_args(argv)
 
     # Reported before any measurement, since one of them needs the package and
@@ -301,6 +345,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"the sdg package is not installed ({SDG_MISSING})")
         print("  fix -> from the repo root: pip install -e .")
         return 7
+
+    # Standard text carries characters the Windows console mangles; see
+    # sdg.console_output for why. Called after the guard above, since the
+    # helper comes from the package that guard reports missing.
+    use_utf8_output()
 
     drifted = unasserted = 0
 
@@ -332,13 +381,17 @@ def main(argv: list[str] | None = None) -> int:
 
         for name, stated in occurrences:
             if stated != actual:
-                print(f"  DRIFTED       {label} in {name}: says {stated}, actual {actual}")
+                print(
+                    f"  DRIFTED       {label} in {name}: says {stated}, actual {actual}"
+                )
                 drifted += 1
             elif args.verbose:
                 print(f"  ok            {label} in {name}: {actual}")
 
     print()
-    print(f"{len(FACTS)} fact(s) checked, {drifted} drifted, {unasserted} asserted nowhere.")
+    print(
+        f"{len(FACTS)} fact(s) checked, {drifted} drifted, {unasserted} asserted nowhere."
+    )
 
     # A fact nobody asserts is not an error in the documents; it just means this
     # script is tracking something the prose does not claim. Only real drift

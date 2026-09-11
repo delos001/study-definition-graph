@@ -82,8 +82,12 @@ def unrecorded_files(found) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     """Reads the manifests, walks inputs/, prints each unrecorded file unless
     --quiet, and gives back the exit code."""
-    parser = argparse.ArgumentParser(description="List files under inputs/ that no manifest records.")
-    parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
+    parser = argparse.ArgumentParser(
+        description="List files under inputs/ that no manifest records."
+    )
+    parser.add_argument(
+        "--quiet", action="store_true", help="print nothing; use the exit code"
+    )
     args = parser.parse_args(argv)
 
     # The reader checks the package is running from inside its repo before it
@@ -105,7 +109,9 @@ def main(argv: list[str] | None = None) -> int:
         for local in stray:
             print(local)
         if stray:
-            print(f"\n{len(stray)} file(s) no manifest records. They cannot be restored from a clone.")
+            print(
+                f"\n{len(stray)} file(s) no manifest records. They cannot be restored from a clone."
+            )
 
     return 1 if stray else 0
 

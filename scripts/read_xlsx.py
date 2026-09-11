@@ -41,6 +41,8 @@ from pathlib import Path
 
 import openpyxl
 
+from sdg.console_output import use_utf8_output
+
 ### Constants ##################################################################
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -175,7 +177,9 @@ def print_table(rows: list[list[str]]) -> None:
 
     for row_number, row in enumerate(trimmed):
         padded = row + [""] * (column_count - len(row))
-        print("  ".join(cell.ljust(widths[i]) for i, cell in enumerate(padded)).rstrip())
+        print(
+            "  ".join(cell.ljust(widths[i]) for i, cell in enumerate(padded)).rstrip()
+        )
 
         # A rule under the header row, so the header is visually distinct without
         # needing colour, which does not survive being piped or pasted.
@@ -259,11 +263,9 @@ def main() -> int:
     workbook, --find searches one, --sheet prints one sheet, and a bare workbook
     name lists its sheets.
     """
-    # openpyxl returns proper Unicode, but a Windows console defaults to a
-    # legacy code page and silently replaces anything it cannot encode. Controlled
-    # terminology and rule text use em dashes, bullets and non-ASCII quotes, so
-    # without this the output is mangled exactly where it carries meaning.
-    sys.stdout.reconfigure(encoding="utf-8")
+    # Standard text carries characters the Windows console mangles; see
+    # sdg.console_output for why.
+    use_utf8_output()
 
     parser = argparse.ArgumentParser(
         description="Read a sheet from one of the project's pinned Excel workbooks."

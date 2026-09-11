@@ -69,6 +69,11 @@ def problems_in(path: Path) -> tuple[list[str], bool]:
     if error:
         return [error], "cannot parse" not in error
 
+    # parse_header hands back either the fields or an error, never neither,
+    # so once the error is handled the fields are present. mypy cannot see the
+    # two halves of the pair move together, hence the assertion.
+    assert fields is not None
+
     problems: list[str] = []
 
     missing = [field for field in REQUIRED_FIELDS if field not in fields]
@@ -92,8 +97,12 @@ def problems_in(path: Path) -> tuple[list[str], bool]:
 def main(argv: list[str] | None = None) -> int:
     """Checks every file, prints each problem unless --quiet, and gives back
     the exit code."""
-    parser = argparse.ArgumentParser(description="Check every header block in the package and scripts/.")
-    parser.add_argument("--quiet", action="store_true", help="print nothing; use the exit code")
+    parser = argparse.ArgumentParser(
+        description="Check every header block in the package and scripts/."
+    )
+    parser.add_argument(
+        "--quiet", action="store_true", help="print nothing; use the exit code"
+    )
     args = parser.parse_args(argv)
 
     unparseable = 0

@@ -118,7 +118,9 @@ class Outcome:
 def recorded(repo, local: str, content: bytes) -> dict:
     """Builds a manifest entry for a file that may not be on disk yet, with the
     size and sha256 the given bytes would have."""
-    return repo.entry(local, bytes=len(content), sha256=hashlib.sha256(content).hexdigest())
+    return repo.entry(
+        local, bytes=len(content), sha256=hashlib.sha256(content).hexdigest()
+    )
 
 
 def run(capsys, *argv: str) -> Outcome:

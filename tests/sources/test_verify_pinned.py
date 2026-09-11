@@ -35,7 +35,13 @@ import json
 
 import pytest
 
-from sdg.sources import IntegrityError, NotInRepoError, PinnedFile, read_manifests, verify_pinned
+from sdg.sources import (
+    IntegrityError,
+    NotInRepoError,
+    PinnedFile,
+    read_manifests,
+    verify_pinned,
+)
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

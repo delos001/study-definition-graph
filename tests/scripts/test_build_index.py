@@ -117,7 +117,9 @@ def test_writes_first_paragraph_and_usage_with_indent_kept(folder, capsys):
 def test_scripts_are_listed_in_name_order(folder):
     """Two scripts appear in alphabetical order whatever order they were
     written, so the index is stable between runs."""
-    scripts = folder({"zeta.py": GOOD_HEADER.replace("alpha", "zeta"), "alpha.py": GOOD_HEADER})
+    scripts = folder(
+        {"zeta.py": GOOD_HEADER.replace("alpha", "zeta"), "alpha.py": GOOD_HEADER}
+    )
     assert bi.main([]) == 0
     text = (scripts / "README.md").read_text(encoding="utf-8")
     assert text.index("## alpha.py") < text.index("## zeta.py")
@@ -152,7 +154,9 @@ def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
     assert "stale. Run: python scripts/build_index.py" in capsys.readouterr().out
 
     bi.main([])
-    folder({"alpha.py": GOOD_HEADER.replace("Does the first thing", "Does another thing")})
+    folder(
+        {"alpha.py": GOOD_HEADER.replace("Does the first thing", "Does another thing")}
+    )
     assert bi.main(["--check"]) == 1
 
 
@@ -175,7 +179,13 @@ def test_quiet_prints_nothing(folder, capsys):
 def test_missing_field_exits_2_and_writes_nothing(folder, capsys):
     """A header missing required fields exits 2, naming the script and every
     missing field, and the index is not written."""
-    scripts = folder({"alpha.py": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace("Owner:       Jason Delosh\n", "")})
+    scripts = folder(
+        {
+            "alpha.py": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace(
+                "Owner:       Jason Delosh\n", ""
+            )
+        }
+    )
     assert bi.main([]) == 2
     assert not (scripts / "README.md").exists()
     out = capsys.readouterr().out

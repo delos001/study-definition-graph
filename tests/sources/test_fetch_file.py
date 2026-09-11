@@ -270,7 +270,9 @@ def test_partial_path_adds_part_to_the_file_name():
 def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server):
     """A server that answers with an error status makes fetch() raise
     FetchError, and the message names the url and the status."""
-    failed = attempt(server, tmp_path, FakeResponse(CHUNKS, status_error=error_status()))
+    failed = attempt(
+        server, tmp_path, FakeResponse(CHUNKS, status_error=error_status())
+    )
     assert URL in failed.message
     assert "404" in failed.message
 
@@ -279,7 +281,9 @@ def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server)
 @negative
 def test_error_status_leaves_no_part_file(tmp_path, server):
     """After an error status, no .part file is left on disk."""
-    failed = attempt(server, tmp_path, FakeResponse(CHUNKS, status_error=error_status()))
+    failed = attempt(
+        server, tmp_path, FakeResponse(CHUNKS, status_error=error_status())
+    )
     assert not partial_path(failed.destination).exists()
 
 

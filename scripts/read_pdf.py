@@ -61,6 +61,7 @@ from pathlib import Path
 # table positions, which this script needs in order to warn about lost content.
 import fitz
 
+from sdg.console_output import use_utf8_output
 
 ### Constants ##################################################################
 
@@ -102,19 +103,28 @@ DOCUMENTS = {
         "boilerplate": USDM_IG_BOILERPLATE,
     },
     "m11-guideline": {
-        "path": STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
+        "path": STANDARDS
+        / "ich"
+        / "m11_step4"
+        / "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
         "label": "ICH M11 Guideline (Step 4)",
         "manifest": "ich_m11_step4.json",
         "boilerplate": (),
     },
     "m11-template": {
-        "path": STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_Template_2025_1119.pdf",
+        "path": STANDARDS
+        / "ich"
+        / "m11_step4"
+        / "ICH_Step4_M11_Final_Template_2025_1119.pdf",
         "label": "ICH M11 Template (Step 4)",
         "manifest": "ich_m11_step4.json",
         "boilerplate": (),
     },
     "m11-techspec": {
-        "path": STANDARDS / "ich" / "m11_step4" / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
+        "path": STANDARDS
+        / "ich"
+        / "m11_step4"
+        / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
         "label": "ICH M11 Technical Specification (Step 4)",
         "manifest": "ich_m11_step4.json",
         "boilerplate": (),
@@ -484,12 +494,9 @@ def main() -> int:
     section. Running with no arguments prints the section map, on the assumption
     that a user who does not know what to ask for wants the menu.
     """
-    # PyMuPDF returns proper Unicode, but a Windows console defaults to a
-    # legacy code page and silently replaces anything it cannot encode. That
-    # mangles exactly the characters these specifications use structurally:
-    # bullets, em dashes and arrows. Forcing UTF-8 on stdout fixes it at the
-    # one place it goes wrong.
-    sys.stdout.reconfigure(encoding="utf-8")
+    # Standard text carries characters the Windows console mangles; see
+    # sdg.console_output for why.
+    use_utf8_output()
 
     parser = argparse.ArgumentParser(
         description="Read part of a pinned PDF standard (USDM IG or ICH M11)."
