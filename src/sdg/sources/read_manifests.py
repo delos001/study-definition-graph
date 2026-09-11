@@ -81,16 +81,23 @@ SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
 class NotInRepoError(Exception):
-    """Informs that the package is not running from inside its repo, so it cannot find
-    manifests/. This happens when it was installed without -e, which copies the
-    code into Python's own library folder."""
+    """Raised when the package is not running from inside its repo, so it cannot find
+    manifests/.
+
+    This happens when the package was installed without -e, which copies the code into
+    Python's own library folder instead of pointing at the repo.
+    """
 
 
 class ManifestError(Exception):
-    """Informs that a manifest cannot be read, none exist, an entry lacks a required
-    field, or a field holds a value that can never match a file: a size that is not a
-    whole number, or a sha256 that is not 64 lowercase hex characters. The message
-    names the file and the cause, quoting a bad value as written."""
+    """Raised when a manifest cannot be read, or an entry can never match a file.
+
+    That covers a manifests folder that is missing or empty, a manifest that is not
+    valid JSON, an entry that lacks a required field, and a field holding a value that
+    can never be right: a size that is not a whole number, or a sha256 that is not 64
+    lowercase hex characters. The message names the file and the cause, quoting a bad
+    value as written.
+    """
 
 
 #######################################################################################
@@ -98,9 +105,16 @@ class ManifestError(Exception):
 
 
 def require_repo() -> Path:
-    """Checks that this module is running from inside the repo, and gives back
-    the repo root: verifies the pyproject.toml exists and names this package.
-    Note: a missing manifests folder is a different problem reported by manifests()
+    """Check that this module is running from inside the repo.
+
+    The check is that pyproject.toml exists at the expected root and names this package.
+    A missing manifests folder is a different problem, reported by manifests().
+
+    Returns:
+        The repo root.
+
+    Raises:
+        NotInRepoError: The package is not running from inside its repo.
     """
     pyproject = REPO_ROOT / "pyproject.toml"
     if pyproject.exists() and 'name = "sdg"' in pyproject.read_text(encoding="utf-8"):
@@ -159,9 +173,19 @@ class Manifest:
 
 
 def _entry_from(raw: dict, manifest_name: str) -> Entry:
-    """Turns one entry, as read from JSON, into an Entry (see class Entry).
-    If a required field is missing it raises ManifestError naming the manifest, the
-    entry and the field."""
+    """Turn one entry, as read from JSON, into an Entry.
+
+    Args:
+        raw: The entry as the JSON reader handed it back.
+        manifest_name: The name of the manifest file it came from, for messages.
+
+    Returns:
+        The same entry as an Entry, with its fields named.
+
+    Raises:
+        ManifestError: A required field is missing, or a field holds a value that can
+            never match a file. The message names the manifest, the entry and the field.
+    """
 
     label = raw.get("name") or raw.get("local") or "?"
     fix = f"  fix -> repair that entry in manifests/{manifest_name}, then re-run"
@@ -197,9 +221,17 @@ def _entry_from(raw: dict, manifest_name: str) -> Entry:
 
 
 def _read_one(path: Path) -> Manifest:
-    """Reads one manifest file from disk and gives back a Manifest object holding its
-    entries (see class Manifest).
-    Raises ManifestError if the file is not valid JSON or an entry is malformed."""
+    """Read one manifest file from disk.
+
+    Args:
+        path: The manifest file.
+
+    Returns:
+        A Manifest holding the file's entries.
+
+    Raises:
+        ManifestError: The file is not valid JSON, or one of its entries is malformed.
+    """
 
     # A manifest that is not valid JSON and one that cannot be opened are the
     # same problem: nothing in it can be trusted. The message names the file,
@@ -223,11 +255,23 @@ def _read_one(path: Path) -> Manifest:
 
 
 def manifests(only: str | None = None) -> list[Manifest]:
-    """Gives back every manifest, or only the one named. The hand-written
-    manifests in manifests/ and the study manifests under study_documents/ are read together.
-    They are sorted by path so every run lists them in the same order.
-    Raises ManifestError when the folder is missing or empty, when the named set does
-    not exist, or when any manifest cannot be read.
+    """Read every manifest, or only the one named.
+
+    The hand-written manifests in manifests/ and the study manifests under
+    manifests/study_documents/ are read together and sorted by path, so every run lists
+    them in the same order.
+
+    Args:
+        only: The name of one manifest, with or without its .json suffix, or None for
+            all of them.
+
+    Returns:
+        The manifests, in path order.
+
+    Raises:
+        NotInRepoError: The package is not running from inside its repo.
+        ManifestError: The manifests folder is missing or empty, the named manifest does
+            not exist, or a manifest cannot be read.
     """
     require_repo()
 
@@ -258,10 +302,18 @@ def manifests(only: str | None = None) -> list[Manifest]:
 
 
 def as_local(target: str | Path) -> str:
-    """Turns a path into the form that can be used by manifests: relative to the repo
-    root, with forward slashes. A string is taken to be repo-relative already. A
-    path outside the repo is given back unchanged, so a message about it can
-    show it in full."""
+    """Turn a path into the form a manifest uses: relative to the repo root, with forward
+    slashes.
+
+    A string is taken to be repo-relative already. A path outside the repo is given back
+    unchanged, so a message about it can show it in full.
+
+    Args:
+        target: A repo-relative string, or a path on this machine.
+
+    Returns:
+        The repo-relative path with forward slashes, or an outside path unchanged.
+    """
     if isinstance(target, str):
         return target.replace("\\", "/")
     resolved = target.resolve()
@@ -271,9 +323,20 @@ def as_local(target: str | Path) -> str:
 
 
 def entry_for(target: str | Path) -> Entry | None:
-    """Gives back the manifest entry that records a file, or None if no manifest does.
-    Every manifest is searched each time. A search is computationally cheap so no index
-    is kept."""
+    """Find the manifest entry that records a file.
+
+    Every manifest is searched each time. A search is cheap, so no index is kept.
+
+    Args:
+        target: The file, as a repo-relative string or a path on this machine.
+
+    Returns:
+        The entry that records the file, or None when no manifest does.
+
+    Raises:
+        NotInRepoError: The package is not running from inside its repo.
+        ManifestError: A manifest cannot be read.
+    """
     local = as_local(target)
     for manifest in manifests():
         for entry in manifest.entries:

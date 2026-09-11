@@ -103,8 +103,15 @@ def mismatch_message(fake_repo) -> str:
 
 
 def refused_with(error, target=LOCAL) -> str:
-    """Tries to verify the target, expects the given error, and gives back its
-    message."""
+    """Try to verify the target and expect it to be refused.
+
+    Args:
+        error: The error type expected.
+        target: The file to verify, the recorded one unless a check says otherwise.
+
+    Returns:
+        The error's message.
+    """
     with pytest.raises(error) as caught:
         verify_pinned(target)
     return str(caught.value)

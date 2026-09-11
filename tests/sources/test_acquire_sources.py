@@ -80,11 +80,17 @@ def network(monkeypatch):
     download is attempted."""
 
     def stage(served: dict[str, bytes] | None = None) -> None:
-        """Installs the fake download step, serving the given bytes per url."""
+        """Install the fake download step, serving the given bytes per url.
+
+        Args:
+            served: The bytes to serve, keyed by url. None, or a url not listed, means
+                the url cannot be reached.
+        """
 
         def fake_fetch(url, destination):
-            """Writes the staged bytes under the .part name, or raises the way
-            the real step would for a url it cannot reach."""
+            """Write the staged bytes under the .part name, or fail the way the real step
+            would for a url it cannot reach.
+            """
             if served is None:
                 raise AssertionError(f"the network was used for {url}")
             if url not in served:
@@ -116,16 +122,31 @@ class Outcome:
 
 
 def recorded(repo, local: str, content: bytes) -> dict:
-    """Builds a manifest entry for a file that may not be on disk yet, with the
-    size and sha256 the given bytes would have."""
+    """Build a manifest entry for a file that may not be on disk yet.
+
+    Args:
+        repo: The fake repo the entry belongs to.
+        local: The file's repo-relative path.
+        content: The bytes the file has, or will have.
+
+    Returns:
+        The entry, with the size and sha256 those bytes would have.
+    """
     return repo.entry(
         local, bytes=len(content), sha256=hashlib.sha256(content).hexdigest()
     )
 
 
 def run(capsys, *argv: str) -> Outcome:
-    """Runs the workflow in-process with the given arguments and gives back the
-    exit code and what it printed."""
+    """Run the workflow in-process with the given arguments.
+
+    Args:
+        capsys: pytest's capture of what was printed.
+        *argv: The command-line arguments to hand the workflow.
+
+    Returns:
+        The exit code and what was printed, as an Outcome.
+    """
     code = acquire_sources.main(list(argv))
     return Outcome(code, capsys.readouterr().out)
 

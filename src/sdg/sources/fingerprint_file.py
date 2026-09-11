@@ -87,9 +87,20 @@ class Comparison:
 
 
 def fingerprint(path: Path) -> Fingerprint:
-    """Measures one file and gives back its size in bytes and its sha256.
-    The file is read in pieces (see CHUNK_BYTES).
-    Raises FileNotFoundError if the path does not exist."""
+    """Measure one file: its size in bytes and its sha256.
+
+    The file is read in pieces of CHUNK_BYTES, so a large file never has to fit in
+    memory at once.
+
+    Args:
+        path: The file to measure.
+
+    Returns:
+        The file's size and sha256 as a Fingerprint.
+
+    Raises:
+        FileNotFoundError: There is no file at the path.
+    """
     path = Path(path)
     if not path.is_file():
         raise FileNotFoundError(path)
@@ -103,11 +114,23 @@ def fingerprint(path: Path) -> Fingerprint:
 
 
 def compare(path: Path, entry: Entry) -> Comparison:
-    """Compares output from fingerprint function against its manifest entry and returns
-    whether it matched or not.  If not, it returns the details of the mismatch.
-    Size is checked first. When the size differs the sha256 is not computed, because
-    a difference in file size automatically means sha256 will not match, and the size
-    difference is the more useful thing to report."""
+    """Compare one file's measurements against its manifest entry.
+
+    Size is checked first. When the size differs the sha256 is not computed, because a
+    different size already means the sha256 cannot match, and the size difference is the
+    more useful thing to report.
+
+    Args:
+        path: The file to measure.
+        entry: The manifest entry it should match.
+
+    Returns:
+        A Comparison saying whether the file matched and, when it did not, which
+            measurement differed and both values.
+
+    Raises:
+        FileNotFoundError: There is no file at the path.
+    """
     path = Path(path)
     if not path.is_file():
         raise FileNotFoundError(path)

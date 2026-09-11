@@ -73,11 +73,11 @@ PARTIAL_SUFFIX = ".part"
 
 
 class FetchError(Exception):
-    """Informs that a download did not complete.
-    The message names the url and the cause:
-    - the server could not be reached,
-    - it answered with an error, or
-    - the transfer stopped part way."""
+    """Raised when a download did not complete.
+
+    The message names the url and the cause: the server could not be reached, it
+    answered with an error, or the transfer stopped part way.
+    """
 
 
 #######################################################################################
@@ -85,19 +85,38 @@ class FetchError(Exception):
 
 
 def partial_path(destination: Path) -> Path:
-    """Returns a temporary name given to the download: the destination + .part.
-    It is a function so that the naming rule lives in one place: finalize_file.py uses
-    it to find the file and 'tests' checks use it to find the file to check."""
+    """Give the temporary name a download is written under: the destination plus .part.
+
+    The naming rule lives in this one function, so that finalize_file.py can find the
+    file and the checks can find the file to look at.
+
+    Args:
+        destination: Where the finished file will live.
+
+    Returns:
+        The same path with .part added to the name.
+    """
     return destination.with_name(destination.name + PARTIAL_SUFFIX)
 
 
 def fetch(url: str, destination: Path) -> Path:
-    """Downloads the file from the specified 'url' and saves it in the specified
-    destination folder under the temporary name (see partial_path). The folder is
-    created if it does not exist.
-    Returns the path of that temporary file.
-    Raises FetchError if the download does not complete; in that case no temporary file
-    is left behind."""
+    """Download one url to its destination, under the temporary .part name.
+
+    The destination's folder is created when it does not exist. When the download fails,
+    no temporary file is left behind.
+
+    Args:
+        url: Where to download from.
+        destination: Where the finished file will live. The download is written beside
+            it under the .part name.
+
+    Returns:
+        The path of the .part file that was written.
+
+    Raises:
+        FetchError: The server could not be reached, it answered with an error, or the
+            transfer stopped part way.
+    """
     partial = partial_path(destination)
     partial.parent.mkdir(parents=True, exist_ok=True)
 

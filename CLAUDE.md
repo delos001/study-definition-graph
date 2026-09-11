@@ -61,34 +61,6 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 - Pin model versions to immutable identifiers, never moving aliases, and record the identifier in run metadata. Providers retire versions without complete changelogs.
 - Every extracted fact carries provenance: source document, section, page, character span, prompt id and version, model id, timestamp. It exists to trace a wrong answer back to the sentence that caused it.
 
-## Source files
+## Python files
 
-Reading only the comments should give an accurate picture of what a script does. `src/sdg/sources/read_manifests.py` is the worked example; match it. The scripts under `scripts/` still carry one-line banners from before this rule was set and are converted when next edited.
-
-Every script opens with:
-
-```
-Script:      filename.py
-Description: what it does, and any non-obvious constraint it operates under
-Inputs:      files or services read, and whether they are read-only
-Outputs:     what it writes to disk, or "nothing on disk"; and, for a module that hands results back, what it returns
-Usage:       one line per invocation mode, with a real example
-Exit codes:  each code and what causes it
-Date:        YYYY-MM-DD
-Owner:       Jason Delosh
-```
-
-`Date` is the day the file was first committed, and it never changes. When a file last changed is git's answer, not the header's: `git log -1 --format=%cd -- <file>`. A hand-kept "last changed" field is one that is wrong most of the time.
-
-`Owner` is who is accountable for the file and who to ask about it, not who wrote it. Authorship is recorded per commit in git, model attribution included, so it stays accurate as humans and models both edit a file over time. `git log --follow <file>` and `git blame <file>` are the answers to who wrote a given line. `Owner` changes only when ownership actually transfers.
-
-And carries:
-
-- Section banners grouping the file into named sections, two lines each: a full-width line of `#`, then `### Section name ###`.
-- A banner is a short label saying what the code in its section does, in plain words: `### Negative checks ###`, never a label a reader has to decode. Context goes in a comment beneath the banner, not in the label; a short description of the section there is encouraged. When a file holds different kinds of code, for example checks that the right thing works and checks that the wrong thing is refused, each kind gets its own section.
-- All markup, meaning headers, banners, docstrings, comments and READMEs, is plain English in a non-technical voice, concise, with basic sentence structure. A long list written inline becomes bullets.
-- A docstring on every function that opens with what it reads or takes in and what it produces, then why it works that way where that is not obvious. Naming the inputs it consumes and the result it yields beats "returns a value," which the signature and the final line already show.
-- A comment on every non-obvious block, every `try`/`except` (what it absorbs, what happens instead), and every workaround or non-standard library.
-- Comments explain why. Never restate the code.
-
-Heavy commenting is not licence for clever code. If a block needs a paragraph to explain, rewrite the block.
+Every Python file the project writes, under `src/sdg/`, `scripts/` and `tests/`, follows the rule in `.claude/rules/writing_python_files.md`: the header block, the sections, the docstrings, the comments, the checks, and the ruff and mypy runs. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.

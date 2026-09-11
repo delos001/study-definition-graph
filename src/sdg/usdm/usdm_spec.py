@@ -106,31 +106,36 @@ class SpecShapeError(Exception):
 
 
 def load(path: Path | None = None, verify: bool = True) -> dict:
-    """Reads dataStructure.yml (the pinned file, or `path`) and produces the parsed
-    YAML in native form:
-    - a dict keyed by class name, where each value is the class's own dict of NCI code,
-    definition, modifier and attributes.
-    Nothing is reshaped.
-    Two shape checks run before the dict is returned: every class has Modifier and
-    Attributes, and every attribute has Type, Cardinality and Relationship Type,
-    so a structurally different file fails here instead of deep inside a caller.
+    """Read dataStructure.yml, the pinned file or the given path, and hand back the parsed
+    YAML in native form.
 
-    - Pass verify=True (the default) and the file is obtained through
-    sdg.pinned, which checks it against its manifest before it is read: a changed
-    or swapped copy stops here rather than flowing downstream. The CLI's
-    --allow-unpinned flag sets verify=False for the pinned file only; it never
-    reads another path.
-    - Pass `path` with verify=False to read a file that is not the pinned one (a
-    test fixture). With verify=True such a file fails, since no manifest entry
-    records it.
+    The result is a dict keyed by class name, where each value is the class's own dict
+    of NCI code, definition, modifier and attributes. Nothing is reshaped. Two shape
+    checks run before the dict is returned: every class has Modifier and Attributes, and
+    every attribute has Type, Cardinality and Relationship Type, so a structurally
+    different file fails here instead of deep inside a caller.
 
-    Raises
-    - FileNotFoundError if the pinned file is absent,
-    - NotInRepoError if the package is not running from inside its repo,
-    - IntegrityError if the file cannot be verified against its manifest or does
-    not match it,
-    - SpecShapeError if it parsed but does not look like the USDM structure this module
-    reads.
+    With verify on, the default, the file is obtained through the pinned-file check,
+    which proves it against its manifest before it is read, so a changed or swapped copy
+    stops here rather than flowing downstream. The command line's --allow-unpinned flag
+    turns verify off for the pinned file only; it never reads another path. A path with
+    verify off reads a file that is not the pinned one, such as a test fixture. With
+    verify on such a file fails, since no manifest entry records it.
+
+    Args:
+        path: The file to read, or None for the pinned dataStructure.yml.
+        verify: Whether to prove the file against its manifest first.
+
+    Returns:
+        The parsed YAML, a dict keyed by class name.
+
+    Raises:
+        FileNotFoundError: The pinned file is absent.
+        NotInRepoError: The package is not running from inside its repo.
+        IntegrityError: The file cannot be verified against its manifest, or does not
+            match it.
+        SpecShapeError: The file parsed but is not shaped like the USDM structure this
+            module reads.
     """
     # Confirmed before the file is looked for, not inside pinned(). Installed
     # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
@@ -200,8 +205,17 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
 
 
 def _is_ref_list(value: object) -> bool:
-    """Takes one attribute field and reports whether it is a non-empty list whose
-    every item is a dict carrying a string '$ref', the only shape _unwrap() reads."""
+    """Say whether one attribute field is a non-empty list of reference dicts.
+
+    A reference dict carries a string under '$ref'. That is the only shape _unwrap()
+    reads.
+
+    Args:
+        value: The attribute field, of whatever type the YAML held.
+
+    Returns:
+        True when every item is a reference dict and there is at least one.
+    """
     return (
         isinstance(value, list)
         and bool(value)
@@ -223,54 +237,87 @@ def _is_ref_list(value: object) -> bool:
 
 
 def class_names(spec: dict) -> list[str]:
-    """Takes the loaded spec and produces every class name in the standard, sorted
-    for a stable listing."""
+    """List every class name in the standard.
+
+    Args:
+        spec: The loaded spec.
+
+    Returns:
+        The class names, sorted for a stable listing.
+    """
     return sorted(spec)
 
 
 def is_abstract(spec: dict, class_name: str) -> bool:
-    """Reads USDM's own Modifier value and returns True if the class is abstract,
-    False if concrete.
+    """Say whether a class is abstract, from USDM's own Modifier value.
 
-    Abstract is USDM's word for a shared parent never instantiated alone.
-    - An abstract class is like a blank template you never fill in directly.
-    - You only fill in its more specific sub-templates.
-        - example: 'Identifier' is abstract; you never create an Identifier, only a more
-        specific one like StudyIdentifier or MedicalDeviceIdentifier.
+    Abstract is USDM's word for a shared parent never instantiated alone. An abstract
+    class is like a blank template you never fill in directly; you only fill in its more
+    specific sub-templates. For example, Identifier is abstract: you never create an
+    Identifier, only a more specific one like StudyIdentifier or
+    MedicalDeviceIdentifier.
 
-    Raises KeyError naming the class if it is unknown.
+    Args:
+        spec: The loaded spec.
+        class_name: The class to look at.
+
+    Returns:
+        True when the class is abstract, False when it is concrete.
+
+    Raises:
+        KeyError: The class is unknown. The message names it.
     """
     return spec[class_name]["Modifier"] == "Abstract"
 
 
 def attributes(spec: dict, class_name: str) -> dict:
-    """Takes the loaded spec and a class name (one at a time) and extracts that
-    class's attributes in file order, exactly as the standard has them.
+    """Give one class's attributes in file order, exactly as the standard has them.
 
-    Inherited attributes are included because dataStructure.yml already copies
-    them onto each concrete class (tagged 'Inherited From'); this does no
-    flattening of its own. Raises KeyError naming the class if it is unknown.
+    Inherited attributes are included because dataStructure.yml already copies them onto
+    each concrete class, tagged 'Inherited From'; this does no flattening of its own.
+
+    Args:
+        spec: The loaded spec.
+        class_name: The class to look at.
+
+    Returns:
+        The class's attributes, keyed by attribute name.
+
+    Raises:
+        KeyError: The class is unknown. The message names it.
     """
     return spec[class_name]["Attributes"]
 
 
 def _unwrap(refs: list[dict]) -> tuple[str, ...]:
-    """Takes a list of USDM references, each {'$ref': '#/X'}, and produces the
-    names X as a tuple. The one place the '$ref' wrapping is taken off, so the
-    rule lives once; both Type and Inherited From use this shape."""
+    """Take the '$ref' wrapping off a list of USDM references.
+
+    This is the one place the wrapping is removed, so the rule lives once; both Type and
+    Inherited From use this shape.
+
+    Args:
+        refs: The references, each a dict like {'$ref': '#/X'}.
+
+    Returns:
+        The names X, as a tuple.
+    """
     return tuple(ref["$ref"].removeprefix("#/") for ref in refs)
 
 
 def targets(attribute: dict) -> tuple[str, ...]:
-    """Takes one attribute dict and produces the type(s) it references, as a tuple,
-    with USDM's '#/' ref prefix removed.
-    Example: an attribute whose Type is [{'$ref': '#/string'}] yields ('string',);
-    Condition.appliesToIds, which lists five refs, yields those five class names.
+    """Give the type or types one attribute references, with USDM's '#/' prefix removed.
 
-    USDM writes every type as a list of {'$ref': '#/X'}, where X is a class name
-    or one of five primitives (string, boolean, integer, float, date). Most
-    attributes reference one type; four reference several (e.g. Condition.appliesToIds),
-    so the result is always a tuple.
+    USDM writes every type as a list of {'$ref': '#/X'}, where X is a class name or one
+    of five primitives: string, boolean, integer, float, date. Most attributes reference
+    one type; four reference several, Condition.appliesToIds among them, so the result
+    is always a tuple. An attribute whose Type is [{'$ref': '#/string'}] yields
+    ('string',).
+
+    Args:
+        attribute: One attribute's dict.
+
+    Returns:
+        The referenced type names, as a tuple.
     """
     return _unwrap(attribute.get("Type", []))
 
@@ -286,16 +333,16 @@ def targets(attribute: dict) -> tuple[str, ...]:
 
 
 def _print_classes(spec: dict) -> None:
-    """Takes the loaded spec (main() calls load()) and prints every class name,
-    marking abstract ones, then a count summary.
+    """Print every class name, marking the abstract ones, then a count summary.
 
-    Names go to stdout so the listing can be piped: every class name, one per line with
-    [abstract] appended to the abstract classes.
-
-    The summary goes to stderr (for example: 86 classes (80 concrete, 6 abstract)).
-    The summary doesn't get mixed into the stdout stream so piped data isn't polluted.
-    The concrete/abstract split is the figure docs/sources_index.md records, printed here
+    Names go to stdout so the listing can be piped: one per line, with [abstract]
+    appended to the abstract classes. The summary, for example 86 classes (80 concrete,
+    6 abstract), goes to stderr so it is not mixed into piped data. The
+    concrete/abstract split is the figure docs/sources_index.md records, printed here
     straight from the file.
+
+    Args:
+        spec: The loaded spec.
     """
     names = class_names(spec)
     for name in names:
@@ -310,11 +357,16 @@ def _print_classes(spec: dict) -> None:
 
 
 def _print_attributes(spec: dict, class_name: str) -> int:
-    """Takes the loaded spec (main() calls load()) and one class name, and
-    prints that class's attributes (name, type(s), cardinality, kind, and for an
-    inherited attribute, the parent it comes from).
-    Produces exit code 0, or 5 with a guidance message if the class is unknown,
-    so a typo yields the remedy rather than a traceback.
+    """Print one class's attributes: name, types, cardinality, kind and, for an inherited
+    attribute, the parent it comes from.
+
+    Args:
+        spec: The loaded spec.
+        class_name: The class to print.
+
+    Returns:
+        0, or 5 with a guidance message when the class is unknown, so a typo yields the
+            remedy rather than a traceback.
     """
     try:
         attrs = attributes(spec, class_name)
@@ -346,10 +398,13 @@ def _print_attributes(spec: dict, class_name: str) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Takes the command-line arguments, loads the spec once, runs the requested
-    listing, and produces the process exit code:
-    - a zero means success
-    - a non-zero means failure (see script documentation at the beginning of this file).
+    """Load the spec once, run the requested listing, and give back the exit code.
+
+    Args:
+        argv: The command-line arguments, or None to read the real ones.
+
+    Returns:
+        The exit code, as the header block lists them.
     """
     # Standard text carries characters the Windows console mangles; see
     # sdg.console_output for why.

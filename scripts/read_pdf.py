@@ -178,24 +178,25 @@ SECTION_NUMBER_PATTERN = re.compile(
 
 
 def load_toc(doc: fitz.Document) -> list[dict]:
-    """
-    Build the section map from the PDF's embedded bookmarks.
+    """Build the section map from the PDF's embedded bookmarks.
 
-    The bookmarks give a start page per section but no end page, so each
-    section's end is inferred as one page before the next section that starts on
-    a later page. The "later page" test matters because several IG sections
-    begin on the same page; without it, those sections would get a negative or
-    zero-length range.
+    The bookmarks give a start page per section but no end page, so each section's end
+    is inferred as one page before the next section that starts on a later page. The
+    "later page" test matters because several IG sections begin on the same page;
+    without it, those sections would get a negative or zero-length range.
 
-    Returns an empty list for a PDF with no bookmarks, which is the normal case
-    for the M11 documents. Callers must treat empty as "this document cannot be
-    addressed by section" rather than as "this document has no sections".
+    An empty result means the PDF has no bookmarks, which is the normal case for the M11
+    documents. Callers must treat empty as "this document cannot be addressed by
+    section" rather than as "this document has no sections".
 
-    Returns a list of dicts, one per bookmark, each with:
-        number  the leading section number, e.g. "4.23", or "" if untitled
-        title   the full bookmark text, e.g. "4.23 Addressing Footnotes"
-        start   first page, 1-indexed to match the printed page numbers
-        end     last page, 1-indexed and inclusive
+    Args:
+        doc: The open PDF.
+
+    Returns:
+        One dict per bookmark, holding number (the leading section number, such as
+            "4.23", or "" if untitled), title (the full bookmark text), start (the first
+            page, 1-indexed to match the printed page numbers) and end (the last page,
+            1-indexed and inclusive).
     """
     bookmarks = doc.get_toc()  # list of [level, title, start_page]
     sections: list[dict] = []
@@ -232,18 +233,21 @@ def load_toc(doc: fitz.Document) -> list[dict]:
 
 
 def find_section(sections: list[dict], wanted: str) -> dict | None:
-    """
-    Resolve a user-supplied string to one section, in two passes.
+    """Resolve a user-supplied string to one section, in two passes.
 
-    Pass 1 is an exact match on the section number, so "4.23" cannot
-    accidentally match "4.230" or a section whose body mentions 4.23.
-    Pass 2 is a case-insensitive substring match on the title, so a user who
-    remembers "footnote" but not the number still gets there.
+    Pass 1 is an exact match on the section number, so "4.23" cannot accidentally match
+    "4.230" or a section whose body mentions 4.23. Pass 2 is a case-insensitive
+    substring match on the title, so a user who remembers "footnote" but not the number
+    still gets there. A trailing period is tolerated because "4.23." is a natural way to
+    type it.
 
-    A trailing period is tolerated because "4.23." is a natural way to type it.
+    Args:
+        sections: The section map from load_toc().
+        wanted: What the user typed.
 
-    Returns the matching section dict, or None if nothing matched. The caller is
-    responsible for reporting the failure; this function does not print.
+    Returns:
+        The matching section, or None when nothing matched. The caller reports the
+            failure; this function does not print.
     """
     wanted = wanted.strip().rstrip(".")
 
@@ -262,21 +266,25 @@ def find_section(sections: list[dict], wanted: str) -> dict | None:
 
 
 def heading_offset(text: str, number: str) -> int | None:
-    """Character offset where a section's heading begins, or None if not found.
+    """Find where a section's heading begins in a page's text.
 
-    Matches a line that opens with the section number, which is how headings
-    appear in every registered document. The number alone is used rather than
-    the full bookmark title because the two do not always agree: the USDM IG
-    renders "4.23 Addressing Footnotes" on one line, while E9(R1) puts "A.3.3."
-    and "Estimand Attributes" on separate lines, so a title match would fail
-    there.
+    The match is a line that opens with the section number, which is how headings appear
+    in every registered document. The number alone is used rather than the full bookmark
+    title because the two do not always agree: the USDM IG renders "4.23 Addressing
+    Footnotes" on one line, while E9(R1) puts "A.3.3." and "Estimand Attributes" on
+    separate lines, so a title match would fail there. The pattern requires a period or
+    whitespace after the number; without that, "4.2" would also match the start of
+    "4.23", and a request for the shorter section would be cut at the longer one's
+    heading.
 
-    The trailing `[.\\s]` matters. Without it "4.2" would also match the start of
-    "4.23", and a request for the shorter section would be cut at the longer
-    one's heading.
+    Args:
+        text: The page's text.
+        number: The section number to look for.
 
-    Returns None rather than guessing. The caller reports that, because a wrong
-    boundary chosen silently is the failure this whole function exists to fix.
+    Returns:
+        The character offset of the heading, or None when it is not found. None rather
+            than a guess, because a wrong boundary chosen silently is the failure this
+            function exists to prevent.
     """
     if not number:
         return None
@@ -286,16 +294,20 @@ def heading_offset(text: str, number: str) -> int | None:
 
 
 def strip_boilerplate(text: str, patterns: tuple[re.Pattern, ...]) -> str:
-    """
-    Remove the repeated per-page header and footer lines.
+    """Remove the repeated per-page header and footer lines.
 
-    Patterns are passed in rather than read from a module global because they
-    are per-document: the USDM IG has four, the M11 PDFs have none. An empty
-    tuple is a valid and common argument and returns the text unchanged.
+    Patterns are passed in rather than read from a module global because they are per-
+    document: the USDM IG has four, the M11 PDFs have none. The work is done line by
+    line rather than with a multiline regex, so a pattern that fails to match leaves
+    that single line intact instead of silently discarding a block of body text.
 
-    Operates line by line rather than with a multiline regex so that a pattern
-    failing to match leaves that single line intact instead of silently
-    discarding a block of body text.
+    Args:
+        text: The page's text.
+        patterns: The lines to remove, as compiled patterns. An empty tuple is valid and
+            common.
+
+    Returns:
+        The text with matching lines removed, or unchanged when there are no patterns.
     """
     if not patterns:
         return text
@@ -309,17 +321,19 @@ def strip_boilerplate(text: str, patterns: tuple[re.Pattern, ...]) -> str:
 
 
 def describe_lost_content(page: fitz.Page) -> str:
-    """
-    Report diagrams and tables on a page that the text output does not contain.
+    """Report the diagrams and tables on a page that the text output does not contain.
 
-    This is the safeguard against the failure mode that motivated keeping the
-    PDF as the source of truth. Body text frequently says things like "as shown
-    in the following diagram"; the diagram is an image, so extracted text ends
-    at that sentence with no sign that anything is missing. Naming the loss
-    turns a silent gap into a visible one.
+    This is the safeguard against the failure mode that motivated keeping the PDF as the
+    source of truth. Body text frequently says things like "as shown in the following
+    diagram"; the diagram is an image, so extracted text ends at that sentence with no
+    sign that anything is missing. Naming the loss turns a silent gap into a visible
+    one.
 
-    Returns a bracketed one-line note, or an empty string when the page holds
-    only text.
+    Args:
+        page: The page to inspect.
+
+    Returns:
+        A bracketed one-line note, or an empty string when the page holds only text.
     """
     image_count = len(page.get_images(full=True))
 
@@ -360,18 +374,28 @@ def extract_pages(
     label: str,
     section: dict | None = None,
 ) -> str:
-    """
-    Return the text of pages start..end inclusive, one labelled block per page.
+    """Extract the text of pages start to end inclusive, one labelled block per page.
 
-    Each block names the document and the page, so any claim sourced from this
-    output can cite both, which the project's grounding rule in CLAUDE.md
-    requires. The document name matters now that four documents are readable and
-    two of them describe overlapping subject matter.
+    Each block names the document and the page, so any claim sourced from this output
+    can cite both, which the project's grounding rule requires. Page numbers are
+    converted from 1-indexed, how these documents and their bookmarks number pages, to
+    0-indexed, how pymupdf addresses them, at the single point of access inside, so the
+    rest of the script works in printed page numbers.
 
-    Page indices are converted from 1-indexed (how these documents and their
-    bookmarks number pages) to 0-indexed (how pymupdf addresses them) at the
-    single point of access below, so the rest of the script works in printed
-    page numbers.
+    Args:
+        doc: The open PDF.
+        start: The first page, 1-indexed.
+        end: The last page, 1-indexed and inclusive.
+        raw: True to print the pages exactly as extracted, with no boilerplate removed
+            and no trimming at the section's edges.
+        patterns: The document's boilerplate lines to remove.
+        label: The document's name, printed in each block's heading.
+        section: The section being extracted, whose own number and the next section's
+            number say where to trim the first and last pages. None in page mode, where
+            nothing is trimmed.
+
+    Returns:
+        The extracted text, one block per page.
     """
     blocks = []
     warnings: list[str] = []
@@ -423,44 +447,48 @@ def extract_pages(
 
 
 def searchable(text: str) -> str:
-    """
-    Return a form of text suitable for matching, not for display.
+    """Give a form of the text suitable for matching, not for display.
 
-    Some PDFs store typographic ligatures as single characters, so the word
-    "Definition" is really "De" + U+FB01 + "nition" and a plain substring search
-    for it silently finds nothing. That is the worst failure mode available
-    here: not an error, just an empty result that reads as "the document does
-    not mention this".
+    Some PDFs store typographic ligatures as single characters, so the word "Definition"
+    is really "De" + U+FB01 + "nition" and a plain substring search for it silently
+    finds nothing. That is the worst failure mode available here: not an error, just an
+    empty result that reads as "the document does not mention this". Of the registered
+    documents only the model diagram is affected, with 21 ligatures, but normalising
+    costs nothing and a missed hit is a wrong conclusion. NFKD decomposes ligatures back
+    into their letters and is applied to both the search term and the page text, so the
+    two are always compared on the same footing.
 
-    Of the registered documents only the model diagram is affected, with 21
-    ligatures, but the cost of normalising is trivial and the cost of missing a
-    hit is a wrong conclusion. NFKD decomposes ligatures back into their letters
-    and is applied to both the needle and the page text, so the two are always
-    compared on the same footing.
+    Text that gets printed is never passed through this, so what the reader sees is
+    still exactly what the PDF holds.
 
-    Used only for matching. Text that gets printed is never passed through this,
-    so what the reader sees is still exactly what the PDF holds.
+    Args:
+        text: The page text, or the search term.
+
+    Returns:
+        The text with ligatures decomposed into their letters and case folded.
     """
     return unicodedata.normalize("NFKD", text).casefold()
 
 
 def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[str]:
-    """
-    Find every page whose text contains term, case-insensitively.
+    """Find every page whose text contains the term, case-insensitively.
 
-    This exists so a document can be searched without converting it to a text
-    file. A converted copy would drop every diagram and flatten every table, and
-    would then need to be kept in step with the PDF; searching in place avoids
-    both problems.
+    This exists so a document can be searched without converting it to a text file. A
+    converted copy would drop every diagram and flatten every table, and would then need
+    to be kept in step with the PDF; searching in place avoids both problems. It is also
+    the only usable access path for the M11 documents, which carry no bookmarks: the M11
+    Technical Specification is a reference of 186 data elements rather than a linear
+    read, so term lookup is the access pattern it wants.
 
-    It is also the only usable access path for the M11 documents, which carry no
-    bookmarks. The M11 Technical Specification is a reference of 186 data
-    elements rather than a linear read, so term lookup is the access pattern it
-    actually wants.
+    Args:
+        doc: The open PDF.
+        sections: The section map, so a hit can name the section its page falls in.
+            Empty for a document without bookmarks.
+        term: What to look for.
 
-    Each hit reports the page, the section that page falls in where sections are
-    known, and the first matching line, so the caller can decide what is worth
-    reading in full rather than reading it all.
+    Returns:
+        One line per hit, naming the page, the section where known, and the first
+            matching line, so the caller can decide what is worth reading in full.
     """
     needle = searchable(term)
     hits = []
@@ -498,14 +526,15 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
 
 
 def main() -> int:
-    """
-    Parse arguments, dispatch to one mode, and return a shell exit code.
+    """Parse the arguments, run one mode, and give back the exit code.
 
-    Modes are mutually exclusive in practice and are checked in order of
-    specificity: --docs, --list and --find are explicit requests, --pages
-    bypasses section lookup, and a bare positional argument is resolved as a
-    section. Running with no arguments prints the section map, on the assumption
-    that a user who does not know what to ask for wants the menu.
+    Modes are checked in order of specificity: --docs, --list and --find are explicit
+    requests, --pages bypasses section lookup, and a bare positional argument is
+    resolved as a section. Running with no arguments prints the section map, on the
+    assumption that a user who does not know what to ask for wants the menu.
+
+    Returns:
+        The exit code, as the header block lists them.
     """
     # Standard text carries characters the Windows console mangles; see
     # sdg.console_output for why.

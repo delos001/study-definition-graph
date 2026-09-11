@@ -85,6 +85,14 @@ def folder(tmp_path, monkeypatch):
     monkeypatch.setattr(bi, "INDEX_PATH", scripts / "README.md")
 
     def make(files: dict[str, str]):
+        """Write the given scripts into the folder and hand the folder back.
+
+        Args:
+            files: The scripts to write, source text keyed by file name.
+
+        Returns:
+            The folder the generator is pointed at.
+        """
         for name, source in files.items():
             (scripts / name).write_text(source, encoding="utf-8")
         return scripts

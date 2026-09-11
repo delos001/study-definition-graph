@@ -31,6 +31,17 @@ python scripts/check_facts.py --verbose
     also show facts that match
 ```
 
+## check_python_files.py
+
+Runs the three tool checks every Python file must pass, in order: ruff format in check mode, ruff check, and mypy. Each tool's own output is printed as it runs, so a failure names the file and the line. All three are configured in pyproject.toml; this script adds nothing to what they check.
+
+```
+python scripts/check_python_files.py
+    run all three checks, report each, exit non-zero if any failed
+python scripts/check_python_files.py --quiet
+    print only the tools' own reports and the final verdict lines
+```
+
 ## find_unrecorded_files.py
 
 Lists every file under inputs/ that no manifest records, since such a file cannot be restored from a fresh clone.
@@ -77,7 +88,7 @@ python scripts/read_xlsx.py --all --find "epoch"
 
 ## verify_headers.py
 
-Checks that every Python file in the package and in scripts/ opens with the full header block CLAUDE.md requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.
+Checks that every Python file in the package and in scripts/ opens with the full header block the writing_python_files rule requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.
 
 ```
 python scripts/verify_headers.py
