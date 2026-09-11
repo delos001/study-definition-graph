@@ -71,7 +71,7 @@ import openpyxl
 # The model loader, and the three ways it can refuse the pinned file. Guarded
 # rather than plain, so that a missing sdg package (never installed) is reported
 # by main() as exit 7 with the install command, instead of a traceback before
-# any check runs. The three exception classes are needed at module level so the
+# any check runs. The three exception classes are imported here so the
 # measurement loop can give each cause its own exit code.
 try:
     from sdg.console_output import use_utf8_output
@@ -82,8 +82,8 @@ try:
 
     SDG_MISSING: ImportError | None = None
 except ImportError as exc:
-    usdm_spec = verify_pinned = None
-    IntegrityError = NotInRepoError = SpecShapeError = ()  # never matched
+    # Nothing is bound in this case. main() reports the missing package and
+    # returns before any of the names above is used.
     SDG_MISSING = exc
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
