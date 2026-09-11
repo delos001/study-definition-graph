@@ -15,3 +15,44 @@ where = ["src"]
 # needs scripts/ on the import path. Declared here once, not in each test file.
 pythonpath = ["scripts"]
 testpaths = ["tests"]
+
+[tool.ruff]
+# Line length matches ruff's default formatter width. src, scripts and tests are
+# the three folders the writing_python_files rule covers.
+line-length = 88
+target-version = "py312"
+src = ["src", "scripts", "tests"]
+
+[tool.ruff.lint]
+# E and W are PEP 8 style, F is pyflakes (unused names, undefined names), I is
+# import ordering, B is common bug patterns, UP is modern syntax for the pinned
+# Python version.
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["sdg"]
+
+[tool.mypy]
+# Every function must carry hints, per the writing_python_files rule. The
+# packages below ship no type stubs, so their imports are allowed untyped.
+python_version = "3.12"
+files = ["src", "scripts", "tests"]
+# tests/scripts/ imports the hand-run scripts by bare name, as pytest does.
+mypy_path = ["src", "scripts", "."]
+# With explicit package bases every test file is named tests.<folder>.<file>, so
+# one override pattern below covers the whole folder, present and future.
+explicit_package_bases = true
+disallow_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = ["fitz", "fitz.*", "openpyxl", "openpyxl.*", "yaml"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Checks take their arguments from pytest fixtures, and a label on each would
+# only repeat the argument's name. Tests are exempt from the hint requirement
+# but are still checked for everything mypy can find without hints.
+module = ["tests.*"]
+disallow_untyped_defs = false
