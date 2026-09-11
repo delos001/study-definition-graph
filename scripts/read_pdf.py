@@ -54,6 +54,7 @@ import io
 import re
 import sys
 import unicodedata
+from dataclasses import dataclass
 from pathlib import Path
 
 # pymupdf is imported under its legacy name "fitz". It is a conda dependency
@@ -82,6 +83,7 @@ USDM_IG_BOILERPLATE = (
     re.compile(r"^\s*2025-06-03\s*$"),
 )
 
+
 # The registry of readable documents. Each entry carries:
 #   path         where the pinned file lives
 #   label        how the document is cited in output, so a claim sourced from
@@ -95,56 +97,67 @@ USDM_IG_BOILERPLATE = (
 # frequently repeated lines in the Technical Specification ("Definition",
 # "Data Type", "Cardinality") are field labels in the body. Stripping those
 # would delete the content the document exists to convey.
-DOCUMENTS = {
-    "ig": {
-        "path": STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf",
-        "label": "USDM-IG v4.0",
-        "manifest": "cdisc_usdm_v4.json",
-        "boilerplate": USDM_IG_BOILERPLATE,
-    },
-    "m11-guideline": {
-        "path": STANDARDS
+@dataclass(frozen=True)
+class Document:
+    """One registered PDF: where it is, what to call it, which manifest records
+    it, and the page furniture to strip from every extract."""
+
+    path: Path
+    label: str
+    manifest: str
+    boilerplate: tuple[re.Pattern[str], ...]
+
+
+DOCUMENTS: dict[str, Document] = {
+    "ig": Document(
+        path=STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf",
+        label="USDM-IG v4.0",
+        manifest="cdisc_usdm_v4.json",
+        boilerplate=USDM_IG_BOILERPLATE,
+    ),
+    "m11-guideline": Document(
+        path=STANDARDS
         / "ich"
         / "m11_step4"
         / "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
-        "label": "ICH M11 Guideline (Step 4)",
-        "manifest": "ich_m11_step4.json",
-        "boilerplate": (),
-    },
-    "m11-template": {
-        "path": STANDARDS
+        label="ICH M11 Guideline (Step 4)",
+        manifest="ich_m11_step4.json",
+        boilerplate=(),
+    ),
+    "m11-template": Document(
+        path=STANDARDS
         / "ich"
         / "m11_step4"
         / "ICH_Step4_M11_Final_Template_2025_1119.pdf",
-        "label": "ICH M11 Template (Step 4)",
-        "manifest": "ich_m11_step4.json",
-        "boilerplate": (),
-    },
-    "m11-techspec": {
-        "path": STANDARDS
+        label="ICH M11 Template (Step 4)",
+        manifest="ich_m11_step4.json",
+        boilerplate=(),
+    ),
+    "m11-techspec": Document(
+        path=STANDARDS
         / "ich"
         / "m11_step4"
         / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
-        "label": "ICH M11 Technical Specification (Step 4)",
-        "manifest": "ich_m11_step4.json",
-        "boilerplate": (),
-    },
-    "e9r1": {
-        "path": STANDARDS / "ich" / "e9r1" / "E9-R1_Step4_Guideline_2019_1203.pdf",
-        "label": "ICH E9(R1) Estimands Addendum",
-        "manifest": "ich_e9r1.json",
-        "boilerplate": (),
-    },
+        label="ICH M11 Technical Specification (Step 4)",
+        manifest="ich_m11_step4.json",
+        boilerplate=(),
+    ),
+    "e9r1": Document(
+        path=STANDARDS / "ich" / "e9r1" / "E9-R1_Step4_Guideline_2019_1203.pdf",
+        label="ICH E9(R1) Estimands Addendum",
+        manifest="ich_e9r1.json",
+        boilerplate=(),
+    ),
     # The whole USDM model as one vector diagram. Registered despite being a
     # picture because its text extracts cleanly, which the 14 UML_Views PNGs of
     # the same material do not. Everything is on page 1, so --find is the only
     # sensible mode.
-    "model-diagram": {
-        "path": STANDARDS / "cdisc" / "usdm_v4" / "DDF_USDM_Model_Informative.pdf",
-        "label": "USDM Model Diagram (informative)",
-        "manifest": "cdisc_usdm_v4.json",
-        "boilerplate": (),
-    },
+    "model-diagram": Document(
+        path=STANDARDS / "cdisc" / "usdm_v4" / "DDF_USDM_Model_Informative.pdf",
+        label="USDM Model Diagram (informative)",
+        manifest="cdisc_usdm_v4.json",
+        boilerplate=(),
+    ),
 }
 
 DEFAULT_DOCUMENT = "ig"
@@ -529,8 +542,8 @@ def main() -> int:
     # works on a fresh clone where inputs/ has not been downloaded.
     if args.docs:
         for key, entry in DOCUMENTS.items():
-            state = "present" if entry["path"].exists() else "NOT DOWNLOADED"
-            print(f"  {key:16} {entry['label']:42} {state}")
+            state = "present" if entry.path.exists() else "NOT DOWNLOADED"
+            print(f"  {key:16} {entry.label:42} {state}")
         return 0
 
     document = DOCUMENTS[args.doc]
@@ -539,15 +552,15 @@ def main() -> int:
     # error a user is likely to hit on a fresh clone, since inputs/ is gitignored,
     # so the message names the expected path and the manifest to restore from
     # rather than letting pymupdf raise.
-    if not document["path"].exists():
-        print(f"{document['label']} not found at {document['path']}", file=sys.stderr)
+    if not document.path.exists():
+        print(f"{document.label} not found at {document.path}", file=sys.stderr)
         print(
-            f"inputs/ is gitignored. Re-download per manifests/{document['manifest']}.",
+            f"inputs/ is gitignored. Re-download per manifests/{document.manifest}.",
             file=sys.stderr,
         )
         return 1
 
-    doc = fitz.open(document["path"])
+    doc = fitz.open(document.path)
     sections = load_toc(doc)
 
     wants_sections = args.list or args.section or not (args.pages or args.find)
@@ -558,7 +571,7 @@ def main() -> int:
     # document lacked the content rather than lacking the navigation data.
     if wants_sections and not sections:
         print(
-            f"{document['label']} has no embedded bookmarks, so it cannot be "
+            f"{document.label} has no embedded bookmarks, so it cannot be "
             f"addressed by section.",
             file=sys.stderr,
         )
@@ -586,7 +599,7 @@ def main() -> int:
         if not hits:
             print(f"No pages contain {args.find!r}.")
             return 0
-        print(f"{len(hits)} page(s) in {document['label']} contain {args.find!r}:\n")
+        print(f"{len(hits)} page(s) in {document.label} contain {args.find!r}:\n")
         print("\n".join(hits))
         return 0
 
@@ -604,27 +617,27 @@ def main() -> int:
 
     # Mode: resolve a section number or title fragment.
     else:
-        section = find_section(sections, args.section)
-        if section is None:
+        found = find_section(sections, args.section)
+        if found is None:
             print(
                 f"No section matching {args.section!r}. Run with --list to see all.",
                 file=sys.stderr,
             )
             return 1
-        start_page = section["start"]
-        end_page = section["end"]
-        label = section["title"]
-        section_for_trim = section
+        start_page = found["start"]
+        end_page = found["end"]
+        label = found["title"]
+        section_for_trim = found
 
-    print(f"### {document['label']} | {label} | pages {start_page}-{end_page}\n")
+    print(f"### {document.label} | {label} | pages {start_page}-{end_page}\n")
     print(
         extract_pages(
             doc,
             start_page,
             end_page,
             args.raw,
-            document["boilerplate"],
-            document["label"],
+            document.boilerplate,
+            document.label,
             section_for_trim,
         )
     )

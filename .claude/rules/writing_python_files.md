@@ -44,7 +44,7 @@ Owner:       Jason Delosh
 ## Test files
 
 - One test file per code file, at the mirrored path under `tests/`, carrying the code file's name: `tests/sources/test_fetch_file.py` tests `src/sdg/sources/fetch_file.py`.
-- Each check proves one promise; a claim that needs an "and" is two checks. A situation several checks look at is staged once in a fixture. Repeated cases use `parametrize`.
+- Each check proves one promise; a claim that uses "and" one or more times is more than one check. A situation several checks look at is staged once in a fixture. Repeated cases use `parametrize`.
 - Each check carries `@positive` or `@negative` and a `@code` marker holding its id from `tests/validation_inventory.csv`. Its docstring summary line is the sentence the inventory shows.
 - A negative check breaks one thing and asserts the error type and that the message names the cause and its remedy.
 - A check touches nothing real and never downloads: files are staged in a temporary folder through the `conftest.py` fixtures, the network is replaced by a fake, and a workflow runs in-process through its `main()`. A check that needs a pinned file skips, with that reason, when it is absent.

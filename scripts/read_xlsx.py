@@ -311,27 +311,27 @@ def main() -> int:
             print(f"  {path.relative_to(REPO_ROOT)}", file=sys.stderr)
         return 1
 
-    path = resolve_workbook(args.workbook)
-    if path is None:
+    workbook_path = resolve_workbook(args.workbook)
+    if workbook_path is None:
         print(f"No workbook matching {args.workbook!r}.", file=sys.stderr)
         return 1
 
     # Mode: search one workbook.
     if args.find:
-        hits = search_workbook(path, args.find)
+        hits = search_workbook(workbook_path, args.find)
         if not hits:
-            print(f"No cells contain {args.find!r} in {path.name}.")
+            print(f"No cells contain {args.find!r} in {workbook_path.name}.")
             return 0
-        print(f"{len(hits)} hit(s) in {path.name}:\n")
+        print(f"{len(hits)} hit(s) in {workbook_path.name}:\n")
         print("\n".join(hits))
         return 0
 
-    workbook = openpyxl.load_workbook(path, read_only=True, data_only=True)
+    workbook = openpyxl.load_workbook(workbook_path, read_only=True, data_only=True)
     try:
         # Mode: list the sheets. This is the default because these workbooks have
         # up to 35 sheets and a user rarely knows the sheet name up front.
         if not args.sheet:
-            print(f"{path.name}  ({len(workbook.sheetnames)} sheets)\n")
+            print(f"{workbook_path.name}  ({len(workbook.sheetnames)} sheets)\n")
             for sheet_name in workbook.sheetnames:
                 worksheet = workbook[sheet_name]
                 print(
@@ -347,7 +347,7 @@ def main() -> int:
         )
         if actual is None:
             print(
-                f"No sheet named {args.sheet!r} in {path.name}. "
+                f"No sheet named {args.sheet!r} in {workbook_path.name}. "
                 f"Run without --sheet to list them.",
                 file=sys.stderr,
             )
@@ -355,7 +355,9 @@ def main() -> int:
 
         rows = read_rows(workbook[actual])
         width = max((len(row) for row in rows), default=0)
-        print(f"### {path.name} | sheet {actual} | {len(rows)} rows x {width} cols\n")
+        print(
+            f"### {workbook_path.name} | sheet {actual} | {len(rows)} rows x {width} cols\n"
+        )
 
         if args.format == "records":
             print_records(rows)

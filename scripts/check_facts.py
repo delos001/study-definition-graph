@@ -129,9 +129,7 @@ def pinned_pdf_pages() -> int:
     # time beyond defining its table.
     from read_pdf import DOCUMENTS
 
-    return sum(
-        len(fitz.open(pinned(entry["path"]).path)) for entry in DOCUMENTS.values()
-    )
+    return sum(len(fitz.open(pinned(entry.path).path)) for entry in DOCUMENTS.values())
 
 
 def ig_sections() -> int:
