@@ -117,21 +117,21 @@ def stray_quiet(repo, capsys) -> Outcome:
 # mistaken for pinned ones, and --quiet leaves the exit code to speak.
 
 
-@code("SCR0032")
+@code("HRS0032")
 @positive
 def test_recorded_files_only_exits_0(clean):
     """When every file under inputs/ is recorded, the run exits 0."""
     assert clean.exit_code == 0
 
 
-@code("SCR0033")
+@code("HRS0033")
 @positive
 def test_recorded_files_only_prints_nothing(clean):
     """When every file under inputs/ is recorded, nothing is printed."""
     assert clean.printed == ""
 
 
-@code("SCR0021")
+@code("HRS0021")
 @positive
 def test_quiet_prints_nothing(stray_quiet):
     """With the quiet option, nothing at all is printed, even when a file is
@@ -139,14 +139,14 @@ def test_quiet_prints_nothing(stray_quiet):
     assert stray_quiet.printed == ""
 
 
-@code("SCR0034")
+@code("HRS0034")
 @positive
 def test_quiet_keeps_the_exit_code(stray_quiet):
     """With the quiet option, the exit code still reports the unrecorded file."""
     assert stray_quiet.exit_code == 1
 
 
-@code("SCR0035")
+@code("HRS0035")
 @positive
 def test_own_files_are_not_reported(repo, capsys):
     """A README.md and a .gitkeep under inputs/ are the project's own files and are
@@ -156,7 +156,7 @@ def test_own_files_are_not_reported(repo, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("SCR0036")
+@code("HRS0036")
 @positive
 def test_lock_file_is_not_reported(repo, capsys):
     """An Excel ~$ lock file beside a workbook under inputs/ is not data and is not
@@ -165,7 +165,7 @@ def test_lock_file_is_not_reported(repo, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("SCR0037")
+@code("HRS0037")
 @positive
 def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
     """A repo with no inputs/ folder at all has nothing unrecorded and exits 0, as
@@ -186,21 +186,21 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 # package not running from its repo.
 
 
-@code("SCR0038")
+@code("HRS0038")
 @negative
 def test_unrecorded_file_exits_1(stray):
     """A file under inputs/ that no manifest records makes the run exit 1."""
     assert stray.exit_code == 1
 
 
-@code("SCR0039")
+@code("HRS0039")
 @negative
 def test_unrecorded_file_is_listed_by_path(stray):
     """An unrecorded file is printed by its repo-relative path."""
     assert "inputs/set_a/stray.txt" in stray.printed
 
 
-@code("SCR0040")
+@code("HRS0040")
 @negative
 def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
     """The summary counts the unrecorded files and says they cannot be restored from
@@ -209,7 +209,7 @@ def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
     assert "cannot be restored" in stray.printed
 
 
-@code("SCR0041")
+@code("HRS0041")
 @negative
 def test_part_file_is_reported(repo, capsys):
     """An unfinished .part download under inputs/ is reported as unrecorded, since
@@ -220,7 +220,7 @@ def test_part_file_is_reported(repo, capsys):
     assert "inputs/set_a/other.txt.part" in outcome.printed
 
 
-@code("SCR0028")
+@code("HRS0028")
 @negative
 def test_unreadable_manifest_exits_3(repo, capsys):
     """A manifest that is not valid JSON makes the run exit 3, and the message names
@@ -231,7 +231,7 @@ def test_unreadable_manifest_exits_3(repo, capsys):
     assert "broken.json: cannot read" in outcome.printed
 
 
-@code("SCR0029")
+@code("HRS0029")
 @negative
 def test_no_manifests_exits_3(repo, capsys):
     """An empty manifests folder makes the run exit 3, and the message says no
@@ -243,7 +243,7 @@ def test_no_manifests_exits_3(repo, capsys):
     assert "git checkout" in outcome.printed
 
 
-@code("SCR0030")
+@code("HRS0030")
 @negative
 def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
     """When the package is not running from inside its repo, the run exits 6 with

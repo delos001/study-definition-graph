@@ -104,7 +104,7 @@ def folder(tmp_path, monkeypatch):
 ### Generating the index ###
 
 
-@code("SCR0001")
+@code("HRS0001")
 @positive
 def test_writes_first_paragraph_and_usage_with_indent_kept(folder, capsys):
     """The index holds each script's name, the first paragraph of its
@@ -120,7 +120,7 @@ def test_writes_first_paragraph_and_usage_with_indent_kept(folder, capsys):
     assert "scripts/README.md written, 1 script(s)" in capsys.readouterr().out
 
 
-@code("SCR0002")
+@code("HRS0002")
 @positive
 def test_scripts_are_listed_in_name_order(folder):
     """Two scripts appear in alphabetical order whatever order they were
@@ -137,7 +137,7 @@ def test_scripts_are_listed_in_name_order(folder):
 ### --check, the pre-commit hook ###
 
 
-@code("SCR0003")
+@code("HRS0003")
 @positive
 def test_check_passes_when_index_is_current(folder, capsys):
     """With the check option, the run exits 0 and writes nothing when the index
@@ -150,7 +150,7 @@ def test_check_passes_when_index_is_current(folder, capsys):
     assert "is current, 1 script(s)" in capsys.readouterr().out
 
 
-@code("SCR0004")
+@code("HRS0004")
 @negative
 def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
     """With the check option, the run exits 1 and names the command to run when
@@ -168,7 +168,7 @@ def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
     assert bi.main(["--check"]) == 1
 
 
-@code("SCR0005")
+@code("HRS0005")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
     """With the quiet option, nothing is printed; the exit code is the whole
@@ -182,7 +182,7 @@ def test_quiet_prints_nothing(folder, capsys):
 ### Refusing a bad header, one exit code each ###
 
 
-@code("SCR0006")
+@code("HRS0006")
 @negative
 def test_missing_field_exits_2_and_writes_nothing(folder, capsys):
     """A header missing required fields exits 2, naming the script and every
@@ -201,7 +201,7 @@ def test_missing_field_exits_2_and_writes_nothing(folder, capsys):
     assert "Index not written" in out
 
 
-@code("SCR0007")
+@code("HRS0007")
 @negative
 def test_no_docstring_exits_2(folder, capsys):
     """A script with no module docstring has no header block at all: exit 2,
@@ -211,7 +211,7 @@ def test_no_docstring_exits_2(folder, capsys):
     assert "alpha.py: no module docstring" in capsys.readouterr().out
 
 
-@code("SCR0008")
+@code("HRS0008")
 @negative
 def test_unparseable_script_exits_3_and_outranks_2(folder, capsys):
     """A script that is not valid Python exits 3, and 3 outranks 2 when another
@@ -223,7 +223,7 @@ def test_unparseable_script_exits_3_and_outranks_2(folder, capsys):
     assert "beta.py: no module docstring" in out
 
 
-@code("SCR0009")
+@code("HRS0009")
 @negative
 def test_no_scripts_exits_3(folder, capsys):
     """An empty scripts folder exits 3."""
@@ -236,7 +236,7 @@ def test_no_scripts_exits_3(folder, capsys):
 ### The real scripts/ folder ###
 
 
-@code("SCR0010")
+@code("HRS0010")
 @positive
 def test_real_index_is_current():
     """scripts/README.md matches the headers of the real scripts, which is the

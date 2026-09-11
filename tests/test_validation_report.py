@@ -1,7 +1,7 @@
 """
 Script:      test_validation_report.py
 Description: Checks for the validation-record writer in tests/conftest.py. A
-             record is the proof that a component was validated, so the writer
+             record is the proof that the code was validated, so the writer
              itself has to be proven: above all, that it can never say PASS
              when pytest said the run failed.
 
@@ -9,7 +9,8 @@ Description: Checks for the validation-record writer in tests/conftest.py. A
              folder (using pytest's own "pytester" helper), gives it a copy of
              tests/conftest.py, runs pytest on it as a separate process with
              --validation-report pointed at a temporary folder, and reads the
-             record that comes out. Nothing is written under tests/validation/.
+             CSV record that comes out. Nothing is written under
+             tests/validation/.
 
 Inputs:      tests/conftest.py   (read-only; copied into each throwaway suite)
 
@@ -28,6 +29,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import csv
 import textwrap
 from pathlib import Path
 
@@ -45,13 +47,23 @@ code = pytest.mark.code
 
 
 #######################################################################################
-### Helpers ###
+### Shared staging ###
+#
+# One helper runs a throwaway suite with the real conftest beside it, and one reads
+# the record back as rows.
 
 
 def run_suite(pytester, test_source: str, *extra_args: str):
-    """Takes the source of one throwaway test file and any extra pytest
-    arguments, runs pytest on it in a separate process with the real conftest.py
-    beside it, and produces (pytest's result, the folder records were written to)."""
+    """Run pytest on one throwaway test file, with the real conftest.py beside it.
+
+    Args:
+        pytester: pytest's helper for running a separate suite.
+        test_source: The source of the one test file.
+        *extra_args: Any further pytest arguments.
+
+    Returns:
+        pytest's result and the folder the record was written to.
+    """
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite=textwrap.dedent(test_source))
     out = pytester.path / "records"
@@ -61,18 +73,34 @@ def run_suite(pytester, test_source: str, *extra_args: str):
     return result, out
 
 
-def the_record(folder: Path) -> str:
+def the_record(folder: Path) -> list[dict[str, str]]:
     """Read the one record the run wrote.
 
     Args:
         folder: Where the record was written.
 
     Returns:
-        The record's text.
+        The record's rows, one per check, each a dict keyed by column name.
     """
-    records = list(folder.glob("*.md"))
+    records = list(folder.glob("*.csv"))
     assert len(records) == 1, [r.name for r in records]
-    return records[0].read_text(encoding="utf-8")
+    with records[0].open(encoding="utf-8", newline="") as fh:
+        return list(csv.DictReader(fh))
+
+
+def row_for(rows: list[dict[str, str]], check_name: str) -> dict[str, str]:
+    """Pick the one row for a named check.
+
+    Args:
+        rows: The record's rows.
+        check_name: The check's function name.
+
+    Returns:
+        That check's row.
+    """
+    matches = [r for r in rows if r["check_name"] == check_name]
+    assert len(matches) == 1, [r["check_name"] for r in rows]
+    return matches[0]
 
 
 #######################################################################################
@@ -83,13 +111,14 @@ def the_record(folder: Path) -> str:
 @positive
 def test_passing_run_is_recorded_as_pass(pytester):
     """A suite whose tests all pass gets a record saying PASS with pytest exit
-    status 0, one row per test showing its kind and what it proves, and a
-    skipped test shown as skipped with its reason."""
+    status 0, one row per check showing its code, kind and what it proves, and a
+    skipped check shown as skipped with its reason."""
     result, out = run_suite(
         pytester,
         '''
         import pytest
 
+        @pytest.mark.code("XYZ0001")
         @pytest.mark.positive
         def test_adds():
             """Two and two make four."""
@@ -101,13 +130,19 @@ def test_passing_run_is_recorded_as_pass(pytester):
         ''',
     )
     assert result.ret == 0
-    record = the_record(out)
-    assert "**PASS**: pytest exit status 0 (all tests passed)" in record
-    assert "1 passed, 0 failed, 0 error, 1 skipped" in record
-    assert "| `test_adds` | positive | Two and two make four. | passed |" in record
-    assert (
-        "| `test_left_out` | unmarked | Never runs. | skipped (not today) |" in record
-    )
+    rows = the_record(out)
+    assert {r["verdict"] for r in rows} == {"PASS"}
+    assert {r["pytest_exit_status"] for r in rows} == {"0"}
+    assert {r["exit_meaning"] for r in rows} == {"all tests passed"}
+    adds = row_for(rows, "test_adds")
+    assert adds["check_code"] == "XYZ0001"
+    assert adds["kind"] == "positive"
+    assert adds["proves"] == "Two and two make four."
+    assert adds["outcome"] == "passed"
+    left_out = row_for(rows, "test_left_out")
+    assert left_out["kind"] == "unmarked"
+    assert left_out["outcome"] == "skipped"
+    assert left_out["reason"] == "not today"
 
 
 @code("TST0002")
@@ -152,13 +187,13 @@ def test_cleanup_failure_is_recorded_as_fail(pytester):
         ''',
     )
     assert result.ret == 1
-    record = the_record(out)
-    assert "**FAIL**: pytest exit status 1" in record
-    assert (
-        "| `test_checks_pass_but_cleanup_fails` | unmarked | Passes, then its clean-up fails. | error (clean-up failed) |"
-        in record
-    )
-    assert "| passed |" not in record
+    rows = the_record(out)
+    assert {r["verdict"] for r in rows} == {"FAIL"}
+    assert {r["pytest_exit_status"] for r in rows} == {"1"}
+    row = row_for(rows, "test_checks_pass_but_cleanup_fails")
+    assert row["outcome"] == "error"
+    assert row["reason"] == "clean-up failed"
+    assert "passed" not in {r["outcome"] for r in rows}
 
 
 @code("TST0004")
@@ -174,11 +209,11 @@ def test_failing_assertion_is_recorded_as_fail(pytester):
         ''',
     )
     assert result.ret == 1
-    record = the_record(out)
-    assert "**FAIL**: pytest exit status 1" in record
-    assert (
-        "| `test_wrong` | unmarked | Claims two and two make five. | failed |" in record
-    )
+    rows = the_record(out)
+    assert {r["verdict"] for r in rows} == {"FAIL"}
+    row = row_for(rows, "test_wrong")
+    assert row["proves"] == "Claims two and two make five."
+    assert row["outcome"] == "failed"
 
 
 @code("TST0005")
@@ -200,21 +235,24 @@ def test_setup_failure_is_recorded_as_error(pytester):
         ''',
     )
     assert result.ret == 1
-    record = the_record(out)
-    assert "**FAIL**: pytest exit status 1" in record
-    assert "| `test_never_runs` | unmarked | Cannot start. | error |" in record
+    rows = the_record(out)
+    assert {r["verdict"] for r in rows} == {"FAIL"}
+    assert row_for(rows, "test_never_runs")["outcome"] == "error"
 
 
 @code("TST0006")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_record(pytester):
     """When a test file cannot even be loaded (a syntax error), no test runs and
-    pytest exits 2. A record is still written, says FAIL, and says that no test
-    outcomes were recorded, so a broken run cannot pass unnoticed by leaving no
-    record behind."""
+    pytest exits 2. A record is still written, says FAIL, and holds one row saying
+    that no check ran, so a broken run cannot pass unnoticed by leaving no record
+    behind."""
     result, out = run_suite(pytester, "def test_broken(:\n    pass\n")
     assert result.ret == 2
-    record = the_record(out)
-    assert "**FAIL**: pytest exit status 2 (the run was interrupted)" in record
-    assert "No test outcomes were recorded" in record
-    assert next(out.glob("*.md")).name.startswith("run_")
+    rows = the_record(out)
+    assert len(rows) == 1
+    assert rows[0]["verdict"] == "FAIL"
+    assert rows[0]["exit_meaning"] == "the run was interrupted"
+    assert rows[0]["outcome"] == "none"
+    assert rows[0]["reason"].startswith("no check ran")
+    assert next(out.glob("*.csv")).name.startswith("run_")

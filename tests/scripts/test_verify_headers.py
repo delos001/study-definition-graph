@@ -124,21 +124,21 @@ def complete(folder, capsys) -> Outcome:
 # folders pass the same run the hook makes.
 
 
-@code("SCR0042")
+@code("HRS0042")
 @positive
 def test_complete_header_exits_0(complete):
     """A file whose header holds the eight fields in order makes the run exit 0."""
     assert complete.exit_code == 0
 
 
-@code("SCR0043")
+@code("HRS0043")
 @positive
 def test_complete_header_prints_nothing(complete):
     """When every header is complete, nothing is printed."""
     assert complete.printed == ""
 
 
-@code("SCR0044")
+@code("HRS0044")
 @positive
 def test_init_file_is_skipped(folder, capsys):
     """An __init__.py with a one-paragraph docstring and no header block is not a
@@ -148,7 +148,7 @@ def test_init_file_is_skipped(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("SCR0045")
+@code("HRS0045")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
     """With the quiet option, nothing is printed even when a header is incomplete;
@@ -159,7 +159,7 @@ def test_quiet_prints_nothing(folder, capsys):
     assert outcome.printed == ""
 
 
-@code("SCR0046")
+@code("HRS0046")
 @positive
 def test_real_folders_pass():
     """Every Python file in the real package and scripts/ folders has a complete
@@ -175,7 +175,7 @@ def test_real_folders_pass():
 # file with no docstring at all, and a file that is not valid Python.
 
 
-@code("SCR0047")
+@code("HRS0047")
 @negative
 def test_missing_fields_exit_1(folder, capsys):
     """A header lacking fields makes the run exit 1, and the problem line names the
@@ -192,7 +192,7 @@ def test_missing_fields_exit_1(folder, capsys):
     assert "src/sdg/alpha.py: missing Outputs, Owner" in outcome.printed
 
 
-@code("SCR0048")
+@code("HRS0048")
 @negative
 def test_fields_out_of_order_exit_1(folder, capsys):
     """A header with its fields in the wrong order makes the run exit 1, and the
@@ -208,7 +208,7 @@ def test_fields_out_of_order_exit_1(folder, capsys):
     assert "Owner, Date" in outcome.printed
 
 
-@code("SCR0049")
+@code("HRS0049")
 @negative
 def test_bad_date_exits_1(folder, capsys):
     """A Date that is not a plain calendar date makes the run exit 1, and the
@@ -221,7 +221,7 @@ def test_bad_date_exits_1(folder, capsys):
     )
 
 
-@code("SCR0050")
+@code("HRS0050")
 @negative
 def test_no_docstring_exits_1(folder, capsys):
     """A file with no module docstring has no header block at all: the run exits 1
@@ -232,7 +232,7 @@ def test_no_docstring_exits_1(folder, capsys):
     assert "src/sdg/alpha.py: no module docstring" in outcome.printed
 
 
-@code("SCR0051")
+@code("HRS0051")
 @negative
 def test_unparseable_file_exits_3(folder, capsys):
     """A file that is not valid Python makes the run exit 3, and the problem line
@@ -243,7 +243,7 @@ def test_unparseable_file_exits_3(folder, capsys):
     assert "src/sdg/alpha.py: cannot parse" in outcome.printed
 
 
-@code("SCR0052")
+@code("HRS0052")
 @negative
 def test_unparseable_outranks_incomplete(folder, capsys):
     """When one file cannot be parsed and another has an incomplete header, the run
