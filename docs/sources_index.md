@@ -1,125 +1,275 @@
 # Sources
 
-Where to look. Two sections: what we hold, and what exists that we do not hold.
+Which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group. How the standards relate to each other is drawn in [standards_lineage.html](standards_lineage.html).
 
-Skim the first section at session start to see what has and has not been read. The second section is consulted only when a question comes up; it is a pointer list, not context. For how these standards relate to each other, see [standards_lineage.html](standards_lineage.html).
-
-Provenance and checksums live in `manifests/`, one file per set of standards and, under `study_documents/`, one per fetched study. This file answers "which file holds my answer"; the manifests answer "is this file authentic". Different questions, different files.
+The reading commands run from the repo root in the `sdg` environment. `read_pdf.py` reads only the PDFs registered in it; `read_xlsx.py` finds any workbook under `inputs/` by part of its name.
 
 ---
 
-## What we hold
+## CDISC USDM v4.0
 
-`inputs/` is gitignored. Every file below is restorable from its manifest in `manifests/`. Paths are given from the repo root.
+- version: USDM 4.0, released 2025-06-03
+- location: inputs/standards/cdisc/usdm_v4/
 
-### CDISC USDM v4.0
+### Document: dataDictionary.MD
+- purpose: Defines every class and attribute in the model in plain words.
+- commit: aa303cb
 
-Pinned to DDF-RA commit `aa303cb`. Manifest: `cdisc_usdm_v4.json`.
-
-| Question | File | How to read it | Read? |
-| --- | --- | --- | --- |
-| What does a class or attribute **mean**? | `inputs/standards/cdisc/usdm_v4/dataDictionary.MD` | Grep it. One row per attribute: definition, cardinality, NCI code, codelist ref. | partly |
-| What does an ID **point at**? | `inputs/standards/cdisc/usdm_v4/dataStructure.yml` | `python -m sdg.usdm.usdm_spec --attributes <class>`. Gives target class, cardinality, `Ref` vs `Value`; the module checks the file against its manifest first. | partly |
-| What is the model itself? | `inputs/standards/cdisc/usdm_v4/uml/USDM_UML.xmi` | The hand-authored master. Everything else machine-readable is generated from it. Not directly readable; go to the two files above. | no |
-| How does this map to real protocol content? | `inputs/standards/cdisc/usdm_v4/USDM-IG.pdf` | `python scripts/read_pdf.py <section>`. Section map and read ledger: [usdm_ig_ledger.md](usdm_ig_ledger.md). | 3 of 54 sections |
-| What does the payload look like? | `inputs/standards/cdisc/usdm_v4/USDM_API.json` | Shape only. **No definitions, no cardinalities, no relationship targets.** Never answer a meaning question from this file. | n/a |
-| Which values are legal for a coded field? | `inputs/standards/cdisc/usdm_v4/USDM_CT.xlsx` | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` | no |
-| Is a document conformant? | `inputs/standards/cdisc/usdm_v4/USDM_CORE_Rules.xlsx` | `python scripts/read_xlsx.py CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"`. 259 rules. | no |
-| What does the whole model look like at once? | `inputs/standards/cdisc/usdm_v4/DDF_USDM_Model_Informative.pdf` | `python scripts/read_pdf.py --doc model-diagram --find "<class>"`. One page, vector, text extracts. **Informative, not complete**: it omits classes the data dictionary has, so never treat an absence here as an absence from the model. | no |
-| What changed between v3.0 and v4.0? | `inputs/standards/cdisc/usdm_v4/UML_DELTA_3-0-0_4-0-0.csv` | Grep it. 1302 rows: class, Added/Deleted/Modified, attribute, old value. Needed to read v3.1x-era material such as the crosswalks and the published prior art. | no |
-| What does a class diagram look like? | `inputs/standards/cdisc/usdm_v4/uml/*.png` | 14 images, one per subject area (not one per class); each shows a cluster of related classes, with attributes drawn only on a class's home diagram. Cannot be grepped or extracted; must be viewed. Reviewed 2026-09-01. | yes |
-
-**The three CORE rule counts, reconciled.** `USDM_CORE_Rules.xlsx` holds 259 rules covering USDM v3.0 and v4.0 together. Column F, labeled "Version 4.0", marks which of those apply to v4: 210 rows say "Y". Of those 210, the `cdisc-jsonata-rules` repo (listed under "Unassessed" below) has written 93 as runnable code. Same rule family, three nested counts: 259 total, 210 apply to v4, 93 of those are coded. They look like a contradiction only until you see they are three different slices.
-
-### CDISC worked examples
-
-Three real protocols, each in three forms. Manifest: `usdm_examples.json`.
-
-| Question | File | How to read it |
-| --- | --- | --- |
-| What does a real protocol look like? | `inputs/worked_examples/<study>/*.pdf` | `python scripts/read_pdf.py --pages N-M` will not reach these; they are not registered. Open directly. |
-| How did a human decide the mapping? | `inputs/worked_examples/<study>/*.xlsx` | `python scripts/read_xlsx.py Alexion --sheet mainTimeline --format records`. 25 to 35 sheets each. `mainTimeline` is that study's Schedule of Activities, 58 columns wide. |
-| What did it become? | `inputs/worked_examples/<study>/*.json` | The finished USDM output, generated from the spreadsheet. |
-
-Studies: `Alexion_NCT04573309_Wilsons`, `EliLilly_NCT03421379_Diabetes`, `CDISC_Pilot`. Search across all workbooks with `python scripts/read_xlsx.py --all --find "<term>"`.
-
-### CDISC Biomedical Concepts (COSMoS)
-
-Pinned to COSMoS commit `031429b`. Manifest: `cdisc_biomedical_concepts.json`. The CDISC Library COSMoS API is member-gated (401 "Members-only content" on this subscription), so these come from the public repo export; the same pin-not-latest discipline as USDM applies. A Biomedical Concept is the concept layer above SDTM and CDASH: it defines a clinical idea once, and SDTM Dataset Specializations and CDASH are derived from it. In USDM an `Activity` references a BC by ID.
-
-| Question | File | How to read it | Read? |
-| --- | --- | --- | --- |
-| What standardized concept does an activity measure? | `inputs/standards/cdisc/biomedical_concepts/cdisc_biomedical_concepts.xlsx` | `python scripts/read_xlsx.py cdisc_biomedical_concepts --sheet biomedical_concepts`. One row per BC parameter; the `system`/code columns carry a LOINC code where the concept is a measurement, at the result-row level only. | no |
-| What does each BC field mean, and how was it populated? | `inputs/standards/cdisc/biomedical_concepts/BC_Curation_Principles_and_Completion_GLs.xlsx` | The field dictionary for the export above. `python scripts/read_xlsx.py BC_Curation_Principles_and_Completion_GLs`. | no |
-| What is a Biomedical Concept, conceptually? | `inputs/standards/cdisc/biomedical_concepts/BC_Overview_Training.pdf` | Not registered in `read_pdf.py`; open directly. Grounding only; the searchable PDF, not the 13 MB pptx. | no |
-
-### Crosswalks between standards
-
-Manifest: `crosswalks.json`. Both run **into** USDM, verified from their column headers.
-
-| Question | File |
+| Question | How to Read |
 | --- | --- |
-| How do ClinicalTrials.gov registry fields map to USDM? | `inputs/standards/crosswalks/ct-gov_mapping.xlsx`, 6 sheets by topic |
-| How do ICH M11 fields map to USDM? | `inputs/standards/crosswalks/m11_mapping.xlsx`, one `Mapping` sheet, 325 rows |
+| What does a class or attribute mean? | Search the file for the term. |
+| Which allowed-value list does a coded field use? | Search the file for the attribute. Its row names the list. |
 
-### ICH M11 CeSHarP, Step 4
+### Document: dataStructure.yml
+- purpose: Says what each attribute points at and how many values it may hold.
+- commit: aa303cb
 
-Adopted 2025-11-19. Manifest: `ich_m11_step4.json`. **No embedded bookmarks**, so these answer only to `--find` and `--pages`, never to a section number.
+| Question | How to Read |
+| --- | --- |
+| Which classes exist? | `python -m sdg.usdm.usdm_spec --list-classes` |
+| What does an attribute point at? | `python -m sdg.usdm.usdm_spec --attributes <class>` |
 
-| Question | File | How to read it | Read? |
-| --- | --- | --- | --- |
-| What sections does a protocol have, and what goes in each? | `inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_Template_2025_1119.pdf` | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` | no |
-| What is this protocol data element, and is it required? | `inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf` | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"`. 186 elements, each with definition, data type, cardinality, conformance. | no |
-| What is M11's scope? | `inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_Guideline_2025_1119.pdf` | `python scripts/read_pdf.py --doc m11-guideline --pages 1-6`. Short; the substance is in the other two. | no |
+### Document: USDM-IG.pdf
+- purpose: The implementation guide. Shows how the model applies to the content of a real protocol.
+- commit: aa303cb
 
-### ICH E9(R1)
+| Question | How to Read |
+| --- | --- |
+| How does a piece of protocol content map into the model? | `python scripts/read_pdf.py <section>`. Section names are listed in [usdm_ig_ledger.md](usdm_ig_ledger.md). |
 
-Manifest: `ich_e9r1.json`.
+### Document: USDM_CT.xlsx
+- purpose: The allowed values for every coded field.
+- commit: aa303cb
 
-| Question | File | How to read it | Read? |
-| --- | --- | --- | --- |
-| What is an estimand and what are its parts? | `inputs/standards/ich/e9r1/E9-R1_Step4_Guideline_2019_1203.pdf` | `python scripts/read_pdf.py --doc e9r1 A.3.3` | §A.3.3 only |
+| Question | How to Read |
+| --- | --- |
+| Which values are legal for a coded field? | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` |
+
+### Document: USDM_CORE_Rules.xlsx
+- purpose: The conformance rules a USDM document is checked against. Covers v3.0 and v4.0 together; column F marks the rules that apply to v4.0.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| Which rules does a document have to satisfy? | `python scripts/read_xlsx.py CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"` |
+
+### Document: DDF_USDM_Model_Informative.pdf
+- purpose: A one-page picture of the whole model. It leaves some classes out, so a class missing here may still exist in the model.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| Where does a class sit in the model? | `python scripts/read_pdf.py --doc model-diagram --find "<class>"` |
+
+### Document: UML_DELTA_3-0-0_4-0-0.csv
+- purpose: Every change from v3.0 to v4.0, one row each. Needed when reading material written against v3.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| What changed on a class between v3.0 and v4.0? | Search the file for the class name. |
+
+### Document: uml/*.png
+- purpose: The class diagrams, one image per subject area.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| How do the classes in one area relate? | Open the image for that area in an image viewer. |
+
+### Document: uml/USDM_UML.xmi
+- purpose: The master model. The machine-readable files above are generated from it.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| None. | Not readable by hand. Use dataDictionary.MD or dataStructure.yml instead. |
+
+### Document: USDM_API.json and USDM_API.yaml
+- purpose: The shape of a USDM data file, in two formats. Holds no definitions, so it cannot answer what anything means.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| What does a USDM data file look like? | Open the file. |
 
 ---
 
-## What exists that we do not hold
+## CDISC worked examples
 
-Only resources actually reviewed appear here. Each carries a decision, not a description. Anything named but unchecked is not an entry.
+- version: Published alongside USDM 4.0
+- location: inputs/worked_examples/<study>/
+- studies: Alexion_NCT04573309_Wilsons, EliLilly_NCT03421379_Diabetes, CDISC_Pilot
 
-### In use, or scheduled
+Each study is one real protocol in three forms: the protocol as published, the spreadsheet a person filled in to map it into USDM, and the USDM data file generated from that spreadsheet.
 
-| Resource | Where | State |
+### Document: <study>.pdf
+- purpose: The protocol as published.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| What does a real protocol look like? | Open the file. These are not registered with read_pdf.py. |
+
+### Document: <study>.xlsx
+- purpose: The spreadsheet a person filled in to map the protocol into USDM, one sheet per part of the model. The mainTimeline sheet is the Schedule of Activities.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| How did a person decide the mapping for one part of the model? | `python scripts/read_xlsx.py <study> --sheet <sheet> --format records` |
+| Where does a term appear across every study? | `python scripts/read_xlsx.py --all --find "<term>"` |
+
+### Document: <study>.json
+- purpose: The finished USDM data file, generated from the spreadsheet.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| What did the protocol become in USDM? | Open the file. |
+
+---
+
+## CDISC Biomedical Concepts
+
+- version: Rolling export from the COSMoS repository, dated 2026-07-21
+- location: inputs/standards/cdisc/biomedical_concepts/
+
+A Biomedical Concept defines one clinical idea, such as a blood pressure measurement, once, so that data standards can refer to it instead of redefining it. In USDM an Activity refers to a Biomedical Concept by its ID. The CDISC Library API for these is members-only, so the files come from the public repository export.
+
+### Document: cdisc_biomedical_concepts.xlsx
+- purpose: The full list of Biomedical Concepts, one row per concept parameter, with a LOINC code where the concept is a measurement.
+- commit: 031429b
+
+| Question | How to Read |
+| --- | --- |
+| What standardized concept does an activity measure? | `python scripts/read_xlsx.py cdisc_biomedical_concepts --sheet biomedical_concepts` |
+
+### Document: BC_Curation_Principles_and_Completion_GLs.xlsx
+- purpose: The field dictionary for the list above. Says what each column means and how it was filled in.
+- commit: 031429b
+
+| Question | How to Read |
+| --- | --- |
+| What does a column in the concept list mean? | `python scripts/read_xlsx.py BC_Curation_Principles_and_Completion_GLs` |
+
+### Document: BC_Overview_Training.pdf
+- purpose: CDISC's own introduction to what a Biomedical Concept is.
+- commit: 031429b
+
+| Question | How to Read |
+| --- | --- |
+| What is a Biomedical Concept? | Open the file. It is not registered with read_pdf.py. |
+
+---
+
+## Crosswalks into USDM
+
+- version: Published alongside USDM 4.0
+- location: inputs/standards/crosswalks/
+
+Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not out of it.
+
+### Document: ct-gov_mapping.xlsx
+- purpose: Maps ClinicalTrials.gov registry fields onto USDM, one sheet per topic.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| Where does a registry field land in USDM? | `python scripts/read_xlsx.py ct-gov_mapping` to list the sheets, then `--sheet <topic>`. |
+
+### Document: m11_mapping.xlsx
+- purpose: Maps the ICH M11 protocol template's elements onto USDM.
+- commit: aa303cb
+
+| Question | How to Read |
+| --- | --- |
+| Where does an M11 element land in USDM? | `python scripts/read_xlsx.py m11_mapping --sheet Mapping` |
+
+---
+
+## ICH M11 protocol template
+
+- version: Step 4, adopted 2025-11-19
+- location: inputs/standards/ich/m11_step4/
+
+The M11 documents have no bookmarks, so read_pdf.py reaches them only by search term or page range, never by section number.
+
+### Document: ICH_Step4_M11_Final_Template_2025_1119.pdf
+- purpose: The protocol template itself: the sections a protocol has and what goes in each.
+- commit: n/a
+
+| Question | How to Read |
+| --- | --- |
+| What goes in a given protocol section? | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` |
+
+### Document: ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf
+- purpose: Defines each protocol data element, with its data type, how many values it takes, and whether it is required.
+- commit: n/a
+
+| Question | How to Read |
+| --- | --- |
+| What is this protocol data element, and is it required? | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"` |
+
+### Document: ICH_Step4_M11_Final_Guideline_2025_1119.pdf
+- purpose: The short guideline that sets M11's scope. The substance is in the other two documents.
+- commit: n/a
+
+| Question | How to Read |
+| --- | --- |
+| What does M11 cover? | `python scripts/read_pdf.py --doc m11-guideline --pages 1-6` |
+
+---
+
+## ICH E9(R1) estimands
+
+- version: Step 4, dated 2019-12-03
+- location: inputs/standards/ich/e9r1/
+
+### Document: E9-R1_Step4_Guideline_2019_1203.pdf
+- purpose: Defines what an estimand is and what its parts are.
+- commit: n/a
+
+| Question | How to Read |
+| --- | --- |
+| What is an estimand and what are its parts? | `python scripts/read_pdf.py --doc e9r1 A.3.3` |
+
+---
+
+## Not held
+
+Resources that were looked at and not pinned. Listed so the same question is not asked twice.
+
+### Used live, not pinned
+
+| Resource | Where | Why not pinned |
 | --- | --- | --- |
-| `cdisc-org/cdisc-rules-engine` | GitHub | The CORE engine. Phase 0 installs and runs it. Version-pin as tooling, not as hashed data. |
-| ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. The API is called live by decision and its responses are not kept; the documents it returns are kept under `inputs/study_documents/` and recorded in `manifests/study_documents/`, because a later fetch is not guaranteed to return the same document version. |
+| cdisc-rules-engine | github.com/cdisc-org | The CORE conformance engine. It is a tool, so it is version-pinned as software rather than fingerprinted as data. |
+| ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. The documents it returns are pinned under `inputs/study_documents/`; the API responses are not kept. |
 
 ### Reviewed and not taken
 
-Recorded so these do not resurface.
-
 | Resource | Why not |
 | --- | --- |
-| `cdisc-org/cdisc-open-rules` | `CORE-000NNN` YAML rules, a different ID space from the `DDF000NN` rules that are ours. Not USDM. Reviewed 2026-08-18. |
-| `cdisc-org/usdm` (PyPI `usdm`) | Requires `CDISC_API_KEY` for CDISC Library lookups; our subscription tier returns "Members-only content". Its `usdm_excel` importer is what generated the three worked examples, so its documented workbook format is worth reading even though the package cannot run here. Reviewed 2026-08-18. |
-| `ctis_mapping.xlsx` | EU CTIS registry submission. Out of scope. |
-| `cpt_mapping.xlsx` | TransCelerate authoring template. Our source protocols do not use it. |
-| `sdtm_mapping.xlsx` | USDM to SDTM. Downstream of this project and runs the opposite direction. |
-| `Documents/Examples/Devices`, `Observational` | Synthetic test data, not derived from a real protocol, per CDISC's own examples readme. |
-| DDF-RA `*_DELTA_*` and `*_Changes` files, except the v3-to-v4 UML delta | Version-migration history between older releases. Only matters if the pin moves, and it does not. ~40 files. The one exception, `UML_DELTA_3-0-0_4-0-0.csv`, is held: it is not about moving the pin but about reading v3.1x-era material correctly, which the crosswalks and the cited prior art both are. Reviewed 2026-08-18. |
-| `Deliverables/UML/USDM_UML.png` | The whole-model class diagram as an image, 1.1 MB. Superseded by `DDF_USDM_Model_Informative.pdf`, which is the same view in vector form with extractable text, so it can be searched rather than only looked at. Decided 2026-08-18. |
-| `USDM_UML.qea`, `UML_EA.DTD`, `*.graffle`, `HowTos/` | Editor project files and authoring tutorials for CDISC's own toolchain. Reviewed 2026-08-18. |
-| `Documents/CORE Test Data Template/` | Was justified as the route into "what does CORE actually check". That question is now largely answered by the JSONata rules below, so the case has weakened. Reviewed 2026-08-18. |
-| COSMoS `cdisc_sdtm_dataset_specializations_latest.*` | BC-to-SDTM variable mappings. Downstream, SDTM-side; the USDM `Activity`-to-BC link this project needs does not use it. Pull if a bridge to SDTM ever appears. Reviewed 2026-08-25. |
-| COSMoS `cdisc_biomedical_concepts_hierarchy_latest.csv` | The BC parent/child hierarchy, already present as sheets inside the pinned `cdisc_biomedical_concepts.xlsx` bundle. Holding it separately would duplicate. Reviewed 2026-08-25. |
-| COSMoS `cdisc_crf_specializations_draft.*` | BC-to-CRF/CDASH mappings, marked draft by CDISC. CDASH-side and not stable. Reviewed 2026-08-25. |
-| COSMoS `bc_starter_package/doc/` governance set | Governance process, COSMoS charters, DEC templates, reviewer tip sheets: CDISC's own BC-authoring machinery. This project consumes BCs, it does not author them. The two consumption-relevant files from that folder (Completion GLs, Overview Training) are held above. Reviewed 2026-08-25. |
-| LOINC dataset (Regenstrief) | The BC export already carries LOINC codes inline, so mapping does not need the LOINC database. Only pulling it would validate those codes or add LOINC's own attributes, and it requires a Regenstrief licence (not open like the CDISC files). Deferred. Reviewed 2026-08-25. |
+| cdisc-open-rules | A different rule family with its own ID space. Not USDM. |
+| usdm package on PyPI | Needs a CDISC Library API key our subscription does not have. Its workbook format is what produced the worked examples, so its documentation is still worth reading. |
+| ctis_mapping.xlsx | Maps to the EU CTIS registry. Out of scope. |
+| cpt_mapping.xlsx | Maps from an authoring template our source protocols do not use. |
+| sdtm_mapping.xlsx | Maps USDM out to SDTM. Downstream of this project and the opposite direction. |
+| DDF-RA device and observational examples | Synthetic test data, not from a real protocol. |
+| DDF-RA change and delta files for older releases | Only matter if the pin moves, and it does not. The one v3.0-to-v4.0 delta is held because it helps read v3-era material. |
+| USDM_UML.png | The whole-model diagram as an image. The informative PDF is the same picture with searchable text. |
+| DDF-RA editor files and how-tos | CDISC's own authoring toolchain. |
+| CORE test data template | Its question, what CORE actually checks, is better answered by the JSONata rules below. |
+| COSMoS SDTM dataset specializations | Map concepts to SDTM variables. Downstream of this project. |
+| COSMoS concept hierarchy file | Already present as sheets inside the pinned concepts workbook. |
+| COSMoS CRF specializations | Marked draft by CDISC and CDASH-side. |
+| COSMoS governance documents | How CDISC authors concepts. This project uses concepts, it does not author them. |
+| LOINC database | The concepts workbook already carries LOINC codes inline, and the database needs a licence. |
 
-### Unassessed
+### Looked at, not yet evaluated
 
-Named, located, and looked at, but not evaluated for use.
-
-| Resource | Where | What was observed, and when |
+| Resource | Where | What it is |
 | --- | --- | --- |
-| `cdisc-org/cdisc-jsonata-rules` | GitHub | The USDM conformance rules that actually run: 93 of the 210 v4-applicable ones, as JSONata with test fixtures. Do not bulk-pin (8.5 MB, unlicensed); pull single rules at point of use. 2026-08-18. |
-| `cdisc-org/usdm_api` | GitHub | A DDF emulation with a Dockerfile, so a conformance endpoint may be runnable locally rather than needing a public one. 2026-08-18. |
+| cdisc-jsonata-rules | github.com/cdisc-org | The USDM conformance rules that actually run, as JSONata with test fixtures. Pull single rules at point of use rather than the whole repository. |
+| usdm_api | github.com/cdisc-org | A DDF emulation with a Dockerfile, so a conformance endpoint may be runnable locally. |

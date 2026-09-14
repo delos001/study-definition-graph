@@ -4,7 +4,7 @@ The project's documentation about itself: maps a working session consults, kept 
 
 | File | What it shows |
 | --- | --- |
-| `sources_index.md` | Which held file answers which question, whether it has been read, and what was reviewed and not taken. Skim at session start. |
+| `sources_index.md` | Which pinned file answers which question and how to open it, and what was reviewed and not taken. Skim at session start. |
 | `workflow_map.md` | The order the steps run in, what flows from each to the next, and what depends on what. |
 | `usdm_ig_ledger.md` | Section-by-section routing table for the USDM implementation guide, with a read ledger. |
 | `standards_lineage.html` | Diagram of how the pinned standards descend from and feed one another. |
