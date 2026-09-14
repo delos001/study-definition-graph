@@ -7,7 +7,7 @@ Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              every promise still holds, red names the one that broke.
 
              Two groups, two inputs:
-             - Logic checks read tests/fixtures/usdm_three_classes.yml, three
+             - Logic checks read validation/fixtures/usdm_three_classes.yml, three
                classes copied verbatim from the pinned file. Small enough to read
                whole and to break on purpose (a key deleted, a list where a dict
                should be), which the real file must never be. Broken variants are
@@ -21,18 +21,18 @@ Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              Every check is marked positive (the right thing works) or negative
              (the broken thing fails, and the error names the right cause).
 
-Inputs:      tests/fixtures/usdm_three_classes.yml               (read-only)
+Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only)
              manifests/cdisc_usdm_v4.json                         (read-only, through
                                                                    the manifest reader)
              inputs/standards/cdisc/usdm_v4/dataStructure.yml     (read-only; real-file
                                                                    checks only)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
-             conftest.py writes tests/validation/ records when asked.
+             conftest.py writes validation/reports/ records when asked.
 
-Usage:       pytest tests/usdm/test_usdm_spec.py
+Usage:       pytest validation/usdm/test_usdm_spec.py
                  run these checks
-             pytest tests/usdm/test_usdm_spec.py -v
+             pytest validation/usdm/test_usdm_spec.py -v
                  one line per check with its result
              pytest --validation-report
                  also write the validation record (see conftest.py)
@@ -65,7 +65,7 @@ needs_pinned_file = pytest.mark.skipif(
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 
@@ -322,7 +322,7 @@ def test_inherited_from_without_ref_is_named(variant):
 ### Refusing a file that cannot be trusted (exits 9 and 10) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
-# tests/sources/test_verify_pinned.py. These two prove the module is wired to it: a
+# validation/sources/test_verify_pinned.py. These two prove the module is wired to it: a
 # file no manifest records, and a file
 # whose fingerprint differs, are refused through load() with the same messages.
 

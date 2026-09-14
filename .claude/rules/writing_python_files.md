@@ -2,7 +2,7 @@
 paths:
   - "src/**/*.py"
   - "scripts/**/*.py"
-  - "tests/**/*.py"
+  - "validation/**/*.py"
 ---
 
 # Writing a Python file
@@ -11,7 +11,7 @@ This rule covers every Python file the project writes. There are three kinds:
 
 - the package under `src/sdg/`, which holds the pipeline's workflows and steps, the code other code imports;
 - the hand-run scripts under `scripts/`, which a person runs from a terminal;
-- the checks under `tests/`, which prove the package and the scripts do what they say.
+- the checks under `validation/`, which prove the package and the scripts do what they say.
 
 Where a standard convention exists, the project follows it. The conventions in use are PEP 8 for layout and names, the Google layout for docstrings, ruff for formatting and linting, mypy for type checking, and pytest for checks. The project departs from a convention only where this rule says so, and says why.
 
@@ -82,7 +82,7 @@ A file is divided into named sections, each marked with a two-line banner: a ful
 
 Layout and naming follow PEP 8: four spaces per indent, `snake_case` for functions and variables, `PascalCase` for classes, `UPPER_CASE` for constants, and imports grouped as standard library, then third party, then this project. ruff enforces all of this, so none of it is done by hand.
 
-Every function signature carries a type hint on each argument and on the return. Checks under `tests/` are exempt, because a check's arguments are the situation pytest staged for it, and a hint on each would only repeat its name.
+Every function signature carries a type hint on each argument and on the return. Checks under `validation/` are exempt, because a check's arguments are the situation pytest staged for it, and a hint on each would only repeat its name.
 
 An `except` names the error it catches. A bare `except`, which catches everything, is never used.
 
@@ -109,7 +109,7 @@ def fetch(entry: Entry, destination: Path) -> Path:
     """
 ```
 
-A check's docstring is the summary line alone: one plain sentence saying what the check proves. That sentence is copied into `tests/validation_inventory.csv`, so it has to stand on its own.
+A check's docstring is the summary line alone: one plain sentence saying what the check proves. That sentence is copied into `validation/validation_inventory.csv`, so it has to stand on its own.
 
 ## Comments
 
@@ -126,7 +126,7 @@ Three tool runs check a file, and all three are configured in `pyproject.toml`. 
 ```powershell
 ruff format .          # rewrap and reindent every file to the standard layout
 ruff check .           # report style and lint problems; add --fix to apply the ones ruff can fix itself
-mypy                   # check the type hints in src/, scripts/ and tests/
+mypy                   # check the type hints in src/, scripts/ and validation/
 ```
 
 `python scripts/check_python_files.py` runs all three in that order and reports what each found. The pre-commit hook runs it, so a file that fails any of them is refused before it lands, whoever made the edit.
@@ -135,11 +135,11 @@ Line length is the formatter's job alone. A line the formatter leaves long is a 
 
 ## Checks
 
-A check is one pytest function that proves one promise the code makes. The checks live under `tests/`, and they follow everything above plus these rules.
+A check is one pytest function that proves one promise the code makes. The checks live under `validation/`, and they follow everything above plus these rules.
 
-- Each workflow, step and hand-run script has its own file of checks, at the same relative path under `tests/`, named `test_` plus the file's name. The checks for `src/sdg/sources/fetch_file.py` are in `tests/sources/test_fetch_file.py`.
+- Each workflow, step and hand-run script has its own file of checks, at the same relative path under `validation/`, named `test_` plus the file's name. The checks for `src/sdg/sources/fetch_file.py` are in `validation/sources/test_fetch_file.py`.
 - A check proves one promise. If the sentence saying what it proves uses "and", it is more than one check. A situation several checks look at is staged once, in a fixture, and each check asserts one thing about it. The same check over several inputs uses `pytest.mark.parametrize`.
-- Every check carries `@positive`, meaning the right thing works, or `@negative`, meaning the wrong thing is refused, and a `@code` marker holding its permanent id from `tests/validation_inventory.csv`.
+- Every check carries `@positive`, meaning the right thing works, or `@negative`, meaning the wrong thing is refused, and a `@code` marker holding its permanent id from `validation/validation_inventory.csv`.
 - A negative check breaks exactly one thing, says which in its docstring, and asserts two things: the type of error raised, and that the message names that cause and its remedy rather than another.
-- A check touches nothing real and never downloads. Manifests and files are staged in a temporary folder through the fixtures in `tests/conftest.py`. Anything that downloads is replaced by a fake that serves bytes, or raises, per url. A workflow is called in-process through its `main()` with an argument list, never through a subprocess. A check that needs a pinned file skips, with that reason, when the file is absent.
+- A check touches nothing real and never downloads. Manifests and files are staged in a temporary folder through the fixtures in `validation/conftest.py`. Anything that downloads is replaced by a fake that serves bytes, or raises, per url. A workflow is called in-process through its `main()` with an argument list, never through a subprocess. A check that needs a pinned file skips, with that reason, when the file is absent.
 - A check never asserts a count that grows as the corpus grows. It asserts that the known items are present, not that they are the only ones.

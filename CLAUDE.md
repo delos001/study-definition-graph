@@ -63,4 +63,4 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 
 ## Python files
 
-Every Python file the project writes, under `src/sdg/`, `scripts/` and `tests/`, follows the rule in `.claude/rules/writing_python_files.md`: the header block, the sections, the docstrings, the comments, the checks, and the ruff and mypy runs. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.
+Every Python file the project writes, under `src/sdg/`, `scripts/` and `validation/`, follows the rule in `.claude/rules/writing_python_files.md`: the header block, the sections, the docstrings, the comments, the checks, and the ruff and mypy runs. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.

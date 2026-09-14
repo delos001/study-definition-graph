@@ -12,7 +12,7 @@ Description: Runs the three tool checks every Python file must pass, in order:
              conda instead, which is slower but needs no set-up.
 
 Inputs:      pyproject.toml and every Python file under src/, scripts/ and
-             tests/   (read-only)
+             validation/   (read-only)
 
 Outputs:     Nothing on disk. Prints each tool's report, then one line per tool
              saying whether it passed.

@@ -1,8 +1,8 @@
 """
 Script:      conftest.py
-Description: Supplies the conditions for the test_*.py files under tests/ to run in a
+Description: Supplies the conditions for the test_*.py files under validation/ to run in a
              controlled environment. This file is read automatically before any test
-             script under tests/ runs. pytest requires this file to be named
+             script under validation/ runs. pytest requires this file to be named
              conftest.py.
 
              When pytest loads conftest.py it adds the following for the test_*.py
@@ -14,21 +14,21 @@ Description: Supplies the conditions for the test_*.py files under tests/ to run
                     - fake_repo builds a throwaway repo with pyproject.toml, manifests/
                       and inputs/.
 
-             The --validation-report flag enables the writing of a validation record:
-             one CSV file per run, one row per check, into tests/validation/.
+             The --validation-report flag enables the writing of a validation report:
+             one CSV file per run, one row per check, into validation/reports/.
 
              The fixtures stage the data so the real manifests/ and inputs/ are never
              touched.
 
-             A record is meant to be auditable, so it identifies what was tested, how,
+             A report is meant to be auditable, so it identifies what was tested, how,
              when, by whom, and with what outcome. The run's own details are repeated
              on every row, so each file is complete on its own and any row can be
-             joined to tests/validation_inventory.csv by its check code.
+             joined to validation/validation_inventory.csv by its check code.
                - What was tested is the target file, the file of checks and its sha256,
                  the fixture files and their sha256s, the code commit, and the pinned
                  USDM data version (the manifest's recorded sha256, and whether the
                  file was present). The commit is the parent of the commit that adds
-                 the record, since the record is written first.
+                 the report, since the report is written first.
                - How is which checks were selected, and, at the far right of each row,
                  the Python and pytest versions and the operating system.
                - When is the local timestamp with its zone, and by whom is the git user
@@ -46,33 +46,33 @@ Description: Supplies the conditions for the test_*.py files under tests/ to run
                - its clean-up,
                - a file that fails to load,
                - an internal error.
-             Therefore the record can never say PASS when the terminal said otherwise.
+             Therefore the report can never say PASS when the terminal said otherwise.
              The rows are the detail; the exit status is the verdict. When pytest
-             fails before any test ran, a record is still written, with one row
+             fails before any test ran, a report is still written, with one row
              saying that no check ran.
 
              It registers two markers the tests use to show which kind of test each is:
                - @positive means the right thing works,
                - @negative means the broken thing fails for the right reason.
 
-             It also enables pytest's own "pytester" helper, which the record-writer's
+             It also enables pytest's own "pytester" helper, which the report-writer's
              tests use to run small throwaway suites.
 
 Inputs:      git (for the commit hash, dirty flag and user name; read-only)
              manifests/cdisc_usdm_v4.json (read-only; the pinned data version)
              inputs/standards/cdisc/usdm_v4/dataStructure.yml (existence checked only)
-             tests/fixtures/* (read-only; hashed)
+             validation/fixtures/* (read-only; hashed)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
-             tests/validation/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
+             validation/reports/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
              An existing name is never overwritten; it gets a numeric suffix.
 
 Usage:       pytest
                  run every test, write nothing
              pytest --validation-report
-                 run every test and write the record to tests/validation/
+                 run every test and write the report to validation/reports/
              pytest --validation-report --validation-report-dir <folder>
-                 same, writing to another folder (the record-writer's own
+                 same, writing to another folder (the report-writer's own
                  tests use this to write into a temporary folder)
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed, 2 interrupted,
@@ -95,9 +95,9 @@ from pathlib import Path
 
 import pytest
 
-TESTS_DIR = Path(__file__).resolve().parent
-REPO_ROOT = TESTS_DIR.parent
-FIXTURE_DIR = TESTS_DIR / "fixtures"
+VALIDATION_DIR = Path(__file__).resolve().parent
+REPO_ROOT = VALIDATION_DIR.parent
+FIXTURE_DIR = VALIDATION_DIR / "fixtures"
 
 # These two lines name the pinned model file and the manifest that records it.
 # They are written here as literals rather than imported from the loader, so
@@ -109,7 +109,7 @@ MANIFEST = REPO_ROOT / "manifests" / "cdisc_usdm_v4.json"
 
 # pytest has a helper called pytester that lets a test run a small, separate
 # test suite of its own. It is switched off unless a file asks for it. The
-# record-writer's tests, in tests/test_validation_report.py, use it to run a
+# record-writer's tests, in validation/test_validation_report.py, use it to run a
 # throwaway suite and then read the record that comes out.
 pytest_plugins = ["pytester"]
 
@@ -360,7 +360,7 @@ def pytest_addoption(parser):
 
     --validation-report is off unless given. With it, a record is written after the run.
     --validation-report-dir says which folder the record goes in. It defaults to
-    tests/validation; the record-writer's own checks point it at a temporary folder
+    validation/reports; the record-writer's own checks point it at a temporary folder
     instead.
 
     Args:
@@ -374,8 +374,8 @@ def pytest_addoption(parser):
     )
     parser.addoption(
         "--validation-report-dir",
-        default=str(TESTS_DIR / "validation"),
-        help="folder the records are written to (default: tests/validation)",
+        default=str(VALIDATION_DIR / "reports"),
+        help="folder the records are written to (default: validation/reports)",
     )
 
 
@@ -392,11 +392,11 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "negative: proves the broken thing fails, and for the right reason"
     )
-    # The code is the check's short, permanent id in tests/validation_inventory.csv:
+    # The code is the check's short, permanent id in validation/validation_inventory.csv:
     # a type prefix and four digits, such as SRC0042, assigned once and never
     # reused.
     config.addinivalue_line(
-        "markers", "code(id): the check's id in tests/validation_inventory.csv"
+        "markers", "code(id): the check's id in validation/validation_inventory.csv"
     )
 
 
@@ -622,7 +622,7 @@ def pytest_sessionstart(session):
 # The columns of a record, in the order they are written: what each check proved
 # comes first, then what the run was, then the technical details a reader needs
 # only to reproduce a failure. The check columns carry the same names as
-# tests/validation_inventory.csv, so a row joins to it by check_name_code.
+# validation/validation_inventory.csv, so a row joins to it by check_name_code.
 RECORD_COLUMNS = (
     "run_id",
     "run_verdict",
@@ -684,7 +684,7 @@ def _selection(args: tuple[str, ...]) -> str:
 def _target_of(test_file: Path) -> str:
     """Name the code file a test file proves.
 
-    tests/ mirrors the code. A test file in tests/scripts/ tests the script of the
+    validation/ mirrors the code. A test file in validation/scripts/ tests the script of the
     same name in scripts/. A test file in any other subfolder tests the file of the
     same name in that folder under src/sdg/. A test file at the top level has no code
     file to mirror; the one there, test_validation_report.py, tests the record-writer
@@ -696,11 +696,11 @@ def _target_of(test_file: Path) -> str:
     Returns:
         The target's repo-relative path, marked when it was not found at run time.
     """
-    relative = test_file.relative_to(TESTS_DIR)
+    relative = test_file.relative_to(VALIDATION_DIR)
     folder = relative.parent.as_posix()
     component = test_file.stem.removeprefix("test_")
     if folder == ".":
-        return f"tests/{relative.as_posix()}"
+        return f"validation/{relative.as_posix()}"
     if folder == "scripts":
         mirrored = REPO_ROOT / "scripts" / f"{component}.py"
     else:
@@ -752,7 +752,7 @@ def pytest_sessionfinish(session, exitstatus):
         "pinned_usdm_sha256": sha256,
         "pinned_usdm_present": present,
         "fixture_sha256s": "; ".join(
-            f"tests/fixtures/{p.name}={_sha256(p)}" for p in fixtures
+            f"validation/fixtures/{p.name}={_sha256(p)}" for p in fixtures
         ),
     }
 
@@ -765,7 +765,7 @@ def pytest_sessionfinish(session, exitstatus):
             by_file.setdefault(outcome["file"], []).append(outcome)
         for file, outcomes in by_file.items():
             per_file = {
-                "check_file": f"tests/{file.relative_to(TESTS_DIR).as_posix()}",
+                "check_file": f"validation/{file.relative_to(VALIDATION_DIR).as_posix()}",
                 "check_file_sha256": _sha256(file),
                 "target_file": _target_of(file),
             }

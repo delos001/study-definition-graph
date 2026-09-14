@@ -11,9 +11,9 @@ Inputs:      none from the repo
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest tests/sources/test_finalize_file.py
+Usage:       pytest validation/sources/test_finalize_file.py
                  run these checks
-             pytest tests/sources/test_finalize_file.py -v
+             pytest validation/sources/test_finalize_file.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -35,7 +35,7 @@ from sdg.sources.finalize_file import discard, place
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 # The bytes a staged download holds, and the bytes of a file that is already

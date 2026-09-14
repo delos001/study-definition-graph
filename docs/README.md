@@ -5,7 +5,8 @@ The project's documentation about itself: maps a working session consults, kept 
 | File | What it shows |
 | --- | --- |
 | `sources_index.md` | Which pinned file answers which question and how to open it, and what was reviewed and not taken. Skim at session start. |
-| `sdg_workflow_map.md` | Which workflow uses which step, folder by folder, and which scripts are run by hand. |
+| `sdg_file_inventory.md` | Every file in `src/sdg/`, folder by folder, as a workflow or a step, with what each uses and which are run by hand. |
+| `validation_file_inventory.md` | Every file that validates the repo. Today that is the six upkeep scripts in `scripts/`. |
 | `usdm_ig_ledger.md` | Section-by-section routing table for the USDM implementation guide, with a read ledger. |
 | `standards_lineage.html` | Diagram of how the pinned standards descend from and feed one another. |
 | `draft/` | Work in progress. Nothing here is linked to or relied on. |

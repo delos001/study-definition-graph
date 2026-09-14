@@ -12,9 +12,9 @@ Inputs:      Nothing real. Every file and manifest is written to pytest's own
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest tests/scripts/test_find_unrecorded_files.py
+Usage:       pytest validation/scripts/test_find_unrecorded_files.py
                  run these checks
-             pytest tests/scripts/test_find_unrecorded_files.py -v
+             pytest validation/scripts/test_find_unrecorded_files.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -34,7 +34,7 @@ import find_unrecorded_files as script
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 CONTENT = b"pinned bytes\n"

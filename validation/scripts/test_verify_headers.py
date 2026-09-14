@@ -12,9 +12,9 @@ Inputs:      src/sdg/**/*.py and scripts/*.py  (read-only; the one real-folder c
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest tests/scripts/test_verify_headers.py
+Usage:       pytest validation/scripts/test_verify_headers.py
                  run these checks
-             pytest tests/scripts/test_verify_headers.py -v
+             pytest validation/scripts/test_verify_headers.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -34,7 +34,7 @@ import verify_headers as script
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 # A complete header in this repo's convention, with the eight fields in order.

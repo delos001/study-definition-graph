@@ -12,9 +12,9 @@ Inputs:      scripts/*.py and scripts/README.md  (read-only; the one real-folder
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest tests/test_build_index.py
+Usage:       pytest validation/test_build_index.py
                  run these checks
-             pytest tests/test_build_index.py -v
+             pytest validation/test_build_index.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -32,7 +32,7 @@ import build_index as bi
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 # A complete header in this repo's convention: a two-line first paragraph, a

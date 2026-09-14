@@ -11,17 +11,17 @@ requires-python = ">=3.12"
 where = ["src"]
 
 [tool.pytest.ini_options]
-# tests/scripts/ imports the hand-run scripts by name (import build_index), which
+# validation/scripts/ imports the hand-run scripts by name (import build_index), which
 # needs scripts/ on the import path. Declared here once, not in each test file.
 pythonpath = ["scripts"]
-testpaths = ["tests"]
+testpaths = ["validation"]
 
 [tool.ruff]
-# Line length matches ruff's default formatter width. src, scripts and tests are
+# Line length matches ruff's default formatter width. src, scripts and validation are
 # the three folders the writing_python_files rule covers.
 line-length = 88
 target-version = "py312"
-src = ["src", "scripts", "tests"]
+src = ["src", "scripts", "validation"]
 
 [tool.ruff.lint]
 # E and W are PEP 8 style, F is pyflakes (unused names, undefined names), I is
@@ -39,10 +39,10 @@ known-first-party = ["sdg"]
 # Every function must carry hints, per the writing_python_files rule. The
 # packages below ship no type stubs, so their imports are allowed untyped.
 python_version = "3.12"
-files = ["src", "scripts", "tests"]
-# tests/scripts/ imports the hand-run scripts by bare name, as pytest does.
+files = ["src", "scripts", "validation"]
+# validation/scripts/ imports the hand-run scripts by bare name, as pytest does.
 mypy_path = ["src", "scripts", "."]
-# With explicit package bases every test file is named tests.<folder>.<file>, so
+# With explicit package bases every test file is named validation.<folder>.<file>, so
 # one override pattern below covers the whole folder, present and future.
 explicit_package_bases = true
 disallow_untyped_defs = true
@@ -57,5 +57,5 @@ ignore_missing_imports = true
 # Checks take their arguments from pytest fixtures, and a label on each would
 # only repeat the argument's name. Tests are exempt from the hint requirement
 # but are still checked for everything mypy can find without hints.
-module = ["tests.*"]
+module = ["validation.*"]
 disallow_untyped_defs = false

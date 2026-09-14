@@ -1,22 +1,22 @@
 """
 Script:      test_build_inventory.py
 Description: Checks for scripts/build_inventory.py, the hand-run script that
-             generates tests/validation_inventory.csv from the checks in the
+             generates validation/validation_inventory.csv from the checks in the
              test files and, under --check, is the pre-commit hook that refuses
              a commit whose inventory is stale. Each check writes one or two
-             small test files to a temporary tests folder, points the script at
+             small test files to a temporary validation folder, points the script at
              it, and asserts what it writes or which exit code it returns. One
-             check runs --check on the real tests/ folder, the same run the
+             check runs --check on the real validation/ folder, the same run the
              hook makes.
 
-Inputs:      tests/**/test_*.py and tests/validation_inventory.csv
+Inputs:      validation/**/test_*.py and validation/validation_inventory.csv
              (read-only; the one real-folder check)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest tests/scripts/test_build_inventory.py
+Usage:       pytest validation/scripts/test_build_inventory.py
                  run these checks
-             pytest tests/scripts/test_build_inventory.py -v
+             pytest validation/scripts/test_build_inventory.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -38,7 +38,7 @@ import build_inventory as script
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 # One test file with two well-formed checks, written the way the real files are.
@@ -69,7 +69,7 @@ def test_second():
 #######################################################################################
 ### Shared staging ###
 #
-# One fixture builds a temporary tests folder the script reads in place of the real
+# One fixture builds a temporary validation folder the script reads in place of the real
 # one, and one helper runs the script and keeps what it printed.
 
 
@@ -85,34 +85,36 @@ class Outcome:
 def tests_folder(tmp_path, monkeypatch):
     """Give a check a function for staging test files the script reads.
 
-    The script's tests folder is pointed at a temporary one, its inventory path at
+    The script's validation folder is pointed at a temporary one, its inventory path at
     a file inside it, and its repo root at the temporary root, so reported names read
-    tests/<folder>/<file> as they do for real.
+    validation/<folder>/<file> as they do for real.
 
     Returns:
-        The staging function, which takes source text keyed by path under tests/.
+        The staging function, which takes source text keyed by path under validation/.
     """
     root = tmp_path
-    tests = root / "tests"
-    tests.mkdir()
+    validation = root / "validation"
+    validation.mkdir()
     monkeypatch.setattr(script, "REPO_ROOT", root)
-    monkeypatch.setattr(script, "TESTS_DIR", tests)
-    monkeypatch.setattr(script, "INVENTORY_PATH", tests / "validation_inventory.csv")
+    monkeypatch.setattr(script, "VALIDATION_DIR", validation)
+    monkeypatch.setattr(
+        script, "INVENTORY_PATH", validation / "validation_inventory.csv"
+    )
 
     def make(files: dict[str, str]) -> Path:
-        """Write the given test files under the temporary tests folder.
+        """Write the given test files under the temporary validation folder.
 
         Args:
-            files: The files to write, source text keyed by path under tests/.
+            files: The files to write, source text keyed by path under validation/.
 
         Returns:
             The path of the inventory the script will write.
         """
         for name, source in files.items():
-            target = tests / name
+            target = validation / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(source, encoding="utf-8")
-        return tests / "validation_inventory.csv"
+        return validation / "validation_inventory.csv"
 
     return make
 
@@ -146,7 +148,7 @@ def rows_of(inventory: Path) -> list[dict[str, str]]:
 
 @pytest.fixture
 def generated(tests_folder, capsys) -> list[dict[str, str]]:
-    """Stage one test file under tests/scripts/ with two checks, run the script, and
+    """Stage one test file under validation/scripts/ with two checks, run the script, and
     read the inventory it wrote."""
     inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
@@ -175,12 +177,12 @@ def test_row_holds_the_check_as_written(generated):
 @code("HRS0054")
 @positive
 def test_row_names_the_group_and_the_target(generated):
-    """A test file under tests/scripts/ is grouped as scripts, and its target is the
+    """A test file under validation/scripts/ is grouped as scripts, and its target is the
     script of the same name."""
     first = generated[0]
     assert first["type"] == "scripts"
     assert first["target_file"] == "scripts/alpha.py"
-    assert first["check_file"] == "tests/scripts/test_alpha.py"
+    assert first["check_file"] == "validation/scripts/test_alpha.py"
 
 
 @code("HRS0055")
@@ -210,7 +212,7 @@ def test_hand_kept_columns_are_carried_over_by_id(tests_folder, capsys):
 @code("HRS0057")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
-    """Rows are grouped sources, then usdm, then scripts, then tests, whatever
+    """Rows are grouped sources, then usdm, then scripts, then validation, whatever
     order the files are found in."""
     inventory = tests_folder(
         {
@@ -225,8 +227,8 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
         "sources",
         "scripts",
         "scripts",
-        "tests",
-        "tests",
+        "validation",
+        "validation",
     ]
 
 
@@ -258,7 +260,7 @@ def test_quiet_prints_nothing(tests_folder, capsys):
 @code("HRS0060")
 @positive
 def test_real_inventory_is_current():
-    """tests/validation_inventory.csv matches the checks in the real test files,
+    """validation/validation_inventory.csv matches the checks in the real test files,
     which is the run the pre-commit hook makes."""
     assert script.main(["--check", "--quiet"]) == 0
 
@@ -268,7 +270,7 @@ def test_real_inventory_is_current():
 #
 # The wrong thing is refused, and the message names the cause: a stale inventory, a
 # deleted check, a check without its markers, a duplicated id, a file that will not
-# parse, and an empty tests folder.
+# parse, and an empty validation folder.
 
 
 @code("HRS0061")
@@ -312,7 +314,7 @@ def test_check_without_id_exits_18(tests_folder, capsys):
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert not inventory.exists()
-    assert "tests/scripts/test_alpha.py: test_second has no @code marker" in (
+    assert "validation/scripts/test_alpha.py: test_second has no @code marker" in (
         outcome.printed
     )
 
@@ -347,13 +349,13 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
     tests_folder({"scripts/test_alpha.py": "def broken(:\n"})
     outcome = run(capsys)
     assert outcome.exit_code == 19
-    assert "tests/scripts/test_alpha.py: cannot parse" in outcome.printed
+    assert "validation/scripts/test_alpha.py: cannot parse" in outcome.printed
 
 
 @code("HRS0067")
 @negative
 def test_no_test_files_exits_20(tests_folder, capsys):
-    """A tests folder with no test files makes the run exit 20."""
+    """A validation folder with no test files makes the run exit 20."""
     tests_folder({})
     outcome = run(capsys)
     assert outcome.exit_code == 20

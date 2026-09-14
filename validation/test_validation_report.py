@@ -1,24 +1,24 @@
 """
 Script:      test_validation_report.py
-Description: Checks for the validation-record writer in tests/conftest.py. A
+Description: Checks for the validation-record writer in validation/conftest.py. A
              record is the proof that the code was validated, so the writer
              itself has to be proven: above all, that it can never say PASS
              when pytest said the run failed.
 
              Each check builds a tiny throwaway test suite in a temporary
              folder (using pytest's own "pytester" helper), gives it a copy of
-             tests/conftest.py, runs pytest on it as a separate process with
+             validation/conftest.py, runs pytest on it as a separate process with
              --validation-report pointed at a temporary folder, and reads the
              CSV record that comes out. Nothing is written under
-             tests/validation/.
+             validation/reports/.
 
-Inputs:      tests/conftest.py   (read-only; copied into each throwaway suite)
+Inputs:      validation/conftest.py   (read-only; copied into each throwaway suite)
 
 Outputs:     Writes nothing to disk outside pytest's temporary folder.
 
-Usage:       pytest tests/test_validation_report.py
+Usage:       pytest validation/test_validation_report.py
                  run these checks
-             pytest tests/test_validation_report.py -v
+             pytest validation/test_validation_report.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -42,7 +42,7 @@ CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 
@@ -155,7 +155,7 @@ def test_no_flag_writes_nothing(pytester):
     result = pytester.runpytest_subprocess()
     assert result.ret == 0
     # The copied conftest's default records folder is <suite>/validation.
-    assert not (pytester.path / "validation").exists()
+    assert not (pytester.path / "reports").exists()
 
 
 #######################################################################################
