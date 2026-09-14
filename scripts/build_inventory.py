@@ -1,6 +1,6 @@
 """
 Script:      build_inventory.py
-Description: Generates tests/validation_inventory.csv, the list of every check
+Description: Generates validation/validation_inventory.csv, the list of every check
              in the test files, from the checks themselves, so the inventory
              cannot drift from the code it describes. Each check's name, its
              permanent id (the @code marker), whether it is positive or
@@ -20,10 +20,10 @@ Description: Generates tests/validation_inventory.csv, the list of every check
              hook runs it that way, so a commit that changes a check without
              regenerating the inventory is refused.
 
-Inputs:      tests/**/test_*.py             (read-only, parsed rather than imported)
-             tests/validation_inventory.csv (read for the hand-kept columns)
+Inputs:      validation/**/test_*.py             (read-only, parsed rather than imported)
+             validation/validation_inventory.csv (read for the hand-kept columns)
 
-Outputs:     tests/validation_inventory.csv, rewritten in full. With --check,
+Outputs:     validation/validation_inventory.csv, rewritten in full. With --check,
              nothing on disk.
 
 Usage:       python scripts/build_inventory.py
@@ -62,8 +62,8 @@ from pathlib import Path
 ### Settings ###
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-TESTS_DIR = REPO_ROOT / "tests"
-INVENTORY_PATH = TESTS_DIR / "validation_inventory.csv"
+VALIDATION_DIR = REPO_ROOT / "validation"
+INVENTORY_PATH = VALIDATION_DIR / "validation_inventory.csv"
 
 # The columns, in the order the inventory has always had them. The check columns
 # are shared with the validation record, which joins on check_name_code.
@@ -82,7 +82,7 @@ COLUMNS = (
 # Rows are grouped by the folder the test file sits in, in the order the pipeline
 # runs, with the record writer's own checks last. Within a folder, files are in
 # name order and checks in file order.
-TYPE_ORDER = ("sources", "usdm", "scripts", "tests")
+TYPE_ORDER = ("sources", "usdm", "scripts", "validation")
 
 # What a check starts with when it first appears in the inventory.
 NEW_STATUS = "active"
@@ -127,10 +127,10 @@ def first_paragraph(doc: str | None) -> str:
 def type_and_target(check_file: Path) -> tuple[str, str]:
     """Work out a test file's group and the code file it proves.
 
-    tests/ mirrors the code. A test file in tests/scripts/ tests the script of the
+    validation/ mirrors the code. A test file in validation/scripts/ tests the script of the
     same name in scripts/. A test file in any other subfolder tests the file of the
     same name in that folder under src/sdg/. A test file at the top level tests the
-    record writer in tests/conftest.py.
+    record writer in validation/conftest.py.
 
     Args:
         check_file: The test file's path.
@@ -138,11 +138,11 @@ def type_and_target(check_file: Path) -> tuple[str, str]:
     Returns:
         The group name and the target's repo-relative path.
     """
-    relative = check_file.relative_to(TESTS_DIR)
+    relative = check_file.relative_to(VALIDATION_DIR)
     folder = relative.parent.as_posix()
     component = f"{check_file.stem.removeprefix('test_')}.py"
     if folder == ".":
-        return "tests", "tests/conftest.py"
+        return "validation", "validation/conftest.py"
     if folder == "scripts":
         return "scripts", f"scripts/{component}"
     return folder, f"src/sdg/{folder}/{component}"
@@ -239,9 +239,9 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
         The rows in inventory order, and the problems found. When there is any
         problem the rows are not to be written.
     """
-    files = sorted(TESTS_DIR.rglob("test_*.py"))
+    files = sorted(VALIDATION_DIR.rglob("test_*.py"))
     if not files:
-        return [], [f"no test files found under {_name(TESTS_DIR)}"]
+        return [], [f"no test files found under {_name(VALIDATION_DIR)}"]
 
     found: list[tuple[str, str, Check]] = []
     problems: list[str] = []
@@ -324,7 +324,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Generate tests/validation_inventory.csv from the checks."
+        description="Generate validation/validation_inventory.csv from the checks."
     )
     parser.add_argument(
         "--check",
@@ -349,7 +349,7 @@ def main(argv: list[str] | None = None) -> int:
     for problem in problems:
         say(problem)
     if problems:
-        # A parse failure, an empty tests folder and a check without its markers
+        # A parse failure, an empty validation folder and a check without its markers
         # need different fixes, so each carries its own code.
         say("Inventory not written.")
         if any(": cannot parse" in p for p in problems):

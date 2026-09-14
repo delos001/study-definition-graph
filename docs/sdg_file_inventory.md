@@ -2,11 +2,12 @@
 
 # sdg/
 
-## Automatic:
+
+- console_output.py
 
 ## sources/
 ### workflows:
-- acquire_sources.py: uses read_manifests, fetch_file, fingerprint_file, finalize_file
+- acquire_sources.py (manual): uses read_manifests, fetch_file, fingerprint_file, finalize_file
 - verify_pinned.py: uses read_manifests, fingerprint_file
 - update_sources.py: uses fetch_file, fingerprint_file, finalize_file, write_manifests - pending
 
@@ -20,14 +21,13 @@
 ## usdm/
 ### workflows:
 ### steps:
-
--	usdm_spec.py
+- usdm_spec.py (manual)
 
 ## locate/
 ### workflows:
 ### steps:
 
--	pending phase 1
+- pending phase 1
 
 ## classify/
 ### workflows:
@@ -46,10 +46,3 @@
 ### steps:
 
 - pending phase 4
-
-## Manual Run
-
-# adhoc extraction:
-- read_xlsx.py
-- read_pdf.py
-- pending

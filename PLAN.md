@@ -96,7 +96,7 @@ Turn classified content into USDM-conformant structures.
   - driven by prompt size and the "content spread across sections" finding in `BACKGROUND.md`.
 - **Verification:**
   - every record validates against its schema and has non-null provenance,
-  - both assertable in `tests/`.
+  - both assertable in `validation/`.
 
 ### Phase 4 (sketch) — Build the graph and test whether it earns its place
 

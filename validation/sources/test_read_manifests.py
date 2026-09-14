@@ -16,9 +16,9 @@ Inputs:      manifests/*.json   (read-only; the checks against the real repo)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest tests/sources/test_read_manifests.py
+Usage:       pytest validation/sources/test_read_manifests.py
                  run these checks
-             pytest tests/sources/test_read_manifests.py -v
+             pytest validation/sources/test_read_manifests.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -47,7 +47,7 @@ from sdg.sources.read_manifests import (
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 # The six manifests written by hand, one per pinned set. A study-document fetch,

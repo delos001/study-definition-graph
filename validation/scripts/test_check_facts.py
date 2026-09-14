@@ -14,9 +14,9 @@ Inputs:      inputs/**  (read-only; the one real-corpus check only, skips if abs
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest tests/scripts/test_check_facts.py
+Usage:       pytest validation/scripts/test_check_facts.py
                  run these checks
-             pytest tests/scripts/test_check_facts.py -v
+             pytest validation/scripts/test_check_facts.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -37,7 +37,7 @@ from sdg.usdm.usdm_spec import PINNED_LOCAL, SpecShapeError
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
-# tests/validation_inventory.csv, assigned once and never reused.
+# validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
 needs_pinned_file = pytest.mark.skipif(

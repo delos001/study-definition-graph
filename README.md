@@ -54,7 +54,7 @@ python -m sdg.sources.acquire_sources
 
 Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
 
-The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes, if any Python file under `src/sdg/` or `scripts/` lacks the full header block, if `tests/validation_inventory.csv` is out of date with the checks it lists, or if any Python file fails ruff or mypy. The first three checks use only the standard library and run from any terminal. The ruff and mypy check needs the `sdg` environment: when it is active the tools run directly, in about a second warm; when it is not, they run through `conda run`, which is slower. `.githooks/README.md` lists every check.
+The hook line enables `.githooks/pre-commit`, which blocks a commit if `scripts/README.md` is out of date with the scripts it describes, if any Python file under `src/sdg/` or `scripts/` lacks the full header block, if `validation/validation_inventory.csv` is out of date with the checks it lists, or if any Python file fails ruff or mypy. The first three checks use only the standard library and run from any terminal. The ruff and mypy check needs the `sdg` environment: when it is active the tools run directly, in about a second warm; when it is not, they run through `conda run`, which is slower. `.githooks/README.md` lists every check.
 
 Then confirm it worked. All six should exit 0:
 
@@ -64,7 +64,7 @@ python scripts/find_unrecorded_files.py           # nothing under inputs/ that a
 python scripts/check_facts.py         # every number stated in the docs re-derived from those files
 python scripts/read_pdf.py --docs     # lists each registered document as present or NOT DOWNLOADED
 python -m sdg.usdm.usdm_spec --list-classes       # lists the USDM classes read from the pinned model spec
-pytest                                # runs the automated checks in tests/; tests/README.md explains them
+pytest                                # runs the automated checks in validation/; validation/README.md explains them
 ```
 
 Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`. That password is set in `docker-compose.yml` and is for local development only.
@@ -104,7 +104,7 @@ study-definition-graph/
   prompts/                   # one file per prompt, versioned
   src/sdg/                   # the sdg Python package (source code), installed with pip install -e .; README.md in src/ and src/sdg/ list what is there
   scripts/                   # run by hand; README.md here is generated
-  tests/                     # automated checks and validation records; README.md there explains them
+  validation/                     # automated checks and validation records; README.md there explains them
 ```
 
 ## Where to look
@@ -120,7 +120,7 @@ study-definition-graph/
 | Where each pinned file came from, and its fingerprint | [manifests/README.md](manifests/README.md) |
 | How the standards feed each other | [docs/standards_lineage.html](docs/standards_lineage.html) |
 | USDM guide section map | [docs/usdm_ig_ledger.md](docs/usdm_ig_ledger.md) |
-| Which workflow uses which step | [docs/sdg_workflow_map.md](docs/sdg_workflow_map.md) |
+| Which files are in the sdg package, and what each uses | [docs/sdg_file_inventory.md](docs/sdg_file_inventory.md) |
 | What each script does | [scripts/README.md](scripts/README.md) |
 
 [scripts/README.md](scripts/README.md) is a generated index of every script and how to invoke it. It is rebuilt from the scripts' own header blocks by `python scripts/build_index.py`, so it cannot drift from them.
