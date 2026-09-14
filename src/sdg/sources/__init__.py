@@ -20,7 +20,12 @@ from .read_manifests import (
     manifests,
     require_repo,
 )
-from .verify_pinned import IntegrityError, PinnedFile, verify_pinned
+from .verify_pinned import (
+    IntegrityError,
+    PinnedFile,
+    UnrecordedFileError,
+    verify_pinned,
+)
 
 __all__ = [
     "Comparison",
@@ -31,6 +36,7 @@ __all__ = [
     "Manifest",
     "ManifestError",
     "NotInRepoError",
+    "UnrecordedFileError",
     "compare",
     "discard",
     "entry_for",

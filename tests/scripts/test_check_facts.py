@@ -30,8 +30,8 @@ from __future__ import annotations
 import pytest
 
 import check_facts as cf
-from sdg.sources.read_manifests import NotInRepoError
-from sdg.sources.verify_pinned import IntegrityError
+from sdg.sources.read_manifests import ManifestError, NotInRepoError
+from sdg.sources.verify_pinned import IntegrityError, UnrecordedFileError
 from sdg.usdm.usdm_spec import PINNED_LOCAL, SpecShapeError
 
 positive = pytest.mark.positive
@@ -99,11 +99,11 @@ def test_matching_figure_exits_0(fact, capsys):
 
 @code("HRS0012")
 @negative
-def test_drifted_figure_exits_1(fact, capsys):
+def test_drifted_figure_exits_14(fact, capsys):
     """A document stating a different number is reported DRIFTED with the
-    stated and measured values, exit 1."""
+    stated and measured values, exit 14."""
     fact(lambda: 3, "We hold 4 widgets.\n")
-    assert cf.main([]) == 1
+    assert cf.main([]) == 14
     out = capsys.readouterr().out
     assert "DRIFTED       widgets in facts.md: says 4, actual 3" in out
     assert "1 drifted" in out
@@ -115,7 +115,7 @@ def test_every_occurrence_is_checked(fact, capsys):
     """When the same figure appears twice and one copy is stale, the stale one
     is reported; a correct first copy does not hide it."""
     fact(lambda: 3, "We hold 3 widgets. Elsewhere: 5 widgets.\n")
-    assert cf.main([]) == 1
+    assert cf.main([]) == 14
     assert "says 5, actual 3" in capsys.readouterr().out
 
 
@@ -151,16 +151,25 @@ def test_number_written_as_a_word_is_read(fact):
 @pytest.mark.parametrize(
     "raised, code, word",
     [
-        (FileNotFoundError("gone.pdf"), 2, "UNMEASURABLE"),
+        (FileNotFoundError("gone.pdf"), 8, "NOT DOWNLOADED"),
+        (ManifestError("set_a.json: cannot read"), 3, "BAD MANIFEST"),
         (
-            IntegrityError("cannot verify x: no manifest entry records it"),
-            3,
-            "UNVERIFIED",
+            UnrecordedFileError("cannot verify x: no manifest entry records it"),
+            10,
+            "UNRECORDED",
         ),
+        (IntegrityError("x: sha256 differs; manifest says 0000"), 9, "MISMATCH"),
         (SpecShapeError("class 'X' is missing Modifier"), 4, "WRONG SHAPE"),
         (NotInRepoError("sdg is not running from inside its repo"), 6, "NOT IN REPO"),
     ],
-    ids=["missing-2", "unverified-3", "wrong-shape-4", "not-in-repo-6"],
+    ids=[
+        "not-downloaded-8",
+        "bad-manifest-3",
+        "unrecorded-10",
+        "mismatch-9",
+        "wrong-shape-4",
+        "not-in-repo-6",
+    ],
 )
 @negative
 def test_each_measurement_failure_has_its_own_exit_code(
@@ -168,7 +177,8 @@ def test_each_measurement_failure_has_its_own_exit_code(
 ):
     """A measurement that raises is reported under a label naming the cause,
     with the exception's own message, and the run exits with that cause's
-    code: 2 file missing, 3 cannot be verified, 4 wrong shape, 6 not in repo."""
+    number from the repo-wide table: 8 not downloaded, 3 bad manifest, 10
+    unrecorded, 9 mismatch, 4 wrong shape, 6 not in repo."""
 
     def measure():
         """Raise the staged error in place of measuring."""

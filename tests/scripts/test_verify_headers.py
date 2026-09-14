@@ -155,7 +155,7 @@ def test_quiet_prints_nothing(folder, capsys):
     the exit code is the whole report."""
     folder({"alpha.py": GOOD_HEADER.replace("Owner:       Jason Delosh\n", "")})
     outcome = run(capsys, "--quiet")
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 17
     assert outcome.printed == ""
 
 
@@ -177,8 +177,8 @@ def test_real_folders_pass():
 
 @code("HRS0047")
 @negative
-def test_missing_fields_exit_1(folder, capsys):
-    """A header lacking fields makes the run exit 1, and the problem line names the
+def test_missing_fields_exit_17(folder, capsys):
+    """A header lacking fields makes the run exit 17, and the problem line names the
     file and every missing field."""
     folder(
         {
@@ -188,14 +188,14 @@ def test_missing_fields_exit_1(folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 17
     assert "src/sdg/alpha.py: missing Outputs, Owner" in outcome.printed
 
 
 @code("HRS0048")
 @negative
-def test_fields_out_of_order_exit_1(folder, capsys):
-    """A header with its fields in the wrong order makes the run exit 1, and the
+def test_fields_out_of_order_exit_17(folder, capsys):
+    """A header with its fields in the wrong order makes the run exit 17, and the
     problem line says so and shows the order found."""
     swapped = GOOD_HEADER.replace(
         "Date:        2026-09-04\nOwner:       Jason Delosh\n",
@@ -203,19 +203,19 @@ def test_fields_out_of_order_exit_1(folder, capsys):
     )
     folder({"alpha.py": swapped})
     outcome = run(capsys)
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 17
     assert "src/sdg/alpha.py: fields out of order" in outcome.printed
     assert "Owner, Date" in outcome.printed
 
 
 @code("HRS0049")
 @negative
-def test_bad_date_exits_1(folder, capsys):
-    """A Date that is not a plain calendar date makes the run exit 1, and the
+def test_bad_date_exits_17(folder, capsys):
+    """A Date that is not a plain calendar date makes the run exit 17, and the
     problem line quotes the value found."""
     folder({"alpha.py": GOOD_HEADER.replace("2026-09-04", "September 2026")})
     outcome = run(capsys)
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 17
     assert "src/sdg/alpha.py: Date is 'September 2026', not YYYY-MM-DD" in (
         outcome.printed
     )
@@ -223,23 +223,23 @@ def test_bad_date_exits_1(folder, capsys):
 
 @code("HRS0050")
 @negative
-def test_no_docstring_exits_1(folder, capsys):
-    """A file with no module docstring has no header block at all: the run exits 1
+def test_no_docstring_exits_17(folder, capsys):
+    """A file with no module docstring has no header block at all: the run exits 17
     and the problem line says so."""
     folder({"alpha.py": "print('hello')\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 17
     assert "src/sdg/alpha.py: no module docstring" in outcome.printed
 
 
 @code("HRS0051")
 @negative
-def test_unparseable_file_exits_3(folder, capsys):
-    """A file that is not valid Python makes the run exit 3, and the problem line
+def test_unparseable_file_exits_19(folder, capsys):
+    """A file that is not valid Python makes the run exit 19, and the problem line
     says it cannot be parsed."""
     folder({"alpha.py": "def broken(:\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 3
+    assert outcome.exit_code == 19
     assert "src/sdg/alpha.py: cannot parse" in outcome.printed
 
 
@@ -247,9 +247,9 @@ def test_unparseable_file_exits_3(folder, capsys):
 @negative
 def test_unparseable_outranks_incomplete(folder, capsys):
     """When one file cannot be parsed and another has an incomplete header, the run
-    exits 3, and both problems are still named."""
+    exits 19, and both problems are still named."""
     folder({"alpha.py": "def broken(:\n", "beta.py": "print('no header')\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 3
+    assert outcome.exit_code == 19
     assert "alpha.py: cannot parse" in outcome.printed
     assert "beta.py: no module docstring" in outcome.printed

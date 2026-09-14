@@ -24,10 +24,14 @@ Usage:       python scripts/find_unrecorded_files.py
              python scripts/find_unrecorded_files.py --quiet
                  print nothing; use the exit code
 
-Exit codes:  0  every file under inputs/ is recorded
-             1  at least one file is not
-             3  no manifests found, or one could not be read
-             6  the sdg package is not running from inside its repo
+Exit codes:  0   success: every file under inputs/ is recorded
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             3   a manifest is missing or cannot be read
+             6   not running from inside the repo
+             10  a file under inputs/ that no manifest records
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-09-09
 Owner:       Jason Delosh
@@ -138,7 +142,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"\n{len(stray)} file(s) no manifest records. They cannot be restored from a clone."
             )
 
-    return 1 if stray else 0
+    return 10 if stray else 0
 
 
 if __name__ == "__main__":

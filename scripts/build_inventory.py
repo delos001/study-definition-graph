@@ -34,10 +34,15 @@ Usage:       python scripts/build_inventory.py
              python scripts/build_inventory.py --quiet
                  print nothing; use the exit code
 
-Exit codes:  0  the inventory was written, or --check found it current
-             1  --check found the inventory stale or missing
-             2  a check has no id, no kind, or an id another check carries
-             3  no checks were found, or a test file could not be parsed
+Exit codes:  0   success: the inventory was written, or --check found it current
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             16  the validation inventory is stale or missing (--check only)
+             18  a check has no id, no kind, or a duplicate id
+             19  a Python file could not be parsed
+             20  no files found to work on
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -344,14 +349,14 @@ def main(argv: list[str] | None = None) -> int:
     for problem in problems:
         say(problem)
     if problems:
-        # A parse failure or an empty tests folder is a broken repo; a check
-        # without its markers is a broken check. They need different fixes and
-        # so carry different codes.
-        broken_repo = any(
-            p.startswith("no test files") or ": cannot parse" in p for p in problems
-        )
+        # A parse failure, an empty tests folder and a check without its markers
+        # need different fixes, so each carries its own code.
         say("Inventory not written.")
-        return 3 if broken_repo else 2
+        if any(": cannot parse" in p for p in problems):
+            return 19
+        if any(p.startswith("no test files") for p in problems):
+            return 20
+        return 18
 
     text = render(rows)
     inventory = _name(INVENTORY_PATH)
@@ -366,7 +371,7 @@ def main(argv: list[str] | None = None) -> int:
             say(f"{inventory} is current, {len(rows)} check(s)")
             return 0
         say(f"{inventory} is stale. Run: python scripts/build_inventory.py")
-        return 1
+        return 16
 
     INVENTORY_PATH.write_text(text, encoding="utf-8", newline="")
     say(f"{inventory} written, {len(rows)} check(s)")

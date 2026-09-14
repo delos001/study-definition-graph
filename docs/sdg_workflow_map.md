@@ -2,6 +2,8 @@
 
 # sdg/
 
+## Automatic:
+
 ## sources/
 ### workflows:
 - acquire_sources.py: uses read_manifests, fetch_file, fingerprint_file, finalize_file
@@ -45,16 +47,9 @@
 
 - pending phase 4
 
-# scripts/
-Everything here is run by hand, so there is no workflow and step split.
+## Manual Run
 
-- adhoc extraction:
-  - read_xlsx.py
-  - read_pdf.py
-  - pending
-- upkeep:
-  - build_index.py
-  - check_facts.py
-  - check_python_files.py
-  - find_unrecorded_files.py
-  - verify_headers.py
+# adhoc extraction:
+- read_xlsx.py
+- read_pdf.py
+- pending

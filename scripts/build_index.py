@@ -34,13 +34,19 @@ Usage:       python scripts/build_index.py
              python scripts/build_index.py --quiet
                  print nothing; use the exit code
 
-Exit codes:  0  the index was written, or --check found it current
-             1  --check found scripts/README.md stale or missing
-             2  a script has no header block, or is missing a required field
-             3  no scripts found, or one could not be parsed as Python
-
-             2 outranks 1, because an index generated from an incomplete header
-             would be wrong rather than merely out of date.
+Exit codes:  0   success: the index was written, or --check found it current
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             15  scripts/README.md is stale or missing (--check only)
+             17  a header block is missing, incomplete, out of order, or has a
+                 bad Date
+             19  a Python file could not be parsed
+             20  no files found to work on
+             19 outranks 17, and 17 outranks 15, because an index generated
+             from an incomplete header would be wrong rather than merely out
+             of date.
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-08-24
 Owner:       Jason Delosh
@@ -291,7 +297,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if not paths:
         say("no scripts found")
-        return 3
+        return 20
 
     entries: list[tuple[str, dict[str, list[str]]]] = []
     unparseable: list[str] = []
@@ -326,14 +332,14 @@ def main(argv: list[str] | None = None) -> int:
         say(problem)
 
     if unparseable:
-        return 3
+        return 19
 
     if incomplete:
         say()
         say(
             "The writing_python_files rule requires the full header block on every script. Index not written."
         )
-        return 2
+        return 17
 
     generated = render(entries)
 
@@ -347,7 +353,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         say("scripts/README.md is stale. Run: python scripts/build_index.py")
-        return 1
+        return 15
 
     INDEX_PATH.write_text(generated, encoding="utf-8")
     say(f"scripts/README.md written, {len(entries)} script(s)")

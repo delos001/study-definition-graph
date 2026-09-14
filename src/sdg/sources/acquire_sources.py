@@ -33,17 +33,25 @@ Usage:       python -m sdg.sources.acquire_sources
              python -m sdg.sources.acquire_sources --quiet
                  print nothing; use the exit code
 
-Exit codes:  0  every entry's file is on disk and matches its entry
-             1  the corpus is incomplete: a fetch failed, what arrived did not
-                match its entry, or, in a dry run, a file is not on disk
-             2  a file already on disk does not match its entry, or cannot be
-                read; left alone
-             3  no manifests found, or one could not be read
-             6  the sdg package is not running from inside its repo
-
-             1 outranks 2 when both occur. A dry run exits 1 as soon as one
-             file would need fetching, so --dry-run --quiet answers whether
-             the corpus is complete and intact from the exit code alone.
+Exit codes:  0   success: every entry's file is on disk and matches its entry
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             3   a manifest is missing or cannot be read
+             6   not running from inside the repo
+             8   a pinned file has not been downloaded (a dry run only; a real
+                 run fetches it)
+             9   a pinned file on disk does not match its manifest entry; left
+                 alone
+             11  a download failed
+             12  a downloaded file does not match its manifest entry; discarded
+             13  a file on disk cannot be read; left alone
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md. Every problem is reported;
+             the exit code is the worst one seen, in the order 11, 12, 8, 9,
+             13, because a corpus with a file missing is worse than one whose
+             files are all present but one has changed. So --dry-run --quiet
+             answers whether the corpus is complete and intact from the exit
+             code alone.
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -137,8 +145,10 @@ def main(argv: list[str] | None = None) -> int:
     fetched = 0
     would_fetch = 0
     present = 0
-    failures = 0
-    disagreements = 0
+    fetch_failures = 0
+    wrong_downloads = 0
+    mismatches = 0
+    unreadable = 0
 
     for manifest in found:
         say(manifest.name)
@@ -154,19 +164,19 @@ def main(argv: list[str] | None = None) -> int:
                     say(
                         f"  CANNOT READ  {entry.local}: a folder, not a file; left alone"
                     )
-                    disagreements += 1
+                    unreadable += 1
                     continue
                 try:
                     result = compare(entry.path, entry)
                 except OSError as exc:
                     say(f"  CANNOT READ  {entry.local}: {exc}; left alone")
-                    disagreements += 1
+                    unreadable += 1
                     continue
                 if result.matched:
                     present += 1
                 else:
                     say(f"  MISMATCH  {entry.local}: {result.detail}; left alone")
-                    disagreements += 1
+                    mismatches += 1
                 continue
 
             if args.dry_run:
@@ -179,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
                 partial = fetch(entry.url, entry.path)
             except FetchError as exc:
                 say(f"    FAILED  {exc}")
-                failures += 1
+                fetch_failures += 1
                 continue
 
             # The download is compared under its temporary name, so a wrong
@@ -191,28 +201,36 @@ def main(argv: list[str] | None = None) -> int:
             else:
                 say(f"    DISCARDED  {result.detail}")
                 discard(partial)
-                failures += 1
+                wrong_downloads += 1
 
     say()
     if args.dry_run:
         say(f"{would_fetch} to fetch, {present} present and matching")
     else:
         say(f"{fetched} fetched, {present} present and matching")
-    if disagreements:
+    if mismatches or unreadable:
         say(
-            f"{disagreements} file(s) on disk disagree with their entry or cannot be read. Look, then delete deliberately and re-run."
+            f"{mismatches + unreadable} file(s) on disk disagree with their entry or cannot be read. Look, then delete deliberately and re-run."
         )
-    if failures:
-        say(f"{failures} fetch(es) failed or did not match their entry.")
+    if fetch_failures or wrong_downloads:
+        say(
+            f"{fetch_failures + wrong_downloads} fetch(es) failed or did not match their entry."
+        )
 
-    # 1 outranks 2: a corpus with a file missing is worse than one whose files
-    # are all present but one has changed, because the second at least has
-    # known contents on disk. In a dry run a file that would be fetched is a
-    # file missing, and is reported with the same code for the same reason.
-    if failures or would_fetch:
-        return 1
-    if disagreements:
-        return 2
+    # One exit code per cause, the worst one seen. A corpus with a file missing
+    # is worse than one whose files are all present but one has changed, because
+    # the second at least has known contents on disk. In a dry run a file that
+    # would be fetched is a file missing.
+    if fetch_failures:
+        return 11
+    if wrong_downloads:
+        return 12
+    if would_fetch:
+        return 8
+    if mismatches:
+        return 9
+    if unreadable:
+        return 13
     return 0
 
 

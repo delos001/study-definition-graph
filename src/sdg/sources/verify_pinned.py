@@ -40,10 +40,13 @@ Usage:       Not run directly; imported.
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
-             NotInRepoError      the package is not running from inside its repo
-             FileNotFoundError   the file has not been downloaded
-             IntegrityError      no entry records the file, a manifest cannot be
-                                 read, or the file does not match its entry
+             NotInRepoError       the package is not running from inside its repo
+             ManifestError        a manifest is missing or cannot be read
+             FileNotFoundError    the file has not been downloaded
+             UnrecordedFileError  no manifest entry records the file
+             IntegrityError       the file does not match its manifest entry
+             One error per cause, so the program using this step can give each
+             its own exit code without reading the message.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -55,18 +58,25 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .fingerprint_file import compare
-from .read_manifests import ManifestError, as_local, entry_for
+from .read_manifests import as_local, entry_for
 
 #######################################################################################
-### Error Class ###
+### Error classes ###
+
+
+class UnrecordedFileError(Exception):
+    """Raised when no manifest entry records the file asked for.
+
+    The message says so and gives the remedy: add an entry for a pinned file, or read
+    a test fixture directly.
+    """
 
 
 class IntegrityError(Exception):
-    """Raised when a pinned file could not be proven to be the recorded one.
+    """Raised when a pinned file is on disk but its size or sha256 differs from its
+    manifest entry.
 
-    One cause, one message: no manifest entry records the file, a manifest cannot be
-    read, or the file's size or sha256 differs from its entry. Each message says what
-    happened and how to recover.
+    The message shows both values and the three ways back.
     """
 
 
@@ -129,22 +139,18 @@ def verify_pinned(target: str | Path) -> PinnedFile:
 
     Raises:
         NotInRepoError: The package is not running from inside its repo.
+        ManifestError: A manifest is missing or cannot be read. Raised by the manifest
+            reader and passed through, because it is a manifest problem, not a file
+            problem, and the remedy is to restore the manifests.
         FileNotFoundError: The file is recorded but has not been downloaded.
-        IntegrityError: No manifest entry records the file, a manifest cannot be read,
-            or the file's size or sha256 differs from its entry.
+        UnrecordedFileError: No manifest entry records the file.
+        IntegrityError: The file's size or sha256 differs from its entry.
     """
     local = as_local(target)
-
-    # A manifest that cannot be read is a manifest problem, not a file problem.
-    # It is reported as one, or the remedy would send a person to re-download a
-    # file that is fine.
-    try:
-        entry = entry_for(local)
-    except ManifestError as exc:
-        raise IntegrityError(f"cannot verify {local}: {exc}") from exc
+    entry = entry_for(local)
 
     if entry is None:
-        raise IntegrityError(
+        raise UnrecordedFileError(
             f"cannot verify {local}: no manifest entry records it\n"
             "  a pinned file   -> add its manifest entry (url, sha256, bytes)\n"
             "  a test fixture  -> read it directly; verify_pinned() is only for recorded files"
