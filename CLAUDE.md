@@ -52,8 +52,8 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 - Hand-built answer keys go in `eval/`, which is committed; they cannot be regenerated.
 - Pinned versions never move. Never fetch latest.
 - A pinned file keeps its publisher's file name, spaces replaced by underscores and nothing else. One folder per standard, named with its version, whatever the file count.
-- `python -m sdg.sources.acquire_sources` fetches what is missing and checks what is present against its entry; `python scripts/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
-- Any count written into a document must be recomputable. Add it to `scripts/check_facts.py`, which re-derives every stated figure from the pinned files. Run it after changing the corpus.
+- `python -m sdg.sources.acquire_sources` fetches what is missing and checks what is present against its entry; `python repo_tools/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
+- Any count written into a document must be recomputable. Add it to `repo_tools/check_facts.py`, which re-derives every stated figure from the pinned files. Run it after changing the corpus.
 
 ## Pipeline
 
@@ -63,4 +63,4 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 
 ## Python files
 
-Every Python file the project writes, under `src/sdg/`, `scripts/` and `validation/`, follows the rule in `.claude/rules/writing_python_files.md`: the header block, the sections, the docstrings, the comments, the checks, and the ruff and mypy runs. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.
+Every Python file the project writes, under `src/sdg/`, `repo_tools/` and `validation/`, follows the rule in `.claude/rules/writing_python_files.md`: the header block, the sections, the docstrings, the comments, the checks, and the ruff and mypy runs. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.

@@ -28,22 +28,22 @@ Inputs:      inputs/standards/cdisc/usdm_v4/USDM-IG.pdf                      (re
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
-Usage:       python scripts/read_pdf.py --docs
+Usage:       read_pdf --docs
                  list the registered documents and whether each is downloaded
-             python scripts/read_pdf.py 4.23
+             read_pdf 4.23
                  print one section of the USDM IG, by number
-             python scripts/read_pdf.py "Extension"
+             read_pdf "Extension"
                  print the section whose title contains the text
-             python scripts/read_pdf.py --pages 26-31
+             read_pdf --pages 26-31
                  print an explicit page range
-             python scripts/read_pdf.py --find footnote
+             read_pdf --find footnote
                  search every page for a term
-             python scripts/read_pdf.py --list
+             read_pdf --list
                  print the section map
-             python scripts/read_pdf.py --doc m11-techspec --find "Number of Participants"
+             read_pdf --doc m11-techspec --find "Number of Participants"
                  the same modes on another registered document
-             python scripts/read_pdf.py --doc m11-template --pages 12-14
-             python scripts/read_pdf.py --doc model-diagram --find Encounter
+             read_pdf --doc m11-template --pages 12-14
+             read_pdf --doc model-diagram --find Encounter
 
 Exit codes:  0   success
              1   unhandled error, Python's own
@@ -52,7 +52,7 @@ Exit codes:  0   success
              23  the requested section was not found in the PDF
              24  section mode used on a PDF that has no bookmarks
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-08-18
 Owner:       Jason Delosh
@@ -75,14 +75,13 @@ from pathlib import Path
 import fitz
 
 from sdg.console_output import use_utf8_output
+from sdg.sources.read_manifests import REPO_ROOT
 
 #######################################################################################
 ### Settings ###
 
-# Paths are resolved from this file's own location rather than the working
-# directory, so the script behaves the same whether it is run from the repo root
-# or from inside scripts/.
-REPO_ROOT = Path(__file__).resolve().parents[1]
+# The repo root comes from the manifest reader, the one place that works it out,
+# so this tool finds inputs/ however it is started.
 STANDARDS = REPO_ROOT / "inputs" / "standards"
 
 # Every page of the USDM IG repeats the same four lines of header and footer.

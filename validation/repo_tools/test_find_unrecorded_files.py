@@ -1,6 +1,6 @@
 """
 Script:      test_find_unrecorded_files.py
-Description: Checks for scripts/find_unrecorded_files.py, the hand-run script
+Description: Checks for repo_tools/find_unrecorded_files.py, the hand-run script
              that lists every file under inputs/ that no manifest records. Each
              check stages one state of a throwaway repo, the fake_repo fixture
              in conftest.py with the script's own folder locations repointed at
@@ -12,9 +12,9 @@ Inputs:      Nothing real. Every file and manifest is written to pytest's own
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/scripts/test_find_unrecorded_files.py
+Usage:       pytest validation/repo_tools/test_find_unrecorded_files.py
                  run these checks
-             pytest validation/scripts/test_find_unrecorded_files.py -v
+             pytest validation/repo_tools/test_find_unrecorded_files.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

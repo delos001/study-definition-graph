@@ -684,8 +684,8 @@ def _selection(args: tuple[str, ...]) -> str:
 def _target_of(test_file: Path) -> str:
     """Name the code file a test file proves.
 
-    validation/ mirrors the code. A test file in validation/scripts/ tests the script of the
-    same name in scripts/. A test file in any other subfolder tests the file of the
+    validation/ mirrors the code. A test file in validation/repo_tools/ tests the script of the
+    same name in repo_tools/. A test file in any other subfolder tests the file of the
     same name in that folder under src/sdg/. A test file at the top level has no code
     file to mirror; the one there, test_validation_report.py, tests the record-writer
     in this file, so its target is the test file itself.
@@ -701,8 +701,8 @@ def _target_of(test_file: Path) -> str:
     component = test_file.stem.removeprefix("test_")
     if folder == ".":
         return f"validation/{relative.as_posix()}"
-    if folder == "scripts":
-        mirrored = REPO_ROOT / "scripts" / f"{component}.py"
+    if folder == "repo_tools":
+        mirrored = REPO_ROOT / "repo_tools" / f"{component}.py"
     else:
         mirrored = REPO_ROOT / "src" / "sdg" / folder / f"{component}.py"
     name = mirrored.relative_to(REPO_ROOT).as_posix()

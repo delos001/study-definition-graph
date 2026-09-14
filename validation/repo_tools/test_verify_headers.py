@@ -1,20 +1,20 @@
 """
 Script:      test_verify_headers.py
-Description: Checks for scripts/verify_headers.py, the hand-run script the
+Description: Checks for repo_tools/verify_headers.py, the hand-run script the
              pre-commit hook runs to refuse a commit whose Python files lack
              the full header block. Each check writes one or two small files to
              a temporary folder, points the script's checked folders at it,
              runs main() in-process, and asserts the exit code or the problem
              line the header promises. One check runs the script over the real
-             package and scripts/ folders, the same run the hook makes.
+             package and repo_tools/ folders, the same run the hook makes.
 
-Inputs:      src/sdg/**/*.py and scripts/*.py  (read-only; the one real-folder check)
+Inputs:      src/sdg/**/*.py and repo_tools/*.py  (read-only; the one real-folder check)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/scripts/test_verify_headers.py
+Usage:       pytest validation/repo_tools/test_verify_headers.py
                  run these checks
-             pytest validation/scripts/test_verify_headers.py -v
+             pytest validation/repo_tools/test_verify_headers.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -43,7 +43,7 @@ Script:      alpha.py
 Description: Does the first thing.
 Inputs:      nothing
 Outputs:     nothing
-Usage:       python scripts/alpha.py
+Usage:       python repo_tools/alpha.py
 Exit codes:  0 fine
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -162,7 +162,7 @@ def test_quiet_prints_nothing(folder, capsys):
 @code("HRS0046")
 @positive
 def test_real_folders_pass():
-    """Every Python file in the real package and scripts/ folders has a complete
+    """Every Python file in the real package and repo_tools/ folders has a complete
     header, which is the run the pre-commit hook makes."""
     assert script.main(["--quiet"]) == 0
 

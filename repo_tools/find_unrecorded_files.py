@@ -19,9 +19,9 @@ Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
 Outputs:     Nothing on disk. Prints one repo-relative path per unrecorded
              file, or nothing when there are none.
 
-Usage:       python scripts/find_unrecorded_files.py
+Usage:       python repo_tools/find_unrecorded_files.py
                  list every unrecorded file
-             python scripts/find_unrecorded_files.py --quiet
+             python repo_tools/find_unrecorded_files.py --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success: every file under inputs/ is recorded
@@ -31,7 +31,7 @@ Exit codes:  0   success: every file under inputs/ is recorded
              6   not running from inside the repo
              10  a file under inputs/ that no manifest records
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-09-09
 Owner:       Jason Delosh

@@ -45,7 +45,7 @@ import os
 import sys
 from pathlib import Path
 
-# The one folder that holds pinned files. scripts/find_unrecorded_files.py
+# The one folder that holds pinned files. repo_tools/find_unrecorded_files.py
 # walks the same folder; the two agree because there is only one name.
 PINNED_FOLDER = "inputs"
 

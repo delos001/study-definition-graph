@@ -26,12 +26,12 @@ Inputs:      validation/**/test_*.py             (read-only, parsed rather than 
 Outputs:     validation/validation_inventory.csv, rewritten in full. With --check,
              nothing on disk.
 
-Usage:       python scripts/build_inventory.py
+Usage:       python repo_tools/build_inventory.py
                  regenerate the inventory
-             python scripts/build_inventory.py --check
+             python repo_tools/build_inventory.py --check
                  report whether the inventory on disk is current; write nothing.
                  For hooks.
-             python scripts/build_inventory.py --quiet
+             python repo_tools/build_inventory.py --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success: the inventory was written, or --check found it current
@@ -42,7 +42,7 @@ Exit codes:  0   success: the inventory was written, or --check found it current
              19  a Python file could not be parsed
              20  no files found to work on
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -82,7 +82,7 @@ COLUMNS = (
 # Rows are grouped by the folder the test file sits in, in the order the pipeline
 # runs, with the record writer's own checks last. Within a folder, files are in
 # name order and checks in file order.
-TYPE_ORDER = ("sources", "usdm", "scripts", "validation")
+TYPE_ORDER = ("sources", "usdm", "repo_tools", "validation")
 
 # What a check starts with when it first appears in the inventory.
 NEW_STATUS = "active"
@@ -127,8 +127,8 @@ def first_paragraph(doc: str | None) -> str:
 def type_and_target(check_file: Path) -> tuple[str, str]:
     """Work out a test file's group and the code file it proves.
 
-    validation/ mirrors the code. A test file in validation/scripts/ tests the script of the
-    same name in scripts/. A test file in any other subfolder tests the file of the
+    validation/ mirrors the code. A test file in validation/repo_tools/ tests the script of the
+    same name in repo_tools/. A test file in any other subfolder tests the file of the
     same name in that folder under src/sdg/. A test file at the top level tests the
     record writer in validation/conftest.py.
 
@@ -143,8 +143,8 @@ def type_and_target(check_file: Path) -> tuple[str, str]:
     component = f"{check_file.stem.removeprefix('test_')}.py"
     if folder == ".":
         return "validation", "validation/conftest.py"
-    if folder == "scripts":
-        return "scripts", f"scripts/{component}"
+    if folder == "repo_tools":
+        return "repo_tools", f"repo_tools/{component}"
     return folder, f"src/sdg/{folder}/{component}"
 
 
@@ -370,7 +370,7 @@ def main(argv: list[str] | None = None) -> int:
         if current == text:
             say(f"{inventory} is current, {len(rows)} check(s)")
             return 0
-        say(f"{inventory} is stale. Run: python scripts/build_inventory.py")
+        say(f"{inventory} is stale. Run: python repo_tools/build_inventory.py")
         return 16
 
     INVENTORY_PATH.write_text(text, encoding="utf-8", newline="")

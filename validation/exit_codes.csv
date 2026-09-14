@@ -1,0 +1,28 @@
+code,cause
+0,success
+1,"unhandled error, Python's own"
+2,"invalid command line, the argument parser's own"
+3,a manifest is missing or cannot be read
+4,the pinned model file is not shaped like USDM v4
+5,the requested class is not in the model
+6,not running from inside the repo
+7,the sdg package is not installed
+8,a pinned file has not been downloaded
+9,a pinned file on disk does not match its manifest entry
+10,a file under inputs/ that no manifest records
+11,a download failed
+12,a downloaded file does not match its manifest entry
+13,a file on disk cannot be read
+14,a stated figure has drifted from the pinned files
+15,repo_tools/README.md is stale or missing
+16,the validation inventory is stale or missing
+17,"a header block is missing, incomplete, out of order, or has a bad Date"
+18,"a check has no id, no kind, or a duplicate id"
+19,a Python file could not be parsed
+20,no files found to work on
+21,ruff or mypy reported a problem
+22,a tool could not be run at all
+23,the requested section was not found in the PDF
+24,section mode used on a PDF that has no bookmarks
+25,the named sheet does not exist in the workbook
+26,no workbook under inputs/ matches the name given

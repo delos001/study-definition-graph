@@ -1,7 +1,7 @@
 ---
 paths:
   - "src/**/*.py"
-  - "scripts/**/*.py"
+  - "repo_tools/**/*.py"
   - "validation/**/*.py"
 ---
 
@@ -10,7 +10,7 @@ paths:
 This rule covers every Python file the project writes. There are three kinds:
 
 - the package under `src/sdg/`, which holds the pipeline's workflows and steps, the code other code imports;
-- the hand-run scripts under `scripts/`, which a person runs from a terminal;
+- the repo tools under `repo_tools/`, which keep the repository's own files in order and are run by a person or by the pre-commit hook;
 - the checks under `validation/`, which prove the package and the scripts do what they say.
 
 Where a standard convention exists, the project follows it. The conventions in use are PEP 8 for layout and names, the Google layout for docstrings, ruff for formatting and linting, mypy for type checking, and pytest for checks. The project departs from a convention only where this rule says so, and says why.
@@ -36,43 +36,13 @@ Owner:       Jason Delosh
 
 `Owner` is who is accountable for the file and who to ask about it, not who wrote it. Who wrote a line is git's answer: `git blame <file>`. `Owner` changes only when ownership transfers.
 
-The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/` or `scripts/` lacks the block or has its fields out of order.
+The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/` or `repo_tools/` lacks the block or has its fields out of order.
 
 ## Exit codes
 
-One number means one cause across the whole repo, so a person who learns what a code means in one script knows what it means in every other. A header's `Exit codes` field lists only the codes that file can return, each with the table's wording. A new cause takes the next unused number and is added to this table in the same commit. Two causes share a number only when they share a fix.
+One number means one cause across the whole repo, so a person who learns what a code means in one script knows what it means in every other. The table is `validation/exit_codes.csv`, one row per code. A header's `Exit codes` field lists only the codes that file can return, each with the table's wording. A new cause takes the next unused number and is added to the table in the same commit. Two causes share a number only when they share a fix.
 
 Codes 1 and 2 are Python's own and are never assigned to anything else: an unhandled error exits 1, and the argument parser exits 2 on a bad command line.
-
-| Code | Cause |
-| --- | --- |
-| 0 | success |
-| 1 | unhandled error, Python's own |
-| 2 | invalid command line, the argument parser's own |
-| 3 | a manifest is missing or cannot be read |
-| 4 | the pinned model file is not shaped like USDM v4 |
-| 5 | the requested class is not in the model |
-| 6 | not running from inside the repo |
-| 7 | the sdg package is not installed |
-| 8 | a pinned file has not been downloaded |
-| 9 | a pinned file on disk does not match its manifest entry |
-| 10 | a file under inputs/ that no manifest records |
-| 11 | a download failed |
-| 12 | a downloaded file does not match its manifest entry |
-| 13 | a file on disk cannot be read |
-| 14 | a stated figure has drifted from the pinned files |
-| 15 | scripts/README.md is stale or missing |
-| 16 | the validation inventory is stale or missing |
-| 17 | a header block is missing, incomplete, out of order, or has a bad Date |
-| 18 | a check has no id, no kind, or a duplicate id |
-| 19 | a Python file could not be parsed |
-| 20 | no files found to work on |
-| 21 | ruff or mypy reported a problem |
-| 22 | a tool could not be run at all |
-| 23 | the requested section was not found in the PDF |
-| 24 | section mode used on a PDF that has no bookmarks |
-| 25 | the named sheet does not exist in the workbook |
-| 26 | no workbook under inputs/ matches the name given |
 
 ## Sections inside a file
 
@@ -126,10 +96,10 @@ Three tool runs check a file, and all three are configured in `pyproject.toml`. 
 ```powershell
 ruff format .          # rewrap and reindent every file to the standard layout
 ruff check .           # report style and lint problems; add --fix to apply the ones ruff can fix itself
-mypy                   # check the type hints in src/, scripts/ and validation/
+mypy                   # check the type hints in src/, repo_tools/ and validation/
 ```
 
-`python scripts/check_python_files.py` runs all three in that order and reports what each found. The pre-commit hook runs it, so a file that fails any of them is refused before it lands, whoever made the edit.
+`python repo_tools/check_python_files.py` runs all three in that order and reports what each found. The pre-commit hook runs it, so a file that fails any of them is refused before it lands, whoever made the edit.
 
 Line length is the formatter's job alone. A line the formatter leaves long is a string, and a message split across lines is harder to grep for, so ruff's long-line check is off.
 

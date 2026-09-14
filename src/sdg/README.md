@@ -1,11 +1,12 @@
 # src/sdg/
 
-The `sdg` package: the pipeline, as code other code imports. It has one folder per group of work, in the order the pipeline runs. Each folder's `README.md` lists the files in it; each file's header block is the full account of that file. Nothing is described at more than one level.
+The `sdg` package: the pipeline, as code other code imports, and the tools a person runs on the project's inputs. It has one folder per group of work, in the order the pipeline runs. Each folder's `README.md` lists the files in it; each file's header block is the full account of that file. Nothing is described at more than one level.
 
 | Folder | What it does |
 | --- | --- |
 | `sources/` | Get and keep the pipeline's inputs: acquire recorded files, update a source to a new version, and prove a file is the pinned one before any stage reads it. |
 | `usdm/` | Read the USDM standard so the pipeline knows what a class is, what it holds, and what it points at. |
+| `view/` | Show a person what is inside a pinned document, a PDF section or a workbook sheet. Installed as the commands `read_pdf` and `read_xlsx`. |
 | `locate/` | Phase 1: take a study document and find where its content lives, section boundaries and the schedule grid, with no AI. |
 | `classify/` | Phase 2: say what kind of document this is and what each located section is about. |
 | `extract/` | Phase 3: turn classified content into USDM-shaped structures, each carrying where it came from. |
@@ -15,6 +16,6 @@ A file used by several stages goes in the root of `sdg/`. Today that is `console
 
 A script has one objective. Generally its functionality should be distinct or perform like things. Discrete jobs upstream or downstream of the objective should generally be evaluated to determine whether they belong in a separate callable, reusable script.
 
-Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one: it holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `docs/sdg_file_inventory.md`.
+Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one: it holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `docs/sdg_files_inventory.md`.
 
-Installed once with `pip install -e .` (README.md, step 1b). The tools a person runs beside the pipeline are in `scripts/`, and the checks that prove this code works are in `validation/`.
+Installed once with `pip install -e .` (README.md, step 1b). The tools that keep the repository's own files in order are in `repo_tools/`, and the checks that prove this code works are in `validation/`.
