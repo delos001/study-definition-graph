@@ -5,8 +5,8 @@ Routing table for `inputs/standards/cdisc/usdm_v4/USDM-IG.pdf` (119 pages, pinne
 Read a section with:
 
 ```powershell
-python scripts/read_pdf.py 4.23
-python scripts/read_pdf.py 6.4 --raw   # skip header/footer stripping
+read_pdf 4.23
+read_pdf 6.4 --raw   # skip header/footer stripping
 ```
 
 Page ranges come from the PDF's own bookmarks and include the page where the next section begins, because a section usually runs partway into it. `read_pdf.py` trims the shared pages at both headings, so two sections listed with the same range still return different text. If it cannot find a heading it says so in the output rather than guessing.

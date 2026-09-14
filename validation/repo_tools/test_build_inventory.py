@@ -1,6 +1,6 @@
 """
 Script:      test_build_inventory.py
-Description: Checks for scripts/build_inventory.py, the hand-run script that
+Description: Checks for repo_tools/build_inventory.py, the hand-run script that
              generates validation/validation_inventory.csv from the checks in the
              test files and, under --check, is the pre-commit hook that refuses
              a commit whose inventory is stale. Each check writes one or two
@@ -14,9 +14,9 @@ Inputs:      validation/**/test_*.py and validation/validation_inventory.csv
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/scripts/test_build_inventory.py
+Usage:       pytest validation/repo_tools/test_build_inventory.py
                  run these checks
-             pytest validation/scripts/test_build_inventory.py -v
+             pytest validation/repo_tools/test_build_inventory.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -148,9 +148,9 @@ def rows_of(inventory: Path) -> list[dict[str, str]]:
 
 @pytest.fixture
 def generated(tests_folder, capsys) -> list[dict[str, str]]:
-    """Stage one test file under validation/scripts/ with two checks, run the script, and
+    """Stage one test file under validation/repo_tools/ with two checks, run the script, and
     read the inventory it wrote."""
-    inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     return rows_of(inventory)
 
@@ -177,12 +177,12 @@ def test_row_holds_the_check_as_written(generated):
 @code("HRS0054")
 @positive
 def test_row_names_the_group_and_the_target(generated):
-    """A test file under validation/scripts/ is grouped as scripts, and its target is the
+    """A test file under validation/repo_tools/ is grouped as repo_tools, and its target is the
     script of the same name."""
     first = generated[0]
-    assert first["type"] == "scripts"
-    assert first["target_file"] == "scripts/alpha.py"
-    assert first["check_file"] == "validation/scripts/test_alpha.py"
+    assert first["type"] == "repo_tools"
+    assert first["target_file"] == "repo_tools/alpha.py"
+    assert first["check_file"] == "validation/repo_tools/test_alpha.py"
 
 
 @code("HRS0055")
@@ -197,7 +197,7 @@ def test_new_check_starts_active_at_version_1(generated):
 def test_hand_kept_columns_are_carried_over_by_id(tests_folder, capsys):
     """When the inventory already has a row for a check's id, its status and
     version are kept, whatever else changed."""
-    inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     text = inventory.read_text(encoding="utf-8").replace(
         "ABC0002,negative,The wrong thing is refused.,active,1",
@@ -212,12 +212,12 @@ def test_hand_kept_columns_are_carried_over_by_id(tests_folder, capsys):
 @code("HRS0057")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
-    """Rows are grouped sources, then usdm, then scripts, then validation, whatever
+    """Rows are grouped sources, then usdm, then repo_tools, then validation, whatever
     order the files are found in."""
     inventory = tests_folder(
         {
             "test_report.py": TWO_CHECKS.replace("ABC", "TTT"),
-            "scripts/test_alpha.py": TWO_CHECKS.replace("ABC", "SSS"),
+            "repo_tools/test_alpha.py": TWO_CHECKS.replace("ABC", "SSS"),
             "sources/test_beta.py": TWO_CHECKS,
         }
     )
@@ -225,8 +225,8 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
     assert [r["type"] for r in rows_of(inventory)] == [
         "sources",
         "sources",
-        "scripts",
-        "scripts",
+        "repo_tools",
+        "repo_tools",
         "validation",
         "validation",
     ]
@@ -237,7 +237,7 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
 def test_check_passes_when_inventory_is_current(tests_folder, capsys):
     """With the check option, the run exits 0 and writes nothing when the inventory
     on disk equals what would be generated."""
-    inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     before = inventory.stat().st_mtime_ns
     outcome = run(capsys, "--check")
@@ -251,7 +251,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
 def test_quiet_prints_nothing(tests_folder, capsys):
     """With the quiet option, nothing is printed; the exit code is the whole
     report."""
-    tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
+    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--quiet")
     assert outcome.exit_code == 0
     assert outcome.printed == ""
@@ -279,15 +279,15 @@ def test_check_fails_when_inventory_is_stale_or_missing(tests_folder, capsys):
     """With the check option, the run exits 16 and names the command to run when
     the inventory is missing or no longer matches the checks; nothing is written
     either way."""
-    inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
     assert not inventory.exists()
-    assert "is stale. Run: python scripts/build_inventory.py" in outcome.printed
+    assert "is stale. Run: python repo_tools/build_inventory.py" in outcome.printed
 
     assert run(capsys).exit_code == 0
     tests_folder(
-        {"scripts/test_alpha.py": TWO_CHECKS.replace("first thing", "other thing")}
+        {"repo_tools/test_alpha.py": TWO_CHECKS.replace("first thing", "other thing")}
     )
     assert run(capsys, "--check").exit_code == 16
 
@@ -296,9 +296,9 @@ def test_check_fails_when_inventory_is_stale_or_missing(tests_folder, capsys):
 @negative
 def test_deleted_check_drops_out(tests_folder, capsys):
     """A row whose check no longer exists in any test file is not written again."""
-    inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
-    tests_folder({"scripts/test_alpha.py": TWO_CHECKS.split('@code("ABC0002")')[0]})
+    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.split('@code("ABC0002")')[0]})
     assert run(capsys).exit_code == 0
     assert [r["check_name_code"] for r in rows_of(inventory)] == ["ABC0001"]
 
@@ -309,12 +309,12 @@ def test_check_without_id_exits_18(tests_folder, capsys):
     """A check with no @code marker makes the run exit 18, naming the file and the
     check, and the inventory is not written."""
     inventory = tests_folder(
-        {"scripts/test_alpha.py": TWO_CHECKS.replace('@code("ABC0002")\n', "")}
+        {"repo_tools/test_alpha.py": TWO_CHECKS.replace('@code("ABC0002")\n', "")}
     )
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert not inventory.exists()
-    assert "validation/scripts/test_alpha.py: test_second has no @code marker" in (
+    assert "validation/repo_tools/test_alpha.py: test_second has no @code marker" in (
         outcome.printed
     )
 
@@ -324,7 +324,7 @@ def test_check_without_id_exits_18(tests_folder, capsys):
 def test_check_without_kind_exits_18(tests_folder, capsys):
     """A check with neither @positive nor @negative makes the run exit 18, naming
     the file and the check."""
-    tests_folder({"scripts/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")})
+    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert "test_second has no @positive or @negative marker" in outcome.printed
@@ -335,7 +335,7 @@ def test_check_without_kind_exits_18(tests_folder, capsys):
 def test_duplicate_id_exits_18(tests_folder, capsys):
     """Two checks carrying the same id make the run exit 18, and the message names
     both checks."""
-    tests_folder({"scripts/test_alpha.py": TWO_CHECKS.replace("ABC0002", "ABC0001")})
+    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.replace("ABC0002", "ABC0001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert "ABC0001 is carried by both test_first and test_second" in outcome.printed
@@ -346,10 +346,10 @@ def test_duplicate_id_exits_18(tests_folder, capsys):
 def test_unparseable_file_exits_19(tests_folder, capsys):
     """A test file that is not valid Python makes the run exit 19, and the message
     names it."""
-    tests_folder({"scripts/test_alpha.py": "def broken(:\n"})
+    tests_folder({"repo_tools/test_alpha.py": "def broken(:\n"})
     outcome = run(capsys)
     assert outcome.exit_code == 19
-    assert "validation/scripts/test_alpha.py: cannot parse" in outcome.printed
+    assert "validation/repo_tools/test_alpha.py: cannot parse" in outcome.printed
 
 
 @code("HRS0067")

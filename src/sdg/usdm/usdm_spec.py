@@ -56,7 +56,7 @@ Exit codes:  0   success
                  (it can be read anyway with --allow-unpinned)
              10  a file under inputs/ that no manifest records
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-09-03
 Owner:       Jason Delosh

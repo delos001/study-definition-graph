@@ -11,15 +11,15 @@ Description: Runs the three tool checks every Python file must pass, in order:
              terminal where that environment is not active, each is run through
              conda instead, which is slower but needs no set-up.
 
-Inputs:      pyproject.toml and every Python file under src/, scripts/ and
+Inputs:      pyproject.toml and every Python file under src/, repo_tools/ and
              validation/   (read-only)
 
 Outputs:     Nothing on disk. Prints each tool's report, then one line per tool
              saying whether it passed.
 
-Usage:       python scripts/check_python_files.py
+Usage:       python repo_tools/check_python_files.py
                  run all three checks, report each, exit non-zero if any failed
-             python scripts/check_python_files.py --quiet
+             python repo_tools/check_python_files.py --quiet
                  print only the tools' own reports and the final verdict lines
 
 Exit codes:  0   success: every tool passed
@@ -29,7 +29,7 @@ Exit codes:  0   success: every tool passed
              22  a tool could not be run at all, neither on the path nor
                  through conda
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh

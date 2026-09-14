@@ -35,7 +35,7 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf.
 
 | Question | How to Read |
 | --- | --- |
-| How does a piece of protocol content map into the model? | `python scripts/read_pdf.py <section>`. Section names are listed in [usdm_ig_ledger.md](usdm_ig_ledger.md). |
+| How does a piece of protocol content map into the model? | `read_pdf <section>`. Section names are listed in [usdm_ig_ledger.md](usdm_ig_ledger.md). |
 
 ### Document: USDM_CT.xlsx
 - purpose: The allowed values for every coded field.
@@ -43,7 +43,7 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf.
 
 | Question | How to Read |
 | --- | --- |
-| Which values are legal for a coded field? | `python scripts/read_xlsx.py USDM_CT --sheet "DDF valid value sets"` |
+| Which values are legal for a coded field? | `read_xlsx USDM_CT --sheet "DDF valid value sets"` |
 
 ### Document: USDM_CORE_Rules.xlsx
 - purpose: The conformance rules a USDM document is checked against. Covers v3.0 and v4.0 together; column F marks the rules that apply to v4.0.
@@ -51,7 +51,7 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf.
 
 | Question | How to Read |
 | --- | --- |
-| Which rules does a document have to satisfy? | `python scripts/read_xlsx.py CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"` |
+| Which rules does a document have to satisfy? | `read_xlsx CORE_Rules --sheet "Version 3.0 and 4.0 CORE rules"` |
 
 ### Document: DDF_USDM_Model_Informative.pdf
 - purpose: A one-page picture of the whole model. It leaves some classes out, so a class missing here may still exist in the model.
@@ -59,7 +59,7 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf.
 
 | Question | How to Read |
 | --- | --- |
-| Where does a class sit in the model? | `python scripts/read_pdf.py --doc model-diagram --find "<class>"` |
+| Where does a class sit in the model? | `read_pdf --doc model-diagram --find "<class>"` |
 
 ### Document: UML_DELTA_3-0-0_4-0-0.csv
 - purpose: Every change from v3.0 to v4.0, one row each. Needed when reading material written against v3.
@@ -117,8 +117,8 @@ Each study is one real protocol in three forms: the protocol as published, the s
 
 | Question | How to Read |
 | --- | --- |
-| How did a person decide the mapping for one part of the model? | `python scripts/read_xlsx.py <study> --sheet <sheet> --format records` |
-| Where does a term appear across every study? | `python scripts/read_xlsx.py --all --find "<term>"` |
+| How did a person decide the mapping for one part of the model? | `read_xlsx <study> --sheet <sheet> --format records` |
+| Where does a term appear across every study? | `read_xlsx --all --find "<term>"` |
 
 ### Document: <study>.json
 - purpose: The finished USDM data file, generated from the spreadsheet.
@@ -143,7 +143,7 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 | Question | How to Read |
 | --- | --- |
-| What standardized concept does an activity measure? | `python scripts/read_xlsx.py cdisc_biomedical_concepts --sheet biomedical_concepts` |
+| What standardized concept does an activity measure? | `read_xlsx cdisc_biomedical_concepts --sheet biomedical_concepts` |
 
 ### Document: BC_Curation_Principles_and_Completion_GLs.xlsx
 - purpose: The field dictionary for the list above. Says what each column means and how it was filled in.
@@ -151,7 +151,7 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 | Question | How to Read |
 | --- | --- |
-| What does a column in the concept list mean? | `python scripts/read_xlsx.py BC_Curation_Principles_and_Completion_GLs` |
+| What does a column in the concept list mean? | `read_xlsx BC_Curation_Principles_and_Completion_GLs` |
 
 ### Document: BC_Overview_Training.pdf
 - purpose: CDISC's own introduction to what a Biomedical Concept is.
@@ -176,7 +176,7 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 
 | Question | How to Read |
 | --- | --- |
-| Where does a registry field land in USDM? | `python scripts/read_xlsx.py ct-gov_mapping` to list the sheets, then `--sheet <topic>`. |
+| Where does a registry field land in USDM? | `read_xlsx ct-gov_mapping` to list the sheets, then `--sheet <topic>`. |
 
 ### Document: m11_mapping.xlsx
 - purpose: Maps the ICH M11 protocol template's elements onto USDM.
@@ -184,7 +184,7 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 
 | Question | How to Read |
 | --- | --- |
-| Where does an M11 element land in USDM? | `python scripts/read_xlsx.py m11_mapping --sheet Mapping` |
+| Where does an M11 element land in USDM? | `read_xlsx m11_mapping --sheet Mapping` |
 
 ---
 
@@ -201,7 +201,7 @@ The M11 documents have no bookmarks, so read_pdf.py reaches them only by search 
 
 | Question | How to Read |
 | --- | --- |
-| What goes in a given protocol section? | `python scripts/read_pdf.py --doc m11-template --find "<heading>"` |
+| What goes in a given protocol section? | `read_pdf --doc m11-template --find "<heading>"` |
 
 ### Document: ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf
 - purpose: Defines each protocol data element, with its data type, how many values it takes, and whether it is required.
@@ -209,7 +209,7 @@ The M11 documents have no bookmarks, so read_pdf.py reaches them only by search 
 
 | Question | How to Read |
 | --- | --- |
-| What is this protocol data element, and is it required? | `python scripts/read_pdf.py --doc m11-techspec --find "<term>"` |
+| What is this protocol data element, and is it required? | `read_pdf --doc m11-techspec --find "<term>"` |
 
 ### Document: ICH_Step4_M11_Final_Guideline_2025_1119.pdf
 - purpose: The short guideline that sets M11's scope. The substance is in the other two documents.
@@ -217,7 +217,7 @@ The M11 documents have no bookmarks, so read_pdf.py reaches them only by search 
 
 | Question | How to Read |
 | --- | --- |
-| What does M11 cover? | `python scripts/read_pdf.py --doc m11-guideline --pages 1-6` |
+| What does M11 cover? | `read_pdf --doc m11-guideline --pages 1-6` |
 
 ---
 
@@ -232,7 +232,7 @@ The M11 documents have no bookmarks, so read_pdf.py reaches them only by search 
 
 | Question | How to Read |
 | --- | --- |
-| What is an estimand and what are its parts? | `python scripts/read_pdf.py --doc e9r1 A.3.3` |
+| What is an estimand and what are its parts? | `read_pdf --doc e9r1 A.3.3` |
 
 ---
 

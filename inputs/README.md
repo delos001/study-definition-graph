@@ -2,7 +2,7 @@
 
 Everything the pipeline takes in from outside the repo. Every file here was downloaded from a recorded source and is pinned to one version: its url, size and sha256 are in `manifests/` at the repo root, so a fresh clone can restore all of it with `python -m sdg.sources.acquire_sources`. Nothing here is ever edited, and nothing here is committed except the READMEs and the `.gitkeep` placeholders.
 
-That one rule, everything under `inputs/` is pinned, is what the Claude Code hook in `.claude/hooks/` and `scripts/find_unrecorded_files.py` both rely on. A new pinned source goes in a folder here and gets a manifest, and neither needs to be told.
+That one rule, everything under `inputs/` is pinned, is what the Claude Code hook in `.claude/hooks/` and `repo_tools/find_unrecorded_files.py` both rely on. A new pinned source goes in a folder here and gets a manifest, and neither needs to be told.
 
 | Folder | What it holds |
 | --- | --- |

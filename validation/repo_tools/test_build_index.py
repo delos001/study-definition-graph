@@ -1,14 +1,14 @@
 """
 Script:      test_build_index.py
-Description: Automated checks for scripts/build_index.py, which generates
-             scripts/README.md from each script's header block and, under
+Description: Automated checks for repo_tools/build_index.py, which generates
+             repo_tools/README.md from each script's header block and, under
              --check, is the pre-commit hook that blocks a commit whose index
              is stale. Each check writes one or two small scripts to a
              temporary folder, points the generator at it, and asserts what it
              writes or which exit code it returns. One check runs --check on
-             the real scripts/ folder, the same check the hook runs.
+             the real repo_tools/ folder, the same check the hook runs.
 
-Inputs:      scripts/*.py and scripts/README.md  (read-only; the one real-folder check)
+Inputs:      repo_tools/*.py and repo_tools/README.md  (read-only; the one real-folder check)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
@@ -47,9 +47,9 @@ Description: Does the first thing,
 
 Inputs:      nothing
 Outputs:     nothing
-Usage:       python scripts/alpha.py
+Usage:       python repo_tools/alpha.py
                  run it
-             python scripts/alpha.py --flag
+             python repo_tools/alpha.py --flag
                  run it with a flag
 Exit codes:  0 fine
 Date:        2026-09-04
@@ -62,9 +62,9 @@ EXPECTED_ENTRY = """## alpha.py
 Does the first thing, continued on a second line.
 
 ```
-python scripts/alpha.py
+python repo_tools/alpha.py
     run it
-python scripts/alpha.py --flag
+python repo_tools/alpha.py --flag
     run it with a flag
 ```
 """
@@ -79,7 +79,7 @@ def folder(tmp_path, monkeypatch):
     """Produces a function that takes {filename: source} and writes those
     scripts to a temporary folder the generator is pointed at, with the index
     path beside them, and hands back that folder."""
-    scripts = tmp_path / "scripts"
+    scripts = tmp_path / "repo_tools"
     scripts.mkdir()
     monkeypatch.setattr(bi, "SCRIPTS_DIR", scripts)
     monkeypatch.setattr(bi, "INDEX_PATH", scripts / "README.md")
@@ -113,11 +113,11 @@ def test_writes_first_paragraph_and_usage_with_indent_kept(folder, capsys):
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main([]) == 0
     text = (scripts / "README.md").read_text(encoding="utf-8")
-    assert text.startswith("# scripts/\n\n" + bi.GENERATED_NOTICE)
+    assert text.startswith("# repo_tools/\n\n" + bi.GENERATED_NOTICE)
     assert EXPECTED_ENTRY in text
     assert "second paragraph" not in text
     assert text.endswith("```\n") and not text.endswith("\n\n")
-    assert "scripts/README.md written, 1 script(s)" in capsys.readouterr().out
+    assert "repo_tools/README.md written, 1 script(s)" in capsys.readouterr().out
 
 
 @code("HRS0002")
@@ -159,7 +159,7 @@ def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main(["--check"]) == 15
     assert not (scripts / "README.md").exists()
-    assert "stale. Run: python scripts/build_index.py" in capsys.readouterr().out
+    assert "stale. Run: python repo_tools/build_index.py" in capsys.readouterr().out
 
     bi.main([])
     folder(
@@ -233,12 +233,12 @@ def test_no_scripts_exits_20(folder, capsys):
 
 
 #######################################################################################
-### The real scripts/ folder ###
+### The real repo_tools/ folder ###
 
 
 @code("HRS0010")
 @positive
 def test_real_index_is_current():
-    """scripts/README.md matches the headers of the real scripts, which is the
+    """repo_tools/README.md matches the headers of the real scripts, which is the
     check the pre-commit hook runs."""
     assert bi.main(["--check", "--quiet"]) == 0

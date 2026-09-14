@@ -7,21 +7,27 @@ name = "sdg"
 version = "0.0.0"
 requires-python = ">=3.12"
 
+# Commands installed with the package, so a person types read_pdf rather than
+# python -m sdg.view.read_pdf. Each names the module and the function it runs.
+[project.scripts]
+read_pdf = "sdg.view.read_pdf:main"
+read_xlsx = "sdg.view.read_xlsx:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
-# validation/scripts/ imports the hand-run scripts by name (import build_index), which
-# needs scripts/ on the import path. Declared here once, not in each test file.
-pythonpath = ["scripts"]
+# validation/repo_tools/ imports the repo tools by name (import build_index), which
+# needs repo_tools/ on the import path. Declared here once, not in each test file.
+pythonpath = ["repo_tools"]
 testpaths = ["validation"]
 
 [tool.ruff]
-# Line length matches ruff's default formatter width. src, scripts and validation are
+# Line length matches ruff's default formatter width. src, repo_tools and validation are
 # the three folders the writing_python_files rule covers.
 line-length = 88
 target-version = "py312"
-src = ["src", "scripts", "validation"]
+src = ["src", "repo_tools", "validation"]
 
 [tool.ruff.lint]
 # E and W are PEP 8 style, F is pyflakes (unused names, undefined names), I is
@@ -39,9 +45,9 @@ known-first-party = ["sdg"]
 # Every function must carry hints, per the writing_python_files rule. The
 # packages below ship no type stubs, so their imports are allowed untyped.
 python_version = "3.12"
-files = ["src", "scripts", "validation"]
-# validation/scripts/ imports the hand-run scripts by bare name, as pytest does.
-mypy_path = ["src", "scripts", "."]
+files = ["src", "repo_tools", "validation"]
+# validation/repo_tools/ imports the repo tools by bare name, as pytest does.
+mypy_path = ["src", "repo_tools", "."]
 # With explicit package bases every test file is named validation.<folder>.<file>, so
 # one override pattern below covers the whole folder, present and future.
 explicit_package_bases = true

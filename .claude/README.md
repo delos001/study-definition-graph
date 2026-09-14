@@ -22,5 +22,5 @@ These live in `.githooks/`, not here, and run for anyone who commits. They are l
 
 | Runs | Check | What it does |
 | --- | --- | --- |
-| Before every commit | `python scripts/build_index.py --check` | Refuses the commit if `scripts/README.md` is out of date with the header blocks it is generated from. |
-| Before every commit | `python scripts/verify_headers.py` | Refuses the commit if any Python file under `src/sdg/` or `scripts/` lacks the full header block or has its fields out of order. |
+| Before every commit | `python repo_tools/build_index.py --check` | Refuses the commit if `repo_tools/README.md` is out of date with the header blocks it is generated from. |
+| Before every commit | `python repo_tools/verify_headers.py` | Refuses the commit if any Python file under `src/sdg/` or `repo_tools/` lacks the full header block or has its fields out of order. |

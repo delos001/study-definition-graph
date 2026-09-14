@@ -27,9 +27,9 @@ Inputs:      inputs/**              (read-only, pinned, each verified through ve
 
 Outputs:     A report on stdout. Writes nothing to disk.
 
-Usage:       python scripts/check_facts.py
+Usage:       python repo_tools/check_facts.py
                  check every fact, report drift
-             python scripts/check_facts.py --verbose
+             python repo_tools/check_facts.py --verbose
                  also show facts that match
 
 Exit codes:  0   success: every stated figure matches the source it came from.
@@ -46,7 +46,7 @@ Exit codes:  0   success: every stated figure matches the source it came from.
              10  a file under inputs/ that no manifest records
              14  a stated figure has drifted from the pinned files
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md. A measurement stops at the
+             validation/exit_codes.csv. A measurement stops at the
              first file it cannot use, so the run reports one cause at a time.
 
 Date:        2026-08-18
@@ -129,10 +129,9 @@ def pinned_pdf_pages() -> int:
     Returns:
         The page count.
     """
-    # A plain import resolves because Python puts the running script's own folder
-    # (scripts/) first on its search path, and read_pdf.py does nothing at import
-    # time beyond defining its table.
-    from read_pdf import DOCUMENTS
+    # Imported here rather than at the top so that a missing sdg package is
+    # reported by main() as exit 7 before any measurement runs.
+    from sdg.view.read_pdf import DOCUMENTS
 
     return sum(
         len(fitz.open(verify_pinned(entry.path).path)) for entry in DOCUMENTS.values()

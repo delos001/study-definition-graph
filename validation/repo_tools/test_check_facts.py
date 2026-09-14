@@ -1,6 +1,6 @@
 """
 Script:      test_check_facts.py
-Description: Checks for scripts/check_facts.py, the hand-run script that
+Description: Checks for repo_tools/check_facts.py, the hand-run script that
              re-derives every count stated in the project's documents from the
              pinned files. The script is a list of measurements and a loop that
              compares each to what the documents say. The checks here replace
@@ -14,9 +14,9 @@ Inputs:      inputs/**  (read-only; the one real-corpus check only, skips if abs
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/scripts/test_check_facts.py
+Usage:       pytest validation/repo_tools/test_check_facts.py
                  run these checks
-             pytest validation/scripts/test_check_facts.py -v
+             pytest validation/repo_tools/test_check_facts.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

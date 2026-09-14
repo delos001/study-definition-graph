@@ -15,15 +15,15 @@ Description: Reads a sheet out of any of the project's pinned Excel workbooks an
 Inputs:      Any .xlsx under inputs/. Opened read-only; nothing is written back.
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
-Usage:       python scripts/read_xlsx.py <workbook>
+Usage:       read_xlsx <workbook>
                  list the sheets, with row and column counts
-             python scripts/read_xlsx.py <workbook> --sheet mainTimeline
+             read_xlsx <workbook> --sheet mainTimeline
                  print one sheet as an aligned table
-             python scripts/read_xlsx.py <workbook> --sheet study --format records
+             read_xlsx <workbook> --sheet study --format records
                  print one sheet one field per line, for wide sheets
-             python scripts/read_xlsx.py <workbook> --find "Screening"
+             read_xlsx <workbook> --find "Screening"
                  search every sheet for a term
-             python scripts/read_xlsx.py --all --find "epoch"
+             read_xlsx --all --find "epoch"
                  search every workbook under inputs/
 
 Exit codes:  0   success
@@ -33,7 +33,7 @@ Exit codes:  0   success
              25  the named sheet does not exist in the workbook
              26  no workbook under inputs/ matches the name given
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-08-17
 Owner:       Jason Delosh
@@ -49,11 +49,11 @@ import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
 
 from sdg.console_output import use_utf8_output
+from sdg.sources.read_manifests import REPO_ROOT
 
 #######################################################################################
 ### Settings ###
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
 INPUTS_DIR = REPO_ROOT / "inputs"
 
 # Excel writes a "~$name.xlsx" lock file beside any workbook that is currently

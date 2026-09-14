@@ -12,9 +12,9 @@ The header, index and inventory checks use only the standard library, so they ru
 
 | Check inside `pre-commit` | What it does |
 | --- | --- |
-| `python scripts/build_index.py --check` | Refuses the commit if `scripts/README.md` is out of date with the header blocks it is generated from. |
-| `python scripts/verify_headers.py` | Refuses the commit if any Python file under `src/sdg/` or `scripts/` lacks the full header block, has its fields out of order, or has a Date that is not a plain calendar date. |
-| `python scripts/build_inventory.py --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the checks it is generated from. |
-| `python scripts/check_python_files.py --quiet` | Refuses the commit if any Python file fails `ruff format --check`, `ruff check` or `mypy`, all configured in `pyproject.toml`. Each tool prints its own report, so the refusal names the file and the line. |
+| `python repo_tools/build_index.py --check` | Refuses the commit if `repo_tools/README.md` is out of date with the header blocks it is generated from. |
+| `python repo_tools/verify_headers.py` | Refuses the commit if any Python file under `src/sdg/` or `repo_tools/` lacks the full header block, has its fields out of order, or has a Date that is not a plain calendar date. |
+| `python repo_tools/build_inventory.py --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the checks it is generated from. |
+| `python repo_tools/check_python_files.py --quiet` | Refuses the commit if any Python file fails `ruff format --check`, `ruff check` or `mypy`, all configured in `pyproject.toml`. Each tool prints its own report, so the refusal names the file and the line. |
 
-To add a check, put its script in `scripts/` with a header block, call it from `pre-commit`, and add a row here.
+To add a check, put it in `repo_tools/` with a header block, call it from `pre-commit`, and add a row here.

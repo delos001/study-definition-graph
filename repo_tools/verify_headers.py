@@ -1,6 +1,6 @@
 """
 Script:      verify_headers.py
-Description: Checks that every Python file in the package and in scripts/ opens
+Description: Checks that every Python file in the package and in repo_tools/ opens
              with the full header block the writing_python_files rule requires, with the eight fields
              in the set order and a Date in YYYY-MM-DD form. It reports each file
              that falls short and names what is wrong.
@@ -14,14 +14,14 @@ Description: Checks that every Python file in the package and in scripts/ opens
              __init__.py files are skipped: they carry a one-paragraph
              docstring naming the folder, not a header block.
 
-Inputs:      src/sdg/**/*.py and scripts/*.py   (read-only, parsed rather than imported)
+Inputs:      src/sdg/**/*.py and repo_tools/*.py   (read-only, parsed rather than imported)
 
 Outputs:     Nothing on disk. Prints one line per problem, or nothing when
              every header is complete.
 
-Usage:       python scripts/verify_headers.py
+Usage:       python repo_tools/verify_headers.py
                  check every file, report each problem
-             python scripts/verify_headers.py --quiet
+             python repo_tools/verify_headers.py --quiet
                  print nothing; use the exit code. For hooks.
 
 Exit codes:  0   success: every header is complete and in order
@@ -32,7 +32,7 @@ Exit codes:  0   success: every header is complete and in order
              19  a Python file could not be parsed
              19 outranks 17 when both occur; every problem is still named.
              The numbers are the repo-wide table in
-             .claude/rules/writing_python_files.md.
+             validation/exit_codes.csv.
 
 Date:        2026-09-09
 Owner:       Jason Delosh
@@ -54,7 +54,7 @@ from build_index import REQUIRED_FIELDS, parse_header
 ### Settings ###
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CHECKED_FOLDERS = (REPO_ROOT / "src" / "sdg", REPO_ROOT / "scripts")
+CHECKED_FOLDERS = (REPO_ROOT / "src" / "sdg", REPO_ROOT / "repo_tools")
 
 # The Date field is the day the file was first committed, written as a plain
 # calendar date. Anything else, a time, a range, a word, is a mistake.
@@ -130,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check every header block in the package and scripts/."
+        description="Check every header block in the package and repo_tools/."
     )
     parser.add_argument(
         "--quiet", action="store_true", help="print nothing; use the exit code"

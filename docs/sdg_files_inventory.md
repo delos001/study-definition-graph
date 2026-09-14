@@ -23,6 +23,12 @@
 ### steps:
 - usdm_spec.py (manual)
 
+## view/
+### workflows:
+- read_pdf.py (manual)
+- read_xlsx.py (manual)
+### steps:
+
 ## locate/
 ### workflows:
 ### steps:
