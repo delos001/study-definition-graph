@@ -13,7 +13,7 @@ Scripts run in the `sdg` conda environment. `README.md` has the rest of the setu
 1. `BACKGROUND.md` - why the project exists and the design constraints.
 2. `PLAN.md` - the build plan: phases, scope, and how each is verified.
 3. GitHub Issues - current status and what to work on next.
-4. `docs/sources_index.md`, first half - every pinned file, and whether it has been read.
+4. `docs/sources_index.md` - every pinned file, what it answers, and how to open it.
 
 Read all four before doing any work, even when the first message is a concrete task. The orientation reads, `docs/sources_index.md` above all, are what keep the work grounded; jumping to a named task and pulling only the obviously-relevant files is how ungrounded guessing starts (a figure quoted from an issue instead of the pinned source, a file's location asked for when the map already answers it).
 
