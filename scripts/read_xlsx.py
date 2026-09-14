@@ -26,8 +26,14 @@ Usage:       python scripts/read_xlsx.py <workbook>
              python scripts/read_xlsx.py --all --find "epoch"
                  search every workbook under inputs/
 
-Exit codes:  0 success
-             1 the workbook was not found, or the named sheet does not exist
+Exit codes:  0   success
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own; this covers
+                 --all without --find, and no workbook named
+             25  the named sheet does not exist in the workbook
+             26  no workbook under inputs/ matches the name given
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-08-17
 Owner:       Jason Delosh
@@ -328,9 +334,9 @@ def main(argv: list[str] | None = None) -> int:
     # Mode: search every workbook. Handled before workbook resolution because
     # --all makes the positional workbook argument meaningless.
     if args.all:
+        # A usage mistake, so it is reported the way the parser reports one.
         if not args.find:
-            print("--all requires --find", file=sys.stderr)
-            return 1
+            parser.error("--all requires --find")
         for path in find_workbooks():
             hits = search_workbook(path, args.find)
             if hits:
@@ -339,16 +345,18 @@ def main(argv: list[str] | None = None) -> int:
                 print()
         return 0
 
+    # No workbook named is a usage mistake too; the parser's message lists the
+    # workbooks a person can name.
     if not args.workbook:
-        print("Workbooks under inputs/:\n", file=sys.stderr)
-        for path in find_workbooks():
-            print(f"  {path.relative_to(REPO_ROOT)}", file=sys.stderr)
-        return 1
+        listing = "\n".join(
+            f"  {path.relative_to(REPO_ROOT)}" for path in find_workbooks()
+        )
+        parser.error(f"name a workbook. Those under inputs/ are:\n{listing}")
 
     workbook_path = resolve_workbook(args.workbook)
     if workbook_path is None:
         print(f"No workbook matching {args.workbook!r}.", file=sys.stderr)
-        return 1
+        return 26
 
     # Mode: search one workbook.
     if args.find:
@@ -386,7 +394,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"Run without --sheet to list them.",
                 file=sys.stderr,
             )
-            return 1
+            return 25
 
         rows = read_rows(workbook[actual])
         width = max((len(row) for row in rows), default=0)

@@ -44,18 +44,19 @@ Usage:       python -m sdg.usdm.usdm_spec --list-classes
              python -m sdg.usdm.usdm_spec --list-classes --allow-unpinned
                  run even if the pinned file no longer matches its checksum
 
-Exit codes:  0  success
-             1  the pinned spec file is missing (run python -m sdg.sources.acquire_sources)
-             2  invalid command line (argparse's own fixed code)
-             3  the spec cannot be verified against manifests/, or does not
-                match it; the message names which (mismatch, unreadable or
-                absent manifest, malformed entry, file not recorded) and how to
-                recover. A mismatch can be read anyway with --allow-unpinned
-             4  the spec is present but not the shape this module expects
-                (a USDM version that changed underneath us)
-             5  the requested class is not found
-             6  the package is not running from inside its repo (installed
-                without -e); the message gives the install command
+Exit codes:  0   success
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             3   a manifest is missing or cannot be read
+             4   the pinned model file is not shaped like USDM v4
+             5   the requested class is not in the model
+             6   not running from inside the repo
+             8   a pinned file has not been downloaded
+             9   a pinned file on disk does not match its manifest entry
+                 (it can be read anyway with --allow-unpinned)
+             10  a file under inputs/ that no manifest records
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-09-03
 Owner:       Jason Delosh
@@ -72,10 +73,20 @@ from pathlib import Path
 import yaml
 
 # The pinned-file check hands back a verified file; the manifest reader gives the
-# repo root, the install check, and the two errors callers may need to catch.
+# repo root and the install check. The four errors are imported so main() can give
+# each its own exit code.
 from sdg.console_output import use_utf8_output
-from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
-from sdg.sources.verify_pinned import IntegrityError, verify_pinned
+from sdg.sources.read_manifests import (
+    REPO_ROOT,
+    ManifestError,
+    NotInRepoError,
+    require_repo,
+)
+from sdg.sources.verify_pinned import (
+    IntegrityError,
+    UnrecordedFileError,
+    verify_pinned,
+)
 
 # Where the pinned model file is, named the way its manifest records it. The
 # repo root, and the verification of the file against its manifest, come from
@@ -133,8 +144,9 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     Raises:
         FileNotFoundError: The pinned file is absent.
         NotInRepoError: The package is not running from inside its repo.
-        IntegrityError: The file cannot be verified against its manifest, or does not
-            match it.
+        ManifestError: A manifest is missing or cannot be read.
+        UnrecordedFileError: No manifest entry records the file.
+        IntegrityError: The file does not match its manifest entry.
         SpecShapeError: The file parsed but is not shaped like the USDM structure this
             module reads.
     """
@@ -436,10 +448,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # A missing file, a changed one, a structurally wrong one, and a package not
-    # running from its repo are four different failures with four different exit
-    # codes, so a caller can tell "not downloaded" from "checksum changed" from
-    # "USDM changed shape" from "installed the wrong way".
+    # Each way the file can fail to load is a different cause with a different
+    # remedy, so each gets its own exit code from the repo-wide table. A caller
+    # can tell "not downloaded" from "checksum changed" from "USDM changed shape"
+    # from "installed the wrong way" without reading the message.
     try:
         spec = load(verify=not args.allow_unpinned)
     except FileNotFoundError:
@@ -448,13 +460,19 @@ def main(argv: list[str] | None = None) -> int:
             f"run python -m sdg.sources.acquire_sources",
             file=sys.stderr,
         )
-        return 1
+        return 8
     except NotInRepoError as exc:
         print(exc, file=sys.stderr)
         return 6
-    except IntegrityError as exc:
+    except ManifestError as exc:
         print(exc, file=sys.stderr)
         return 3
+    except UnrecordedFileError as exc:
+        print(exc, file=sys.stderr)
+        return 10
+    except IntegrityError as exc:
+        print(exc, file=sys.stderr)
+        return 9
     except SpecShapeError as exc:
         print(f"spec is present but not the expected shape: {exc}", file=sys.stderr)
         return 4

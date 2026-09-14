@@ -32,26 +32,22 @@ Usage:       python scripts/check_facts.py
              python scripts/check_facts.py --verbose
                  also show facts that match
 
-Exit codes:  0  every stated figure matches the source it came from
-             1  at least one figure has drifted. A fact that no document
-                asserts is reported but does not fail the run
-             2  a pinned file needed for a check is missing
-             3  a pinned file needed for a check is on disk but is not the
-                pinned one, or the manifest recording it is unreadable or has
-                no entry for it; the message names the file, which of those it
-                is, and how to recover
-             4  the USDM model file is the pinned one but is not shaped like
-                USDM v4; the message names the class or attribute that broke
-             5  not used here. In sdg.usdm.usdm_spec it means an unknown class name,
-                which cannot happen in this script; left unassigned so the
-                number keeps one meaning across the repo
-             6  the sdg package is installed but not from inside its repo
-                (installed without -e), so it cannot find inputs/; the message
-                gives the install command
-             7  the sdg package is not installed at all
-
-             Codes 3, 4 and 6 mean the same thing as in sdg.usdm.usdm_spec, so one
-             number names one cause wherever it appears.
+Exit codes:  0   success: every stated figure matches the source it came from.
+                 A fact that no document asserts is reported but does not fail
+                 the run
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             3   a manifest is missing or cannot be read
+             4   the pinned model file is not shaped like USDM v4
+             6   not running from inside the repo
+             7   the sdg package is not installed
+             8   a pinned file has not been downloaded
+             9   a pinned file on disk does not match its manifest entry
+             10  a file under inputs/ that no manifest records
+             14  a stated figure has drifted from the pinned files
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md. A measurement stops at the
+             first file it cannot use, so the run reports one cause at a time.
 
 Date:        2026-08-18
 Owner:       Jason Delosh
@@ -68,15 +64,19 @@ from pathlib import Path
 import fitz
 import openpyxl
 
-# The model loader, and the three ways it can refuse the pinned file. Guarded
-# rather than plain, so that a missing sdg package (never installed) is reported
-# by main() as exit 7 with the install command, instead of a traceback before
-# any check runs. The three exception classes are imported here so the
-# measurement loop can give each cause its own exit code.
+# The model loader, and the ways it can refuse the pinned file. Guarded rather
+# than plain, so that a missing sdg package (never installed) is reported by
+# main() as exit 7 with the install command, instead of a traceback before any
+# check runs. The five exception classes are imported here so the measurement
+# loop can give each cause its own exit code.
 try:
     from sdg.console_output import use_utf8_output
-    from sdg.sources.read_manifests import NotInRepoError
-    from sdg.sources.verify_pinned import IntegrityError, verify_pinned
+    from sdg.sources.read_manifests import ManifestError, NotInRepoError
+    from sdg.sources.verify_pinned import (
+        IntegrityError,
+        UnrecordedFileError,
+        verify_pinned,
+    )
     from sdg.usdm import usdm_spec
     from sdg.usdm.usdm_spec import SpecShapeError
 
@@ -115,7 +115,7 @@ DOCS = [
 # Every file is obtained through verify_pinned(), which checks it against
 # its manifest before it is read. A figure certified here is only worth
 # something if it was derived from the file that was actually pinned; a swapped
-# or edited copy fails the check (exit 3) instead of quietly certifying the
+# or edited copy fails the check (exit 9) instead of quietly certifying the
 # documents against the wrong source.
 
 
@@ -413,16 +413,22 @@ def main(argv: list[str] | None = None) -> int:
         try:
             actual = measure()
         except (FileNotFoundError, KeyError, OSError) as exc:
-            print(f"  UNMEASURABLE  {label}: {exc}")
-            return 2
+            print(f"  NOT DOWNLOADED {label}: {exc}")
+            return 8
         except NotInRepoError as exc:
-            print(f"  NOT IN REPO   {label}: {exc}")
+            print(f"  NOT IN REPO    {label}: {exc}")
             return 6
-        except IntegrityError as exc:
-            print(f"  UNVERIFIED    {label}: {exc}")
+        except ManifestError as exc:
+            print(f"  BAD MANIFEST   {label}: {exc}")
             return 3
+        except UnrecordedFileError as exc:
+            print(f"  UNRECORDED     {label}: {exc}")
+            return 10
+        except IntegrityError as exc:
+            print(f"  MISMATCH       {label}: {exc}")
+            return 9
         except SpecShapeError as exc:
-            print(f"  WRONG SHAPE   {label}: {exc}")
+            print(f"  WRONG SHAPE    {label}: {exc}")
             return 4
 
         occurrences = stated_values(pattern)
@@ -449,7 +455,7 @@ def main(argv: list[str] | None = None) -> int:
     # A fact nobody asserts is not an error in the documents; it just means this
     # script is tracking something the prose does not claim. Only real drift
     # fails the run.
-    return 1 if drifted else 0
+    return 14 if drifted else 0
 
 
 if __name__ == "__main__":

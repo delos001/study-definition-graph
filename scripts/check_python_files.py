@@ -22,10 +22,14 @@ Usage:       python scripts/check_python_files.py
              python scripts/check_python_files.py --quiet
                  print only the tools' own reports and the final verdict lines
 
-Exit codes:  0  every tool passed
-             1  at least one tool reported a problem
-             2  a tool could not be run at all, neither on the path nor
-                through conda
+Exit codes:  0   success: every tool passed
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             21  ruff or mypy reported a problem
+             22  a tool could not be run at all, neither on the path nor
+                 through conda
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -111,7 +115,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"{name}: cannot run; neither {tool_argv[0]} nor conda is on the path"
             )
             print("  fix -> conda activate sdg, or install conda")
-            return 2
+            return 22
         if not args.quiet:
             print(f"--- {name}")
         # The tool prints straight to this terminal, so its report is not
@@ -124,7 +128,7 @@ def main(argv: list[str] | None = None) -> int:
         verdict = "FAILED" if name in failed else "passed"
         print(f"{name}: {verdict}")
 
-    return 1 if failed else 0
+    return 21 if failed else 0
 
 
 #######################################################################################

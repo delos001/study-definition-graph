@@ -38,6 +38,42 @@ Owner:       Jason Delosh
 
 The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/` or `scripts/` lacks the block or has its fields out of order.
 
+## Exit codes
+
+One number means one cause across the whole repo, so a person who learns what a code means in one script knows what it means in every other. A header's `Exit codes` field lists only the codes that file can return, each with the table's wording. A new cause takes the next unused number and is added to this table in the same commit. Two causes share a number only when they share a fix.
+
+Codes 1 and 2 are Python's own and are never assigned to anything else: an unhandled error exits 1, and the argument parser exits 2 on a bad command line.
+
+| Code | Cause |
+| --- | --- |
+| 0 | success |
+| 1 | unhandled error, Python's own |
+| 2 | invalid command line, the argument parser's own |
+| 3 | a manifest is missing or cannot be read |
+| 4 | the pinned model file is not shaped like USDM v4 |
+| 5 | the requested class is not in the model |
+| 6 | not running from inside the repo |
+| 7 | the sdg package is not installed |
+| 8 | a pinned file has not been downloaded |
+| 9 | a pinned file on disk does not match its manifest entry |
+| 10 | a file under inputs/ that no manifest records |
+| 11 | a download failed |
+| 12 | a downloaded file does not match its manifest entry |
+| 13 | a file on disk cannot be read |
+| 14 | a stated figure has drifted from the pinned files |
+| 15 | scripts/README.md is stale or missing |
+| 16 | the validation inventory is stale or missing |
+| 17 | a header block is missing, incomplete, out of order, or has a bad Date |
+| 18 | a check has no id, no kind, or a duplicate id |
+| 19 | a Python file could not be parsed |
+| 20 | no files found to work on |
+| 21 | ruff or mypy reported a problem |
+| 22 | a tool could not be run at all |
+| 23 | the requested section was not found in the PDF |
+| 24 | section mode used on a PDF that has no bookmarks |
+| 25 | the named sheet does not exist in the workbook |
+| 26 | no workbook under inputs/ matches the name given |
+
 ## Sections inside a file
 
 A file is divided into named sections, each marked with a two-line banner: a full-width line of `#`, then `### Section name ###`. The name is a short, plain label saying what the code in the section does. Anything more than a label goes in a comment beneath the banner, where a short description of the section is welcome. When a file holds different kinds of code, for example checks that the right thing works and checks that the wrong thing is refused, each kind gets its own section.

@@ -274,12 +274,12 @@ def test_real_inventory_is_current():
 @code("HRS0061")
 @negative
 def test_check_fails_when_inventory_is_stale_or_missing(tests_folder, capsys):
-    """With the check option, the run exits 1 and names the command to run when
+    """With the check option, the run exits 16 and names the command to run when
     the inventory is missing or no longer matches the checks; nothing is written
     either way."""
     inventory = tests_folder({"scripts/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--check")
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 16
     assert not inventory.exists()
     assert "is stale. Run: python scripts/build_inventory.py" in outcome.printed
 
@@ -287,7 +287,7 @@ def test_check_fails_when_inventory_is_stale_or_missing(tests_folder, capsys):
     tests_folder(
         {"scripts/test_alpha.py": TWO_CHECKS.replace("first thing", "other thing")}
     )
-    assert run(capsys, "--check").exit_code == 1
+    assert run(capsys, "--check").exit_code == 16
 
 
 @code("HRS0062")
@@ -303,14 +303,14 @@ def test_deleted_check_drops_out(tests_folder, capsys):
 
 @code("HRS0063")
 @negative
-def test_check_without_id_exits_2(tests_folder, capsys):
-    """A check with no @code marker makes the run exit 2, naming the file and the
+def test_check_without_id_exits_18(tests_folder, capsys):
+    """A check with no @code marker makes the run exit 18, naming the file and the
     check, and the inventory is not written."""
     inventory = tests_folder(
         {"scripts/test_alpha.py": TWO_CHECKS.replace('@code("ABC0002")\n', "")}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 2
+    assert outcome.exit_code == 18
     assert not inventory.exists()
     assert "tests/scripts/test_alpha.py: test_second has no @code marker" in (
         outcome.printed
@@ -319,42 +319,42 @@ def test_check_without_id_exits_2(tests_folder, capsys):
 
 @code("HRS0064")
 @negative
-def test_check_without_kind_exits_2(tests_folder, capsys):
-    """A check with neither @positive nor @negative makes the run exit 2, naming
+def test_check_without_kind_exits_18(tests_folder, capsys):
+    """A check with neither @positive nor @negative makes the run exit 18, naming
     the file and the check."""
     tests_folder({"scripts/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")})
     outcome = run(capsys)
-    assert outcome.exit_code == 2
+    assert outcome.exit_code == 18
     assert "test_second has no @positive or @negative marker" in outcome.printed
 
 
 @code("HRS0065")
 @negative
-def test_duplicate_id_exits_2(tests_folder, capsys):
-    """Two checks carrying the same id make the run exit 2, and the message names
+def test_duplicate_id_exits_18(tests_folder, capsys):
+    """Two checks carrying the same id make the run exit 18, and the message names
     both checks."""
     tests_folder({"scripts/test_alpha.py": TWO_CHECKS.replace("ABC0002", "ABC0001")})
     outcome = run(capsys)
-    assert outcome.exit_code == 2
+    assert outcome.exit_code == 18
     assert "ABC0001 is carried by both test_first and test_second" in outcome.printed
 
 
 @code("HRS0066")
 @negative
-def test_unparseable_file_exits_3(tests_folder, capsys):
-    """A test file that is not valid Python makes the run exit 3, and the message
+def test_unparseable_file_exits_19(tests_folder, capsys):
+    """A test file that is not valid Python makes the run exit 19, and the message
     names it."""
     tests_folder({"scripts/test_alpha.py": "def broken(:\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 3
+    assert outcome.exit_code == 19
     assert "tests/scripts/test_alpha.py: cannot parse" in outcome.printed
 
 
 @code("HRS0067")
 @negative
-def test_no_test_files_exits_3(tests_folder, capsys):
-    """A tests folder with no test files makes the run exit 3."""
+def test_no_test_files_exits_20(tests_folder, capsys):
+    """A tests folder with no test files makes the run exit 20."""
     tests_folder({})
     outcome = run(capsys)
-    assert outcome.exit_code == 3
+    assert outcome.exit_code == 20
     assert "no test files found" in outcome.printed

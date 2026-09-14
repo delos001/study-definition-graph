@@ -24,9 +24,15 @@ Usage:       python scripts/verify_headers.py
              python scripts/verify_headers.py --quiet
                  print nothing; use the exit code. For hooks.
 
-Exit codes:  0  every header is complete and in order
-             1  a header is missing, incomplete, out of order, or has a bad Date
-             3  a file could not be parsed as Python
+Exit codes:  0   success: every header is complete and in order
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             17  a header block is missing, incomplete, out of order, or has a
+                 bad Date
+             19  a Python file could not be parsed
+             19 outranks 17 when both occur; every problem is still named.
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-09-09
 Owner:       Jason Delosh
@@ -148,9 +154,9 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"{name}: {problem}")
 
     if unparseable:
-        return 3
+        return 19
     if incomplete:
-        return 1
+        return 17
     return 0
 
 

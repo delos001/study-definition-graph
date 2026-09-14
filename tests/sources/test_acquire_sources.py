@@ -303,10 +303,10 @@ def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
 
 @code("SRC0008")
 @positive
-def test_dry_run_exits_1_when_a_file_is_missing(dry_run_missing):
-    """With the dry-run option, the run exits 1 when at least one file would
-    need fetching, because the corpus is incomplete."""
-    assert dry_run_missing.code == 1
+def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
+    """With the dry-run option, the run exits 8 when at least one file would
+    need fetching, because a pinned file has not been downloaded."""
+    assert dry_run_missing.code == 8
 
 
 @code("SRC0009")
@@ -384,10 +384,10 @@ def test_changed_file_is_left_alone(changed, fake_repo):
 
 @code("SRC0015")
 @negative
-def test_changed_file_exits_2(changed):
-    """A changed file on disk makes the run exit 2, and the summary says a
+def test_changed_file_exits_9(changed):
+    """A changed file on disk makes the run exit 9, and the summary says a
     person has to look."""
-    assert changed.code == 2
+    assert changed.code == 9
     assert "disagree with their entry" in changed.out
 
 
@@ -404,10 +404,10 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
 
 @code("SRC0017")
 @negative
-def test_wrong_hash_download_exits_1(wrong_hash):
-    """A discarded download makes the run exit 1 and is counted as a failed
+def test_wrong_hash_download_exits_12(wrong_hash):
+    """A discarded download makes the run exit 12 and is counted as a failed
     fetch."""
-    assert wrong_hash.code == 1
+    assert wrong_hash.code == 12
     assert "1 fetch(es) failed" in wrong_hash.out
 
 
@@ -421,16 +421,16 @@ def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
 
 @code("SRC0019")
 @negative
-def test_failed_fetch_exits_1(failed_fetch):
-    """A failed fetch makes the run exit 1."""
-    assert failed_fetch.code == 1
+def test_failed_fetch_exits_11(failed_fetch):
+    """A failed fetch makes the run exit 11."""
+    assert failed_fetch.code == 11
 
 
 @code("SRC0020")
 @negative
 def test_failure_outranks_disagreement(fake_repo, network, capsys):
     """With one file changed on disk and another that cannot be fetched, both
-    are reported and the exit code is 1, because a missing file is worse than
+    are reported and the exit code is 11, because a missing file is worse than
     a changed one."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
@@ -442,7 +442,7 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
     )
     network({})
     outcome = run(capsys)
-    assert outcome.code == 1
+    assert outcome.code == 11
     assert "MISMATCH" in outcome.out
     assert "FAILED" in outcome.out
 
@@ -451,7 +451,7 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
 @negative
 def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     """In a dry run too, a file that would need fetching outranks a changed
-    file: both are reported and the exit code is 1, not 2."""
+    file: both are reported and the exit code is 8, not 9."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
         "set_a",
@@ -462,7 +462,7 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     )
     network(None)
     outcome = run(capsys, "--dry-run")
-    assert outcome.code == 1
+    assert outcome.code == 8
     assert "MISMATCH" in outcome.out
     assert "would fetch  b.txt" in outcome.out
 
@@ -480,9 +480,9 @@ def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
 
 @code("SRC0023")
 @negative
-def test_locked_file_exits_2(locked):
-    """A recorded file that cannot be opened makes the run exit 2."""
-    assert locked.code == 2
+def test_locked_file_exits_13(locked):
+    """A recorded file that cannot be opened makes the run exit 13."""
+    assert locked.code == 13
 
 
 @code("SRC0024")
@@ -497,9 +497,9 @@ def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
 
 @code("SRC0025")
 @negative
-def test_folder_at_a_recorded_path_exits_2(folder):
-    """A folder where a recorded file should be makes the run exit 2."""
-    assert folder.code == 2
+def test_folder_at_a_recorded_path_exits_13(folder):
+    """A folder where a recorded file should be makes the run exit 13."""
+    assert folder.code == 13
 
 
 @code("SRC0026")

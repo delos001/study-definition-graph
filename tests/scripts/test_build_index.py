@@ -153,11 +153,11 @@ def test_check_passes_when_index_is_current(folder, capsys):
 @code("HRS0004")
 @negative
 def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
-    """With the check option, the run exits 1 and names the command to run when
+    """With the check option, the run exits 15 and names the command to run when
     the index is missing or no longer matches the headers; nothing is written
     either way."""
     scripts = folder({"alpha.py": GOOD_HEADER})
-    assert bi.main(["--check"]) == 1
+    assert bi.main(["--check"]) == 15
     assert not (scripts / "README.md").exists()
     assert "stale. Run: python scripts/build_index.py" in capsys.readouterr().out
 
@@ -165,7 +165,7 @@ def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
     folder(
         {"alpha.py": GOOD_HEADER.replace("Does the first thing", "Does another thing")}
     )
-    assert bi.main(["--check"]) == 1
+    assert bi.main(["--check"]) == 15
 
 
 @code("HRS0005")
@@ -184,8 +184,8 @@ def test_quiet_prints_nothing(folder, capsys):
 
 @code("HRS0006")
 @negative
-def test_missing_field_exits_2_and_writes_nothing(folder, capsys):
-    """A header missing required fields exits 2, naming the script and every
+def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
+    """A header missing required fields exits 17, naming the script and every
     missing field, and the index is not written."""
     scripts = folder(
         {
@@ -194,7 +194,7 @@ def test_missing_field_exits_2_and_writes_nothing(folder, capsys):
             )
         }
     )
-    assert bi.main([]) == 2
+    assert bi.main([]) == 17
     assert not (scripts / "README.md").exists()
     out = capsys.readouterr().out
     assert "alpha.py: header missing Outputs, Owner" in out
@@ -203,21 +203,21 @@ def test_missing_field_exits_2_and_writes_nothing(folder, capsys):
 
 @code("HRS0007")
 @negative
-def test_no_docstring_exits_2(folder, capsys):
-    """A script with no module docstring has no header block at all: exit 2,
+def test_no_docstring_exits_17(folder, capsys):
+    """A script with no module docstring has no header block at all: exit 17,
     saying so."""
     folder({"alpha.py": "print('hello')\n"})
-    assert bi.main([]) == 2
+    assert bi.main([]) == 17
     assert "alpha.py: no module docstring" in capsys.readouterr().out
 
 
 @code("HRS0008")
 @negative
-def test_unparseable_script_exits_3_and_outranks_2(folder, capsys):
-    """A script that is not valid Python exits 3, and 3 outranks 2 when another
+def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
+    """A script that is not valid Python exits 19, and 19 outranks 17 when another
     script's header is also incomplete; both problems are still named."""
     folder({"alpha.py": "def broken(:\n", "beta.py": "print('no header')\n"})
-    assert bi.main([]) == 3
+    assert bi.main([]) == 19
     out = capsys.readouterr().out
     assert "alpha.py: cannot parse" in out
     assert "beta.py: no module docstring" in out
@@ -225,10 +225,10 @@ def test_unparseable_script_exits_3_and_outranks_2(folder, capsys):
 
 @code("HRS0009")
 @negative
-def test_no_scripts_exits_3(folder, capsys):
-    """An empty scripts folder exits 3."""
+def test_no_scripts_exits_20(folder, capsys):
+    """An empty scripts folder exits 20."""
     folder({})
-    assert bi.main([]) == 3
+    assert bi.main([]) == 20
     assert "no scripts found" in capsys.readouterr().out
 
 

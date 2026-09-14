@@ -45,9 +45,14 @@ Usage:       python scripts/read_pdf.py --docs
              python scripts/read_pdf.py --doc m11-template --pages 12-14
              python scripts/read_pdf.py --doc model-diagram --find Encounter
 
-Exit codes:  0 success
-             1 the PDF is missing, the requested section was not found, or a
-               section mode was used on a document that has no bookmarks
+Exit codes:  0   success
+             1   unhandled error, Python's own
+             2   invalid command line, the argument parser's own
+             8   a pinned file has not been downloaded
+             23  the requested section was not found in the PDF
+             24  section mode used on a PDF that has no bookmarks
+             The numbers are the repo-wide table in
+             .claude/rules/writing_python_files.md.
 
 Date:        2026-08-18
 Owner:       Jason Delosh
@@ -602,7 +607,7 @@ def main(argv: list[str] | None = None) -> int:
             f"inputs/ is gitignored. Re-download per manifests/{document.manifest}.",
             file=sys.stderr,
         )
-        return 1
+        return 8
 
     doc = fitz.open(document.path)
     sections = load_toc(doc)
@@ -624,7 +629,7 @@ def main(argv: list[str] | None = None) -> int:
             f"or --pages N-M to read a known range.",
             file=sys.stderr,
         )
-        return 1
+        return 24
 
     # Mode: print the section map.
     if args.list or (not args.section and not args.pages and not args.find):
@@ -667,7 +672,7 @@ def main(argv: list[str] | None = None) -> int:
                 f"No section matching {args.section!r}. Run with --list to see all.",
                 file=sys.stderr,
             )
-            return 1
+            return 23
         start_page = found["start"]
         end_page = found["end"]
         label = found["title"]

@@ -37,8 +37,10 @@ import pytest
 
 from sdg.sources import (
     IntegrityError,
+    ManifestError,
     NotInRepoError,
     PinnedFile,
+    UnrecordedFileError,
     read_manifests,
     verify_pinned,
 )
@@ -249,7 +251,7 @@ def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
     """A file that no manifest records is refused with a message saying so and
     the remedy of adding an entry."""
     fake_repo.file("inputs/set_a/stray.txt", CONTENT)
-    message = refused_with(IntegrityError, "inputs/set_a/stray.txt")
+    message = refused_with(UnrecordedFileError, "inputs/set_a/stray.txt")
     assert "no manifest entry records it" in message
     assert "add its manifest entry" in message
 
@@ -260,7 +262,7 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
     """The message for an unrecorded file does not carry the mismatch remedy,
     which would send a person to re-download a file that was never recorded."""
     fake_repo.file("inputs/set_a/stray.txt", CONTENT)
-    message = refused_with(IntegrityError, "inputs/set_a/stray.txt")
+    message = refused_with(UnrecordedFileError, "inputs/set_a/stray.txt")
     assert "manifest says" not in message
     assert "acquire_sources" not in message
 
@@ -268,12 +270,12 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
 @code("SRC0108")
 @negative
 def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
-    """A manifest that cannot be read is reported as that, naming the manifest
-    file and the git restore remedy."""
+    """A manifest that cannot be read is passed through as the manifest reader's
+    own error, naming the manifest file and the git restore remedy."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", "{ not json")
-    message = refused_with(IntegrityError)
-    assert message.startswith(f"cannot verify {LOCAL}: set_a.json: cannot read")
+    message = refused_with(ManifestError)
+    assert message.startswith("set_a.json: cannot read")
     assert "git checkout" in message
 
 
@@ -284,7 +286,7 @@ def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
     remedy, because the file is not the problem."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", "{ not json")
-    assert "manifest says" not in refused_with(IntegrityError)
+    assert "manifest says" not in refused_with(ManifestError)
 
 
 @code("SRC0110")
@@ -293,7 +295,7 @@ def test_no_manifests_is_reported_as_none_found(fake_repo):
     """When the manifests folder is empty, the refusal says no manifests were
     found and says to restore them with git."""
     fake_repo.file(LOCAL, CONTENT)
-    message = refused_with(IntegrityError)
+    message = refused_with(ManifestError)
     assert "no manifests found" in message
     assert "git checkout" in message
 
@@ -305,7 +307,7 @@ def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
     repair remedy, so a person repairs the entry rather than re-downloading."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, sha256=None)])
-    message = refused_with(IntegrityError)
+    message = refused_with(ManifestError)
     assert "lacks sha256" in message
     assert "repair that entry" in message
 

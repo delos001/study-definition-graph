@@ -120,7 +120,7 @@ study-definition-graph/
 | Where each pinned file came from, and its fingerprint | [manifests/README.md](manifests/README.md) |
 | How the standards feed each other | [docs/standards_lineage.html](docs/standards_lineage.html) |
 | USDM guide section map | [docs/usdm_ig_ledger.md](docs/usdm_ig_ledger.md) |
-| Which script or module calls which | [docs/workflow_map.md](docs/workflow_map.md) |
+| Which workflow uses which step | [docs/sdg_workflow_map.md](docs/sdg_workflow_map.md) |
 | What each script does | [scripts/README.md](scripts/README.md) |
 
 [scripts/README.md](scripts/README.md) is a generated index of every script and how to invoke it. It is rebuilt from the scripts' own header blocks by `python scripts/build_index.py`, so it cannot drift from them.

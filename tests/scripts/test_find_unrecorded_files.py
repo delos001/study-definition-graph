@@ -143,7 +143,7 @@ def test_quiet_prints_nothing(stray_quiet):
 @positive
 def test_quiet_keeps_the_exit_code(stray_quiet):
     """With the quiet option, the exit code still reports the unrecorded file."""
-    assert stray_quiet.exit_code == 1
+    assert stray_quiet.exit_code == 10
 
 
 @code("HRS0035")
@@ -188,9 +188,9 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 
 @code("HRS0038")
 @negative
-def test_unrecorded_file_exits_1(stray):
-    """A file under inputs/ that no manifest records makes the run exit 1."""
-    assert stray.exit_code == 1
+def test_unrecorded_file_exits_10(stray):
+    """A file under inputs/ that no manifest records makes the run exit 10."""
+    assert stray.exit_code == 10
 
 
 @code("HRS0039")
@@ -216,7 +216,7 @@ def test_part_file_is_reported(repo, capsys):
     the acquire workflow did not get to finish it."""
     repo.file("inputs/set_a/other.txt.part", b"half")
     outcome = run(capsys)
-    assert outcome.exit_code == 1
+    assert outcome.exit_code == 10
     assert "inputs/set_a/other.txt.part" in outcome.printed
 
 

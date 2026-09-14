@@ -319,7 +319,7 @@ def test_inherited_from_without_ref_is_named(variant):
 
 
 #######################################################################################
-### Refusing a file that cannot be trusted (IntegrityError, exit 3) ###
+### Refusing a file that cannot be trusted (exits 9 and 10) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
 # tests/sources/test_verify_pinned.py. These two prove the module is wired to it: a
@@ -330,7 +330,7 @@ def test_inherited_from_without_ref_is_named(variant):
 @code("USD0015")
 @negative
 def test_missing_file_raises_filenotfound(tmp_path):
-    """A path that does not exist raises FileNotFoundError (exit 1 at the command
+    """A path that does not exist raises FileNotFoundError (exit 8 at the command
     line), which is a different failure from a file that fails verification."""
     with pytest.raises(FileNotFoundError):
         usdm_spec.load(tmp_path / "nope.yml")
@@ -342,7 +342,7 @@ def test_unrecorded_file_is_refused_through_load():
     """A file no manifest entry records (this fixture, with the check left on)
     is refused by load() with the pinned-file check's message saying exactly that,
     not with the fingerprint-mismatch remedy."""
-    with pytest.raises(usdm_spec.IntegrityError) as caught:
+    with pytest.raises(usdm_spec.UnrecordedFileError) as caught:
         usdm_spec.load(FIXTURE)
     message = str(caught.value)
     assert "no manifest entry records it" in message
@@ -382,23 +382,23 @@ def test_cli_no_mode_exits_2():
 
 @code("USD0019")
 @negative
-def test_cli_missing_spec_exits_1(monkeypatch, capsys):
-    """When the pinned file is not downloaded, the command exits 1 and tells the
+def test_cli_missing_spec_exits_8(monkeypatch, capsys):
+    """When the pinned file is not downloaded, the command exits 8 and tells the
     user to run the acquire workflow."""
     # A path under the repo, because the message prints it relative to the repo
     # root, as it does for the real pinned path. Nothing is written there.
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE.with_name("nope.yml"))
-    assert usdm_spec.main(["--list-classes"]) == 1
+    assert usdm_spec.main(["--list-classes"]) == 8
     assert "acquire_sources" in capsys.readouterr().err
 
 
 @code("USD0020")
 @negative
-def test_cli_unverifiable_spec_exits_3(monkeypatch, capsys):
-    """When the file is present but cannot be verified against the manifest, the
-    command exits 3 and prints the cause."""
+def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
+    """When the file is present but no manifest entry records it, the command
+    exits 10 and prints the cause."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
-    assert usdm_spec.main(["--list-classes"]) == 3
+    assert usdm_spec.main(["--list-classes"]) == 10
     assert "no manifest entry records it" in capsys.readouterr().err
 
 
