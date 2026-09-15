@@ -83,7 +83,7 @@ class IntegrityError(Exception):
 # These three lines are shown when the file's size or sha256 differs from its
 # entry. That cause has three ways back; the other causes have one remedy each.
 _MISMATCH_RECOVERY = (
-    "  changed by accident   -> remove the file, then run python -m sdg.sources.acquire_sources\n"
+    "  changed by accident   -> remove the file, then run acquire_sources\n"
     "  read it anyway (once) -> use the caller's unverified mode, e.g. --allow-unpinned\n"
     "  a real new version    -> deliberate re-pin (new url, re-fetch, recompute); not a quick edit"
 )

@@ -59,7 +59,7 @@ FIXTURE_CLASSES = ("Condition", "Identifier", "StudyIdentifier")
 # skip and say why, rather than fail and hide the logic checks' results.
 needs_pinned_file = pytest.mark.skipif(
     not usdm_spec.DEFAULT_SPEC.exists(),
-    reason="pinned dataStructure.yml not downloaded; run python -m sdg.sources.acquire_sources",
+    reason="pinned dataStructure.yml not downloaded; run acquire_sources",
 )
 
 positive = pytest.mark.positive

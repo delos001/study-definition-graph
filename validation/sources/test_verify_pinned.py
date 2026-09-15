@@ -58,7 +58,7 @@ MANIFEST_NAME = "cdisc_usdm_v4.json"
 
 needs_pinned_file = pytest.mark.skipif(
     not (read_manifests.REPO_ROOT / PINNED_LOCAL).exists(),
-    reason="pinned dataStructure.yml not downloaded; run python -m sdg.sources.acquire_sources",
+    reason="pinned dataStructure.yml not downloaded; run acquire_sources",
 )
 
 # The one staged file every staged check uses, and its bytes.

@@ -6,7 +6,7 @@ Get and keep the pipeline's inputs. Three workflows, each a sequence of the step
 
 | File | What it does |
 | --- | --- |
-| `acquire_sources.py` | Fetches every recorded file not yet on disk, and confirms every file already on disk still matches its entry. Run as `python -m sdg.sources.acquire_sources`. |
+| `acquire_sources.py` | Fetches every recorded file not yet on disk, and confirms every file already on disk still matches its entry. Run as `acquire_sources`. |
 | `verify_pinned.py` | Hands a pipeline stage one pinned file after proving it is the recorded one. Written on the steps. |
 | `update_sources.py` | Moves a source to a new version: fetch, fingerprint, write its entry. Not written yet; issue #18. |
 

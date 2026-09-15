@@ -36,12 +36,12 @@ Inputs:      inputs/standards/cdisc/usdm_v4/dataStructure.yml   (read-only, pinn
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
-Usage:       python -m sdg.usdm.usdm_spec --list-classes
+Usage:       usdm_spec --list-classes
                  print every class name in the standard, abstract ones marked
-             python -m sdg.usdm.usdm_spec --attributes <class>
+             usdm_spec --attributes <class>
                  print one class's attributes: type, cardinality, kind
-                 e.g.  python -m sdg.usdm.usdm_spec --attributes Activity
-             python -m sdg.usdm.usdm_spec --list-classes --allow-unpinned
+                 e.g.  usdm_spec --attributes Activity
+             usdm_spec --list-classes --allow-unpinned
                  run even if the pinned file no longer matches its checksum
 
 Exit codes:  0   success
@@ -339,7 +339,7 @@ def targets(attribute: dict) -> tuple[str, ...]:
 ### Command line ###
 #
 # The command line interface (CLI): runs when the module is invoked from a terminal,
-# e.g. python -m sdg.usdm.usdm_spec --list-classes.
+# e.g. usdm_spec --list-classes.
 # main() parses the flags, loads the spec once, and dispatches to one of the two
 # listings below.
 # The process exit code reports the outcome.
@@ -424,7 +424,7 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_output()
 
     parser = argparse.ArgumentParser(
-        prog="python -m sdg.usdm.usdm_spec",
+        prog="usdm_spec",
         description="Read the pinned USDM model (dataStructure.yml).",
     )
     # Exactly one mode per invocation; argparse reports a missing or double mode
@@ -457,7 +457,7 @@ def main(argv: list[str] | None = None) -> int:
     except FileNotFoundError:
         print(
             f"pinned spec not found at {DEFAULT_SPEC.relative_to(REPO_ROOT)}; "
-            f"run python -m sdg.sources.acquire_sources",
+            f"run acquire_sources",
             file=sys.stderr,
         )
         return 8

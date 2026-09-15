@@ -42,7 +42,7 @@ code = pytest.mark.code
 
 needs_pinned_file = pytest.mark.skipif(
     not (cf.REPO_ROOT / PINNED_LOCAL).exists(),
-    reason="pinned corpus not downloaded; run python -m sdg.sources.acquire_sources",
+    reason="pinned corpus not downloaded; run acquire_sources",
 )
 
 

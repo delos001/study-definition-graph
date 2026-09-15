@@ -26,3 +26,7 @@ code,cause
 24,section mode used on a PDF that has no bookmarks
 25,the named sheet does not exist in the workbook
 26,no workbook under inputs/ matches the name given
+27,the .env file has not been created
+28,.env has no Anthropic API key
+29,the Claude API rejected the key
+30,the Claude API could not be reached
