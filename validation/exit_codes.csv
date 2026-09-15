@@ -34,3 +34,5 @@ code,cause
 32,the list of lookup documents names a file no manifest records
 33,a header's exit codes disagree with the repo-wide table
 34,a header does not list a code its main() returns
+35,a pinned file has no document heading in the sources map
+36,the sources map names a location no manifest records

@@ -67,6 +67,17 @@ python repo_tools/check_python_files.py --quiet
     print only the tools' own reports and the final verdict lines
 ```
 
+## check_sources_map.py
+
+Compares docs/sources_index.md with the manifests, so a pinned file cannot exist without the map saying it does.
+
+```
+python repo_tools/check_sources_map.py
+    report every disagreement
+python repo_tools/check_sources_map.py --quiet
+    print nothing; use the exit code. For hooks.
+```
+
 ## find_unrecorded_files.py
 
 Lists every file under inputs/ that no manifest records, since such a file cannot be restored from a fresh clone.
