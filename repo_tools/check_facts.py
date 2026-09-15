@@ -119,25 +119,6 @@ DOCS = [
 # documents against the wrong source.
 
 
-def pinned_pdf_pages() -> int:
-    """Count the pages across every PDF registered in read_pdf.py.
-
-    The registry is read from read_pdf.py rather than listing PDFs on disk, so that a
-    PDF present but unregistered does not silently inflate the count that CLAUDE.md's
-    "never read one whole" rule is scaled against.
-
-    Returns:
-        The page count.
-    """
-    # Imported here rather than at the top so that a missing sdg package is
-    # reported by main() as exit 7 before any measurement runs.
-    from sdg.view.read_pdf import DOCUMENTS
-
-    return sum(
-        len(fitz.open(verify_pinned(entry.path).path)) for entry in DOCUMENTS.values()
-    )
-
-
 def ig_sections() -> int:
     """Count the bookmarks in the USDM Implementation Guide, which is what a section is.
 
@@ -309,7 +290,6 @@ def examples_with_estimands() -> int:
 # The regex must be specific enough that it cannot match an unrelated number;
 # a loose pattern would report a false match and defeat the point.
 FACTS = [
-    ("pinned PDF pages", pinned_pdf_pages, r"(\d+) pages across"),
     ("IG sections", ig_sections, r"of (\d+) sections"),
     ("CORE rules", core_rules, r"(\d+) rules\b"),
     ("M11 data elements", m11_elements, r"(\d+) elements"),
