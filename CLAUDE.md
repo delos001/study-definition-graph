@@ -4,9 +4,22 @@ This file holds the rules for this repo, on top of the global `~/.claude/CLAUDE.
 
 This repo is de-identified: no company, no people, no locations, no partnerships. Anything communicated by the user that goes into a repo document is written there as a design constraint, a target problem or an open question, never as who said it or where it came from.
 
-Markdown prose is one paragraph per line, never hard-wrapped: `grep` is a primary access path here, and a phrase split across lines silently fails to match.
-
 Run every command in this repo from the `sdg` conda environment. The root [README.md](README.md) has the rest of the setup.
+
+## Writing
+
+Every document in this repo is written for a person reading it. These rules apply to the markdown documents, and to the header blocks, docstrings and comments in the code.
+
+- Write plain words at the point where they are needed. A compressed phrase that has to be explained when asked was the wrong phrase. If a term cannot be avoided, say what it means in the same sentence.
+- Write full sentences with a subject and a verb. No fragments, and no label with a colon standing in for a sentence.
+- One idea per sentence. A sentence carrying a parenthesis, a colon and two joined clauses is three sentences.
+- Say what a thing is before saying anything about it. A reader meeting `inputs/` needs to know it holds the pinned source files before hearing that it is gitignored.
+- Name the file. Write the path on first mention, never "the map" or "the rule file". When several files share a name, say which one, as in the root `README.md`.
+- Do not write a count that cannot be recomputed. The Reading and checking rules below say how one is recorded.
+- Content belongs to the document whose job it is. Where a detail lives elsewhere, point at that document rather than repeating it.
+- Markdown prose is one paragraph per line, never hard-wrapped, because `grep` is a primary access path here and a phrase split across lines silently fails to match.
+
+When reporting findings on a document, give one finding at a time and keep each to what it is. Two problems in one paragraph are two findings.
 
 ## Session start
 
