@@ -34,7 +34,7 @@ Usage:       python repo_tools/build_inventory.py
              python repo_tools/build_inventory.py --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success: the inventory was written, or --check found it current
+Exit codes:  0   success (the inventory was written, or --check found it current)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
              16  the validation inventory is stale or missing (--check only)

@@ -36,11 +36,11 @@ Owner:       Jason Delosh
 
 `Owner` is who is accountable for the file and who to ask about it, not who wrote it. Who wrote a line is git's answer: `git blame <file>`. `Owner` changes only when ownership transfers.
 
-The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/` or `repo_tools/` lacks the block or has its fields out of order.
+The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/`, `repo_tools/` or `validation/` lacks the block or has its fields out of order. `conftest.py` carries the block like any other file: it is read by pytest rather than run by a person, and its `Usage` lines are the pytest commands that load it.
 
 ## Exit codes
 
-One number means one cause across the whole repo, so a person who learns what a code means in one script knows what it means in every other. The table is `validation/exit_codes.csv`, one row per code. A header's `Exit codes` field lists only the codes that file can return, each with the table's wording. A new cause takes the next unused number and is added to the table in the same commit. Two causes share a number only when they share a fix.
+One number means one cause across the whole repo, so a person who learns what a code means in one script knows what it means in every other. The table is `validation/exit_codes.csv`, one row per code. A header's `Exit codes` field lists only the codes that file can return, each opening with the table's wording. An entry may then add a bracketed aside saying what the cause means in that file, for example `8   a pinned file has not been downloaded (a dry run only; a real run fetches it)`. Everything before the bracket has to match the table, so an aside can explain a cause but never redefine it. `repo_tools/verify_headers.py` checks this and the pre-commit hook runs it. It also reads each file's `main()` and refuses a header that does not list a code the function returns as a plain number. A new cause takes the next unused number and is added to the table in the same commit. Two causes share a number only when they share a fix.
 
 Codes 1 and 2 are Python's own and are never assigned to anything else: an unhandled error exits 1, and the argument parser exits 2 on a bad command line.
 

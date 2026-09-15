@@ -32,9 +32,9 @@ Usage:       python repo_tools/check_facts.py
              python repo_tools/check_facts.py --verbose
                  also show facts that match
 
-Exit codes:  0   success: every stated figure matches the source it came from.
-                 A fact that no document asserts is reported but does not fail
-                 the run
+Exit codes:  0   success (every stated figure matches the source it came from;
+                 a fact that no document asserts is reported but does not fail
+                 the run)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
              3   a manifest is missing or cannot be read

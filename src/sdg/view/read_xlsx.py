@@ -28,8 +28,8 @@ Usage:       read_xlsx <workbook>
 
 Exit codes:  0   success
              1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own; this covers
-                 --all without --find, and no workbook named
+             2   invalid command line, the argument parser's own (this covers
+                 --all without --find, and no workbook named)
              25  the named sheet does not exist in the workbook
              26  no workbook under inputs/ matches the name given
              The numbers are the repo-wide table in

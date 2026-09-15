@@ -24,7 +24,7 @@ Usage:       python repo_tools/find_unrecorded_files.py
              python repo_tools/find_unrecorded_files.py --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success: every file under inputs/ is recorded
+Exit codes:  0   success (every file under inputs/ is recorded)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
              3   a manifest is missing or cannot be read
