@@ -27,10 +27,12 @@
 ## repo_tools/
 - test_build_index.py: validates repo_tools/build_index.py
 - test_build_inventory.py: validates repo_tools/build_inventory.py
+- test_check_api_key.py: validates repo_tools/check_api_key.py
 - test_check_facts.py: validates repo_tools/check_facts.py
+- test_check_sources_map.py: validates repo_tools/check_sources_map.py
 - test_find_unrecorded_files.py: validates repo_tools/find_unrecorded_files.py
 - test_verify_headers.py: validates repo_tools/verify_headers.py
 - test_check_python_files.py: validates repo_tools/check_python_files.py - pending
 
 ## reports/
-- empty until the first validation run is declared; one CSV per run
+- one CSV per validation run, one row per check; written only when pytest is run with --validation-report
