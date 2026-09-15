@@ -1,0 +1,61 @@
+# The documents read_pdf can open.
+#
+# A pinned PDF belongs here when it is too long to open whole and the project
+# needs to quote sections of it. A document that is read from end to end, such
+# as a worked example protocol, does not belong here; open it in a PDF reader.
+#
+# Each entry carries:
+#   key          what a person types after --doc
+#   label        how the document is named in output, so a quote can cite it
+#   file         the file name a manifest records, which owns the path on disk
+#   boilerplate  patterns for the header and footer lines repeated on every
+#                page, stripped from an extract unless --raw is passed. Each is
+#                a regular expression anchored to the start of a line, so body
+#                text using the same words survives.
+#
+# A document with nothing repeated on its pages carries an empty boilerplate
+# list. The M11 documents are that case: their most repeated lines, Definition,
+# Data Type and Cardinality, are field labels in the body, and stripping those
+# would delete the content the document exists to convey.
+
+documents:
+  - key: ig
+    label: USDM-IG v4.0
+    file: USDM-IG.pdf
+    boilerplate:
+      - '^CDISC Unified Study Definitions Model Implementation Guide.*$'
+      - '^\s*.?\s*2025 Clinical Data Interchange Standards Consortium.*$'
+      - '^\s*Page \d+\s*$'
+      - '^\s*2025-06-03\s*$'
+
+  - key: m11-guideline
+    label: ICH M11 Guideline (Step 4)
+    file: ICH_Step4_M11_Final_Guideline_2025_1119.pdf
+    boilerplate: []
+
+  - key: m11-template
+    label: ICH M11 Template (Step 4)
+    file: ICH_Step4_M11_Final_Template_2025_1119.pdf
+    boilerplate: []
+
+  - key: m11-techspec
+    label: ICH M11 Technical Specification (Step 4)
+    file: ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf
+    boilerplate: []
+
+  - key: e9r1
+    label: ICH E9(R1) Estimands Addendum
+    file: E9-R1_Step4_Guideline_2019_1203.pdf
+    boilerplate: []
+
+  # The whole USDM model as one vector diagram. Listed here despite being a
+  # picture because its text extracts cleanly, which the UML_Views PNGs of the
+  # same material do not. Everything is on page 1, so --find is the only
+  # sensible mode.
+  - key: model-diagram
+    label: USDM Model Diagram (informative)
+    file: DDF_USDM_Model_Informative.pdf
+    boilerplate: []
+
+# The document used when --doc is not given.
+default: ig

@@ -28,6 +28,8 @@
 - read_pdf.py (manual)
 - read_xlsx.py (manual)
 ### steps:
+### data:
+- lookup_documents.yml (the documents read_pdf can open, and what to strip from their pages)
 
 ## locate/
 ### workflows:

@@ -2,7 +2,7 @@
 
 Which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group. How the standards relate to each other is drawn in [standards_lineage.html](standards_lineage.html).
 
-The reading commands run from the repo root in the `sdg` environment. `read_pdf.py` reads only the PDFs registered in it; `read_xlsx.py` finds any workbook under `inputs/` by part of its name.
+The reading commands run from the repo root in the `sdg` environment. `read_pdf` opens only the documents listed in `src/sdg/view/lookup_documents.yml`, which also says which documents belong there. `read_xlsx` finds any workbook under `inputs/` by part of its name.
 
 ---
 
@@ -109,7 +109,7 @@ Each study is one real protocol in three forms: the protocol as published, the s
 
 | Question | How to Read |
 | --- | --- |
-| What does a real protocol look like? | Open the file. These are not registered with read_pdf.py. |
+| What does a real protocol look like? | Open the file. These are not in `read_pdf`'s list of lookup documents. |
 
 ### Document: <study>.xlsx
 - purpose: The spreadsheet a person filled in to map the protocol into USDM, one sheet per part of the model. The mainTimeline sheet is the Schedule of Activities.
@@ -159,7 +159,7 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 | Question | How to Read |
 | --- | --- |
-| What is a Biomedical Concept? | Open the file. It is not registered with read_pdf.py. |
+| What is a Biomedical Concept? | Open the file. It is not in `read_pdf`'s list of lookup documents. |
 
 ---
 
@@ -193,7 +193,7 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 - version: Step 4, adopted 2025-11-19
 - location: inputs/standards/ich/m11_step4/
 
-The M11 documents have no bookmarks, so read_pdf.py reaches them only by search term or page range, never by section number.
+The M11 documents have no bookmarks, so `read_pdf` reaches them only by search term or page range, never by section number.
 
 ### Document: ICH_Step4_M11_Final_Template_2025_1119.pdf
 - purpose: The protocol template itself: the sections a protocol has and what goes in each.

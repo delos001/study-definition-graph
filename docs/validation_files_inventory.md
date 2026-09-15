@@ -21,8 +21,8 @@
 - test_usdm_spec.py: validates src/sdg/usdm/usdm_spec.py
 
 ## view/
-- test_read_pdf.py: validates src/sdg/view/read_pdf.py - pending, see #26
-- test_read_xlsx.py: validates src/sdg/view/read_xlsx.py - pending, see #26
+- test_read_pdf.py: validates src/sdg/view/read_pdf.py
+- test_read_xlsx.py: validates src/sdg/view/read_xlsx.py
 
 ## repo_tools/
 - test_build_index.py: validates repo_tools/build_index.py

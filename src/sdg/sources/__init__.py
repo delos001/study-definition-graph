@@ -17,6 +17,7 @@ from .read_manifests import (
     ManifestError,
     NotInRepoError,
     entry_for,
+    entry_named,
     manifests,
     require_repo,
 )
@@ -40,6 +41,7 @@ __all__ = [
     "compare",
     "discard",
     "entry_for",
+    "entry_named",
     "fetch",
     "fingerprint",
     "manifests",

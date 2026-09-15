@@ -322,6 +322,29 @@ def as_local(target: str | Path) -> str:
     return str(resolved)
 
 
+def entry_named(name: str) -> Entry | None:
+    """Find the manifest entry with a given file name.
+
+    Callers that hold a file's name rather than its location use this, so the path
+    stays owned by the manifest and is never written down a second time.
+
+    Args:
+        name: The file name a manifest records, for example USDM-IG.pdf.
+
+    Returns:
+        The entry with that name, or None when no manifest has one.
+
+    Raises:
+        NotInRepoError: The package is not running from inside its repo.
+        ManifestError: A manifest cannot be read.
+    """
+    for manifest in manifests():
+        for entry in manifest.entries:
+            if entry.name == name:
+                return entry
+    return None
+
+
 def entry_for(target: str | Path) -> Entry | None:
     """Find the manifest entry that records a file.
 
