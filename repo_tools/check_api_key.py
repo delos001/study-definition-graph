@@ -24,7 +24,7 @@ Usage:       python repo_tools/check_api_key.py
              python repo_tools/check_api_key.py --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success: the key works
+Exit codes:  0   success (the key works)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
              6   not running from inside the repo

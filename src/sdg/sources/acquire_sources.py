@@ -33,18 +33,18 @@ Usage:       acquire_sources
              acquire_sources --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success: every entry's file is on disk and matches its entry
+Exit codes:  0   success (every entry's file is on disk and matches its entry)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
              3   a manifest is missing or cannot be read
              6   not running from inside the repo
              8   a pinned file has not been downloaded (a dry run only; a real
                  run fetches it)
-             9   a pinned file on disk does not match its manifest entry; left
-                 alone
+             9   a pinned file on disk does not match its manifest entry
+                 (left alone)
              11  a download failed
-             12  a downloaded file does not match its manifest entry; discarded
-             13  a file on disk cannot be read; left alone
+             12  a downloaded file does not match its manifest entry (discarded)
+             13  a file on disk cannot be read (left alone)
              The numbers are the repo-wide table in
              validation/exit_codes.csv. Every problem is reported;
              the exit code is the worst one seen, in the order 11, 12, 8, 9,

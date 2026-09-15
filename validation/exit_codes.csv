@@ -30,5 +30,7 @@ code,cause
 28,.env has no Anthropic API key
 29,the Claude API rejected the key
 30,the Claude API could not be reached
-31,the list of readable documents is missing or wrongly shaped
-32,the list of readable documents names a file no manifest records
+31,the list of lookup documents is missing or wrongly shaped
+32,the list of lookup documents names a file no manifest records
+33,a header's exit codes disagree with the repo-wide table
+34,a header does not list a code its main() returns

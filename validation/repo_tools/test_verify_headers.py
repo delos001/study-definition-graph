@@ -44,7 +44,7 @@ Description: Does the first thing.
 Inputs:      nothing
 Outputs:     nothing
 Usage:       python repo_tools/alpha.py
-Exit codes:  0 fine
+Exit codes:  0   success
 Date:        2026-09-04
 Owner:       Jason Delosh
 """
@@ -82,6 +82,15 @@ def folder(tmp_path, monkeypatch):
     checked.mkdir(parents=True)
     monkeypatch.setattr(script, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(script, "CHECKED_FOLDERS", (checked,))
+
+    # The exit-code table is staged too, so no check reads the real one and a
+    # check about a wrong code can say what the right one is.
+    table = tmp_path / "exit_codes.csv"
+    table.write_text(
+        "code,cause\n0,success\n8,a pinned file has not been downloaded\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(script, "EXIT_CODES_FILE", table)
 
     def make(files: dict[str, str]) -> None:
         """Write the given files into the checked folder.
@@ -253,3 +262,225 @@ def test_unparseable_outranks_incomplete(folder, capsys):
     assert outcome.exit_code == 19
     assert "alpha.py: cannot parse" in outcome.printed
     assert "beta.py: no module docstring" in outcome.printed
+
+
+@code("HRS0079")
+@positive
+def test_all_three_code_folders_are_checked():
+    """The checker covers the three folders the writing rule names, so a file added
+    under validation/ is held to the header block like any other."""
+    covered = {folder.name for folder in script.CHECKED_FOLDERS}
+    assert covered == {"sdg", "repo_tools", "validation"}
+
+
+#######################################################################################
+### Checks on the exit codes a header names ###
+#
+# One number means one cause across the repo, so each entry has to open with the
+# table's wording. A file-specific aside may follow it in brackets. These checks stage
+# a header whose Exit codes field is right, then wrong in one way at a time.
+
+
+def with_codes(lines: str) -> str:
+    """Build a complete header whose Exit codes field holds the given lines.
+
+    Args:
+        lines: The Exit codes field, written as it appears in a header.
+
+    Returns:
+        The whole header block.
+    """
+    return GOOD_HEADER.replace("Exit codes:  0   success", f"Exit codes:  {lines}")
+
+
+@code("HRS0080")
+@positive
+def test_wording_from_the_table_passes(folder, capsys):
+    """An entry written with the table's wording for its number passes."""
+    folder({"alpha.py": with_codes("8   a pinned file has not been downloaded")})
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0081")
+@positive
+def test_a_bracketed_aside_is_allowed(folder, capsys):
+    """An entry may add a bracketed aside after the table's wording, saying what the
+    cause means in that file."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "8   a pinned file has not been downloaded (a dry run only)"
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0082")
+@positive
+def test_a_wrapped_entry_is_read_as_one(folder, capsys):
+    """An entry too long for one line is joined before it is compared, so wrapping it
+    does not make it disagree."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "8   a pinned file has not been downloaded (a dry run\n"
+                "                 only; a real run fetches it)"
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0083")
+@positive
+def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
+    """The sentence a field ends with is not mistaken for an entry, so it is never
+    compared with the table."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "0   success\n             The numbers are the repo-wide table."
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0084")
+@negative
+def test_a_code_the_table_lacks_exits_33(folder, capsys):
+    """An entry for a number the table does not hold makes the run exit 33, and the
+    problem line names the file and the number."""
+    folder({"alpha.py": with_codes("99  something nobody agreed on")})
+    outcome = run(capsys)
+    assert outcome.exit_code == 33
+    assert "src/sdg/alpha.py: exit code 99 is not in" in outcome.printed
+
+
+@code("HRS0085")
+@negative
+def test_different_wording_exits_33(folder, capsys):
+    """An entry giving a number a second meaning makes the run exit 33, and the problem
+    line prints what the header says beside what the table says."""
+    folder({"alpha.py": with_codes("8   the file is missing somehow")})
+    outcome = run(capsys)
+    assert outcome.exit_code == 33
+    assert "the file is missing somehow" in outcome.printed
+    assert "a pinned file has not been downloaded" in outcome.printed
+
+
+@code("HRS0086")
+@negative
+def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
+    """When one file has an incomplete header and another has a wrong code, the run
+    exits 17, because a header that cannot be read is the worse problem."""
+    folder(
+        {
+            "alpha.py": "print('no header')\n",
+            "beta.py": with_codes("99  something nobody agreed on"),
+        }
+    )
+    assert run(capsys).exit_code == 17
+
+
+@code("HRS0087")
+@negative
+def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
+    """With the exit-code table missing, the run exits 13 and says the table cannot be
+    read, rather than reporting every file as disagreeing with nothing."""
+    folder({"alpha.py": GOOD_HEADER})
+    monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
+    outcome = run(capsys)
+    assert outcome.exit_code == 13
+    assert "cannot be read" in outcome.printed
+
+
+#######################################################################################
+### Checks on the codes main() returns ###
+#
+# A header can list every code correctly and still forget one the code returns. These
+# checks stage a file with a main() and compare what it returns with what it lists.
+
+
+def with_main(returns: str, codes: str = "0   success") -> str:
+    """Build a file whose header lists the given codes and whose main() returns.
+
+    Args:
+        returns: The body of main(), written as the lines inside the function.
+        codes: The Exit codes field, written as it appears in a header.
+
+    Returns:
+        The whole file, header and code.
+    """
+    header = GOOD_HEADER.replace("Exit codes:  0   success", f"Exit codes:  {codes}")
+    return header + "\n\ndef main(argv=None):\n" + returns + "\n"
+
+
+@code("HRS0088")
+@positive
+def test_a_listed_return_passes(folder, capsys):
+    """A code main() returns and the header lists is no problem."""
+    folder({"alpha.py": with_main("    return 0")})
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0089")
+@positive
+def test_a_return_of_a_call_is_passed_over(folder, capsys):
+    """A return of something other than a plain number is passed over rather than
+    guessed at, so a computed exit code is never reported as unlisted."""
+    folder({"alpha.py": with_main("    return len(argv or [])")})
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0090")
+@positive
+def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
+    """A header may list a code main() does not return as a plain number, because the
+    check only looks for codes a header forgot."""
+    folder(
+        {
+            "alpha.py": with_main(
+                "    return 0",
+                "0   success\n             8   a pinned file has not been downloaded",
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
+@code("HRS0091")
+@negative
+def test_an_unlisted_return_exits_34(folder, capsys):
+    """A code main() returns that the header does not list makes the run exit 34, and
+    the problem line names the file and the number."""
+    folder({"alpha.py": with_main("    return 8")})
+    outcome = run(capsys)
+    assert outcome.exit_code == 34
+    assert "exit code 8 is returned by main()" in outcome.printed
+
+
+@code("HRS0092")
+@negative
+def test_both_sides_of_a_one_line_choice_are_read(folder, capsys):
+    """A return written as a one-line choice is read on both sides, so the branch that
+    is not listed is still caught."""
+    folder({"alpha.py": with_main("    return 8 if argv else 0")})
+    assert run(capsys).exit_code == 34
+
+
+@code("HRS0093")
+@negative
+def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
+    """When one file forgets a code and another rewords one, the run exits 34, because
+    a missing code is the worse problem."""
+    folder(
+        {
+            "alpha.py": with_main("    return 8"),
+            "beta.py": GOOD_HEADER.replace(
+                "0   success", "8   the file is missing somehow"
+            ).replace("alpha.py", "beta.py"),
+        }
+    )
+    assert run(capsys).exit_code == 34

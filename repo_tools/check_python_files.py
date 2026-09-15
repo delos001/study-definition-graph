@@ -22,12 +22,12 @@ Usage:       python repo_tools/check_python_files.py
              python repo_tools/check_python_files.py --quiet
                  print only the tools' own reports and the final verdict lines
 
-Exit codes:  0   success: every tool passed
+Exit codes:  0   success (every tool passed)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
              21  ruff or mypy reported a problem
-             22  a tool could not be run at all, neither on the path nor
-                 through conda
+             22  a tool could not be run at all (neither on the path nor
+                 through conda)
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
