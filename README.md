@@ -12,6 +12,20 @@ Future work may include operational documents as well.
 
 See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in full.
 
+## How it works
+
+The pipeline runs as five stages, each taking the previous stage's output as its input. Each stage is one folder under `src/sdg/`.
+
+1. **Acquire** (`sources/`): pull protocols and SAPs from ClinicalTrials.gov, record each one in a manifest, and check every pinned file against its fingerprint.
+2. **Locate** (`locate/`): find section boundaries and the schedule grid, with no AI, so a later error can be traced to reading or to prompting but not both.
+3. **Classify** (`classify/`): decide the document's type and what each section is about, with AI.
+4. **Extract** (`extract/`): turn classified content into USDM structures, with every fact carrying where it came from.
+5. **Graph** (`graph/`): load the structures into Neo4j, link a protocol to its SAP, and answer a question that spans both.
+
+Locate comes before classify because a heading does not tell you what a section contains. The Schedule of Activities is built last, because it depends on every stage above it working first.
+
+See [PLAN.md](PLAN.md) for the phases, what each produces, and how each is verified.
+
 ## Status
 
 This project is IN DEVELOPMENT.
@@ -24,7 +38,7 @@ This project has 6 phases (Phase 0-5):
 
 Commands are PowerShell. The same steps work on macOS or Linux with that shell's syntax.
 
-You need:
+### You need:
 - Git,
 - [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/),
@@ -32,6 +46,7 @@ You need:
 
 Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
 
+### Setup
 ```powershell
 # 1. Clone the repo then navigate to it.
 git clone <repo-url> && cd study-definition-graph
@@ -73,78 +88,106 @@ python repo_tools/check_api_key.py
 #    The command below downloads them all and verifies each hash.
 #    Add --dry-run to see what it would fetch without touching the network.
 #    The sdg environment must be active (step 4 above).
+#    Note: this command does not overwrite existing files so it is safe to re-run if needed.
 acquire_sources
 ```
 
-Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
+### Neo4j
+Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`.
+That password is set in `docker-compose.yml` and is for local development only.
+- To start/restart the database: `docker compose up -d`
+- To stop the database but keep your data: `docker compose down`
+- To stop the database and discard your data: `docker compose down -v`
 
-Then confirm it worked. All six should exit 0:
+### Setup Verification
+Each command should exit 0:
 
 ```powershell
-acquire_sources --dry-run   # every pinned file present and matching its entry
-python repo_tools/find_unrecorded_files.py           # nothing under inputs/ that a manifest does not record
-python repo_tools/check_facts.py         # every number stated in the docs re-derived from those files
-read_pdf --docs     # lists each registered document as present or NOT DOWNLOADED
-usdm_spec --list-classes       # lists the USDM classes read from the pinned model spec
-pytest                                # runs the automated checks in validation/; validation/README.md explains them
+# Confirms every pinned file is present and matches its manifest entry; downloads nothing.
+acquire_sources --dry-run
+
+# Confirms nothing exists in inputs/ that a manifest does not record.
+python repo_tools/find_unrecorded_files.py
+
+# Recomputes every number (e.g. page count, class count) stated in the project's documents
+# (e.g. README.md, PLAN.md, CLAUDE.md, and docs/) from the pinned documents under inputs/
+# and reports any figure that no longer agrees.
+python repo_tools/check_facts.py
+
+# Confirms the pinned USDM model file inputs/standards/cdisc/usdm_v4/dataStructure.yml
+# loads and has the correct shape. It prints the class names it found, and on any
+# failure, it prints the cause and the appropriate resolution.
+usdm_spec --list-classes
+
+# Runs the automated checks in validation/; validation/README.md explains them.
+pytest
 ```
 
-Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`. That password is set in `docker-compose.yml` and is for local development only.
-- `docker compose down` keeps your data
-- `down -v` discards it.
-
 ## Working in this repo
+Rules below are critical. See [CLAUDE.md](CLAUDE.md) for the full rule set, including the source-file conventions
+every script follows.
 
-A few load-bearing rules; [CLAUDE.md](CLAUDE.md) has the full set, including the source-file conventions every script follows.
-
-- Everything under `inputs/` is pinned and never edited, and every download is recorded in `manifests/` in the same breath.
+- Everything under `inputs/` is pinned and never edited.
+- Every pinned file is downloaded and recorded in `manifests/` as it happens.
 - `inputs/` is gitignored apart from its READMEs, so an unrecorded file cannot be restored.
-- Pinned versions never move: not the standards, not the Neo4j image, not a model identifier. A version that changes mid-project makes a failure unattributable.
+- Pinned versions never move.
+  - This includes the standards, the Neo4j image, and model identifiers.
+  - A version that changes mid-project makes a failure unattributable.
 - The repo is de-identified: no company, no people, no locations, no partnerships.
 
 ## Layout
 
 ```
 study-definition-graph/
-  README.md                  # this file
-  BACKGROUND.md              # why the project exists, and the problem
-  PLAN.md                    # build sequence and per-phase verification
-  DECISIONS.md               # decisions made, and why
-  CLAUDE.md                  # working rules
-  environment.yml
-  docker-compose.yml         # neo4j, pinned
-  .env.example
-  docs/                      # the project's maps of itself; README.md there lists them
-  manifests/                 # one record per set of pinned downloads: source, version, fingerprint
-    study_documents/         #   one record per study fetched into inputs/study_documents/, written by the fetch script
-  inputs/                    # everything downloaded from outside, pinned and never edited; gitignored
-    standards/               #   the standards the project depends on, by publisher: cdisc/, ich/, crosswalks/
-    worked_examples/         #   CDISC's three worked examples
-    study_documents/         #   protocols and SAPs as fetched, one folder per study
-  data/                      # pipeline output, regenerable; gitignored
-    interim/                 #   between pipeline stages
-    processed/               #   final pipeline output
-  eval/                      # hand-built answer keys and acceptance thresholds; committed
-  prompts/                   # one file per prompt, versioned
-  src/sdg/                   # the sdg Python package (source code), installed with pip install -e .; README.md in src/ and src/sdg/ list what is there
-  repo_tools/                   # run by hand; README.md here is generated
-  validation/                     # automated checks and validation records; README.md there explains them
+  README.md                # this file
+  BACKGROUND.md            # why the project exists, and the problem
+  PLAN.md                  # build plan, phase by phase
+  DECISIONS.md             # project development decisions made, and why
+  CLAUDE.md                # rules for working in this repo
+  environment.yml          # conda environment definition
+  pyproject.toml           # sdg package, lint settings, and check settings
+  docker-compose.yml       # Neo4j container definition
+  .env.example             # copy this to .env and add your keys
+  .gitignore               # what git leaves out, including inputs/ and .env
+  .mcp.json                # GitHub server a Claude Code session connects to
+  .claude/                 # rules and hooks for Claude Code sessions
+  .githooks/               # checks that run before a commit
+  docs/                    # project reference documents
+    draft/                 #   diagrams and notes in progress
+  manifests/               # where each pinned file came from, and its fingerprint
+    study_documents/       #   records for each study's pinned documents
+  inputs/                  # pinned source files the project reads; gitignored
+    standards/             #   published standards used by this project (e.g. USDM, ICH M11)
+    worked_examples/       #   real protocols CDISC mapped to USDM, with their mappings
+    study_documents/       #   study-specific documents (e.g. protocols and SAPs)
+  data/                    # pipeline products; gitignored
+    interim/               #   files passed between pipeline stages
+    processed/             #   finished pipeline output
+  eval/                    # expected results the pipeline is scored against
+  prompts/                 # prompts sent to the model (e.g. classification and extraction)
+  src/                     # Python source
+    sdg/                   #   pipeline package, one folder per stage
+      classify/            #     decide a document's type and what each section is about
+      extract/             #     turn classified content into USDM structures
+      graph/               #     load structures into Neo4j and query them
+      locate/              #     find section boundaries and the schedule grid
+      sources/             #     fetch the pinned files and check them
+      usdm/                #     read the USDM standard
+      view/                #     print part of a pinned document or workbook
+  repo_tools/              # tools that keep this repo in order
+  validation/              # checks that prove the code works
+    fixtures/              #   throwaway repos used during a validation run
+    reports/               #   results of a full validation run, archived
+    repo_tools/            #   validation for the tools in repo_tools/
+    sources/               #   validation for src/sdg/sources/
+    usdm/                  #   validation for src/sdg/usdm/
 ```
 
 ## Where to look
 
 | For | Read |
 | --- | --- |
-| Why it exists and the problem | [BACKGROUND.md](BACKGROUND.md) |
-| Build sequence and per-phase verification | [PLAN.md](PLAN.md) |
-| Decisions made, and why | [DECISIONS.md](DECISIONS.md) |
 | Current status and task backlog | [GitHub Issues](https://github.com/delos001/study-definition-graph/issues) |
-| Working rules | [CLAUDE.md](CLAUDE.md) |
 | Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
-| Where each pinned file came from, and its fingerprint | [manifests/README.md](manifests/README.md) |
-| How the standards feed each other | [docs/standards_lineage.html](docs/standards_lineage.html) |
-| USDM guide section map | [docs/usdm_ig_ledger.md](docs/usdm_ig_ledger.md) |
-| Which files are in the sdg package, and what each uses | [docs/sdg_files_inventory.md](docs/sdg_files_inventory.md) |
-| What each script does | [repo_tools/README.md](repo_tools/README.md) |
-
-[repo_tools/README.md](repo_tools/README.md) is a generated index of every script and how to invoke it. It is rebuilt from the scripts' own header blocks by `python repo_tools/build_index.py`, so it cannot drift from them.
+| Every map and inventory the project keeps | [docs/README.md](docs/README.md) |
+| What each repo tool does, and how to run it | [repo_tools/README.md](repo_tools/README.md) |
