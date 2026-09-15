@@ -52,7 +52,7 @@ GitHub Issues is the live status layer; `PLAN.md` is the stable plan; `DECISIONS
 - Hand-built answer keys go in `eval/`, which is committed; they cannot be regenerated.
 - Pinned versions never move. Never fetch latest.
 - A pinned file keeps its publisher's file name, spaces replaced by underscores and nothing else. One folder per standard, named with its version, whatever the file count.
-- `python -m sdg.sources.acquire_sources` fetches what is missing and checks what is present against its entry; `python repo_tools/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
+- `acquire_sources` fetches what is missing and checks what is present against its entry; `python repo_tools/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
 - Any count written into a document must be recomputable. Add it to `repo_tools/check_facts.py`, which re-derives every stated figure from the pinned files. Run it after changing the corpus.
 
 ## Pipeline

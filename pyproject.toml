@@ -10,8 +10,10 @@ requires-python = ">=3.12"
 # Commands installed with the package, so a person types read_pdf rather than
 # python -m sdg.view.read_pdf. Each names the module and the function it runs.
 [project.scripts]
+acquire_sources = "sdg.sources.acquire_sources:main"
 read_pdf = "sdg.view.read_pdf:main"
 read_xlsx = "sdg.view.read_xlsx:main"
+usdm_spec = "sdg.usdm.usdm_spec:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

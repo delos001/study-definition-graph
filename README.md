@@ -2,9 +2,13 @@
 
 ## Overview
 
-This project translates unstructured documents into USDM-standard structure and loads them into a knowledge graph.  It begins targeting clinical documents like protocols, SAPs, and IBs but future work will include operational documents as well.  The goals is to preserve the content and the relationships within and across documents while keeping everything computer-readable and queryable. It builds on published USDM standards, not a novel ontology invented here.
+This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph. Read as prose, the information from unstructured documents exists as a mental graph, for a person who has read them all. The result is variation and limitations to efficiently operationalizing the often extensive information, in that form.
 
-A single study is spread across several planning documents, protocol, Statistical Analysis Plan, Investigator's Brochure, written at different times, from different perspectives and purposes, with different content and structure. Read as prose, the information exisits as a mental graph, by a person who has read them all. The challenge is not extracting the text. Instead, the challenge is recovering the structure that extraction destroys or leaves implicit: a Schedule of Activities grid that flattens a timing graph, or one analysis population that appears as "Intent-to-Treat" in one document and "Full Analysis Set" in another. This project aims to produce a method to recover that structure and make it queryable while maintaining data traceability.
+Text extraction is a fairly well solved problem, but with that process, content and relationships within and across unstructured files dissipate.
+
+The goal of this project is to recover and preserve both content and the relationships within and across documents that have been extracted to a computer-readable and queryable format. It builds on published USDM standards, not a novel ontology invented here.
+
+Future work may include operational documents as well.
 
 See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in full.
 
@@ -23,54 +27,71 @@ Commands are PowerShell. The same steps work on macOS or Linux with that shell's
 You need:
 - Git,
 - [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/) running,
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/),
 - your own [Anthropic API key](https://console.anthropic.com/).
-- Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
+
+Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
 
 ```powershell
-git clone <repo-url> ; cd ...\study-definition-graph
-git config core.hooksPath .githooks   # pre-commit checks, see below
+# 1. Clone the repo then navigate to it.
+git clone <repo-url> && cd study-definition-graph
 
-# 1. Python environment. Python 3.12, pinned in environment.yml.
+# 2. Turn on the pre-commit checks. They block a commit when a generated file is out of
+#    date or a Python file breaks the repo's rules.
+#    `.githooks/README.md` lists every check.
+git config core.hooksPath .githooks
+
+# 3. Create the Python environment. Python 3.12 comes from the pinned environment.yml.
 conda env create -f environment.yml
+
+# 4. Activate the sdg conda environment.
 conda activate sdg
 
-# 1b. Install this repo's own package (src/sdg/) in editable mode, so that
-#     `python -m sdg.<module>` resolves and code edits take effect with no
-#     reinstall. Dependencies stay owned by environment.yml, not this install.
+# 5. Install the package defined in the src/ folder in editable mode, so that the repo's
+#    commands like usdm_spec and read_pdf work correctly and code edits take effect with
+#    no reinstall.
+#    Dependencies stay owned by environment.yml, not this install.
 pip install -e .
 
-# 2. Neo4j, pinned to 5.26.29-community. The graph persists in Docker volumes,
-#    so `docker compose down` keeps your data and `down -v` discards it.
+# 6. Start the Neo4j container. Its version, two ports (browser and driver), and
+#    password come from docker-compose.yml in the repo folder, pinned to 5.26.29-community.
+#    The graph persists in Docker volumes.
 docker compose up -d
 
-# 3. Secrets. Put your key in ANTHROPIC_API_KEY. Leave CDISC_API_KEY blank:
-#    it is optional and a non-member key grants nothing.
+# 7. Create your secrets file using the command below.
+#    Then obtain an Anthropic API key from https://console.anthropic.com/
+#    Open .env and paste the key directly after the ANTHROPIC_API_KEY field.
+#    Leave CDISC_API_KEY blank because it is optional and a non-member key grants nothing.
 Copy-Item .env.example .env
 
-# 4. Pinned sources. Everything under inputs/ is gitignored, so a fresh clone
-#    has none of it. Every pinned file is recorded in manifests/ with its URL
-#    and sha256. This downloads them all and verifies each hash. Add --dry-run
-#    to see what it would fetch without touching the network.
-python -m sdg.sources.acquire_sources
+# 8. Verify the key reaches the Claude API. Running the script below sends one small
+#    message via the API. It needs a working network and costs a fraction of a cent.
+python repo_tools/check_api_key.py
+
+# 9. Acquire pinned sources. Everything under inputs/ is gitignored, so a fresh clone
+#    has none of it. Every pinned file is recorded in manifests/ with its URL and sha256.
+#    The command below downloads them all and verifies each hash.
+#    Add --dry-run to see what it would fetch without touching the network.
+#    The sdg environment must be active (step 4 above).
+acquire_sources
 ```
 
 Nothing here overwrites a file that already exists, so the fetch is safe to re-run and will only ever add what is missing.
 
-The hook line enables `.githooks/pre-commit`, which blocks a commit if `repo_tools/README.md` is out of date with the scripts it describes, if any Python file under `src/sdg/` or `repo_tools/` lacks the full header block, if `validation/validation_inventory.csv` is out of date with the checks it lists, or if any Python file fails ruff or mypy. The first three checks use only the standard library and run from any terminal. The ruff and mypy check needs the `sdg` environment: when it is active the tools run directly, in about a second warm; when it is not, they run through `conda run`, which is slower. `.githooks/README.md` lists every check.
-
 Then confirm it worked. All six should exit 0:
 
 ```powershell
-python -m sdg.sources.acquire_sources --dry-run   # every pinned file present and matching its entry
+acquire_sources --dry-run   # every pinned file present and matching its entry
 python repo_tools/find_unrecorded_files.py           # nothing under inputs/ that a manifest does not record
 python repo_tools/check_facts.py         # every number stated in the docs re-derived from those files
 read_pdf --docs     # lists each registered document as present or NOT DOWNLOADED
-python -m sdg.usdm.usdm_spec --list-classes       # lists the USDM classes read from the pinned model spec
+usdm_spec --list-classes       # lists the USDM classes read from the pinned model spec
 pytest                                # runs the automated checks in validation/; validation/README.md explains them
 ```
 
 Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`. That password is set in `docker-compose.yml` and is for local development only.
+- `docker compose down` keeps your data
+- `down -v` discards it.
 
 ## Working in this repo
 

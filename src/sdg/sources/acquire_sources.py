@@ -24,13 +24,13 @@ Inputs:      manifests/*.json   (read-only)
 Outputs:     The files each entry names, under inputs/. Nothing
              existing is modified or deleted.
 
-Usage:       python -m sdg.sources.acquire_sources
+Usage:       acquire_sources
                  get whatever is missing
-             python -m sdg.sources.acquire_sources --dry-run
+             acquire_sources --dry-run
                  list what would be fetched; no network, nothing written
-             python -m sdg.sources.acquire_sources --set cdisc_usdm_v4
+             acquire_sources --set cdisc_usdm_v4
                  one manifest only
-             python -m sdg.sources.acquire_sources --quiet
+             acquire_sources --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success: every entry's file is on disk and matches its entry

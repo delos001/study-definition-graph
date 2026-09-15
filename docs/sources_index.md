@@ -26,8 +26,8 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf.
 
 | Question | How to Read |
 | --- | --- |
-| Which classes exist? | `python -m sdg.usdm.usdm_spec --list-classes` |
-| What does an attribute point at? | `python -m sdg.usdm.usdm_spec --attributes <class>` |
+| Which classes exist? | `usdm_spec --list-classes` |
+| What does an attribute point at? | `usdm_spec --attributes <class>` |
 
 ### Document: USDM-IG.pdf
 - purpose: The implementation guide. Shows how the model applies to the content of a real protocol.
