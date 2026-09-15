@@ -34,6 +34,14 @@ This project has 6 phases (Phase 0-5):
 - Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
 - the build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 
+## Where to look
+
+| For | Read |
+| --- | --- |
+| Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
+| Every map and inventory the project keeps | [docs/README.md](docs/README.md) |
+| What each repo tool does, and how to run it | [repo_tools/README.md](repo_tools/README.md) |
+
 ## Setup
 
 Commands are PowerShell. The same steps work on macOS or Linux with that shell's syntax.
@@ -95,9 +103,17 @@ acquire_sources
 ### Neo4j
 Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`.
 That password is set in `docker-compose.yml` and is for local development only.
-- To start/restart the database: `docker compose up -d`
-- To stop the database but keep your data: `docker compose down`
-- To stop the database and discard your data: `docker compose down -v`
+
+```
+# To start/restart the database:
+docker compose up -d
+
+# To stop the database but keep your data:
+docker compose down
+
+# To stop the database and discard your data:
+docker compose down -v
+```
 
 ### Setup Verification
 Each command should exit 0:
@@ -182,12 +198,3 @@ study-definition-graph/
     sources/               #   validation for src/sdg/sources/
     usdm/                  #   validation for src/sdg/usdm/
 ```
-
-## Where to look
-
-| For | Read |
-| --- | --- |
-| Current status and task backlog | [GitHub Issues](https://github.com/delos001/study-definition-graph/issues) |
-| Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
-| Every map and inventory the project keeps | [docs/README.md](docs/README.md) |
-| What each repo tool does, and how to run it | [repo_tools/README.md](repo_tools/README.md) |
