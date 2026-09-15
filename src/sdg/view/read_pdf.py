@@ -29,7 +29,8 @@ Inputs:      inputs/standards/cdisc/usdm_v4/USDM-IG.pdf                      (re
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
 Usage:       read_pdf --docs
-                 list the registered documents and whether each is downloaded
+                 list the registered documents and whether each is downloaded,
+                 exiting 8 when any of them is missing
              read_pdf 4.23
                  print one section of the USDM IG, by number
              read_pdf "Extension"
@@ -589,9 +590,20 @@ def main(argv: list[str] | None = None) -> int:
     # Mode: list the registry. Answered before opening any file, so it still
     # works on a fresh clone where inputs/ has not been downloaded.
     if args.docs:
+        # The listing reports a missing document through the exit code as well as
+        # on screen, so a run in a verification block fails rather than leaving a
+        # person to read the lines and notice.
+        missing = 0
         for key, entry in DOCUMENTS.items():
             state = "present" if entry.path.exists() else "NOT DOWNLOADED"
+            if not entry.path.exists():
+                missing += 1
             print(f"  {key:16} {entry.label:42} {state}")
+        if missing:
+            print(
+                f"\n{missing} document(s) not downloaded.\n  fix -> run acquire_sources"
+            )
+            return 8
         return 0
 
     document = DOCUMENTS[args.doc]
