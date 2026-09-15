@@ -4,9 +4,9 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              plain text, so a working session can consult a specification
              without loading the whole document.
 
-             Six documents are registered: the CDISC USDM Implementation Guide,
-             the whole-model diagram, the three ICH M11 Step 4 documents, and
-             ICH E9(R1). Run --docs to list them.
+             The documents it can open are listed in lookup_documents.yml
+             beside this file, which also states which documents belong there.
+             Run --docs to see them and whether each one is downloaded.
 
              They differ in one way that governs this script's design. The USDM
              IG and E9(R1) carry embedded bookmarks, so they can be addressed by
@@ -20,10 +20,10 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              represent, so wherever a page holds one, this script says so rather
              than silently producing incomplete text.
 
-Inputs:      inputs/standards/cdisc/usdm_v4/USDM-IG.pdf                      (read-only, pinned)
-             inputs/standards/cdisc/usdm_v4/DDF_USDM_Model_Informative.pdf   (read-only, pinned)
-             inputs/standards/ich/m11_step4/ICH_Step4_M11_Final_*.pdf        (read-only, pinned)
-             inputs/standards/ich/e9r1/E9-R1_Step4_Guideline_2019_1203.pdf   (read-only, pinned)
+Inputs:      src/sdg/view/lookup_documents.yml   (read-only, the list of documents)
+             manifests/*.json                     (read-only, through the manifest reader,
+                                                   which owns each document's path)
+             the listed PDFs under inputs/        (read-only, pinned)
              Section numbers and page ranges come from each PDF's own bookmarks.
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
@@ -49,9 +49,13 @@ Usage:       read_pdf --docs
 Exit codes:  0   success
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
+             3   a manifest is missing or cannot be read
+             6   not running from inside the repo
              8   a pinned file has not been downloaded
              23  the requested section was not found in the PDF
              24  section mode used on a PDF that has no bookmarks
+             31  the list of lookup documents is missing or wrongly shaped
+             32  the list of lookup documents names a file no manifest records
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -75,44 +79,33 @@ from pathlib import Path
 # table positions, which this script needs in order to warn about lost content.
 import fitz
 
+# pyyaml is declared in environment.yml. The list of lookup documents is YAML
+# so its boilerplate patterns can be written as plain regular expressions.
+import yaml
+
 from sdg.console_output import use_utf8_output
-from sdg.sources.read_manifests import REPO_ROOT
+from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
 
 #######################################################################################
 ### Settings ###
 
-# The repo root comes from the manifest reader, the one place that works it out,
-# so this tool finds inputs/ however it is started.
-STANDARDS = REPO_ROOT / "inputs" / "standards"
-
-# Every page of the USDM IG repeats the same four lines of header and footer.
-# They add roughly 15% noise to any extracted section, so they are stripped
-# unless --raw is passed. Each pattern is anchored to the start of a line so
-# that genuine body text mentioning the same words is not removed.
-USDM_IG_BOILERPLATE = (
-    re.compile(r"^CDISC Unified Study Definitions Model Implementation Guide.*$"),
-    re.compile(r"^\s*.?\s*2025 Clinical Data Interchange Standards Consortium.*$"),
-    re.compile(r"^\s*Page \d+\s*$"),
-    re.compile(r"^\s*2025-06-03\s*$"),
-)
+# The list of documents this tool can open lives beside it as data, so adding or
+# removing one is a row rather than a code change, and so the path on disk keeps
+# one owner, the manifest. The file states which documents belong in it.
+REGISTRY_FILE = Path(__file__).resolve().parent / "lookup_documents.yml"
 
 
-# The registry of readable documents. Each entry carries:
-#   path         where the pinned file lives
-#   label        how the document is cited in output, so a claim sourced from
-#                this script can name its source and page as CLAUDE.md requires
-#   manifest     which manifest to re-download from, named in the missing-file
-#                error because inputs/ is gitignored and a fresh clone has none
-#   boilerplate  per-page header and footer patterns to strip
-#
-# The M11 documents carry an empty boilerplate tuple deliberately. Their pages
-# were checked for repeated header and footer lines and have none; the most
-# frequently repeated lines in the Technical Specification ("Definition",
-# "Data Type", "Cardinality") are field labels in the body. Stripping those
-# would delete the content the document exists to convey.
+class RegistryError(Exception):
+    """Raised when the list of lookup documents is missing or wrongly shaped."""
+
+
+class UnknownFileError(RegistryError):
+    """Raised when the list names a file that no manifest records."""
+
+
 @dataclass(frozen=True)
 class Document:
-    """One registered PDF: where it is, what to call it, which manifest records
+    """One lookup PDF: where it is, what to call it, which manifest records
     it, and the page furniture to strip from every extract."""
 
     path: Path
@@ -121,59 +114,68 @@ class Document:
     boilerplate: tuple[re.Pattern[str], ...]
 
 
-DOCUMENTS: dict[str, Document] = {
-    "ig": Document(
-        path=STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf",
-        label="USDM-IG v4.0",
-        manifest="cdisc_usdm_v4.json",
-        boilerplate=USDM_IG_BOILERPLATE,
-    ),
-    "m11-guideline": Document(
-        path=STANDARDS
-        / "ich"
-        / "m11_step4"
-        / "ICH_Step4_M11_Final_Guideline_2025_1119.pdf",
-        label="ICH M11 Guideline (Step 4)",
-        manifest="ich_m11_step4.json",
-        boilerplate=(),
-    ),
-    "m11-template": Document(
-        path=STANDARDS
-        / "ich"
-        / "m11_step4"
-        / "ICH_Step4_M11_Final_Template_2025_1119.pdf",
-        label="ICH M11 Template (Step 4)",
-        manifest="ich_m11_step4.json",
-        boilerplate=(),
-    ),
-    "m11-techspec": Document(
-        path=STANDARDS
-        / "ich"
-        / "m11_step4"
-        / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf",
-        label="ICH M11 Technical Specification (Step 4)",
-        manifest="ich_m11_step4.json",
-        boilerplate=(),
-    ),
-    "e9r1": Document(
-        path=STANDARDS / "ich" / "e9r1" / "E9-R1_Step4_Guideline_2019_1203.pdf",
-        label="ICH E9(R1) Estimands Addendum",
-        manifest="ich_e9r1.json",
-        boilerplate=(),
-    ),
-    # The whole USDM model as one vector diagram. Registered despite being a
-    # picture because its text extracts cleanly, which the 14 UML_Views PNGs of
-    # the same material do not. Everything is on page 1, so --find is the only
-    # sensible mode.
-    "model-diagram": Document(
-        path=STANDARDS / "cdisc" / "usdm_v4" / "DDF_USDM_Model_Informative.pdf",
-        label="USDM Model Diagram (informative)",
-        manifest="cdisc_usdm_v4.json",
-        boilerplate=(),
-    ),
-}
+def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document], str]:
+    """Read the list of lookup documents and find each file through its manifest.
 
-DEFAULT_DOCUMENT = "ig"
+    The path of each document is resolved from the manifest entry rather than written
+    in the list, so a re-pinned file moves in one place and this tool follows.
+
+    Args:
+        registry_file: The list to read, or None for the one beside this file.
+
+    Returns:
+        The documents by the key a person types, and the key used when --doc is absent.
+
+    Raises:
+        RegistryError: The list is missing, cannot be parsed, is shaped wrongly, names
+            a default that is not in it, or names a file no manifest records.
+    """
+    target = registry_file or REGISTRY_FILE
+    try:
+        content = yaml.safe_load(target.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise RegistryError(
+            f"the list of lookup documents is missing at {target}.\n"
+            "  fix -> restore it from git"
+        ) from exc
+    except yaml.YAMLError as exc:
+        raise RegistryError(f"{target.name} is not valid YAML: {exc}") from exc
+
+    if not isinstance(content, dict) or not isinstance(content.get("documents"), list):
+        raise RegistryError(f"{target.name} has no documents list.")
+
+    documents: dict[str, Document] = {}
+    for row in content["documents"]:
+        missing_fields = [f for f in ("key", "label", "file") if not row.get(f)]
+        if missing_fields:
+            raise RegistryError(
+                f"{target.name} has an entry missing {', '.join(missing_fields)}."
+            )
+        # The manifest is the only record of where a pinned file lives, so a name
+        # it does not carry is a mistake in the list rather than a missing download.
+        entry = entry_named(row["file"])
+        if entry is None:
+            raise UnknownFileError(
+                f"{target.name} names {row['file']}, which no manifest records.\n"
+                "  fix -> correct the name, or record the file in manifests/"
+            )
+        documents[row["key"]] = Document(
+            path=entry.path,
+            label=row["label"],
+            manifest=entry.manifest,
+            boilerplate=tuple(
+                re.compile(pattern) for pattern in row.get("boilerplate") or ()
+            ),
+        )
+
+    default = content.get("default")
+    if default not in documents:
+        raise RegistryError(
+            f"{target.name} names {default!r} as its default, which is not one of its "
+            f"documents."
+        )
+    return documents, default
+
 
 # Matches a leading section label at the start of a bookmark title, so a user
 # can ask for "4.23" instead of typing the full heading. Three forms are
@@ -560,6 +562,23 @@ def main(argv: list[str] | None = None) -> int:
     # sdg.console_output for why.
     use_utf8_output()
 
+    # The registry is read before the parser is built, because --doc offers the
+    # keys it holds and falls back to the default it names.
+    try:
+        documents, default_document = load_registry()
+    except UnknownFileError as exc:
+        print(exc, file=sys.stderr)
+        return 32
+    except RegistryError as exc:
+        print(exc, file=sys.stderr)
+        return 31
+    except NotInRepoError as exc:
+        print(exc, file=sys.stderr)
+        return 6
+    except ManifestError as exc:
+        print(exc, file=sys.stderr)
+        return 3
+
     parser = argparse.ArgumentParser(
         description="Read part of a pinned PDF standard (USDM IG or ICH M11)."
     )
@@ -570,9 +589,9 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument(
         "--doc",
-        default=DEFAULT_DOCUMENT,
-        choices=sorted(DOCUMENTS),
-        help=f"which document to read (default: {DEFAULT_DOCUMENT})",
+        default=default_document,
+        choices=sorted(documents),
+        help=f"which document to read (default: {default_document})",
     )
     parser.add_argument("--pages", help='explicit page range instead, e.g. "26-31"')
     parser.add_argument("--find", help="search all pages for a term")
@@ -594,7 +613,7 @@ def main(argv: list[str] | None = None) -> int:
         # on screen, so a run in a verification block fails rather than leaving a
         # person to read the lines and notice.
         missing = 0
-        for key, entry in DOCUMENTS.items():
+        for key, entry in documents.items():
             state = "present" if entry.path.exists() else "NOT DOWNLOADED"
             if not entry.path.exists():
                 missing += 1
@@ -606,7 +625,7 @@ def main(argv: list[str] | None = None) -> int:
             return 8
         return 0
 
-    document = DOCUMENTS[args.doc]
+    document = documents[args.doc]
 
     # Fail early and specifically if the pinned file is absent. This is the one
     # error a user is likely to hit on a fresh clone, since inputs/ is gitignored,

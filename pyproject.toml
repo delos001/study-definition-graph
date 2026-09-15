@@ -18,6 +18,11 @@ usdm_spec = "sdg.usdm.usdm_spec:main"
 [tool.setuptools.packages.find]
 where = ["src"]
 
+# The list of documents read_pdf can open is data beside the code, so it has to
+# be installed with the package rather than left behind as a stray file.
+[tool.setuptools.package-data]
+"sdg.view" = ["*.yml"]
+
 [tool.pytest.ini_options]
 # validation/repo_tools/ imports the repo tools by name (import build_index), which
 # needs repo_tools/ on the import path. Declared here once, not in each test file.
