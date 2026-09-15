@@ -2,13 +2,15 @@
 
 ## Overview
 
-This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph, preserving the content and the relationships within and across documents while keeping everything computer-readable and queryable. It builds on published USDM standards, not an ontology invented here.
+This project translates unstructured documents into USDM-standard structure and loads them into a knowledge graph.  It begins targeting clinical documents like protocols, SAPs, and IBs but future work will include operational documents as well.  The goals is to preserve the content and the relationships within and across documents while keeping everything computer-readable and queryable. It builds on published USDM standards, not a novel ontology invented here.
 
-A single study is spread across several planning documents, protocol, Statistical Analysis Plan, Investigator's Brochure, written at different times, from different perspectives and purposes, with different content and structure. Read as prose, the study exists only in the head of whoever has read them all. The challenge is not extracting the text. Instead, the challenge is recovering the structure that extraction destroys or leaves implicit: a Schedule of Activities grid that flattens a timing graph, or one analysis population that appears as "Intent-to-Treat" in one document and "Full Analysis Set" in another. This project aims to produce a method to recover that structure and make it queryable while maintaining data traceability.
+A single study is spread across several planning documents, protocol, Statistical Analysis Plan, Investigator's Brochure, written at different times, from different perspectives and purposes, with different content and structure. Read as prose, the information exisits as a mental graph, by a person who has read them all. The challenge is not extracting the text. Instead, the challenge is recovering the structure that extraction destroys or leaves implicit: a Schedule of Activities grid that flattens a timing graph, or one analysis population that appears as "Intent-to-Treat" in one document and "Full Analysis Set" in another. This project aims to produce a method to recover that structure and make it queryable while maintaining data traceability.
 
 See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in full.
 
 ## Status
+
+This project is IN DEVELOPMENT.
 
 This project has 6 phases (Phase 0-5):
 - Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
@@ -19,7 +21,8 @@ This project has 6 phases (Phase 0-5):
 Commands are PowerShell. The same steps work on macOS or Linux with that shell's syntax.
 
 You need:
-- Git, [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
+- Git,
+- [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) running,
 - your own [Anthropic API key](https://console.anthropic.com/).
 - Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
