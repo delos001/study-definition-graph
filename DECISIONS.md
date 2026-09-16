@@ -2,6 +2,8 @@
 
 The document contains the record of choices made and why. This is an append-only log: entries are added as decisions are made and are not rewritten as work progresses.
 
+Some entries mark a decision as **unguided**. That means no published standard covered the question, so the choice was the project's own; the categories are in `CLAUDE.md` under Grounding.
+
 - For the build plan itself, see `PLAN.md`.
 - For the problem and background, see `BACKGROUND.md`.
 
@@ -304,7 +306,7 @@ The check the map does need is that it lists every file the manifests record, be
 
 The 2026-09-04 audit set the rule that a new failure gets a new number, never a shared one, and applied it to the scripts that read the pinned corpus. Issue #24 found that the rule had not held outside that family. Code 3 meant "a manifest cannot be read" in four files and "a Python file cannot be parsed" in three others. Code 2 was given a meaning of its own in five files, when the argument parser every script uses already exits 2 on a bad command line, so in those five an exit of 2 had two possible causes and the number alone could not say which. And within a script, one number often covered several causes with different fixes: the pinned-file check raised one error for a manifest that cannot be read, a file no manifest records, and a file that does not match its entry.
 
-Two designs were weighed. The first reserves only the numbers every script can hit, 0, 1, 2, 6 and 7, and leaves every other number to its script. It is simpler to keep, but it allows the same number to mean different things in different scripts, which is what made troubleshooting hard in the first place, and it was rejected on that ground. The second is a single table for the whole repo: one number, one cause, and a new cause takes the next unused number. That is what was adopted. The table lives in `.claude/rules/writing_python_files.md`, and a header lists only the codes its file can return, using the table's wording.
+Two designs were weighed. The first reserves only the numbers every script can hit, 0, 1, 2, 6 and 7, and leaves every other number to its script. It is simpler to keep, but it allows the same number to mean different things in different scripts, which is what made troubleshooting hard in the first place, and it was rejected on that ground. The second is a single table for the whole repo: one number, one cause, and a new cause takes the next unused number. That is what was adopted. The table lives in `validation/exit_codes.csv`, and a header lists only the codes its file can return, using the table's wording.
 
 Two numbers are Python's own and are recorded as such: 1 is an unhandled error and 2 is a bad command line. Neither is assigned to anything else. Code 1 in particular gave up its old shared meaning of "the check found the problem it looks for"; a drifted figure, a stale index and a bad header each have their own number now, because two scripts that detect the same problem should exit the same number, and a number should not need the script's name to be read.
 

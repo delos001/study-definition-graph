@@ -30,7 +30,8 @@ A validation system is included in this workflow. Validation of process outputs 
 
 This project is IN DEVELOPMENT.
 
-This project has 6 phases (Phase 0-5):
+The project has six phases, Phase 0 to Phase 5, described in [PLAN.md](PLAN.md).
+
 - Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
 - the build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 
@@ -53,8 +54,6 @@ Commands are PowerShell. The same steps work on macOS or Linux with that shell's
 - [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/),
 - your own [Anthropic API key](https://console.anthropic.com/).
-
-Nothing here sits behind a company network or a paid subscription: every source document is public and every service is either local or free.
 
 ### Setup
 ```powershell
@@ -146,8 +145,7 @@ pytest
 ```
 
 ## Working in this repo
-Rules below are critical. See [CLAUDE.md](CLAUDE.md) for the full rule set, including the source-file conventions
-every script follows.
+Rules below are critical. See [CLAUDE.md](CLAUDE.md) for the full rule set, including the rules every Python file follows.
 
 - Everything under `inputs/` is pinned and never edited.
 - Every pinned file is downloaded and recorded in `manifests/` as it happens.
@@ -206,4 +204,5 @@ study-definition-graph/
     repo_tools/            #   validation for the tools in repo_tools/
     sources/               #   validation for src/sdg/sources/
     usdm/                  #   validation for src/sdg/usdm/
+    view/                  #   validation for src/sdg/view/
 ```
