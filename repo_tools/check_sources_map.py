@@ -20,6 +20,12 @@ Description: Compares docs/sources_index.md with the manifests, so a pinned file
              forms are matched here, with <anything> read as a wildcard. One
              heading may also name two files joined by the word and.
 
+             A heading covers only files under its own group's location, the
+             folder the map names on the line above the group's headings. A
+             pattern matched against every recorded path would let <study>.pdf
+             stand for every PDF in every group, and a standard's own heading
+             could then be deleted without the tool noticing.
+
 Inputs:      docs/sources_index.md                              (read-only)
              manifests/*.json, manifests/study_documents/*.json (read-only, through
                                                                  the manifest reader)
@@ -91,20 +97,33 @@ PLACEHOLDER_RE = re.compile(r"<[^>]+>")
 ### Read the map ###
 
 
-def map_patterns(text: str) -> list[str]:
-    """Collect the file patterns the map's document headings name.
+def map_patterns(text: str) -> list[tuple[str, str]]:
+    """Collect the file patterns the map's document headings name, each with its group's
+    location.
+
+    A heading belongs to the group whose location line most recently came before it. A
+    heading before any location line has no group, recorded as an empty location, and
+    covers nothing.
 
     Args:
         text: The map, as read from disk.
 
     Returns:
-        One pattern per file a heading names, in the order the map lists them.
+        One pair per file a heading names, in the order the map lists them: the
+            group's location as the map writes it, and the pattern.
     """
-    patterns: list[str] = []
+    patterns: list[tuple[str, str]] = []
+    location = ""
     for line in text.splitlines():
+        found = LOCATION_RE.match(line)
+        if found:
+            location = found.group(1).rstrip("/")
+            continue
         heading = HEADING_RE.match(line)
         if heading:
-            patterns.extend(part.strip() for part in heading.group(1).split(JOINER))
+            patterns.extend(
+                (location, part.strip()) for part in heading.group(1).split(JOINER)
+            )
     return patterns
 
 
@@ -129,31 +148,37 @@ def map_locations(text: str) -> list[str]:
 ### Compare the map with the manifests ###
 
 
-def covers(pattern: str, local: str) -> bool:
+def covers(location: str, pattern: str, local: str) -> bool:
     """Say whether one document heading covers one recorded file.
 
     A heading names the file, not its whole path, except where the group keeps files
-    in subfolders and the heading says so, as uml/*.png does. Both are matched against
-    the end of the recorded path, and a part written in angle brackets stands for
-    anything.
+    in subfolders and the heading says so, as uml/*.png does. The heading is joined to
+    its group's location and the whole is matched against the recorded path, so a
+    heading covers only files in its own group. A part written in angle brackets, in
+    the location or the heading, stands for anything. A heading with no location
+    covers nothing.
 
     Args:
+        location: The group's location, as the map writes it, without a trailing slash.
         pattern: The heading, as the map writes it.
         local: The file's path from the repo root, as the manifest records it.
 
     Returns:
         Whether the heading covers the file.
     """
+    if not location:
+        return False
+    folder = PLACEHOLDER_RE.sub("*", location)
     wildcard = PLACEHOLDER_RE.sub("*", pattern)
-    return fnmatch(local, f"*/{wildcard}") or fnmatch(local, wildcard)
+    return fnmatch(local, f"{folder}/{wildcard}")
 
 
-def unmapped_files(found: list[Manifest], patterns: list[str]) -> list[str]:
+def unmapped_files(found: list[Manifest], patterns: list[tuple[str, str]]) -> list[str]:
     """List every recorded file that no document heading covers.
 
     Args:
         found: The manifests, as the manifest reader hands them back.
-        patterns: The patterns the map's headings name.
+        patterns: The patterns the map's headings name, each with its group's location.
 
     Returns:
         The repo-relative paths of the uncovered files, sorted.
@@ -162,7 +187,9 @@ def unmapped_files(found: list[Manifest], patterns: list[str]) -> list[str]:
         entry.local
         for manifest in found
         for entry in manifest.entries
-        if not any(covers(pattern, entry.local) for pattern in patterns)
+        if not any(
+            covers(location, pattern, entry.local) for location, pattern in patterns
+        )
     ]
     return sorted(missing)
 

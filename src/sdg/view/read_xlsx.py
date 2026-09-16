@@ -148,6 +148,19 @@ def cell_text(value: object) -> str:
     return str(value).replace("\n", " ").replace("\r", " ").strip()
 
 
+def count_text(value: int | None) -> str:
+    """Render a sheet's row or column count for the listing, blank when unknown.
+
+    Args:
+        value: The count openpyxl read from the sheet's dimension record, or None when
+            the file carries no such record.
+
+    Returns:
+        The count as text, or an empty string.
+    """
+    return "" if value is None else str(value)
+
+
 def read_rows(worksheet: Worksheet) -> list[list[str]]:
     """Read a worksheet into rows of strings, dropping fully empty rows.
 
@@ -377,10 +390,12 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{workbook_path.name}  ({len(workbook.sheetnames)} sheets)\n")
             for sheet_name in workbook.sheetnames:
                 worksheet = workbook[sheet_name]
-                print(
-                    f"  {sheet_name:32} "
-                    f"{worksheet.max_row:>5} rows x {worksheet.max_column:>3} cols"
-                )
+                # A sheet whose file lacks its dimension record reports no counts,
+                # and openpyxl hands back None for both. The sheet is still listed,
+                # with the counts left blank, so a person can go on to open it.
+                row_count = count_text(worksheet.max_row)
+                column_count = count_text(worksheet.max_column)
+                print(f"  {sheet_name:32} {row_count:>5} rows x {column_count:>3} cols")
             return 0
 
         # Mode: print one sheet. Sheet names are matched case-insensitively so

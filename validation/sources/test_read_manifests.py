@@ -30,6 +30,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import shutil
+from pathlib import Path
 
 import pytest
 
@@ -273,6 +274,20 @@ def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_rep
     assert entry_for("inputs/set_a/stray.txt") is None
 
 
+@code("SRC0119")
+@positive
+def test_a_relative_path_is_read_from_the_repo_root(
+    one_recorded_file, monkeypatch, tmp_path
+):
+    """A relative Path finds the same entry as the repo-relative string, whichever folder
+    the program was started from, so a command run from elsewhere never reports a
+    recorded file as unrecorded."""
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    assert entry_for(Path(LOCAL)) == entry_for(LOCAL)
+
+
 @code("SRC0086")
 @positive
 def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
@@ -354,6 +369,31 @@ def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
     fake_repo.manifest("broken", "{ not json")
     message = refused_with(ManifestError)
     assert message.startswith("broken.json: cannot read")
+    assert "git checkout" in message
+
+
+@code("SRC0120")
+@negative
+def test_manifest_that_is_a_list_is_refused_naming_the_file(fake_repo):
+    """A manifest whose JSON is valid but is a list rather than an object is refused
+    as unreadable, naming the file and the git restore remedy, rather than failing
+    inside the entry reader."""
+    fake_repo.manifest("broken", "[1, 2, 3]")
+    message = refused_with(ManifestError)
+    assert message.startswith("broken.json: cannot read")
+    assert "not a manifest object" in message
+    assert "git checkout" in message
+
+
+@code("SRC0121")
+@negative
+def test_entry_that_is_not_an_object_is_refused_naming_the_file(fake_repo):
+    """A manifest whose files list holds a bare value rather than an entry object is
+    refused as unreadable, naming the file and the git restore remedy."""
+    fake_repo.manifest("broken", '{"files": ["not an entry"]}')
+    message = refused_with(ManifestError)
+    assert message.startswith("broken.json: cannot read")
+    assert "list of entry objects" in message
     assert "git checkout" in message
 
 

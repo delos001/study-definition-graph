@@ -201,6 +201,35 @@ def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
     assert "no heading in the map covers it" in outcome.printed
 
 
+@code("HRS0138")
+@negative
+def test_a_placeholder_heading_does_not_reach_outside_its_group(
+    repo, fake_repo, capsys
+):
+    """A placeholder heading in one group does not cover a file of the same shape in
+    another group, so the run exits 35 and names that file."""
+    fake_repo.file("inputs/worked_examples/StudyOne/StudyOne.pdf", CONTENT)
+    fake_repo.manifest(
+        "examples", [fake_repo.entry("inputs/worked_examples/StudyOne/StudyOne.pdf")]
+    )
+    # The example standard keeps its location line but loses its heading, so only
+    # the worked examples' <study>.pdf could cover Example_Guide.pdf, and must not.
+    text = MAP.replace("### Document: Example_Guide.pdf\n- purpose: The guide.\n", "")
+    text += "\n".join(
+        [
+            "## Worked examples",
+            "",
+            "- location: inputs/worked_examples/<study>/",
+            "",
+            "### Document: <study>.pdf",
+            "",
+        ]
+    )
+    outcome = run(capsys, text)
+    assert outcome.exit_code == 35
+    assert PINNED in outcome.printed
+
+
 @code("HRS0100")
 @negative
 def test_a_location_nothing_lives_in_exits_36(repo, capsys):

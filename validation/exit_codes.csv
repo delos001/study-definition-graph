@@ -40,3 +40,5 @@ code,cause
 38,Neo4j could not be reached
 39,Neo4j rejected the login
 40,the running Neo4j is not the pinned version
+41,the Claude API answered with an error
+42,a pinned file is not shaped the way a measurement expects

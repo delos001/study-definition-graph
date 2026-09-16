@@ -187,15 +187,38 @@ def returned_codes(tree: ast.Module) -> set[int]:
     for node in ast.walk(tree):
         if not isinstance(node, ast.FunctionDef) or node.name != "main":
             continue
-        for inner in ast.walk(node):
-            if not isinstance(inner, ast.Return):
-                continue
+        for inner in _returns_of(node):
             values = [inner.value]
             if isinstance(inner.value, ast.IfExp):
                 values = [inner.value.body, inner.value.orelse]
             for value in values:
                 if isinstance(value, ast.Constant) and isinstance(value.value, int):
                     found.add(value.value)
+    return found
+
+
+def _returns_of(function: ast.AST) -> list[ast.Return]:
+    """Collect the return statements that belong to one function.
+
+    A function defined inside main(), such as a small printing helper, has returns of
+    its own that say nothing about main()'s exit code, so the walk stops at any nested
+    function, class or lambda rather than reading their returns as main()'s.
+
+    Args:
+        function: The function's node, or a node inside it.
+
+    Returns:
+        The return statements in the function's own body, in source order.
+    """
+    found: list[ast.Return] = []
+    for child in ast.iter_child_nodes(function):
+        if isinstance(
+            child, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef | ast.Lambda
+        ):
+            continue
+        if isinstance(child, ast.Return):
+            found.append(child)
+        found.extend(_returns_of(child))
     return found
 
 

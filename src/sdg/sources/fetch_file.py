@@ -37,9 +37,11 @@ Usage:       Not run directly; imported.
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
-             FetchError   the url could not be reached, answered with an error,
-                          or the download stopped part way; the message names
-                          the url and the cause
+             FetchError   the url could not be reached or is not one the HTTP
+                          library can parse, the server answered with an error,
+                          the download stopped part way, or the destination's
+                          folder could not be created; the message names the
+                          url and the cause
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -47,6 +49,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
 
 # httpx is the HTTP library declared in environment.yml. It is used here rather
@@ -75,8 +78,9 @@ PARTIAL_SUFFIX = ".part"
 class FetchError(Exception):
     """Raised when a download did not complete.
 
-    The message names the url and the cause: the server could not be reached, it
-    answered with an error, or the transfer stopped part way.
+    The message names the url and the cause: the url could not be parsed, the server
+    could not be reached, it answered with an error, the transfer stopped part way, or
+    the destination's folder could not be created.
     """
 
 
@@ -114,16 +118,21 @@ def fetch(url: str, destination: Path) -> Path:
         The path of the .part file that was written.
 
     Raises:
-        FetchError: The server could not be reached, it answered with an error, or the
-            transfer stopped part way.
+        FetchError: The url could not be parsed, the server could not be reached, it
+            answered with an error, the transfer stopped part way, or the destination's
+            folder could not be created.
     """
     partial = partial_path(destination)
-    partial.parent.mkdir(parents=True, exist_ok=True)
 
     # Every way a download can fail is turned into one FetchError. The program
     # using this module treats them all the same way, by counting the failure
     # and moving on, so it needs one error type with the cause in the message.
+    # Creating the folder sits inside the try for the same reason: a file where
+    # the folder should be is a failure of this download, not of the whole run.
+    # InvalidURL is named on its own because the HTTP library does not count it
+    # among its HTTPError family.
     try:
+        partial.parent.mkdir(parents=True, exist_ok=True)
         with httpx.stream(
             "GET", url, follow_redirects=True, timeout=TIMEOUT_SECONDS
         ) as response:
@@ -133,10 +142,14 @@ def fetch(url: str, destination: Path) -> Path:
                 for chunk in response.iter_bytes():
                     handle.write(chunk)
 
-    except (httpx.HTTPError, OSError) as exc:
+    except (httpx.HTTPError, httpx.InvalidURL, OSError) as exc:
         # A half-written .part file would otherwise survive and confuse the
-        # next run, so it is removed before the error is handed back.
-        partial.unlink(missing_ok=True)
+        # next run, so it is removed before the error is handed back. The
+        # removal is allowed to fail silently: when the folder could not be
+        # created there is nothing to remove and the attempt itself can raise,
+        # and the failure worth reporting is the download's, not the cleanup's.
+        with contextlib.suppress(OSError):
+            partial.unlink()
         raise FetchError(f"{url}\n  cause -> {exc}") from exc
 
     return partial

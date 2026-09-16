@@ -434,6 +434,21 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     assert "'Condition'" in capsys.readouterr().err
 
 
+@code("USD0031")
+@negative
+def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
+    """When the pinned file is on disk but another program has it locked, the command
+    exits 13 and says to close that program, rather than ending in a traceback."""
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", variant(lambda d: None))
+
+    def locked(target):
+        raise PermissionError("locked by another program")
+
+    monkeypatch.setattr(usdm_spec, "verify_pinned", locked)
+    assert usdm_spec.main(["--list-classes"]) == 13
+    assert "close the program holding the file" in capsys.readouterr().err
+
+
 @code("USD0023")
 @negative
 def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):

@@ -372,6 +372,25 @@ def read(capsys, *argv):
     return Outcome(exit_code, captured.out + captured.err)
 
 
+def usage_mistake(capsys, *argv):
+    """Run the command expecting the argument parser to refuse the command line.
+
+    The parser ends the run itself with exit 2, so the refusal arrives as SystemExit
+    rather than as a value main() hands back.
+
+    Args:
+        capsys: pytest's capture of what was printed.
+        *argv: The command-line arguments to hand the command.
+
+    Returns:
+        The exit code and what was printed, as an Outcome.
+    """
+    with pytest.raises(SystemExit) as caught:
+        read_pdf.main(list(argv))
+    captured = capsys.readouterr()
+    return Outcome(int(caught.value.code), captured.out + captured.err)
+
+
 #######################################################################################
 ### Positive checks on a document ###
 #
@@ -411,6 +430,14 @@ def test_a_page_range_is_printed(readable, capsys):
     """A page range prints those pages, which is the mode a document without
     bookmarks is read by."""
     assert "beta content" in read(capsys, "--doc", "plain", "--pages", "2").printed
+
+
+@code("VIW0044")
+@positive
+def test_a_two_page_range_prints_both_pages_in_order(readable, capsys):
+    """A range of two pages prints both, first page first."""
+    printed = read(capsys, "--doc", "plain", "--pages", "1-2").printed
+    assert printed.index("alpha content") < printed.index("beta content")
 
 
 @code("VIW0038")
@@ -460,6 +487,56 @@ def test_section_mode_on_a_document_without_bookmarks_exits_24(readable, capsys)
     outcome = read(capsys, "--doc", "plain", "--list")
     assert outcome.exit_code == 24
     assert "--find" in outcome.printed
+
+
+@code("VIW0045")
+@negative
+def test_a_page_range_that_is_not_numbers_is_a_usage_mistake(readable, capsys):
+    """A page range that is not a number, or two joined by a dash, exits 2 and shows
+    the form a range takes."""
+    outcome = usage_mistake(capsys, "--pages", "abc")
+    assert outcome.exit_code == 2
+    assert "such as 26-31" in outcome.printed
+
+
+@code("VIW0049")
+@negative
+def test_a_page_range_with_a_trailing_dash_is_a_usage_mistake(readable, capsys):
+    """A page range written with a dash and no second number exits 2, rather than being
+    read as the one page before the dash."""
+    outcome = usage_mistake(capsys, "--pages", "1-")
+    assert outcome.exit_code == 2
+    assert "such as 26-31" in outcome.printed
+
+
+@code("VIW0046")
+@negative
+def test_a_page_range_starting_before_page_1_is_a_usage_mistake(readable, capsys):
+    """A page range starting at 0 exits 2 and says so, rather than printing the last
+    page under the label page 0."""
+    outcome = usage_mistake(capsys, "--pages", "0")
+    assert outcome.exit_code == 2
+    assert "starts before page 1" in outcome.printed
+
+
+@code("VIW0047")
+@negative
+def test_a_page_range_past_the_document_is_a_usage_mistake(readable, capsys):
+    """A page range running past the last page exits 2 and says how many pages the
+    document has, rather than ending in a traceback."""
+    outcome = usage_mistake(capsys, "--pages", "99")
+    assert outcome.exit_code == 2
+    assert "which has 2 pages" in outcome.printed
+
+
+@code("VIW0048")
+@negative
+def test_a_page_range_ending_before_it_starts_is_a_usage_mistake(readable, capsys):
+    """A page range whose last page comes before its first exits 2 and says so, rather
+    than printing a heading with nothing under it."""
+    outcome = usage_mistake(capsys, "--pages", "2-1")
+    assert outcome.exit_code == 2
+    assert "ends before it starts" in outcome.printed
 
 
 @code("VIW0043")

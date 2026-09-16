@@ -337,6 +337,46 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
     assert not partial_path(failed.destination).exists()
 
 
+@code("SRC0116")
+@negative
+def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, server):
+    """A url the HTTP library cannot parse makes fetch() raise FetchError, and the
+    message names the url and the cause, so the workflow counts it and carries on
+    rather than stopping with a traceback."""
+    failed = attempt(server, tmp_path, httpx.InvalidURL("Invalid IPv6 URL"))
+    assert URL in failed.message
+    assert "Invalid IPv6 URL" in failed.message
+    assert not partial_path(failed.destination).exists()
+
+
+@code("SRC0117")
+@negative
+def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
+    """A plain file sitting where the destination's folder should be makes fetch()
+    raise FetchError naming the url, and the file is left as it was."""
+    server(FakeResponse(CHUNKS))
+    blocker = tmp_path / "folder"
+    blocker.write_bytes(b"not a folder")
+    with pytest.raises(FetchError) as caught:
+        fetch(URL, blocker / "file.pdf")
+    assert URL in str(caught.value)
+    assert blocker.read_bytes() == b"not a folder"
+
+
+@code("SRC0118")
+@negative
+def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkeypatch):
+    """When the .part file cannot be removed after a failed download, fetch() still
+    raises FetchError for the download, not the removal's own error."""
+
+    def refuse(self, missing_ok=False):
+        raise PermissionError("cannot remove")
+
+    monkeypatch.setattr(Path, "unlink", refuse)
+    failed = attempt(server, tmp_path, httpx.ConnectError("name or service not known"))
+    assert "name or service not known" in failed.message
+
+
 @code("SRC0044")
 @negative
 def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):

@@ -355,7 +355,9 @@ def main(argv: list[str] | None = None) -> int:
         say("repo_tools/README.md is stale. Run: python repo_tools/build_index.py")
         return 15
 
-    INDEX_PATH.write_text(generated, encoding="utf-8")
+    # Written with LF, as the inventory is and as git stores it, so the file does
+    # not flip line endings with whichever machine last regenerated it.
+    INDEX_PATH.write_text(generated, encoding="utf-8", newline="\n")
     say(f"repo_tools/README.md written, {len(entries)} script(s)")
 
     return 0

@@ -257,6 +257,31 @@ def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
     assert "check the network" in outcome.printed
 
 
+@code("HRS0139")
+@negative
+def test_an_error_the_api_answered_with_is_reported_with_its_message(
+    repo, monkeypatch, capsys
+):
+    """When the API answers with an error that is neither a rejected key nor a failed
+    connection, such as a retired model name, the run exits 41 and prints the API's own
+    message rather than telling the person to check the network."""
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    refuse(
+        monkeypatch,
+        anthropic.NotFoundError(
+            "model: no-such-model",
+            response=httpx.Response(404, request=request),
+            body=None,
+        ),
+    )
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    outcome = run(capsys)
+    assert outcome.exit_code == 41
+    assert "answered with an error" in outcome.printed
+    assert "no-such-model" in outcome.printed
+    assert "check the network" not in outcome.printed
+
+
 @code("HRS0078")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):

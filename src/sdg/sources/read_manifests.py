@@ -230,7 +230,8 @@ def _read_one(path: Path) -> Manifest:
         A Manifest holding the file's entries.
 
     Raises:
-        ManifestError: The file is not valid JSON, or one of its entries is malformed.
+        ManifestError: The file is not valid JSON, is JSON of the wrong shape, or one of
+            its entries is malformed.
     """
 
     # A manifest that is not valid JSON and one that cannot be opened are the
@@ -244,7 +245,23 @@ def _read_one(path: Path) -> Manifest:
             "  fix -> restore manifests/ (git checkout), then re-run"
         ) from exc
 
-    entries = tuple(_entry_from(item, path.name) for item in raw.get("files", []))
+    # Valid JSON can still be the wrong shape: a list where the manifest object
+    # should be, or an entry that is a bare value rather than an object. Either
+    # is refused here with the file named, rather than surfacing later as an
+    # attribute error from deep inside the entry reader.
+    if not isinstance(raw, dict):
+        raise ManifestError(
+            f"{path.name}: cannot read (the file holds a {type(raw).__name__}, not a manifest object)\n"
+            "  fix -> restore manifests/ (git checkout), then re-run"
+        )
+    items = raw.get("files", [])
+    if not isinstance(items, list) or not all(isinstance(i, dict) for i in items):
+        raise ManifestError(
+            f"{path.name}: cannot read (files must be a list of entry objects)\n"
+            "  fix -> restore manifests/ (git checkout), then re-run"
+        )
+
+    entries = tuple(_entry_from(item, path.name) for item in items)
     return Manifest(
         name=path.stem, path=path, local_dir=raw.get("local_dir", ""), entries=entries
     )
@@ -305,17 +322,22 @@ def as_local(target: str | Path) -> str:
     """Turn a path into the form a manifest uses: relative to the repo root, with forward
     slashes.
 
-    A string is taken to be repo-relative already. A path outside the repo is given back
-    unchanged, so a message about it can show it in full.
+    A string is taken to be repo-relative already, and so is a relative Path: both are
+    read from the repo root, never from the folder the program was started in, so the
+    answer is the same wherever a command is run from. A path outside the repo is given
+    back unchanged, so a message about it can show it in full.
 
     Args:
-        target: A repo-relative string, or a path on this machine.
+        target: A repo-relative string, a repo-relative Path, or an absolute path on
+            this machine.
 
     Returns:
         The repo-relative path with forward slashes, or an outside path unchanged.
     """
     if isinstance(target, str):
         return target.replace("\\", "/")
+    if not target.is_absolute():
+        target = REPO_ROOT / target
     resolved = target.resolve()
     if resolved.is_relative_to(REPO_ROOT):
         return resolved.relative_to(REPO_ROOT).as_posix()

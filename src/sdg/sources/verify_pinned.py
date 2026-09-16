@@ -45,6 +45,9 @@ Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              FileNotFoundError    the file has not been downloaded
              UnrecordedFileError  no manifest entry records the file
              IntegrityError       the file does not match its manifest entry
+             PermissionError      the file is on disk but cannot be opened, as when
+                                  another program has it locked; the operating
+                                  system's own error, passed through
              One error per cause, so the program using this step can give each
              its own exit code without reading the message.
 
@@ -145,6 +148,8 @@ def verify_pinned(target: str | Path) -> PinnedFile:
         FileNotFoundError: The file is recorded but has not been downloaded.
         UnrecordedFileError: No manifest entry records the file.
         IntegrityError: The file's size or sha256 differs from its entry.
+        PermissionError: The file is on disk but cannot be opened, as when another
+            program has it locked. The operating system's own error, passed through.
     """
     local = as_local(target)
     entry = entry_for(local)

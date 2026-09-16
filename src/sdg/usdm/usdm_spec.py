@@ -55,6 +55,8 @@ Exit codes:  0   success
              9   a pinned file on disk does not match its manifest entry
                  (it can be read anyway with --allow-unpinned)
              10  a file under inputs/ that no manifest records
+             13  a file on disk cannot be read (another program has the pinned
+                 file locked)
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -147,6 +149,8 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
         ManifestError: A manifest is missing or cannot be read.
         UnrecordedFileError: No manifest entry records the file.
         IntegrityError: The file does not match its manifest entry.
+        PermissionError: The file is on disk but cannot be opened, as when another
+            program has it locked.
         SpecShapeError: The file parsed but is not shaped like the USDM structure this
             module reads.
     """
@@ -473,6 +477,13 @@ def main(argv: list[str] | None = None) -> int:
     except IntegrityError as exc:
         print(exc, file=sys.stderr)
         return 9
+    except PermissionError as exc:
+        print(
+            f"the pinned spec is on disk but cannot be opened ({exc}).\n"
+            "  fix -> close the program holding the file, then run this again",
+            file=sys.stderr,
+        )
+        return 13
     except SpecShapeError as exc:
         print(f"spec is present but not the expected shape: {exc}", file=sys.stderr)
         return 4

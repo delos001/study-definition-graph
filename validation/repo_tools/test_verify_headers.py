@@ -454,6 +454,21 @@ def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
+@code("HRS0140")
+@positive
+def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
+    """A number returned by a helper function defined inside main() is the helper's,
+    not main()'s, so a header that does not list it is not refused."""
+    folder(
+        {
+            "alpha.py": with_main(
+                "    def helper():\n        return 99\n    helper()\n    return 0"
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
 @code("HRS0091")
 @negative
 def test_an_unlisted_return_exits_34(folder, capsys):

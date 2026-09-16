@@ -27,6 +27,9 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import io
+import re
+import zipfile
 from dataclasses import dataclass
 
 import openpyxl
@@ -142,6 +145,28 @@ def test_listing_names_every_sheet(inputs, capsys):
     printed = run(capsys, "Example_Terms").printed
     assert "terms" in printed
     assert "notes" in printed
+
+
+@code("VIW0050")
+@positive
+def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
+    """A workbook whose sheet file carries no dimension record, which some writers
+    leave out, is still listed with its sheet named and the counts left blank, rather
+    than ending in a traceback."""
+    path = inputs / "examples" / "Example_Study.xlsx"
+    original = zipfile.ZipFile(path)
+    rewritten = io.BytesIO()
+    with zipfile.ZipFile(rewritten, "w") as target:
+        for item in original.infolist():
+            data = original.read(item.filename)
+            if item.filename.startswith("xl/worksheets/sheet"):
+                data = re.sub(rb"<dimension[^>]*/>", b"", data)
+            target.writestr(item, data)
+    original.close()
+    path.write_bytes(rewritten.getvalue())
+    outcome = run(capsys, "Example_Study")
+    assert outcome.exit_code == 0
+    assert "study" in outcome.printed
 
 
 @code("VIW0020")

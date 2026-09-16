@@ -27,6 +27,8 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 import check_facts as cf
@@ -152,6 +154,10 @@ def test_number_written_as_a_word_is_read(fact):
     "raised, code, word",
     [
         (FileNotFoundError("gone.pdf"), 8, "NOT DOWNLOADED"),
+        (PermissionError("locked by another program"), 13, "CANNOT READ"),
+        (KeyError("studyDesigns"), 42, "UNEXPECTED SHAPE"),
+        (json.JSONDecodeError("Expecting value", "", 0), 42, "UNEXPECTED SHAPE"),
+        (AttributeError("'str' object has no attribute 'get'"), 42, "UNEXPECTED SHAPE"),
         (ManifestError("set_a.json: cannot read"), 3, "BAD MANIFEST"),
         (
             UnrecordedFileError("cannot verify x: no manifest entry records it"),
@@ -164,6 +170,10 @@ def test_number_written_as_a_word_is_read(fact):
     ],
     ids=[
         "not-downloaded-8",
+        "cannot-read-13",
+        "unexpected-shape-42",
+        "malformed-json-42",
+        "not-an-object-42",
         "bad-manifest-3",
         "unrecorded-10",
         "mismatch-9",
@@ -177,8 +187,8 @@ def test_each_measurement_failure_has_its_own_exit_code(
 ):
     """A measurement that raises is reported under a label naming the cause,
     with the exception's own message, and the run exits with that cause's
-    number from the repo-wide table: 8 not downloaded, 3 bad manifest, 10
-    unrecorded, 9 mismatch, 4 wrong shape, 6 not in repo."""
+    number from the repo-wide table: 8 not downloaded, 13 cannot read, 42 unexpected
+    shape, 3 bad manifest, 10 unrecorded, 9 mismatch, 4 wrong shape, 6 not in repo."""
 
     def measure():
         """Raise the staged error in place of measuring."""

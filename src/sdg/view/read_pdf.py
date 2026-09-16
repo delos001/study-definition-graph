@@ -48,7 +48,10 @@ Usage:       read_pdf --docs
 
 Exit codes:  0   success
              1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
+             2   invalid command line, the argument parser's own (this covers a
+                 page range that is not a number or two numbers joined by a
+                 dash, starts before page 1, runs past the document's last
+                 page, or ends before it starts)
              3   a manifest is missing or cannot be read
              6   not running from inside the repo
              8   a pinned file has not been downloaded
@@ -460,6 +463,45 @@ def extract_pages(
     return "\n\n".join(blocks)
 
 
+def page_range(text: str, page_count: int) -> tuple[int, int]:
+    """Read a page range as a person types it, and refuse one the document cannot serve.
+
+    Pages are checked against the document before anything is printed, because pymupdf
+    reads a page number below 1 from the end of the document and a range past the end
+    as an error, and a range that ends before it starts prints nothing. Each of those
+    would either show the wrong page under the wrong label or read as though the pages
+    were empty, which is the silent failure this command exists to prevent.
+
+    Args:
+        text: The range as typed, one page such as 26 or two joined by a dash such as
+            26-31.
+        page_count: How many pages the document has.
+
+    Returns:
+        The first and last page, 1-indexed and inclusive.
+
+    Raises:
+        ValueError: The range is not numbers, starts before page 1, runs past the
+            document, or ends before it starts. The message says which.
+    """
+    start_text, dash, end_text = text.partition("-")
+    if not start_text.isdigit() or (dash and not end_text.isdigit()):
+        raise ValueError(
+            f"page range {text!r} is not a page number or two joined by a dash, such as 26-31"
+        )
+    start = int(start_text)
+    end = int(end_text) if end_text else start
+    if start < 1:
+        raise ValueError(f"page range {text!r} starts before page 1")
+    if end > page_count:
+        raise ValueError(
+            f"page range {text!r} runs past the document, which has {page_count} pages"
+        )
+    if start > end:
+        raise ValueError(f"page range {text!r} ends before it starts")
+    return start, end
+
+
 #######################################################################################
 ### Search ###
 
@@ -689,9 +731,12 @@ def main(argv: list[str] | None = None) -> int:
     section_for_trim = None
 
     if args.pages:
-        start_text, _, end_text = args.pages.partition("-")
-        start_page = int(start_text)
-        end_page = int(end_text) if end_text else start_page
+        # A range the document cannot serve is a mistake in the command line, so
+        # it is reported the way the parser reports one, exit 2.
+        try:
+            start_page, end_page = page_range(args.pages, doc.page_count)
+        except ValueError as exc:
+            parser.error(str(exc))
         label = f"pages {args.pages}"
 
     # Mode: resolve a section number or title fragment.

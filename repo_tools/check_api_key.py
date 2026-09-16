@@ -32,6 +32,9 @@ Exit codes:  0   success (the key works)
              28  .env has no Anthropic API key
              29  the Claude API rejected the key
              30  the Claude API could not be reached
+             41  the Claude API answered with an error (a retired model name, an
+                 exhausted balance, a rate limit; the API's own message is
+                 printed)
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -191,8 +194,11 @@ def main(argv: list[str] | None = None) -> int:
             print(exc)
         return 28
 
-    # The two refusals that mean the key itself is the problem are caught
-    # first, because everything else is a problem with reaching the API at all.
+    # Three causes, three remedies. The two refusals that mean the key itself is
+    # the problem come first. A connection that never reached the API is a
+    # network problem. Anything else the API answered, such as a retired model
+    # name, an exhausted credit balance or a rate limit, is neither, and only
+    # the API's own message says what it was, so that message is printed.
     try:
         reply = call_api(key)
     except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
@@ -202,13 +208,20 @@ def main(argv: list[str] | None = None) -> int:
                 f"  fix -> check the key at https://console.anthropic.com/ and paste it again"
             )
         return 29
-    except anthropic.APIError as exc:
+    except anthropic.APIConnectionError as exc:
         if not args.quiet:
             print(
                 f"the Claude API could not be reached ({exc.__class__.__name__}).\n"
                 "  fix -> check the network, then run this again"
             )
         return 30
+    except anthropic.APIError as exc:
+        if not args.quiet:
+            print(
+                f"the Claude API answered with an error ({exc.__class__.__name__}): {exc}\n"
+                "  fix -> the key reached the API and the network is fine; act on the message above"
+            )
+        return 41
 
     if not args.quiet:
         print(f"the key in {ENV_FILE} works. {MODEL} replied: {reply}")

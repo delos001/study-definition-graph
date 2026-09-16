@@ -44,7 +44,11 @@ Exit codes:  0   success (every stated figure matches the source it came from;
              8   a pinned file has not been downloaded
              9   a pinned file on disk does not match its manifest entry
              10  a file under inputs/ that no manifest records
+             13  a file on disk cannot be read (a workbook another program has
+                 locked, for example)
              14  a stated figure has drifted from the pinned files
+             42  a pinned file is not shaped the way a measurement expects (it
+                 was read, but lacks what the measurement reaches for)
              The numbers are the repo-wide table in
              validation/exit_codes.csv. A measurement stops at the
              first file it cannot use, so the run reports one cause at a time.
@@ -251,9 +255,23 @@ def main(argv: list[str] | None = None) -> int:
         # can be reported as drift, because nothing was measured.
         try:
             actual = measure()
-        except (FileNotFoundError, KeyError, OSError) as exc:
+        except FileNotFoundError as exc:
             print(f"  NOT DOWNLOADED {label}: {exc}")
             return 8
+        except (KeyError, IndexError, TypeError, AttributeError, ValueError) as exc:
+            # The file was read but does not hold what the measurement reaches
+            # for: a worked example lacking its study designs, a design that is
+            # not an object, or JSON that does not parse, which the json module
+            # reports as a ValueError. Neither a re-download nor the network
+            # would change any of those.
+            print(f"  UNEXPECTED SHAPE {label}: {exc}")
+            return 42
+        except OSError as exc:
+            # The file is there but cannot be opened, as a workbook Excel has
+            # locked. Listed after the missing-file case, which is one kind
+            # of OSError, so that case keeps its own number.
+            print(f"  CANNOT READ    {label}: {exc}")
+            return 13
         except NotInRepoError as exc:
             print(f"  NOT IN REPO    {label}: {exc}")
             return 6
