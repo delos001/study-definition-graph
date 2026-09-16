@@ -616,6 +616,19 @@ def test_the_previous_sections_text_is_left_out_at_the_start(shared_page, capsys
     assert "alpha content" not in outcome.printed
 
 
+@code("VIW0066")
+@positive
+def test_the_next_sections_text_is_left_out_when_both_share_one_page(
+    shared_page, capsys
+):
+    """When a section and the next both sit on one page, reading the first gives its
+    own text and leaves out the next section's, so the two return different text."""
+    outcome = read(capsys, "1")
+    assert outcome.exit_code == 0
+    assert "alpha content" in outcome.printed
+    assert "beta content" not in outcome.printed
+
+
 @code("VIW0052")
 @positive
 def test_the_next_sections_text_is_left_out_at_the_end(readable, capsys):

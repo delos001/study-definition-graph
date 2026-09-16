@@ -442,7 +442,10 @@ def extract_pages(
                         f"could not locate the heading for {section['number']} on page "
                         f"{page_number}; that page is shown whole and may open mid-section"
                     )
-            if page_number == end and end != start:
+            # The trailing cut runs on the last page even when it is also the
+            # first, because two sections can share one page; by then the leading
+            # cut has already removed everything before this section's heading.
+            if page_number == end:
                 cut = heading_offset(text, section["next_number"])
                 if cut is not None:
                     text = text[:cut]
