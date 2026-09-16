@@ -15,6 +15,7 @@ Every document in this repo is written for a person reading it. These rules appl
 - One idea per sentence. A sentence carrying a parenthesis, a colon and two joined clauses is three sentences.
 - Say what a thing is before saying anything about it. A reader meeting `inputs/` needs to know it holds the pinned source files before hearing that it is gitignored.
 - Name the file. Write the path on first mention, never "the map" or "the rule file". When several files share a name, say which one, as in the root `README.md`.
+- A list of folders or files names them as they are, version included. Prose that points at a standard in general, as in "the concepts workbook answers this", gives no version, because the version goes stale when a new one is pinned and nobody maintains it.
 - Do not write a count that cannot be recomputed. The Reading and checking rules below say how one is recorded.
 - Content belongs to the document whose job it is. Where a detail lives elsewhere, point at that document rather than repeating it.
 - Markdown prose is one paragraph per line, never hard-wrapped, because `grep` is a primary access path here and a phrase split across lines silently fails to match.
@@ -83,7 +84,7 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 - Every download gets a `manifests/` entry as it happens, never a record beside the file.
 - `inputs/` is gitignored apart from its READMEs, so an unrecorded file cannot be restored and cannot be told apart from a pinned one.
 - A pinned file keeps its publisher's file name, with spaces replaced by underscores and nothing else changed.
-- Each standard gets one folder, named with the standard's version where the publisher gives one and with the export date where it does not, whatever the file count.
+- Each standard gets one folder, named with the standard's version, whatever the file count. A version is a number or date the publisher put on the content. The date a file was downloaded and the date of a repository commit are not versions, because neither changes the content.
 - Files that are not a standard, such as the crosswalks, get a folder named for what they are.
 - Once a file is pinned, it stays at that version. Never fetch whatever the publisher currently calls the latest release; fetch the exact version the manifest records.
 

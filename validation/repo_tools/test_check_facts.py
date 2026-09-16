@@ -1,8 +1,8 @@
 """
 Script:      test_check_facts.py
 Description: Checks for repo_tools/check_facts.py, the hand-run script that
-             re-derives every count stated in the project's documents from the
-             pinned files. The script is a list of measurements and a loop that
+             re-derives every figure stated in the project's documents, a count or
+             a date, from the pinned files. The script is a list of measurements and a loop that
              compares each to what the documents say. The checks here replace
              that list with one small fake fact, a measurement that returns, or
              raises, whatever the check needs, and a one-line document in a
@@ -143,6 +143,35 @@ def test_number_written_as_a_word_is_read(fact):
         lambda: 3, "We hold three widgets.\n", pattern=r"(?:(\d+)|(?i:(three))) widgets"
     )
     assert cf.main([]) == 0
+
+
+@code("HRS0143")
+@positive
+def test_a_date_is_compared_as_text(fact):
+    """A measurement that produces a date rather than a count passes when the
+    document states the same date: exit 0. Figures compare as text, so a date
+    is one figure like a count is."""
+    fact(
+        lambda: "2026-07-14",
+        "The folder is widgets_2026-07-14.\n",
+        pattern=r"widgets_(\d{4}-\d{2}-\d{2})",
+    )
+    assert cf.main([]) == 0
+
+
+@code("HRS0144")
+@negative
+def test_a_drifted_date_exits_14(fact, capsys):
+    """A document naming a different date from the measured one is reported
+    DRIFTED with both dates, exit 14, which is how a folder named for a date
+    that is not in the pinned file is caught."""
+    fact(
+        lambda: "2026-07-14",
+        "The folder is widgets_2026-07-21.\n",
+        pattern=r"widgets_(\d{4}-\d{2}-\d{2})",
+    )
+    assert cf.main([]) == 14
+    assert "says 2026-07-21, actual 2026-07-14" in capsys.readouterr().out
 
 
 #######################################################################################

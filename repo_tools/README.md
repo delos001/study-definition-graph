@@ -47,7 +47,7 @@ python repo_tools/check_api_key.py --quiet
 
 ## check_facts.py
 
-Recomputes every countable fact asserted in the project's markdown and compares it against what the documents actually say.
+Recomputes every figure asserted in the project's markdown, a count or a date, and compares it against what the documents actually say.
 
 ```
 python repo_tools/check_facts.py

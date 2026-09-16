@@ -1,7 +1,7 @@
 """
 Script:      check_facts.py
-Description: Recomputes every countable fact asserted in the project's markdown
-             and compares it against what the documents actually say.
+Description: Recomputes every figure asserted in the project's markdown, a count
+             or a date, and compares it against what the documents actually say.
 
              This exists because two such numbers were found wrong in one
              sitting: CLAUDE.md claimed the pinned PDFs run to 500 pages when
@@ -13,7 +13,7 @@ Description: Recomputes every countable fact asserted in the project's markdown
              A number in prose has no owner. This script makes the pinned files
              the owner and the prose the thing that has to keep up.
 
-             Only countable claims derived from the pinned corpus are checked.
+             Only figures derived from the pinned corpus are checked.
              Judgements, decisions and reasoning are out of scope and always
              will be; those are reviewed by reading. Figures attributed to an
              external source (a cited paper's benchmark, say) are out of scope
@@ -62,7 +62,10 @@ from __future__ import annotations
 import argparse
 import json
 import re
+from datetime import datetime
 from pathlib import Path
+
+import openpyxl
 
 # The model loader, and the ways it can refuse the pinned file. Guarded rather
 # than plain, so that a missing sdg package (never installed) is reported by
@@ -71,7 +74,7 @@ from pathlib import Path
 # loop can give each cause its own exit code.
 try:
     from sdg.console_output import use_utf8_output
-    from sdg.sources.read_manifests import ManifestError, NotInRepoError
+    from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
     from sdg.sources.verify_pinned import (
         IntegrityError,
         UnrecordedFileError,
@@ -163,6 +166,42 @@ def examples_with_estimands() -> int:
     return count
 
 
+def concepts_newest_package_date() -> str:
+    """Find the release date of the newest Biomedical Concept package in the pinned export.
+
+    CDISC gives the export no version, so the project names its folder with this
+    date: the latest package_date in the Biomedical Concepts sheet, which the
+    workbook's ReadMe defines as the date a package was published to production.
+    The file is found through its manifest entry rather than through the folder
+    name, so a folder named with a date that is not in the file is reported as
+    drift, not as a missing file.
+
+    Returns:
+        The date as text, in the form 2026-07-14.
+
+    Raises:
+        ManifestError: No manifest records the export.
+    """
+    entry = entry_named("cdisc_biomedical_concepts_latest.xlsx")
+    if entry is None:
+        raise ManifestError(
+            "no manifest entry is named cdisc_biomedical_concepts_latest.xlsx"
+        )
+    workbook = openpyxl.load_workbook(verify_pinned(entry.path).path, read_only=True)
+    rows = workbook["Biomedical Concepts"].iter_rows(values_only=True)
+    column = list(next(rows)).index("package_date")
+    newest = ""
+    for row in rows:
+        value = row[column]
+        if value is None:
+            continue
+        # openpyxl hands a date cell back as a datetime and a text cell as a
+        # string; both are reduced to the same ten characters before comparing.
+        text = value.isoformat() if isinstance(value, datetime) else str(value)
+        newest = max(newest, text[:10])
+    return newest
+
+
 # Each entry is (label, measurement, regex capturing the figure as stated).
 # The regex must be specific enough that it cannot match an unrelated number;
 # a loose pattern would report a false match and defeat the point.
@@ -175,6 +214,14 @@ FACTS = [
         "examples with estimands",
         examples_with_estimands,
         r"(?:(\d+)|(?i:(one)|(two)|(three))) of the three pinned examples defines",
+    ),
+    # The date in the Biomedical Concepts folder name, as docs/sources_index.md
+    # writes the location. It must be the newest package_date in the export,
+    # never the day the file was fetched or the commit it was fetched at.
+    (
+        "Biomedical Concepts newest package date",
+        concepts_newest_package_date,
+        r"biomedical_concepts_(\d{4}-\d{2}-\d{2})",
     ),
 ]
 
@@ -189,7 +236,7 @@ FACTS = [
 WORD_NUMBERS = {"one": "1", "two": "2", "three": "3", "four": "4"}
 
 
-def stated_values(pattern: str) -> list[tuple[str, int]]:
+def stated_values(pattern: str) -> list[tuple[str, str]]:
     """Find every occurrence of a figure matching the pattern, with the file it is in.
 
     A list comes back rather than a single value because the same fact is often asserted
@@ -201,7 +248,8 @@ def stated_values(pattern: str) -> list[tuple[str, int]]:
             capture group.
 
     Returns:
-        One pair per occurrence: the document's name and the number it states.
+        One pair per occurrence: the document's name and the figure it states, as
+        text, so a count and a date are compared the same way.
     """
     found = []
     for name in DOCS:
@@ -212,8 +260,7 @@ def stated_values(pattern: str) -> list[tuple[str, int]]:
             # Alternation groups leave unmatched branches as None; take the one
             # that fired.
             raw = next(g for g in match.groups() if g is not None)
-            value = WORD_NUMBERS.get(raw.lower(), raw)
-            found.append((name, int(value)))
+            found.append((name, WORD_NUMBERS.get(raw.lower(), raw)))
     return found
 
 
@@ -296,7 +343,7 @@ def main(argv: list[str] | None = None) -> int:
             continue
 
         for name, stated in occurrences:
-            if stated != actual:
+            if stated != str(actual):
                 print(
                     f"  DRIFTED       {label} in {name}: says {stated}, actual {actual}"
                 )

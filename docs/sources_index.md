@@ -132,8 +132,8 @@ Each study is one real protocol in three forms: the protocol as published, the s
 
 ## CDISC Biomedical Concepts
 
-- version: Rolling export from the COSMoS repository, dated 2026-07-21
-- location: inputs/standards/cdisc/biomedical_concepts/
+- version: 2026-07-14, the newest package release date in the export. The export is rolling, so the copy is fixed by the pinned commit.
+- location: inputs/standards/cdisc/biomedical_concepts_2026-07-14/
 
 A Biomedical Concept defines one clinical idea, such as a blood pressure measurement, once, so that data standards can refer to it instead of redefining it. In USDM an Activity refers to a Biomedical Concept by its ID. The CDISC Library API for these is members-only, so the files come from the public repository export.
 

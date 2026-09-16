@@ -1,6 +1,6 @@
 # docs/
 
-The project's documentation about itself: maps a working session consults, kept by hand and linked from `CLAUDE.md` and `README.md`. Why the project exists is `BACKGROUND.md`, the build plan is `PLAN.md`, and the record of choices is `DECISIONS.md`, all at the repo root.
+This folder contains the project's documentation about itself: maps a working session consults, kept by hand and linked from `CLAUDE.md` and `README.md`.
 
 | File | What it shows |
 | --- | --- |

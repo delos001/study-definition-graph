@@ -5,7 +5,7 @@ One record per set of pinned downloads: where each file came from, which version
 | Manifest | Describes | Lands in |
 | --- | --- | --- |
 | `cdisc_usdm_v4.json` | USDM v4.0, the standard the pipeline conforms to | `inputs/standards/cdisc/usdm_v4/` |
-| `cdisc_biomedical_concepts.json` | The Biomedical Concepts library | `inputs/standards/cdisc/biomedical_concepts/` |
+| `cdisc_biomedical_concepts.json` | The Biomedical Concepts library | `inputs/standards/cdisc/biomedical_concepts_2026-07-14/` |
 | `crosswalks.json` | Mappings from other systems into USDM | `inputs/standards/crosswalks/` |
 | `ich_m11_step4.json` | ICH M11, the protocol template, at Step 4 | `inputs/standards/ich/m11_step4/` |
 | `ich_e9r1.json` | ICH E9(R1), the estimand addendum | `inputs/standards/ich/e9r1/` |
