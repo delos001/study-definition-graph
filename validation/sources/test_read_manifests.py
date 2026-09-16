@@ -6,7 +6,7 @@ Description: Automated checks for src/sdg/sources/read_manifests.py, the step th
              what is read, or one way a bad manifest is refused with a message
              naming the cause and the remedy.
 
-             Five checks read the real manifests/ folder as it is. They need no
+             Some checks read the real manifests/ folder as it is. They need no
              download, because they read the records and not the files the
              records point at. The rest stage a small pretend repo in a
              temporary folder through the fake_repo fixture in conftest.py, so
@@ -50,9 +50,9 @@ negative = pytest.mark.negative
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
-# The six manifests written by hand, one per pinned set. A study-document fetch,
+# The manifests written by hand, one per pinned set. A study-document fetch,
 # not yet written, will add study manifests later, so the real-repo checks look
-# for these six and do not assume they are the only ones.
+# for these and do not assume they are the only ones.
 HAND_WRITTEN = {
     "cdisc_biomedical_concepts",
     "cdisc_usdm_v4",
@@ -145,7 +145,7 @@ def test_repo_root_is_the_folder_holding_pyproject():
 @code("SRC0071")
 @positive
 def test_every_hand_written_manifest_is_read(real_manifests):
-    """manifests() reads all six hand-written manifests."""
+    """manifests() reads every hand-written manifest."""
     assert HAND_WRITTEN <= set(real_manifests)
 
 

@@ -43,7 +43,7 @@ import argparse
 import sys
 
 # The manifests are read through the package, so this script needs the
-# editable install (pip install -e ., README.md step 1b) the same as the
+# editable install (pip install -e ., README.md step 5) the same as the
 # pipeline does.
 from sdg.sources import ManifestError, NotInRepoError, manifests
 from sdg.sources.read_manifests import REPO_ROOT, Manifest

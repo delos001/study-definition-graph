@@ -1,11 +1,11 @@
 # inputs/worked_examples/
 
-CDISC's three worked examples for USDM v4.0: real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same three forms. Pinned to DDF-RA commit `aa303cb`; the manifest is `manifests/usdm_examples.json`.
+CDISC's worked examples for USDM v4.0: real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same forms. Pinned to DDF-RA commit `aa303cb`; the manifest is `manifests/usdm_examples.json`.
 
 | Form | What it is |
 | --- | --- |
 | `*.pdf` | The source protocol, as a person reads it. |
-| `*.xlsx` | The spreadsheet a person filled in from the protocol: the manual mapping step, 25 to 35 sheets. |
+| `*.xlsx` | The spreadsheet a person filled in from the protocol: the manual mapping step, one sheet per part of the model. |
 | `*.json` | The USDM v4.0 output generated from that spreadsheet. |
 
 | Study | Folder |

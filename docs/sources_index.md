@@ -1,6 +1,6 @@
 # Sources
 
-Which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group. How the standards relate to each other is drawn in [standards_lineage.html](standards_lineage.html).
+Which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group.
 
 The reading commands run from the repo root in the `sdg` environment. `read_pdf` opens only the documents listed in `src/sdg/view/lookup_documents.yml`, which also says which documents belong there. `read_xlsx` finds any workbook under `inputs/` by part of its name.
 
@@ -143,7 +143,7 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 | Question | How to Read |
 | --- | --- |
-| What standardized concept does an activity measure? | `read_xlsx cdisc_biomedical_concepts --sheet biomedical_concepts` |
+| What standardized concept does an activity measure? | `read_xlsx cdisc_biomedical_concepts --sheet "Biomedical Concepts"` |
 
 ### Document: BC_Curation_Principles_and_Completion_GLs.xlsx
 - purpose: The field dictionary for the list above. Says what each column means and how it was filled in.

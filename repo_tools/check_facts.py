@@ -60,10 +60,6 @@ import json
 import re
 from pathlib import Path
 
-# pymupdf is imported under its legacy name "fitz", matching read_pdf.py.
-import fitz
-import openpyxl
-
 # The model loader, and the ways it can refuse the pinned file. Guarded rather
 # than plain, so that a missing sdg package (never installed) is reported by
 # main() as exit 7 with the install command, instead of a traceback before any
@@ -90,10 +86,8 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 STANDARDS = REPO_ROOT / "inputs" / "standards"
 EXAMPLES = REPO_ROOT / "inputs" / "worked_examples"
 
-# Documents scanned for stated figures. docs/standards_lineage.html is included:
-# it is linked from docs/sources_index.md and a session acts on what it says, so its
-# numbers need the same guard as the prose. Being HTML makes no difference to a
-# regex looking for a figure.
+# Documents scanned for stated figures. Anything under docs/draft/ is left out,
+# because nothing there is linked to or relied on.
 DOCS = [
     "README.md",
     "BACKGROUND.md",
@@ -101,7 +95,6 @@ DOCS = [
     "CLAUDE.md",
     "docs/sources_index.md",
     "docs/usdm_ig_ledger.md",
-    "docs/standards_lineage.html",
 ]
 
 
@@ -117,18 +110,6 @@ DOCS = [
 # something if it was derived from the file that was actually pinned; a swapped
 # or edited copy fails the check (exit 9) instead of quietly certifying the
 # documents against the wrong source.
-
-
-def dictionary_codes() -> int:
-    """Count the distinct NCI C-codes named in the data dictionary.
-
-    Returns:
-        The code count.
-    """
-    text = verify_pinned(
-        STANDARDS / "cdisc" / "usdm_v4" / "dataDictionary.MD"
-    ).read_text()
-    return len(set(re.findall(r"\b(C\d{4,6})\b", text)))
 
 
 def usdm_concrete_classes() -> int:
@@ -147,42 +128,6 @@ def usdm_concrete_classes() -> int:
     return sum(
         1 for c in usdm_spec.class_names(spec) if not usdm_spec.is_abstract(spec, c)
     )
-
-
-def shared_codes() -> int:
-    """Count the NCI codes appearing in both the M11 Technical Specification and USDM's CT.
-
-    Guarded because it is the one figure on the standards map that contradicts an
-    intuition: both standards use NCI codes, so they look interchangeable, and they are
-    not. If this number ever drifts toward either total it would change the conclusion,
-    not just the caption.
-
-    Returns:
-        The shared code count.
-    """
-    text = "".join(
-        page.get_text()
-        for page in fitz.open(
-            verify_pinned(
-                STANDARDS
-                / "ich"
-                / "m11_step4"
-                / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf"
-            ).path
-        )
-    )
-    m11 = set(re.findall(r"\b(C\d{4,6})\b", text))
-
-    terminology = set()
-    for sheet in openpyxl.load_workbook(
-        verify_pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CT.xlsx").path,
-        read_only=True,
-    ):
-        for row in sheet.iter_rows(values_only=True):
-            for cell in row:
-                if cell:
-                    terminology.update(re.findall(r"\b(C\d{4,6})\b", str(cell)))
-    return len(m11 & terminology)
 
 
 def examples_with_estimands() -> int:
@@ -218,9 +163,7 @@ def examples_with_estimands() -> int:
 # The regex must be specific enough that it cannot match an unrelated number;
 # a loose pattern would report a false match and defeat the point.
 FACTS = [
-    ("dataDictionary codes", dictionary_codes, r"(\d+) NCI codes|all (\d+) codes"),
     ("USDM concrete classes", usdm_concrete_classes, r"all (\d+) concrete class"),
-    ("M11 and USDM shared codes", shared_codes, r"(\d+) codes in common"),
     # The count of examples that define an estimand, as stated in PLAN.md. The
     # trailing literal "of the three pinned examples defines" anchors it so the
     # captured number is the leading count, not the "three" later in the phrase.
