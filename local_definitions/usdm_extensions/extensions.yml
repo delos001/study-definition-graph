@@ -1,0 +1,20 @@
+# DUMMY. This entry shows the shape of an extension and defines no real extension.
+# One entry per version of an extension. An entry is never edited once added.
+# The url is built from extension_id and version, because a USDM output records only the url.
+
+extensions:
+  - extension_id: EXT0001
+    version: 1
+    url: https://sdg.local/usdm/extensions/EXT0001/v1
+    name: dummyExtension
+    definition: A placeholder that shows where the definition goes.
+    attaches_to: ScheduledActivityInstance
+    value_type: valueString
+    scope:
+      client: [CLI0001]
+      therapeutic_area: [THA0001]
+      document_type: [DOC0001]
+    why_usdm_has_no_place: A placeholder that shows where the reason goes.
+    replaces:
+    status: active
+    effective_from: 2026-01-01

@@ -1,0 +1,36 @@
+# DRAFT. The structure may change. registries/README.md holds the rules.
+# Each client is one entry. Changes are added as new items in its lists, and no existing item is edited.
+# Each history item is the full state of a client code from its date. The latest item is the current state.
+
+clients:
+  - internal_code: CLI0001
+    client_codes:
+      - client_code: ZEN-66
+        history:
+          - name: Test Client A
+            used_for: All work
+            status: active
+            effective_from: 2026-01-01
+
+  - internal_code: CLI0002
+    client_codes:
+      - client_code: ACME-77
+        history:
+          - name: Test Client B
+            used_for: Early phase studies
+            status: active
+            effective_from: 2026-01-01
+          - name: Test Client B-1
+            used_for: Early phase studies
+            status: active
+            effective_from: 2026-06-01
+          - name: Test Client B-1
+            used_for: Early phase studies
+            status: retired
+            effective_from: 2026-08-01
+      - client_code: ACME-88
+        history:
+          - name: Test Client B
+            used_for: Oncology department
+            status: active
+            effective_from: 2026-03-01

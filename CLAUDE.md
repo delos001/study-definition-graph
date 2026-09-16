@@ -2,7 +2,7 @@
 
 This file holds the rules for this repo, on top of the global `~/.claude/CLAUDE.md`. Every document has one job and keeps to it. The Layout section of the root [README.md](README.md) says what each job is.
 
-This repo is de-identified: no company, no people, no locations, no partnerships. Anything communicated by the user that goes into a repo document is written there as a design constraint, a target problem or an open question, never as who said it or where it came from.
+The project never positions itself as working with, for, toward, in parallel with or in partnership with any entity, such as a company, a person or an agency. An entity named in a public record the project uses, such as a study sponsor on ClinicalTrials.gov, may appear as data. Anything communicated by the user that goes into a repo document is written there as a design constraint, a target problem or an open question, never as who said it or where it came from.
 
 Run every command in this repo from the `sdg` conda environment. The root [README.md](README.md) has the rest of the setup.
 
@@ -54,7 +54,7 @@ When you face a decision about how something should be modelled or handled, cate
 | Category | Action |
 | --- | --- |
 | A standard covers it | Follow it and cite it. |
-| No standard covers it, but the content must be captured | Use USDM's extension mechanism (IG 6.4) and record every extension in [docs/usdm_local_extensions.md](docs/usdm_local_extensions.md). |
+| No standard covers it, but the content must be captured | Use USDM's extension mechanism (IG 6.4) and record every extension in [local_definitions/usdm_extensions/](local_definitions/usdm_extensions/README.md). |
 | It is a question about process or design rather than how data is structured | Decide, and record it in `DECISIONS.md` as a decision no standard guided. |
 
 ## Issue tracking

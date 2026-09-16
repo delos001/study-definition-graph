@@ -315,3 +315,11 @@ Renumbering was done in one commit, before any validation record exists, so no r
 ## Code lives in one of three places, by who runs it, decided 2026-09-14
 
 Code goes where its user is. `src/sdg/` holds what the project's user runs or imports, including the two viewing commands `read_pdf` and `read_xlsx`, now in `src/sdg/view/`. `validation/`, formerly `tests/`, holds the procedures that prove the code and the held files are as expected. `repo_tools/`, formerly `scripts/`, holds what only a maintainer runs to keep the repository in order. No other top-level code folder is added.
+
+## Local extensions and registries get their own folders, decided 2026-09-16
+
+The fields this project adds to USDM are treated as a standard, because that is what they are, only not published by CDISC. They moved from `docs/usdm_local_extensions.md` to `local_definitions/usdm_extensions/`, since `docs/` holds maps and these are definitions the pipeline's output depends on. An extension is never edited once added, and a change is a new version.
+
+The codes that scope an extension, for clients, therapeutic areas and document types, went into `registries/` rather than beside the extensions. `PLAN.md` already names sponsor, therapeutic area and document type as prompt axes, so the same codes are expected to serve prompts too, and a shared folder avoids moving them later. The rules for the codes are in `registries/README.md`.
+
+Both structures are drafts and may be realigned by the prompt axis work in #15. Validation waits until they are stable, so the checks are not rewritten each time the structure moves. Settling them is #30 and #31, and the validation is #32.

@@ -1,0 +1,9 @@
+# DRAFT. The structure may change. registries/README.md holds the rules.
+
+document_types:
+  - internal_code: DOC0001
+    name: Test Protocol
+    effective_from: 2026-01-01
+  - internal_code: DOC0002
+    name: Test Statistical Analysis Plan
+    effective_from: 2026-01-01

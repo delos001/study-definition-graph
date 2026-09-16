@@ -1,0 +1,9 @@
+# DRAFT. The structure may change. registries/README.md holds the rules.
+
+therapeutic_areas:
+  - internal_code: THA0001
+    name: Test Oncology
+    effective_from: 2026-01-01
+  - internal_code: THA0002
+    name: Hepatology
+    effective_from: 2026-01-01

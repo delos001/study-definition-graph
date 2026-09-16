@@ -41,6 +41,8 @@ This project has 6 phases (Phase 0-5):
 | Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
 | Every map and inventory the project keeps | [docs/README.md](docs/README.md) |
 | What each repo tool does, and how to run it | [repo_tools/README.md](repo_tools/README.md) |
+| Which fields the project adds to USDM, and why | [local_definitions/README.md](local_definitions/README.md) |
+| Which codes identify clients, therapeutic areas and document types | [registries/README.md](registries/README.md) |
 
 ## Setup
 
@@ -149,7 +151,6 @@ every script follows.
 - Pinned versions never move.
   - This includes the standards, the Neo4j image, and model identifiers.
   - A version that changes mid-project makes a failure unattributable.
-- The repo is de-identified: no company, no people, no locations, no partnerships.
 
 ## Layout
 
@@ -176,6 +177,9 @@ study-definition-graph/
     standards/             #   published standards used by this project (e.g. USDM, ICH M11)
     worked_examples/       #   real protocols CDISC mapped to USDM, with their mappings
     study_documents/       #   study-specific documents (e.g. protocols and SAPs)
+  local_definitions/       # definitions this project adds to published standards; draft
+    usdm_extensions/       #   fields added to USDM through its extension mechanism
+  registries/              # codes for clients, therapeutic areas and document types; draft
   data/                    # pipeline products; gitignored
     interim/               #   files passed between pipeline stages
     processed/             #   finished pipeline output
