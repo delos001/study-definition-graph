@@ -510,8 +510,8 @@ def test_pinned_file_verifies_and_loads():
 @needs_pinned_file
 @positive
 def test_pinned_file_has_86_classes_80_concrete():
-    """The pinned model holds 86 classes, 80 concrete and 6 abstract, the figures
-    docs/sources_index.md records (check_facts.py re-derives the 80 as well)."""
+    """The pinned model holds 86 classes, 80 concrete and 6 abstract; the 80 is the
+    figure docs/standards_read_record.md states and check_facts.py re-derives."""
     spec = usdm_spec.load()
     names = usdm_spec.class_names(spec)
     abstract = [n for n in names if usdm_spec.is_abstract(spec, n)]

@@ -35,7 +35,7 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 | Question | How to Read |
 | --- | --- |
-| How does a piece of protocol content map into the model? | `read_pdf <section>`. Section names are listed in [usdm_ig_ledger.md](usdm_ig_ledger.md). |
+| How does a piece of protocol content map into the model? | `read_pdf <section>`, with `read_pdf --list` for the section numbers. What has already been read, and what it established, is in [standards_read_record.md](standards_read_record.md). |
 
 ### Document: USDM_CT.xlsx
 - purpose: The allowed values for every coded field.

@@ -350,9 +350,9 @@ def _print_classes(spec: dict) -> None:
 
     Names go to stdout so the listing can be piped: one per line, with [abstract]
     appended to the abstract classes. The summary, for example 86 classes (80 concrete,
-    6 abstract), goes to stderr so it is not mixed into piped data. The
-    concrete/abstract split is the figure docs/sources_index.md records, printed here
-    straight from the file.
+    6 abstract), goes to stderr so it is not mixed into piped data. The count of
+    concrete classes is the figure docs/standards_read_record.md states and
+    check_facts.py re-derives; here it is printed straight from the file.
 
     Args:
         spec: The loaded spec.

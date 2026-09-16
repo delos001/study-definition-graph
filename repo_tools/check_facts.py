@@ -94,7 +94,7 @@ DOCS = [
     "PLAN.md",
     "CLAUDE.md",
     "docs/sources_index.md",
-    "docs/usdm_ig_ledger.md",
+    "docs/standards_read_record.md",
 ]
 
 
@@ -118,7 +118,7 @@ def usdm_concrete_classes() -> int:
     The count goes through sdg.usdm.usdm_spec, the one doorway to the standard, rather than
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
-    usdm_ig_ledger.md makes. The loader also checks the file is shaped like USDM v4, the
+    docs/standards_read_record.md makes. The loader also checks the file is shaped like USDM v4, the
     one failure only this measurement can raise (exit 4).
 
     Returns:

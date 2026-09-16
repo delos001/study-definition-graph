@@ -1,16 +1,16 @@
 """
 Script:      read_xlsx.py
-Description: Reads a sheet out of any of the project's pinned Excel workbooks and
-             prints it as text, so a working session can consult controlled
-             terminology, conformance rules, and the worked-example source
-             spreadsheets without opening Excel.
+Description: Reads a sheet out of any Excel workbook under inputs/, the folder
+             that holds every downloaded file the manifests record, and prints
+             it as text, so a working session can consult a standard's tables
+             or a worked example's mapping spreadsheet without opening Excel.
 
-             Four kinds of workbook are in scope and they differ wildly in shape:
-             USDM_CT.xlsx has 2 sheets, USDM_CORE_Rules.xlsx has 1, and each
-             worked example has 25 to 35. The example workbooks include the
-             mainTimeline sheet, which is the Schedule of Activities grid and can
-             run to 58 columns. A fixed table layout is unreadable at that width,
-             so --format records prints one field per line instead.
+             The workbooks differ widely in shape. Some hold one or two sheets
+             of a few columns; a worked example holds one sheet per part of the
+             USDM model, and its mainTimeline sheet, the Schedule of Activities
+             grid, runs to dozens of columns. A fixed table layout is unreadable
+             at that width, so --format records prints one field per line
+             instead.
 
 Inputs:      Any .xlsx under inputs/. Opened read-only; nothing is written back.
 Outputs:     Plain text on stdout. Writes nothing to disk.
@@ -216,8 +216,8 @@ def print_table(rows: list[list[str]]) -> None:
 def print_records(rows: list[list[str]]) -> None:
     """Print each data row as a block of "header: value" lines.
 
-    This is the format for wide sheets. The Schedule of Activities grid runs to 58
-    columns, where a table is unreadable and truncation would hide the visit column
+    This is the format for wide sheets. The Schedule of Activities grid runs to dozens
+    of columns, where a table is unreadable and truncation would hide the visit column
     names that matter. Empty fields are skipped, which matters because a grid is mostly
     empty by design.
 
@@ -309,7 +309,7 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_output()
 
     parser = argparse.ArgumentParser(
-        description="Read a sheet from one of the project's pinned Excel workbooks."
+        description="Read a sheet from an Excel workbook under inputs/."
     )
     parser.add_argument(
         "workbook",
@@ -371,8 +371,8 @@ def main(argv: list[str] | None = None) -> int:
     # As in search_workbook: the file is closed however the mode ends.
     workbook = openpyxl.load_workbook(workbook_path, read_only=True, data_only=True)
     try:
-        # Mode: list the sheets. This is the default because these workbooks have
-        # up to 35 sheets and a user rarely knows the sheet name up front.
+        # Mode: list the sheets. This is the default because a worked example holds
+        # many sheets and a person rarely knows the sheet name up front.
         if not args.sheet:
             print(f"{workbook_path.name}  ({len(workbook.sheetnames)} sheets)\n")
             for sheet_name in workbook.sheetnames:

@@ -495,8 +495,8 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
     converted copy would drop every diagram and flatten every table, and would then need
     to be kept in step with the PDF; searching in place avoids both problems. It is also
     the only usable access path for the M11 documents, which carry no bookmarks: the M11
-    Technical Specification is a reference of 186 data elements rather than a linear
-    read, so term lookup is the access pattern it wants.
+    Technical Specification is a reference of data elements rather than a linear read,
+    so term lookup is the access pattern it wants.
 
     Args:
         doc: The open PDF.
@@ -580,7 +580,7 @@ def main(argv: list[str] | None = None) -> int:
         return 3
 
     parser = argparse.ArgumentParser(
-        description="Read part of a pinned PDF standard (USDM IG or ICH M11)."
+        description="Read part of one of the PDFs listed in lookup_documents.yml, by section, page range or search term."
     )
     parser.add_argument(
         "section",

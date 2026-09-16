@@ -116,11 +116,11 @@ Consequence: none. The `usdm` PyPI package stays out of scope, and the model, co
 
 Three format rules keep the registry from turning into a bibliography: every entry carries a decision rather than a description; only resources actually reviewed are entered; and the second half is never read at session start.
 
-It does not replace `docs/usdm_ig_ledger.md`, which the original plan said it would. That file holds a per-section read ledger for a 119-page guide, and folding 54 rows into one index row would coarsen it. The index links to it instead, and the same applies to any future document with its own ledger.
+It does not replace `docs/standards_read_record.md`, which the original plan said it would. That file holds a per-section read ledger for a 119-page guide, and folding 54 rows into one index row would coarsen it. The index links to it instead, and the same applies to any future document with its own ledger.
 
 Building it settled two things by measurement:
 
-- **Class counts.** The three files do not disagree. `dataStructure.yml` has 86 classes, 80 concrete and 6 abstract. `dataDictionary.MD` has 84, the same set minus the two extension classes, which IG 6.4 places outside the logical model. `USDM_API.json` has the 80 concrete ones plus `Wrapper`, `HTTPValidationError` and `ValidationError`, which are API plumbing. No abstract class serialises. This corrected the "81 classes" recorded in `docs/usdm_ig_ledger.md`.
+- **Class counts.** The three files do not disagree. `dataStructure.yml` has 86 classes, 80 concrete and 6 abstract. `dataDictionary.MD` has 84, the same set minus the two extension classes, which IG 6.4 places outside the logical model. `USDM_API.json` has the 80 concrete ones plus `Wrapper`, `HTTPValidationError` and `ValidationError`, which are API plumbing. No abstract class serialises. This corrected the "81 classes" recorded in `docs/standards_read_record.md`.
 - **Codelist references resolve.** All 517 NCI codes in `dataDictionary.MD` appear in `USDM_CT.xlsx`. Nothing dangles.
 
 ## The orientation walks, done 2026-08-25
@@ -224,7 +224,7 @@ A review of the scripts began with the folder they read from and found that `dat
 
 **Hand-built evaluation material gets a committed home.** `eval/` at the root, beside `prompts/`, for answer keys a person writes and for the acceptance thresholds fixed before testing. These cannot be regenerated, so they cannot live under the ignored `data/`. The worked examples were moved out of it and back under `data/` for the same reason in reverse: they are downloads.
 
-**Documents named for what they show.** `code_map.md` became `workflow_map.md` because it shows the order steps run in and what flows between them, and that description holds when a step is not Python. `sources.md` became `sources_index.md`, `usdm_ig_map.md` became `usdm_ig_ledger.md`, `standards_map.html` became `standards_lineage.html`. Working drafts moved to `docs/draft/`. Links inside earlier entries of this file were updated to the new names, a departure from append-only: a dead link is a broken pointer, not a historical figure.
+**Documents named for what they show.** `code_map.md` became `workflow_map.md` because it shows the order steps run in and what flows between them, and that description holds when a step is not Python. `sources.md` became `sources_index.md`, `usdm_ig_map.md` became `standards_read_record.md`, `standards_map.html` became `standards_lineage.html`. Working drafts moved to `docs/draft/`. Links inside earlier entries of this file were updated to the new names, a departure from append-only: a dead link is a broken pointer, not a historical figure.
 
 ## Study documents get their own manifests, decided 2026-09-08
 
@@ -343,3 +343,7 @@ Two options were weighed. Recording the hook as exempt costs nothing, but the on
 The hooks folder is now the fourth folder the rule names, and the header checker, ruff, mypy and pytest all read it. The one wrinkle is where the hook's checks live. Every other code file has its checks at the same relative path under `validation/`, but pytest does not look inside a folder whose name starts with a dot, so `validation/.claude/hooks/` would never run. The checks live in `validation/claude_hooks/` instead, and the inventory generator maps that folder back to `.claude/hooks/`. The rule states the exception and why.
 
 This amends the entry above, "Code lives in one of three places, by who runs it". There are four places, and the fourth is code that Claude Code itself runs.
+
+## The IG ledger becomes a read record for every standard, decided 2026-09-16
+
+`docs/usdm_ig_ledger.md` held two things. The first was a table of the implementation guide's sections with their page ranges, copied from the guide's bookmarks. The reader prints the same table live with `read_pdf --list`, so the copy was a maintained version of a derivable list, the pattern already rejected for the tools index and the workflow map, and its second table had drifted from its first. That table is dropped. The second thing was a record of which sections had been read and what each established. That is grounding material: a claim about a standard is grounded only when the part it rests on has been read and recorded. The file is renamed `docs/standards_read_record.md` and opened up to every pinned standard, one heading each, because the M11 and E9(R1) documents have been read in parts too and had no record. It joins the session-start reads when a phase works against the standard, which is Phase 3; until then `docs/sources_index.md`, which is read at session start, points at it.
