@@ -555,3 +555,185 @@ def test_a_document_not_downloaded_exits_8(fake_repo, write_list, monkeypatch, c
     outcome = read(capsys, "--pages", "1")
     assert outcome.exit_code == 8
     assert "example.json" in outcome.printed
+
+
+#######################################################################################
+### Staging a page two sections share ###
+#
+# A bookmark gives a section's start page and nothing else, so two sections that begin
+# on one page share that page's text until the reader cuts it at their headings. This
+# document puts both sections on one page so the cut at a section's start can be seen.
+
+
+def build_shared_page_pdf(path):
+    """Write a one-page PDF whose two bookmarked sections both begin on that page.
+
+    Args:
+        path: Where the document is written. Parent folders are created.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text(
+        (72, 72), "1 First Section\nalpha content\n2 Second Section\nbeta content"
+    )
+    document.set_toc([[1, "1 First Section", 1], [1, "2 Second Section", 1]])
+    document.save(str(path))
+    document.close()
+
+
+@pytest.fixture
+def shared_page(fake_repo, write_list, monkeypatch):
+    """Stage the guide as a document whose two sections share one page, recorded and
+    on disk beside the plain document.
+
+    Returns:
+        The fake repo, with the command pointed at a list naming both documents.
+    """
+    build_shared_page_pdf(fake_repo.root / GUIDE)
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    return fake_repo
+
+
+#######################################################################################
+### Checks on where a section's text is cut ###
+#
+# A section rarely owns a whole page at either end, so the reader cuts the first page
+# at the section's own heading and the last page at the next section's heading. These
+# checks prove the text on the far side of each cut is left out.
+
+
+@code("VIW0051")
+@positive
+def test_the_previous_sections_text_is_left_out_at_the_start(shared_page, capsys):
+    """When a section begins part way down a page, the text of the section before it
+    on that page is left out of the extract."""
+    outcome = read(capsys, "2")
+    assert outcome.exit_code == 0
+    assert "beta content" in outcome.printed
+    assert "alpha content" not in outcome.printed
+
+
+@code("VIW0052")
+@positive
+def test_the_next_sections_text_is_left_out_at_the_end(readable, capsys):
+    """When the next section begins on a section's last page, the next section's text
+    on that page is left out of the extract."""
+    outcome = read(capsys, "1")
+    assert outcome.exit_code == 0
+    assert "beta content" not in outcome.printed
+
+
+#######################################################################################
+### Checks on the note about content the text leaves out ###
+#
+# A page that holds a picture or a table loses it in text extraction, so the reader
+# adds a note saying so. These checks build one page each with pymupdf and hand it to
+# the function that writes the note.
+
+
+def page_with_picture():
+    """Build one page holding a small picture and no table.
+
+    Returns:
+        The page, which keeps its document open for as long as it is held.
+    """
+    document = fitz.open()
+    page = document.new_page()
+    picture = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 4, 4))
+    picture.set_rect(picture.irect, (255, 0, 0))
+    page.insert_image(fitz.Rect(72, 100, 172, 200), pixmap=picture)
+    return page
+
+
+def page_with_table():
+    """Build one page holding a ruled table of three rows and three columns, and no
+    picture.
+
+    Returns:
+        The page, which keeps its document open for as long as it is held.
+    """
+    document = fitz.open()
+    page = document.new_page()
+    for row in range(3):
+        for column in range(3):
+            cell = fitz.Rect(
+                72 + column * 100, 100 + row * 30, 172 + column * 100, 130 + row * 30
+            )
+            page.draw_rect(cell, color=(0, 0, 0), width=1)
+            page.insert_text((cell.x0 + 5, cell.y0 + 20), f"r{row}c{column}")
+    return page
+
+
+@code("VIW0053")
+@positive
+def test_a_page_with_a_picture_gets_the_not_shown_note():
+    """A page holding a picture gets the NOT SHOWN note counting one image, so the gap
+    in the text is visible."""
+    note = read_pdf.describe_lost_content(page_with_picture())
+    assert "NOT SHOWN IN TEXT" in note
+    assert "1 image(s)" in note
+
+
+@code("VIW0054")
+@positive
+def test_a_page_with_a_table_gets_the_not_shown_note():
+    """A page holding a ruled table gets the NOT SHOWN note counting one table."""
+    note = read_pdf.describe_lost_content(page_with_table())
+    assert "NOT SHOWN IN TEXT" in note
+    assert "1 table(s)" in note
+
+
+#######################################################################################
+### Checks on finding a section and a term ###
+
+
+@code("VIW0055")
+@positive
+def test_a_ligature_is_decomposed_for_searching():
+    """The searchable form of text holding the fi ligature spells the word with its
+    plain letters, so a search for the word finds it."""
+    assert "definition" in read_pdf.searchable("Deﬁnition")
+
+
+@code("VIW0056")
+@positive
+def test_an_exact_section_number_beats_a_title_match():
+    """A section whose number is exactly what was typed is chosen over an earlier
+    section whose title merely contains it."""
+    sections = [
+        {
+            "number": "1",
+            "title": "1 Notes on 2",
+            "start": 1,
+            "end": 1,
+            "next_number": "2",
+        },
+        {
+            "number": "2",
+            "title": "2 Second Section",
+            "start": 1,
+            "end": 1,
+            "next_number": "",
+        },
+    ]
+    assert read_pdf.find_section(sections, "2")["number"] == "2"
+
+
+@code("VIW0057")
+@positive
+def test_a_trailing_period_on_a_section_number_is_tolerated(readable, capsys):
+    """A section number typed with a trailing period finds the same section."""
+    outcome = read(capsys, "1.")
+    assert outcome.exit_code == 0
+    assert "alpha content" in outcome.printed
+
+
+@code("VIW0058")
+@positive
+def test_a_search_hit_names_the_section_it_falls_in(readable, capsys):
+    """A search hit on a document with bookmarks names the section its page falls
+    in."""
+    assert "2 Second Section" in read(capsys, "--find", "beta").printed

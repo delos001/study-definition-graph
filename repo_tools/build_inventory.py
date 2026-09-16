@@ -80,9 +80,18 @@ COLUMNS = (
 )
 
 # Rows are grouped by the folder the test file sits in, in the order the pipeline
-# runs, with the record writer's own checks last. Within a folder, files are in
-# name order and checks in file order.
-TYPE_ORDER = ("sources", "usdm", "view", "repo_tools", "claude_hooks", "validation")
+# runs, then the package's own top-level files, then the tools and hooks, with the
+# record writer's own checks last. Within a folder, files are in name order and
+# checks in file order.
+TYPE_ORDER = (
+    "sources",
+    "usdm",
+    "view",
+    "sdg",
+    "repo_tools",
+    "claude_hooks",
+    "validation",
+)
 
 # What a check starts with when it first appears in the inventory.
 NEW_STATUS = "active"
@@ -137,8 +146,10 @@ def type_and_target(
     same name in repo_tools/. A test file in validation/claude_hooks/ tests the hook of the
     same name in .claude/hooks/, which cannot be mirrored by name because pytest does
     not look inside a folder whose name starts with a dot. A test file in any other
-    subfolder tests the file of the same name in that folder under src/sdg/. A test
-    file at the top level tests the record writer in validation/conftest.py.
+    subfolder tests the file of the same name in that folder under src/sdg/, and a test
+    file at the top level tests the file of the same name at the top of src/sdg/. The
+    one file that mirrors nothing is validation/test_validation_report.py, which tests
+    the record writer in validation/conftest.py.
 
     Args:
         check_file: The test file's path.
@@ -151,8 +162,10 @@ def type_and_target(
     relative = check_file.relative_to(validation_dir or VALIDATION_DIR)
     folder = relative.parent.as_posix()
     component = f"{check_file.stem.removeprefix('test_')}.py"
-    if folder == ".":
+    if folder == "." and check_file.name == "test_validation_report.py":
         return "validation", "validation/conftest.py"
+    if folder == ".":
+        return "sdg", f"src/sdg/{component}"
     if folder == "repo_tools":
         return "repo_tools", f"repo_tools/{component}"
     if folder == "claude_hooks":

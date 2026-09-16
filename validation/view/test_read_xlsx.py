@@ -311,3 +311,92 @@ def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
         run(capsys)
     assert raised.value.code == 2
     assert "Example_Terms.xlsx" in capsys.readouterr().err
+
+
+#######################################################################################
+### Checks on how a workbook is named ###
+#
+# The command accepts a full path, a path from the repo root, or a filename in any
+# case, so a person can type whichever they have to hand.
+
+
+@code("VIW0061")
+@positive
+def test_a_full_path_finds_the_workbook(inputs, capsys):
+    """A workbook named by its full path is opened."""
+    assert run(capsys, str(inputs / "standards" / "Example_Terms.xlsx")).exit_code == 0
+
+
+@code("VIW0062")
+@positive
+def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tmp_path):
+    """A workbook named by its path from the repo root is opened, whichever folder the
+    command was started from."""
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    assert run(capsys, "inputs/standards/Example_Terms.xlsx").exit_code == 0
+
+
+@code("VIW0063")
+@positive
+def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
+    """A filename typed in the wrong case finds the workbook."""
+    assert run(capsys, "example_terms.XLSX").exit_code == 0
+
+
+#######################################################################################
+### Checks on long and empty cells ###
+
+
+@code("VIW0059")
+@positive
+def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
+    """In table format a cell longer than the width limit is cut short and ends with
+    an ellipsis, so one long note cannot push the other columns off the screen."""
+    long_cell = "x" * (read_xlsx.MAX_CELL_WIDTH + 20)
+    write_workbook(
+        inputs / "examples" / "Wide_Notes.xlsx", {"notes": [["Note"], [long_cell]]}
+    )
+    printed = run(capsys, "Wide_Notes", "--sheet", "notes").printed
+    assert "x" * (read_xlsx.MAX_CELL_WIDTH - 3) + "..." in printed
+    assert long_cell not in printed
+
+
+@code("VIW0060")
+@positive
+def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
+    """In records format a row's empty field is left out rather than printed as a
+    header with nothing after it, which keeps a sparse grid readable."""
+    printed = run(
+        capsys, "Example_Terms", "--sheet", "terms", "--format", "records"
+    ).printed
+    screening = printed.split("--- row 2 ---")[1].split("--- row 3 ---")[0]
+    assert "Visit: Screening" in screening
+    assert "Note" not in screening
+
+
+#######################################################################################
+### Checks on what a search reports ###
+
+
+@code("VIW0064")
+@positive
+def test_a_search_reports_one_hit_per_row(inputs):
+    """A row in which the term appears in two cells is reported once, since one line
+    is enough to find the row."""
+    path = inputs / "examples" / "Repeated.xlsx"
+    write_workbook(path, {"pairs": [["Left", "Right"], ["hit here", "hit there"]]})
+    assert len(read_xlsx.search_workbook(path, "hit")) == 1
+
+
+@code("VIW0065")
+@positive
+def test_a_search_hit_cuts_a_long_cell_short(inputs):
+    """A hit in a cell longer than 120 characters shows the first 120 characters and
+    an ellipsis, so one wide cell does not dominate the search output."""
+    path = inputs / "examples" / "Long_Cell.xlsx"
+    long_cell = "hit " + "y" * 150
+    write_workbook(path, {"notes": [["Note"], [long_cell]]})
+    (hit,) = read_xlsx.search_workbook(path, "hit")
+    assert hit.endswith(long_cell[:120] + "...")

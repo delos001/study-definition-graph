@@ -467,6 +467,48 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     assert "would fetch  b.txt" in outcome.out
 
 
+@code("SRC0122")
+@negative
+def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
+    """With one file changed on disk and another whose download does not match
+    its entry, both are reported and the exit code is 12, not 9, because a file
+    still missing is worse than a changed one."""
+    fake_repo.file("inputs/set_a/a.txt", CHANGED)
+    fake_repo.manifest(
+        "set_a",
+        [
+            fake_repo.entry("inputs/set_a/a.txt", sha256=SHA256),
+            recorded(fake_repo, "inputs/set_a/b.txt", CONTENT),
+        ],
+    )
+    network({"https://example.invalid/b.txt": b"something else entirely\n"})
+    outcome = run(capsys)
+    assert outcome.code == 12
+    assert "MISMATCH" in outcome.out
+    assert "DISCARDED" in outcome.out
+
+
+@code("SRC0123")
+@negative
+def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
+    """With one file changed on disk and a folder where another file should be,
+    both are reported and the exit code is 9, not 13."""
+    fake_repo.file("inputs/set_a/a.txt", CHANGED)
+    (fake_repo.root / "inputs/set_a/b.txt").mkdir(parents=True)
+    fake_repo.manifest(
+        "set_a",
+        [
+            fake_repo.entry("inputs/set_a/a.txt", sha256=SHA256),
+            recorded(fake_repo, "inputs/set_a/b.txt", CONTENT),
+        ],
+    )
+    network(None)
+    outcome = run(capsys)
+    assert outcome.code == 9
+    assert "MISMATCH" in outcome.out
+    assert "CANNOT READ" in outcome.out
+
+
 @code("SRC0022")
 @negative
 def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):

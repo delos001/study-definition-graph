@@ -43,7 +43,8 @@ Usage:       python repo_tools/verify_headers.py
 Exit codes:  0   success (every header is complete and in order)
              1   unhandled error, Python's own
              2   invalid command line, the argument parser's own
-             13  a file on disk cannot be read (the exit-code table)
+             13  a file on disk cannot be read (the exit-code table is missing,
+                 or holds a code that is not a number)
              17  a header block is missing, incomplete, out of order, or has a
                  bad Date
              19  a Python file could not be parsed
@@ -118,7 +119,8 @@ def exit_code_table(path: Path | None = None) -> dict[int, str]:
         The cause each number means, keyed by the number.
 
     Raises:
-        OSError: The table cannot be read.
+        OSError: The table cannot be opened.
+        ValueError: A row's code is not a whole number, so the table cannot be read.
     """
     table: dict[int, str] = {}
     with open(path or EXIT_CODES_FILE, encoding="utf-8", newline="") as handle:
@@ -359,10 +361,12 @@ def main(argv: list[str] | None = None) -> int:
     unlisted = 0
 
     # The table is read once, so a table that cannot be read stops the run rather
-    # than being reported against every file in turn.
+    # than being reported against every file in turn. A table that cannot be opened
+    # and one holding a code that is not a number are the same problem, because
+    # neither can be compared with anything.
     try:
         table = exit_code_table()
-    except OSError as exc:
+    except (OSError, ValueError) as exc:
         if not args.quiet:
             print(f"{EXIT_CODES_FILE.name} cannot be read: {exc}")
         return 13

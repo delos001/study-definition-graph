@@ -400,6 +400,22 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
     assert "cannot be read" in outcome.printed
 
 
+@code("HRS0142")
+@negative
+def test_a_table_with_a_code_that_is_not_a_number_exits_13(folder, capsys):
+    """With a row of the exit-code table holding a code that is not a number, the run
+    exits 13 and says the table cannot be read, naming the table, rather than ending
+    in a traceback."""
+    folder({"alpha.py": GOOD_HEADER})
+    script.EXIT_CODES_FILE.write_text(
+        "code,cause\n0,success\nthirteen,a file on disk cannot be read\n",
+        encoding="utf-8",
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 13
+    assert "exit_codes.csv cannot be read" in outcome.printed
+
+
 #######################################################################################
 ### Checks on the codes main() returns ###
 #

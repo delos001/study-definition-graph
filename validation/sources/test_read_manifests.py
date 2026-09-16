@@ -41,6 +41,7 @@ from sdg.sources.read_manifests import (
     NotInRepoError,
     as_local,
     entry_for,
+    entry_named,
     manifests,
     require_repo,
 )
@@ -272,6 +273,24 @@ def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_rep
     """A file that no manifest records gives None, not an error."""
     fake_repo.file("inputs/set_a/stray.txt", CONTENT)
     assert entry_for("inputs/set_a/stray.txt") is None
+
+
+@code("SRC0124")
+@positive
+def test_entry_named_finds_a_recorded_file_by_its_name(one_recorded_file):
+    """entry_named() gives back the entry whose file name is the one asked for, so
+    a caller holding only the name never writes the path down a second time."""
+    found = entry_named("a.txt")
+    assert isinstance(found, Entry)
+    assert found.local == LOCAL
+
+
+@code("SRC0125")
+@positive
+def test_entry_named_gives_none_for_a_name_no_manifest_records(one_recorded_file):
+    """A file name that no manifest records gives None from entry_named(), not an
+    error."""
+    assert entry_named("nobody_recorded_this.txt") is None
 
 
 @code("SRC0119")

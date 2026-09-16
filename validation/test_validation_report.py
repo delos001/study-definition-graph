@@ -30,6 +30,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import csv
+import hashlib
 import textwrap
 from pathlib import Path
 
@@ -299,3 +300,72 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
     assert rows[0]["check_outcome"] == "none"
     assert rows[0]["outcome_reason"].startswith("no check ran")
     assert next(out.glob("*.csv")).name.startswith("run_")
+
+
+#######################################################################################
+### The run's own details on every row ###
+#
+# A report identifies the run it came from: a file name that never overwrites an
+# earlier report, what was selected, who ran it, and the exact fixture files.
+
+
+@code("TST0009")
+@positive
+def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
+    pytester, monkeypatch
+):
+    """A second report written on the same day at the same commit is given a numbered
+    suffix, and the first report is left exactly as it was."""
+    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    (first,) = out.glob("*.csv")
+    before = first.read_bytes()
+    run_suite(pytester, monkeypatch, PASSING_SUITE)
+    assert first.read_bytes() == before
+    assert (out / f"{first.stem}-2.csv").is_file()
+
+
+@code("TST0010")
+@positive
+@pytest.mark.parametrize(
+    ("extra_args", "expected"),
+    [
+        ((), "all"),
+        (("test_suite.py",), "test_suite.py"),
+        (("-k", "adds"), "-k adds"),
+    ],
+)
+def test_the_selection_column_records_what_was_selected(
+    pytester, monkeypatch, extra_args, expected
+):
+    """The selection column records the paths and the -k or -m filters the command
+    line gave, or all when the whole suite ran."""
+    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE, *extra_args)
+    assert {r["selection"] for r in the_report(out)} == {expected}
+
+
+@code("TST0011")
+@positive
+def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
+    """The run_by column carries the user name git is configured with, so a report
+    says who ran it."""
+    # git reads these three variables as one more configuration entry, which
+    # stages a user name without touching this machine's git settings.
+    monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
+    monkeypatch.setenv("GIT_CONFIG_KEY_0", "user.name")
+    monkeypatch.setenv("GIT_CONFIG_VALUE_0", "Staged Tester")
+    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    assert {r["run_by"] for r in the_report(out)} == {"Staged Tester"}
+
+
+@code("TST0012")
+@positive
+def test_fixture_sha256s_names_each_fixture_file_with_its_hash(pytester, monkeypatch):
+    """The fixture_sha256s column names each file in the fixtures folder beside the
+    conftest with its sha256, so a report says the exact bytes the checks ran on."""
+    content = b"fixture bytes\n"
+    fixtures = pytester.path / "fixtures"
+    fixtures.mkdir()
+    (fixtures / "sample.txt").write_bytes(content)
+    expected = f"validation/fixtures/sample.txt={hashlib.sha256(content).hexdigest()}"
+    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    assert all(expected in r["fixture_sha256s"] for r in the_report(out))
