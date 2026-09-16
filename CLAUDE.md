@@ -103,4 +103,4 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 
 ## Python files
 
-Code is split by who runs it: `src/sdg/` is the pipeline, `repo_tools/` is hand-run repo maintenance tools, and `validation/` contains automated checks. Every Python file follows the rule in `.claude/rules/writing_python_files.md`. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.
+Code is split by who runs it: `src/sdg/` is the pipeline, `repo_tools/` is hand-run repo maintenance tools, `validation/` contains automated checks, and `.claude/hooks/` holds the hooks that run around Claude Code's own tool calls. Every Python file follows the rule in `.claude/rules/writing_python_files.md`. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.

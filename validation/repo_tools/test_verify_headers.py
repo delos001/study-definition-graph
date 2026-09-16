@@ -5,10 +5,11 @@ Description: Checks for repo_tools/verify_headers.py, the hand-run script the
              the full header block. Each check writes one or two small files to
              a temporary folder, points the script's checked folders at it,
              runs main() in-process, and asserts the exit code or the problem
-             line the header promises. One check runs the script over the real
-             package and repo_tools/ folders, the same run the hook makes.
+             line the header promises. One check runs the script over the four
+             real code folders, the same run the hook makes.
 
-Inputs:      src/sdg/**/*.py and repo_tools/*.py  (read-only; the one real-folder check)
+Inputs:      src/sdg/**/*.py, repo_tools/*.py, validation/**/*.py and
+             .claude/hooks/*.py  (read-only; the one real-folder check)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
@@ -171,8 +172,8 @@ def test_quiet_prints_nothing(folder, capsys):
 @code("HRS0046")
 @positive
 def test_real_folders_pass():
-    """Every Python file in the real package and repo_tools/ folders has a complete
-    header, which is the run the pre-commit hook makes."""
+    """Every Python file in the four real code folders has a complete header, which
+    is the run the pre-commit hook makes."""
     assert script.main(["--quiet"]) == 0
 
 
@@ -266,11 +267,14 @@ def test_unparseable_outranks_incomplete(folder, capsys):
 
 @code("HRS0079")
 @positive
-def test_all_three_code_folders_are_checked():
-    """The checker covers the three folders the writing rule names, so a file added
-    under validation/ is held to the header block like any other."""
-    covered = {folder.name for folder in script.CHECKED_FOLDERS}
-    assert covered == {"sdg", "repo_tools", "validation"}
+def test_all_four_code_folders_are_checked():
+    """The checker covers the four folders the writing rule names, so a file added
+    under any of them is held to the header block like any other."""
+    covered = {
+        folder.relative_to(script.REPO_ROOT).as_posix()
+        for folder in script.CHECKED_FOLDERS
+    }
+    assert covered == {"src/sdg", "repo_tools", "validation", ".claude/hooks"}
 
 
 #######################################################################################

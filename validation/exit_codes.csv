@@ -36,3 +36,7 @@ code,cause
 34,a header does not list a code its main() returns
 35,a pinned file has no document heading in the sources map
 36,the sources map names a location no manifest records
+37,.env has no Neo4j connection settings
+38,Neo4j could not be reached
+39,Neo4j rejected the login
+40,the running Neo4j is not the pinned version

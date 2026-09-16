@@ -7,7 +7,7 @@ Description: A Claude Code hook that refuses any Write or Edit to a pinned file
              One rule decides what is pinned: everything under inputs/. That
              folder holds only downloads recorded in a manifest, so nothing
              there is ever edited by hand. The two files the project writes
-             into it itself, README.md and .gitkeep, are allowed. The six
+             into it itself, README.md and .gitkeep, are allowed. The
              hand-written manifests at the top of manifests/ are refused too;
              the machine-written ones under manifests/study_documents/ are
              not, since the fetch script is meant to write them.
@@ -34,7 +34,8 @@ Usage:       Not run by hand. Named in .claude/settings.json as a PreToolUse
              hook for Write and Edit.
                  echo '{"tool_input":{"file_path":"inputs/x.pdf"}}' | python .claude/hooks/deny_pinned_edits.py
 
-Exit codes:  0  always; the decision is in the printed JSON, not the exit code
+Exit codes:  0   success (always; the decision is in the printed JSON, not the
+                 exit code)
 
 Date:        2026-09-09
 Owner:       Jason Delosh
@@ -56,15 +57,32 @@ MANIFEST_FOLDER = "manifests"
 
 
 def repo_root(call: dict) -> Path:
-    """Gives back the repo root: CLAUDE_PROJECT_DIR when Claude Code sets it,
-    otherwise the call's cwd, otherwise the process's own working directory."""
+    """Work out the repo root the path is judged against.
+
+    CLAUDE_PROJECT_DIR is preferred because Claude Code sets it to the folder the
+    session was opened in, and it does not move when the session runs cd.
+
+    Args:
+        call: The tool call as Claude Code sent it.
+
+    Returns:
+        CLAUDE_PROJECT_DIR when it is set, otherwise the call's cwd, otherwise the
+        process's own working directory, resolved to an absolute path.
+    """
     root = os.environ.get("CLAUDE_PROJECT_DIR") or call.get("cwd") or str(Path.cwd())
     return Path(root).resolve()
 
 
 def repo_relative(file_path: str, root: Path) -> Path | None:
-    """Turns the path Claude is about to write into a path relative to the
-    repo root, or None if the file is outside the repo."""
+    """Turn the path Claude is about to write into one relative to the repo root.
+
+    Args:
+        file_path: The path from the tool call, absolute or relative.
+        root: The repo root.
+
+    Returns:
+        The path relative to the root, or None when the file is outside the repo.
+    """
     target = Path(file_path)
     if not target.is_absolute():
         target = root / target
@@ -76,8 +94,15 @@ def repo_relative(file_path: str, root: Path) -> Path | None:
 
 
 def reason_to_deny(relative: Path) -> str | None:
-    """Gives back the sentence explaining why this path must not be written,
-    or None if writing it is fine."""
+    """Decide whether a repo-relative path may be written.
+
+    Args:
+        relative: The path, relative to the repo root.
+
+    Returns:
+        The sentence explaining why the path must not be written, or None when
+        writing it is fine.
+    """
     parts = relative.parts
     if not parts:
         return None
@@ -102,9 +127,14 @@ def reason_to_deny(relative: Path) -> str | None:
 
 
 def main() -> int:
-    """Reads the tool call from stdin and prints a deny decision if the path
-    is pinned. Anything unexpected in the input is treated as allow, so a
-    malformed message can never block ordinary work."""
+    """Read the tool call from stdin and print a deny decision when the path is pinned.
+
+    Anything unexpected in the input is treated as allow, so a malformed message
+    can never block ordinary work.
+
+    Returns:
+        Always 0. The decision is in what is printed, not in the exit code.
+    """
     try:
         call = json.load(sys.stdin)
         file_path = call["tool_input"]["file_path"]

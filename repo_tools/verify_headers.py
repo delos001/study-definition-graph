@@ -1,8 +1,8 @@
 """
 Script:      verify_headers.py
-Description: Checks that every Python file in the three code folders, src/sdg/,
-             repo_tools/ and validation/, opens with the full header block the
-             writing_python_files rule requires, with the eight fields in the set
+Description: Checks that every Python file in the four code folders, src/sdg/,
+             repo_tools/, validation/ and .claude/hooks/, opens with the full
+             header block the writing_python_files rule requires, with the eight fields in the set
              order and a Date in YYYY-MM-DD form. It reports each file that falls
              short and names what is wrong.
 
@@ -28,8 +28,9 @@ Description: Checks that every Python file in the three code folders, src/sdg/,
              __init__.py files are skipped: they carry a one-paragraph
              docstring naming the folder, not a header block.
 
-Inputs:      src/sdg/**/*.py, repo_tools/*.py and validation/**/*.py   (read-only, parsed rather than imported)
-             validation/exit_codes.csv                              (read-only, the repo-wide table)
+Inputs:      src/sdg/**/*.py, repo_tools/*.py, validation/**/*.py and
+             .claude/hooks/*.py         (read-only, parsed rather than imported)
+             validation/exit_codes.csv  (read-only, the repo-wide table)
 
 Outputs:     Nothing on disk. Prints one line per problem, or nothing when
              every header is complete.
@@ -80,6 +81,7 @@ CHECKED_FOLDERS = (
     REPO_ROOT / "src" / "sdg",
     REPO_ROOT / "repo_tools",
     REPO_ROOT / "validation",
+    REPO_ROOT / ".claude" / "hooks",
 )
 
 # The Date field is the day the file was first committed, written as a plain
@@ -321,7 +323,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check every header block in the package and repo_tools/."
+        description="Check every header block in the four code folders."
     )
     parser.add_argument(
         "--quiet", action="store_true", help="print nothing; use the exit code"

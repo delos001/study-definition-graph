@@ -24,17 +24,18 @@ where = ["src"]
 "sdg.view" = ["*.yml"]
 
 [tool.pytest.ini_options]
-# validation/repo_tools/ imports the repo tools by name (import build_index), which
-# needs repo_tools/ on the import path. Declared here once, not in each test file.
-pythonpath = ["repo_tools"]
+# validation/repo_tools/ imports the repo tools by name (import build_index), and
+# validation/claude_hooks/ imports the Claude Code hooks the same way, so both folders
+# go on the import path. Declared here once, not in each test file.
+pythonpath = ["repo_tools", ".claude/hooks"]
 testpaths = ["validation"]
 
 [tool.ruff]
-# Line length matches ruff's default formatter width. src, repo_tools and validation are
-# the three folders the writing_python_files rule covers.
+# Line length matches ruff's default formatter width. The four folders listed are the
+# ones the writing_python_files rule covers.
 line-length = 88
 target-version = "py312"
-src = ["src", "repo_tools", "validation"]
+src = ["src", "repo_tools", "validation", ".claude/hooks"]
 
 [tool.ruff.lint]
 # E and W are PEP 8 style, F is pyflakes (unused names, undefined names), I is
@@ -52,9 +53,10 @@ known-first-party = ["sdg"]
 # Every function must carry hints, per the writing_python_files rule. The
 # packages below ship no type stubs, so their imports are allowed untyped.
 python_version = "3.12"
-files = ["src", "repo_tools", "validation"]
-# validation/repo_tools/ imports the repo tools by bare name, as pytest does.
-mypy_path = ["src", "repo_tools", "."]
+files = ["src", "repo_tools", "validation", ".claude/hooks"]
+# validation/repo_tools/ and validation/claude_hooks/ import the repo tools and the
+# hooks by bare name, as pytest does.
+mypy_path = ["src", "repo_tools", ".claude/hooks", "."]
 # With explicit package bases every test file is named validation.<folder>.<file>, so
 # one override pattern below covers the whole folder, present and future.
 explicit_package_bases = true

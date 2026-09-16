@@ -137,6 +137,10 @@ python repo_tools/check_facts.py
 # failure, it prints the cause and the appropriate resolution.
 usdm_spec --list-classes
 
+# Confirms the Neo4j database is running, accepts the login in .env, and is the version
+# pinned in docker-compose.yml. Needs Docker running with the container up (step 6).
+python repo_tools/check_neo4j.py
+
 # Runs the automated checks in validation/; validation/README.md explains them.
 pytest
 ```
@@ -196,6 +200,7 @@ study-definition-graph/
       view/                #     print part of a pinned document or workbook
   repo_tools/              # tools that keep this repo in order
   validation/              # checks that prove the code works
+    claude_hooks/          #   validation for the hooks in .claude/hooks/
     fixtures/              #   throwaway repos used during a validation run
     reports/               #   results of a full validation run, archived
     repo_tools/            #   validation for the tools in repo_tools/

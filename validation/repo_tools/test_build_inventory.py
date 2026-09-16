@@ -185,6 +185,18 @@ def test_row_names_the_group_and_the_target(generated):
     assert first["check_file"] == "validation/repo_tools/test_alpha.py"
 
 
+@code("HRS0122")
+@positive
+def test_a_hook_check_targets_the_hook(tests_folder, capsys):
+    """A test file under validation/claude_hooks/ is grouped as claude_hooks, and its
+    target is the hook of the same name in .claude/hooks/."""
+    inventory = tests_folder({"claude_hooks/test_alpha.py": TWO_CHECKS})
+    assert run(capsys).exit_code == 0
+    first = rows_of(inventory)[0]
+    assert first["type"] == "claude_hooks"
+    assert first["target_file"] == ".claude/hooks/alpha.py"
+
+
 @code("HRS0055")
 @positive
 def test_new_check_starts_active_at_version_1(generated):
@@ -212,8 +224,8 @@ def test_hand_kept_columns_are_carried_over_by_id(tests_folder, capsys):
 @code("HRS0057")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
-    """Rows are grouped sources, then usdm, then repo_tools, then validation, whatever
-    order the files are found in."""
+    """Rows are grouped in the pipeline's order, sources first and the report writer's
+    own checks last, whatever order the files are found in."""
     inventory = tests_folder(
         {
             "test_report.py": TWO_CHECKS.replace("ABC", "TTT"),

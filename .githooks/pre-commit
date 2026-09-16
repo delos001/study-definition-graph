@@ -23,9 +23,10 @@ python repo_tools/build_index.py --check || {
   exit 1
 }
 
-# Every Python file in the package and in repo_tools/ opens with the header block
-# the writing_python_files rule requires. A file that lacks one, or has its fields out of order, is
-# refused here so the rule holds whoever made the edit. Standard library only.
+# Every Python file under src/sdg/, repo_tools/, validation/ and .claude/hooks/
+# opens with the header block the writing_python_files rule requires, and its exit codes agree
+# with validation/exit_codes.csv. A file that falls short is refused here so the
+# rule holds whoever made the edit. Standard library only.
 python repo_tools/verify_headers.py || {
   echo "pre-commit: fix the header blocks named above, then commit again"
   exit 1

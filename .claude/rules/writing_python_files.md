@@ -3,15 +3,17 @@ paths:
   - "src/**/*.py"
   - "repo_tools/**/*.py"
   - "validation/**/*.py"
+  - ".claude/hooks/**/*.py"
 ---
 
 # Writing a Python file
 
-This rule covers every Python file the project writes. There are three kinds:
+This rule covers every Python file the project writes. There are four kinds:
 
 - the package under `src/sdg/`, which holds the pipeline's workflows and steps, the code other code imports;
 - the repo tools under `repo_tools/`, which keep the repository's own files in order and are run by a person or by the pre-commit hook;
-- the checks under `validation/`, which prove the package and the scripts do what they say.
+- the checks under `validation/`, which prove the package and the scripts do what they say;
+- the Claude Code hooks under `.claude/hooks/`, which run around Claude's own tool calls in a session and hold it to the repo's rules.
 
 Where a standard convention exists, the project follows it. The conventions in use are PEP 8 for layout and names, the Google layout for docstrings, ruff for formatting and linting, mypy for type checking, and pytest for checks. The project departs from a convention only where this rule says so, and says why.
 
@@ -36,7 +38,7 @@ Owner:       Jason Delosh
 
 `Owner` is who is accountable for the file and who to ask about it, not who wrote it. Who wrote a line is git's answer: `git blame <file>`. `Owner` changes only when ownership transfers.
 
-The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/`, `repo_tools/` or `validation/` lacks the block or has its fields out of order. `conftest.py` carries the block like any other file: it is read by pytest rather than run by a person, and its `Usage` lines are the pytest commands that load it.
+The one exception is `__init__.py`, which carries a one-paragraph docstring naming the folder instead of a header block. The pre-commit hook refuses a commit when any other file under `src/sdg/`, `repo_tools/`, `validation/` or `.claude/hooks/` lacks the block or has its fields out of order. `conftest.py` carries the block like any other file: it is read by pytest rather than run by a person, and its `Usage` lines are the pytest commands that load it.
 
 ## Exit codes
 
@@ -96,7 +98,7 @@ Three tool runs check a file, and all three are configured in `pyproject.toml`. 
 ```powershell
 ruff format .          # rewrap and reindent every file to the standard layout
 ruff check .           # report style and lint problems; add --fix to apply the ones ruff can fix itself
-mypy                   # check the type hints in src/, repo_tools/ and validation/
+mypy                   # check the type hints in src/, repo_tools/, validation/ and .claude/hooks/
 ```
 
 `python repo_tools/check_python_files.py` runs all three in that order and reports what each found. The pre-commit hook runs it, so a file that fails any of them is refused before it lands, whoever made the edit.
@@ -107,7 +109,7 @@ Line length is the formatter's job alone. A line the formatter leaves long is a 
 
 A check is one pytest function that proves one promise the code makes. The checks live under `validation/`, and they follow everything above plus these rules.
 
-- Each workflow, step and hand-run script has its own file of checks, at the same relative path under `validation/`, named `test_` plus the file's name. The checks for `src/sdg/sources/fetch_file.py` are in `validation/sources/test_fetch_file.py`.
+- Each workflow, step, hand-run script and hook has its own file of checks, at the same relative path under `validation/`, named `test_` plus the file's name. The checks for `src/sdg/sources/fetch_file.py` are in `validation/sources/test_fetch_file.py`. The one exception is the Claude Code hooks, whose checks live under `validation/claude_hooks/`, because pytest does not look inside a folder whose name starts with a dot.
 - A check proves one promise. If the sentence saying what it proves uses "and", it is more than one check. A situation several checks look at is staged once, in a fixture, and each check asserts one thing about it. The same check over several inputs uses `pytest.mark.parametrize`.
 - Every check carries `@positive`, meaning the right thing works, or `@negative`, meaning the wrong thing is refused, and a `@code` marker holding its permanent id from `validation/validation_inventory.csv`.
 - A negative check breaks exactly one thing, says which in its docstring, and asserts two things: the type of error raised, and that the message names that cause and its remedy rather than another.

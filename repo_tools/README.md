@@ -56,6 +56,17 @@ python repo_tools/check_facts.py --verbose
     also show facts that match
 ```
 
+## check_neo4j.py
+
+Confirms the project's Neo4j database is running, accepts the login in .env, and is the version pinned in docker-compose.yml, so a database that is off, was started the wrong way, or has drifted to another version is found at setup rather than part way through a graph load.
+
+```
+python repo_tools/check_neo4j.py
+    ask the database its version and report whether it matches
+python repo_tools/check_neo4j.py --quiet
+    print nothing; use the exit code
+```
+
 ## check_python_files.py
 
 Runs the three tool checks every Python file must pass, in order: ruff format in check mode, ruff check, and mypy. Each tool's own output is printed as it runs, so a failure names the file and the line. All three are configured in pyproject.toml; this script adds nothing to what they check.
@@ -91,7 +102,7 @@ python repo_tools/find_unrecorded_files.py --quiet
 
 ## verify_headers.py
 
-Checks that every Python file in the three code folders, src/sdg/, repo_tools/ and validation/, opens with the full header block the writing_python_files rule requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.
+Checks that every Python file in the four code folders, src/sdg/, repo_tools/, validation/ and .claude/hooks/, opens with the full header block the writing_python_files rule requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.
 
 ```
 python repo_tools/verify_headers.py

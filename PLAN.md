@@ -40,7 +40,7 @@ No pipeline work; the point is to stand up the tools and pin the sources, and to
   - loader that lists USDM classes and their fields from the pinned spec,
   - determination of whether the DDF conformance endpoint and CORE are usable without member credentials.
 - **Verification:**
-  - Neo4j Browser reachable at `localhost:7474` with a query run by hand,
+  - `python repo_tools/check_neo4j.py` exits 0, proving the database answers, accepts the login and is the pinned version,
   - `usdm_spec --list-classes` prints class names read from the pinned file.
 
 ### Phase 1 — Acquire documents and locate their content

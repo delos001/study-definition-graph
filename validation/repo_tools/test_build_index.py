@@ -12,9 +12,9 @@ Inputs:      repo_tools/*.py and repo_tools/README.md  (read-only; the one real-
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/test_build_index.py
+Usage:       pytest validation/repo_tools/test_build_index.py
                  run these checks
-             pytest validation/test_build_index.py -v
+             pytest validation/repo_tools/test_build_index.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

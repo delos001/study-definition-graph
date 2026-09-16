@@ -82,7 +82,7 @@ COLUMNS = (
 # Rows are grouped by the folder the test file sits in, in the order the pipeline
 # runs, with the record writer's own checks last. Within a folder, files are in
 # name order and checks in file order.
-TYPE_ORDER = ("sources", "usdm", "repo_tools", "validation")
+TYPE_ORDER = ("sources", "usdm", "view", "repo_tools", "claude_hooks", "validation")
 
 # What a check starts with when it first appears in the inventory.
 NEW_STATUS = "active"
@@ -128,9 +128,11 @@ def type_and_target(check_file: Path) -> tuple[str, str]:
     """Work out a test file's group and the code file it proves.
 
     validation/ mirrors the code. A test file in validation/repo_tools/ tests the script of the
-    same name in repo_tools/. A test file in any other subfolder tests the file of the
-    same name in that folder under src/sdg/. A test file at the top level tests the
-    record writer in validation/conftest.py.
+    same name in repo_tools/. A test file in validation/claude_hooks/ tests the hook of the
+    same name in .claude/hooks/, which cannot be mirrored by name because pytest does
+    not look inside a folder whose name starts with a dot. A test file in any other
+    subfolder tests the file of the same name in that folder under src/sdg/. A test
+    file at the top level tests the record writer in validation/conftest.py.
 
     Args:
         check_file: The test file's path.
@@ -145,6 +147,8 @@ def type_and_target(check_file: Path) -> tuple[str, str]:
         return "validation", "validation/conftest.py"
     if folder == "repo_tools":
         return "repo_tools", f"repo_tools/{component}"
+    if folder == "claude_hooks":
+        return "claude_hooks", f".claude/hooks/{component}"
     return folder, f"src/sdg/{folder}/{component}"
 
 

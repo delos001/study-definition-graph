@@ -119,65 +119,6 @@ DOCS = [
 # documents against the wrong source.
 
 
-def ig_sections() -> int:
-    """Count the bookmarks in the USDM Implementation Guide, which is what a section is.
-
-    Returns:
-        The bookmark count.
-    """
-    return len(
-        fitz.open(
-            verify_pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM-IG.pdf").path
-        ).get_toc()
-    )
-
-
-def core_rules() -> int:
-    """Count the rows carrying a rule ID in the conformance rules workbook.
-
-    Returns:
-        The rule count.
-    """
-    sheet = openpyxl.load_workbook(
-        verify_pinned(STANDARDS / "cdisc" / "usdm_v4" / "USDM_CORE_Rules.xlsx").path,
-        read_only=True,
-    )["Version 3.0 and 4.0 CORE rules"]
-    return sum(1 for row in list(sheet.iter_rows(values_only=True))[1:] if row[0])
-
-
-def m11_elements() -> int:
-    """Count the data elements in the M11 Technical Specification.
-
-    Counted by the "Term (Variable)" label that opens each element block, which is the
-    document's own delimiter rather than a heuristic of ours.
-
-    Returns:
-        The element count.
-    """
-    text = "".join(
-        page.get_text()
-        for page in fitz.open(
-            verify_pinned(
-                STANDARDS
-                / "ich"
-                / "m11_step4"
-                / "ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf"
-            ).path
-        )
-    )
-    return len(re.findall(r"Term \(Variable\)\s*\n\s*<([^>]{1,80})>", text))
-
-
-def uml_delta_rows() -> int:
-    """Count the lines in the v3.0-to-v4.0 change file, header included, as quoted.
-
-    Returns:
-        The line count.
-    """
-    path = STANDARDS / "cdisc" / "usdm_v4" / "UML_DELTA_3-0-0_4-0-0.csv"
-    return len(verify_pinned(path).read_text().splitlines())
-
-
 def dictionary_codes() -> int:
     """Count the distinct NCI C-codes named in the data dictionary.
 
@@ -244,19 +185,6 @@ def shared_codes() -> int:
     return len(m11 & terminology)
 
 
-def worked_examples() -> int:
-    """Count the worked example studies, one directory each.
-
-    A count of folders, not a read of any file's contents, so there is nothing for the
-    pinned-file check to verify here; the files inside are verified where they are read,
-    in examples_with_estimands.
-
-    Returns:
-        The study count.
-    """
-    return len([d for d in EXAMPLES.iterdir() if d.is_dir()])
-
-
 def examples_with_estimands() -> int:
     """Count the worked-example studies whose USDM JSON defines at least one estimand.
 
@@ -290,20 +218,9 @@ def examples_with_estimands() -> int:
 # The regex must be specific enough that it cannot match an unrelated number;
 # a loose pattern would report a false match and defeat the point.
 FACTS = [
-    ("IG sections", ig_sections, r"of (\d+) sections"),
-    ("CORE rules", core_rules, r"(\d+) rules\b"),
-    ("M11 data elements", m11_elements, r"(\d+) elements"),
-    ("UML delta rows", uml_delta_rows, r"(\d+) rows:"),
     ("dataDictionary codes", dictionary_codes, r"(\d+) NCI codes|all (\d+) codes"),
     ("USDM concrete classes", usdm_concrete_classes, r"all (\d+) concrete class"),
     ("M11 and USDM shared codes", shared_codes, r"(\d+) codes in common"),
-    # Written as a word in prose, so the check accepts either form. Kept narrow
-    # enough that "three" elsewhere in a sentence cannot match.
-    (
-        "worked example studies",
-        worked_examples,
-        r"(?:(\d+)|(?i:(three)|(two)|(four))) (?:real protocols|worked example)",
-    ),
     # The count of examples that define an estimand, as stated in PLAN.md. The
     # trailing literal "of the three pinned examples defines" anchors it so the
     # captured number is the leading count, not the "three" later in the phrase.

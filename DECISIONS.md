@@ -323,3 +323,23 @@ The fields this project adds to USDM are treated as a standard, because that is 
 The codes that scope an extension, for clients, therapeutic areas and document types, went into `registries/` rather than beside the extensions. `PLAN.md` already names sponsor, therapeutic area and document type as prompt axes, so the same codes are expected to serve prompts too, and a shared folder avoids moving them later. The rules for the codes are in `registries/README.md`.
 
 Both structures are drafts and may be realigned by the prompt axis work in #15. Validation waits until they are stable, so the checks are not rewritten each time the structure moves. Settling them is #30 and #31, and the validation is #32.
+
+## The Neo4j deliverable gets a repo check, decided 2026-09-16
+
+The Phase 0 audit ran every command the repo says should pass and found one Phase 0 product with no check at all: the Neo4j database. `PLAN.md` verified it by reaching the browser and running a query by hand. On the day of the audit the pinned container had been stopped for four weeks, and pressing the run button in Docker Desktop had started a bare copy of the image with no ports, no password, no saved data and no version pin, which the browser address could not reach. Nothing in the repo could have said so.
+
+Two options were weighed. Keeping the hand check costs nothing but leaves one Phase 0 item that cannot be re-proven, and Phase 4 depends on that item. A repo check costs a small tool and needs Docker running when it is run. The repo check was chosen.
+
+`repo_tools/check_neo4j.py` reads the three connection settings from `.env`, asks the database its version and edition, and compares the answer with the image tag pinned in `docker-compose.yml`. Reaching the database and logging in are proven on the way. The version comparison is the point: the compose file pins the version so a failure can be attributed, and a container started outside the compose file does not carry that pin, which is exactly what the audit found running. Each cause has its own exit code, added to `validation/exit_codes.csv` as 37 to 40.
+
+The tool is not in the pre-commit hook, because a commit should not need Docker. It joins the setup verification list in `README.md`, and the Phase 0 verification line in `PLAN.md` now names it in place of the hand check.
+
+## The Claude Code hooks are the fourth kind of Python file, decided 2026-09-16
+
+The writing rule in `.claude/rules/writing_python_files.md` said it covered every Python file the project writes and named three folders. The Phase 0 audit found a fourth kind outside all three: the Claude Code hook in `.claude/hooks/`, which refuses an edit to a pinned file. It carried the header block, and `.claude/README.md` said it did, but the header checker never read that folder, so the block held only while someone remembered. It also had no checks, and neither did `repo_tools/check_python_files.py`, the tool that holds every other file to the formatter, linter and type checker.
+
+Two options were weighed. Recording the hook as exempt costs nothing, but the one script that guards the pinned files is the wrong place for an exemption. Extending the rule costs one folder in each tool's configuration and two files of checks. The rule was extended.
+
+The hooks folder is now the fourth folder the rule names, and the header checker, ruff, mypy and pytest all read it. The one wrinkle is where the hook's checks live. Every other code file has its checks at the same relative path under `validation/`, but pytest does not look inside a folder whose name starts with a dot, so `validation/.claude/hooks/` would never run. The checks live in `validation/claude_hooks/` instead, and the inventory generator maps that folder back to `.claude/hooks/`. The rule states the exception and why.
+
+This amends the entry above, "Code lives in one of three places, by who runs it". There are four places, and the fourth is code that Claude Code itself runs.
