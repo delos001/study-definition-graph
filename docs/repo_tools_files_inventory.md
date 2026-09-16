@@ -1,6 +1,6 @@
 # repo_tools/
 
-The words in brackets after each name say who runs the tool: a person, the pre-commit hook, or pytest. The rest of the line says what it reads beyond its own arguments.
+The words in brackets after each name say how the tool is run: by hand, by the pre-commit hook, or by pytest. The rest of the line says what it reads beyond its own arguments.
 
 - build_index.py (by hand and by the pre-commit hook): reads the header block of every script and writes repo_tools/README.md
 - build_inventory.py (by hand and by the pre-commit hook): reads the checks under validation/ and writes validation_inventory.csv

@@ -4,7 +4,7 @@
 
 ## sources/
 ### workflows
-- acquire_sources.py (manual): uses read_manifests, fetch_file, fingerprint_file, finalize_file
+- acquire_sources.py (by hand): uses read_manifests, fetch_file, fingerprint_file, finalize_file
 - verify_pinned.py: uses read_manifests, fingerprint_file
 - update_sources.py: uses fetch_file, fingerprint_file, finalize_file, write_manifests - pending
 
@@ -17,13 +17,13 @@
 
 ## usdm/
 ### workflows
-- usdm_spec.py (manual): uses console_output, verify_pinned
+- usdm_spec.py (by hand): uses console_output, verify_pinned
 ### steps
 
 ## view/
 ### workflows
-- read_pdf.py (manual): uses read_manifests, and reads lookup_documents.yml
-- read_xlsx.py (manual): uses read_manifests
+- read_pdf.py (by hand): uses read_manifests, and reads lookup_documents.yml
+- read_xlsx.py (by hand): uses read_manifests
 ### steps
 ### data
 - lookup_documents.yml (the documents read_pdf can open, and what to strip from their pages)
