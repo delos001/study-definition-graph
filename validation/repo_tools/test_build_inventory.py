@@ -287,21 +287,31 @@ def test_real_inventory_is_current():
 
 @code("HRS0061")
 @negative
-def test_check_fails_when_inventory_is_stale_or_missing(tests_folder, capsys):
-    """With the check option, the run exits 16 and names the command to run when
-    the inventory is missing or no longer matches the checks; nothing is written
-    either way."""
+def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
+    """With the check option and no inventory on disk, the run exits 16, names the
+    command to run, and writes nothing."""
     inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
     assert not inventory.exists()
     assert "is stale. Run: python repo_tools/build_inventory.py" in outcome.printed
 
+
+@code("HRS0133")
+@negative
+def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
+    """With the check option and an inventory that no longer matches the checks, the
+    run exits 16, names the command to run, and leaves the stale inventory as it was."""
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
+    stale = inventory.read_text(encoding="utf-8")
     tests_folder(
         {"repo_tools/test_alpha.py": TWO_CHECKS.replace("first thing", "other thing")}
     )
-    assert run(capsys, "--check").exit_code == 16
+    outcome = run(capsys, "--check")
+    assert outcome.exit_code == 16
+    assert inventory.read_text(encoding="utf-8") == stale
+    assert "is stale. Run: python repo_tools/build_inventory.py" in outcome.printed
 
 
 @code("HRS0062")

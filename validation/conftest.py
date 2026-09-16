@@ -95,6 +95,13 @@ from pathlib import Path
 
 import pytest
 
+# The rule that says which code file a check file proves lives in the inventory
+# generator, which fills the same column of the inventory. Importing it means the
+# inventory and a report can never disagree. pyproject.toml puts repo_tools/ on
+# pytest's import path, and the generator uses only the standard library, so this
+# import cannot fail because the package is broken.
+from build_inventory import type_and_target
+
 VALIDATION_DIR = Path(__file__).resolve().parent
 REPO_ROOT = VALIDATION_DIR.parent
 FIXTURE_DIR = VALIDATION_DIR / "fixtures"
@@ -109,11 +116,11 @@ MANIFEST = REPO_ROOT / "manifests" / "cdisc_usdm_v4.json"
 
 # pytest has a helper called pytester that lets a test run a small, separate
 # test suite of its own. It is switched off unless a file asks for it. The
-# record-writer's tests, in validation/test_validation_report.py, use it to run a
-# throwaway suite and then read the record that comes out.
+# report-writer's tests, in validation/test_validation_report.py, use it to run a
+# throwaway suite and then read the report that comes out.
 pytest_plugins = ["pytester"]
 
-# pytest ends every run with a number that says how the run went. The record
+# pytest ends every run with a number that says how the run went. The report
 # prints that number together with its meaning, in these words.
 EXIT_MEANING = {
     0: "all tests passed",
@@ -358,9 +365,9 @@ def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
 def pytest_addoption(parser):
     """Add two options to the pytest command line.
 
-    --validation-report is off unless given. With it, a record is written after the run.
-    --validation-report-dir says which folder the record goes in. It defaults to
-    validation/reports; the record-writer's own checks point it at a temporary folder
+    --validation-report is off unless given. With it, one report is written after the
+    run. --validation-report-dir says which folder the report goes in. It defaults to
+    validation/reports; the report-writer's own checks point it at a temporary folder
     instead.
 
     Args:
@@ -370,12 +377,12 @@ def pytest_addoption(parser):
         "--validation-report",
         action="store_true",
         default=False,
-        help="after the run, write a validation record per test file",
+        help="after the run, write one validation report, one row per check",
     )
     parser.addoption(
         "--validation-report-dir",
         default=str(VALIDATION_DIR / "reports"),
-        help="folder the records are written to (default: validation/reports)",
+        help="folder the report is written to (default: validation/reports)",
     )
 
 
@@ -513,7 +520,7 @@ def _first_paragraph(doc: str | None) -> str:
     """Give a check's docstring's first paragraph as one line.
 
     That paragraph is the plain statement of what the check proves, and it is what the
-    record shows for the check.
+    report shows for the check.
 
     Args:
         doc: The docstring, or None when the check has none.
@@ -528,14 +535,14 @@ def _first_paragraph(doc: str | None) -> str:
 
 
 #######################################################################################
-### Writing the record ###
+### Writing the report ###
 
 
 def _git(*args: str) -> str:
     """Run one git command in the repo.
 
     If git is not installed or the command fails, the result is '(unknown)' instead of
-    an error, so a record can still be written.
+    an error, so a report can still be written.
 
     Args:
         *args: The git command's arguments.
@@ -554,7 +561,7 @@ def _git(*args: str) -> str:
 def _sha256(path: Path) -> str:
     """Measure a file's sha256.
 
-    The record names the exact bytes of the test code and fixtures it ran on, and this
+    The report names the exact bytes of the test code and fixtures it ran on, and this
     is how.
 
     Args:
@@ -570,14 +577,14 @@ def _pinned_data_version() -> tuple[str, str]:
     """Say which version of the pinned model file was on the machine at run time.
 
     The recorded sha256 identifies the version. If the manifest cannot be read, the
-    first value says so instead, and the record is still written.
+    first value says so instead, and the report is still written.
 
     Returns:
         The recorded sha256, and whether the file was present.
     """
     present = "present" if (REPO_ROOT / PINNED_LOCAL).exists() else "absent"
     # The manifest is read directly here rather than through the package, so a
-    # broken package cannot stop the record from being written.
+    # broken package cannot stop the report from being written.
     try:
         entries = json.loads(MANIFEST.read_text(encoding="utf-8")).get("files", [])
         entry = next(e for e in entries if e.get("local") == PINNED_LOCAL)
@@ -590,7 +597,7 @@ def _unique(path: Path) -> Path:
     """Find a file name that is not in use yet.
 
     If the path already exists, -2, -3 and so on are added to the name, so a second
-    record on the same day and commit never overwrites the first.
+    report on the same day and commit never overwrites the first.
 
     Args:
         path: The name wanted.
@@ -605,7 +612,7 @@ def _unique(path: Path) -> Path:
     return candidate
 
 
-# The moment the run started, so the record can say how long the run took.
+# The moment the run started, so the report can say when the run began.
 _started_at = 0.0
 
 
@@ -619,11 +626,11 @@ def pytest_sessionstart(session):
     _started_at = time.monotonic()
 
 
-# The columns of a record, in the order they are written: what each check proved
+# The columns of a report, in the order they are written: what each check proved
 # comes first, then what the run was, then the technical details a reader needs
 # only to reproduce a failure. The check columns carry the same names as
 # validation/validation_inventory.csv, so a row joins to it by check_name_code.
-RECORD_COLUMNS = (
+REPORT_COLUMNS = (
     "run_id",
     "run_verdict",
     "check_name_code",
@@ -684,11 +691,8 @@ def _selection(args: tuple[str, ...]) -> str:
 def _target_of(test_file: Path) -> str:
     """Name the code file a test file proves.
 
-    validation/ mirrors the code. A test file in validation/repo_tools/ tests the script of the
-    same name in repo_tools/. A test file in any other subfolder tests the file of the
-    same name in that folder under src/sdg/. A test file at the top level has no code
-    file to mirror; the one there, test_validation_report.py, tests the record-writer
-    in this file, so its target is the test file itself.
+    The rule is the inventory generator's, imported above, so the report's target
+    column and the inventory's agree by construction.
 
     Args:
         test_file: The test file's path.
@@ -696,22 +700,13 @@ def _target_of(test_file: Path) -> str:
     Returns:
         The target's repo-relative path, marked when it was not found at run time.
     """
-    relative = test_file.relative_to(VALIDATION_DIR)
-    folder = relative.parent.as_posix()
-    component = test_file.stem.removeprefix("test_")
-    if folder == ".":
-        return f"validation/{relative.as_posix()}"
-    if folder == "repo_tools":
-        mirrored = REPO_ROOT / "repo_tools" / f"{component}.py"
-    else:
-        mirrored = REPO_ROOT / "src" / "sdg" / folder / f"{component}.py"
-    name = mirrored.relative_to(REPO_ROOT).as_posix()
+    _, name = type_and_target(test_file, VALIDATION_DIR)
     # The mirrored file is named even when it is not there, so the gap shows.
-    return name if mirrored.exists() else f"{name} (not found at run time)"
+    return name if (REPO_ROOT / name).exists() else f"{name} (not found at run time)"
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """Write the record after the whole run, if asked.
+    """Write the report after the whole run, if asked.
 
     Nothing is written unless --validation-report was given. One CSV file is written
     per run, one row per check, with the run's own details repeated on every row so
@@ -725,7 +720,7 @@ def pytest_sessionfinish(session, exitstatus):
     if not session.config.getoption("--validation-report"):
         return
 
-    # Everything the record states about the run is gathered once here and
+    # Everything the report states about the run is gathered once here and
     # written on every row.
     now = dt.datetime.now().astimezone()
     started = now - dt.timedelta(seconds=time.monotonic() - _started_at)
@@ -784,7 +779,7 @@ def pytest_sessionfinish(session, exitstatus):
                 )
     else:
         # No outcome was collected, so pytest failed before any check ran. One
-        # row is written saying so, so a broken run still leaves a record.
+        # row is written saying so, so a broken run still leaves a report.
         rows.append(
             {
                 **run,
@@ -804,10 +799,10 @@ def pytest_sessionfinish(session, exitstatus):
     report_dir.mkdir(parents=True, exist_ok=True)
     target = _unique(report_dir / f"run_{now:%Y-%m-%d}_{commit}.csv")
     with target.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=RECORD_COLUMNS, lineterminator="\n")
+        writer = csv.DictWriter(fh, fieldnames=REPORT_COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
     if terminal is not None:
-        terminal.write_line(f"validation record written: {target.as_posix()}")
+        terminal.write_line(f"validation report written: {target.as_posix()}")

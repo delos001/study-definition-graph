@@ -104,20 +104,60 @@ def folder(tmp_path, monkeypatch):
 ### Generating the index ###
 
 
+@pytest.fixture
+def written(folder, capsys):
+    """Stage one script with a complete header, run the generator, and hand back the
+    exit code, the index it wrote and what it printed."""
+    scripts = folder({"alpha.py": GOOD_HEADER})
+    exit_code = bi.main([])
+    text = (scripts / "README.md").read_text(encoding="utf-8")
+    return exit_code, text, capsys.readouterr().out
+
+
 @code("HRS0001")
 @positive
-def test_writes_first_paragraph_and_usage_with_indent_kept(folder, capsys):
-    """The index holds each script's name, the first paragraph of its
-    Description joined to one line, and its Usage block with the relative
-    indentation kept; the second paragraph is left out. Exit 0."""
-    scripts = folder({"alpha.py": GOOD_HEADER})
-    assert bi.main([]) == 0
-    text = (scripts / "README.md").read_text(encoding="utf-8")
-    assert text.startswith("# repo_tools/\n\n" + bi.GENERATED_NOTICE)
+def test_writes_the_entry_from_the_header(written):
+    """The index holds each script's name, the first paragraph of its Description
+    joined to one line, and its Usage block with the relative indentation kept."""
+    _, text, _ = written
     assert EXPECTED_ENTRY in text
+
+
+@code("HRS0134")
+@positive
+def test_the_second_paragraph_is_left_out(written):
+    """Only the first paragraph of a Description reaches the index; the rest stays in
+    the header."""
+    _, text, _ = written
     assert "second paragraph" not in text
+
+
+@code("HRS0135")
+@positive
+def test_the_index_opens_with_the_title_and_the_notice(written):
+    """The index opens with its title and the notice saying it is generated, so
+    nobody edits it by hand."""
+    _, text, _ = written
+    assert text.startswith("# repo_tools/\n\n" + bi.GENERATED_NOTICE)
+
+
+@code("HRS0136")
+@positive
+def test_the_index_ends_with_one_newline(written):
+    """The index ends with exactly one newline, so a regenerated file compares equal
+    to itself and --check does not fail on whitespace."""
+    _, text, _ = written
     assert text.endswith("```\n") and not text.endswith("\n\n")
-    assert "repo_tools/README.md written, 1 script(s)" in capsys.readouterr().out
+
+
+@code("HRS0137")
+@positive
+def test_writing_reports_the_file_and_the_count(written):
+    """A run that writes the index exits 0 and says which file it wrote and how many
+    scripts it holds."""
+    exit_code, _, printed = written
+    assert exit_code == 0
+    assert "repo_tools/README.md written, 1 script(s)" in printed
 
 
 @code("HRS0002")
@@ -152,20 +192,30 @@ def test_check_passes_when_index_is_current(folder, capsys):
 
 @code("HRS0004")
 @negative
-def test_check_fails_when_index_is_stale_or_missing(folder, capsys):
-    """With the check option, the run exits 15 and names the command to run when
-    the index is missing or no longer matches the headers; nothing is written
-    either way."""
+def test_check_fails_when_index_is_missing(folder, capsys):
+    """With the check option and no index on disk, the run exits 15, names the command
+    to run, and writes nothing."""
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main(["--check"]) == 15
     assert not (scripts / "README.md").exists()
     assert "stale. Run: python repo_tools/build_index.py" in capsys.readouterr().out
 
+
+@code("HRS0132")
+@negative
+def test_check_fails_when_index_is_stale(folder, capsys):
+    """With the check option and an index that no longer matches the headers, the run
+    exits 15, names the command to run, and leaves the stale index as it was."""
+    scripts = folder({"alpha.py": GOOD_HEADER})
     bi.main([])
+    stale = (scripts / "README.md").read_text(encoding="utf-8")
     folder(
         {"alpha.py": GOOD_HEADER.replace("Does the first thing", "Does another thing")}
     )
+    capsys.readouterr()
     assert bi.main(["--check"]) == 15
+    assert (scripts / "README.md").read_text(encoding="utf-8") == stale
+    assert "stale. Run: python repo_tools/build_index.py" in capsys.readouterr().out
 
 
 @code("HRS0005")

@@ -124,8 +124,14 @@ def first_paragraph(doc: str | None) -> str:
     return " ".join(doc.strip().split("\n\n")[0].split())
 
 
-def type_and_target(check_file: Path) -> tuple[str, str]:
+def type_and_target(
+    check_file: Path, validation_dir: Path | None = None
+) -> tuple[str, str]:
     """Work out a test file's group and the code file it proves.
+
+    This is the one place the rule is written. validation/conftest.py uses it too, to
+    fill the same column of a validation report, so the inventory and the report can
+    never disagree about what a check file proves.
 
     validation/ mirrors the code. A test file in validation/repo_tools/ tests the script of the
     same name in repo_tools/. A test file in validation/claude_hooks/ tests the hook of the
@@ -136,11 +142,13 @@ def type_and_target(check_file: Path) -> tuple[str, str]:
 
     Args:
         check_file: The test file's path.
+        validation_dir: The validation folder the path is read against, or None for
+            the repo's own.
 
     Returns:
         The group name and the target's repo-relative path.
     """
-    relative = check_file.relative_to(VALIDATION_DIR)
+    relative = check_file.relative_to(validation_dir or VALIDATION_DIR)
     folder = relative.parent.as_posix()
     component = f"{check_file.stem.removeprefix('test_')}.py"
     if folder == ".":

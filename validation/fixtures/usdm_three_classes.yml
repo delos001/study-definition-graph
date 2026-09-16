@@ -1,5 +1,5 @@
 # Three classes copied verbatim from the pinned USDM v4.0 dataStructure.yml
-# (DDF-RA commit aa303cb, manifest data/manifests/raw_usdm_v4.json).
+# (DDF-RA commit aa303cb, manifest manifests/cdisc_usdm_v4.json).
 # Extracted 2026-09-04 with:
 #   awk '/^(Identifier|StudyIdentifier|Condition):/{p=1} p&&/^[A-Za-z]/&&!/^(Identifier|StudyIdentifier|Condition):/{p=0} p' dataStructure.yml
 #
