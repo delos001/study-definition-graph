@@ -8,8 +8,6 @@ Text extraction is a fairly well solved problem, but with that process, content 
 
 The goal of this project is to recover and preserve both content and the relationships within and across documents that have been extracted to a computer-readable and queryable format. It builds on published USDM standards, not a novel ontology invented here.
 
-Future work may include operational documents as well.
-
 See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in full.
 
 ## How it works
@@ -22,9 +20,11 @@ The pipeline runs as five stages, each taking the previous stage's output as its
 4. **Extract** (`extract/`): turn classified content into USDM structures, with every fact carrying where it came from.
 5. **Graph** (`graph/`): load the structures into Neo4j, link a protocol to its SAP, and answer a question that spans both.
 
-Locate comes before classify because a heading does not tell you what a section contains. The Schedule of Activities is built last, because it depends on every stage above it working first.
+The Schedule of Activities is built last, because it depends on every stage above it working first.
 
 See [PLAN.md](PLAN.md) for the phases, what each produces, and how each is verified.
+
+A validation system is included in this workflow. Validation of process outputs is critical, but input stability and script behavior are also important to show accuracy and consistency and to withstand audit scrutiny. See [validation/README.md](validation/README.md) for the automated checks and how validation reports are written.
 
 ## Status
 
