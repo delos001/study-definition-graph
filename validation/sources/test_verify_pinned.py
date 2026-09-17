@@ -245,6 +245,30 @@ def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
     assert str(fake_repo.root / LOCAL) in message
 
 
+@code("SRC0127")
+@negative
+def test_locked_file_passes_the_operating_systems_error_through(
+    recorded_file, monkeypatch
+):
+    """A recorded file that is on disk but cannot be opened raises PermissionError
+    unchanged, naming the path, rather than being wrapped as a mismatch or a missing
+    file. The operating system's refusal is staged by replacing the file open, since
+    a real lock cannot be made reliably inside a check."""
+    import pathlib
+
+    real_open = pathlib.Path.open
+
+    def refuse(self, *args, **kwargs):
+        if self == recorded_file:
+            raise PermissionError(f"{self}: locked by another program")
+        return real_open(self, *args, **kwargs)
+
+    monkeypatch.setattr(pathlib.Path, "open", refuse)
+    message = refused_with(PermissionError)
+    assert "locked by another program" in message
+    assert str(recorded_file) in message
+
+
 @code("SRC0106")
 @negative
 def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):

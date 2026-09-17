@@ -336,6 +336,22 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
+@code("HRS0151")
+@positive
+def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
+    """An entry that wraps and is the last thing in the field keeps its second line,
+    so a header holding one long entry and no closing prose is not refused as
+    wording that disagrees with the table."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "8   a pinned file has not been\n                 downloaded"
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
 @code("HRS0083")
 @positive
 def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
@@ -385,7 +401,10 @@ def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
             "beta.py": with_codes("99  something nobody agreed on"),
         }
     )
-    assert run(capsys).exit_code == 17
+    outcome = run(capsys)
+    assert outcome.exit_code == 17
+    assert "no module docstring" in outcome.printed
+    assert "exit code 99 is not in" in outcome.printed
 
 
 @code("HRS0087")
@@ -497,12 +516,35 @@ def test_an_unlisted_return_exits_34(folder, capsys):
 
 
 @code("HRS0092")
+@pytest.mark.parametrize(
+    "choice",
+    ["    return 8 if argv else 0", "    return 0 if argv else 8"],
+    ids=["unlisted code first", "unlisted code second"],
+)
 @negative
-def test_both_sides_of_a_one_line_choice_are_read(folder, capsys):
+def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
     """A return written as a one-line choice is read on both sides, so the branch that
-    is not listed is still caught."""
-    folder({"alpha.py": with_main("    return 8 if argv else 0")})
+    is not listed is still caught whichever side it sits on."""
+    folder({"alpha.py": with_main(choice)})
     assert run(capsys).exit_code == 34
+
+
+@code("HRS0152")
+@negative
+def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
+    """When one file has no header and another forgets a code its main() returns, the
+    run exits 17, because a header that cannot be read is the worse problem, and
+    both problems are named."""
+    folder(
+        {
+            "alpha.py": "print('no header')\n",
+            "beta.py": with_main("    return 8").replace("alpha.py", "beta.py"),
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 17
+    assert "no module docstring" in outcome.printed
+    assert "exit code 8 is returned by main()" in outcome.printed
 
 
 @code("HRS0093")
@@ -518,4 +560,7 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
             ).replace("alpha.py", "beta.py"),
         }
     )
-    assert run(capsys).exit_code == 34
+    outcome = run(capsys)
+    assert outcome.exit_code == 34
+    assert "exit code 8 is returned by main()" in outcome.printed
+    assert "exit code 8 says" in outcome.printed

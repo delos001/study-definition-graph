@@ -58,7 +58,7 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              It also enables pytest's own "pytester" helper, which the report-writer's
              tests use to run small throwaway suites.
 
-Inputs:      git (for the commit hash, dirty flag and user name; read-only)
+Inputs:      git (for the commit hash and user name; read-only)
              manifests/cdisc_usdm_v4.json (read-only; the pinned data version)
              inputs/standards/cdisc/usdm_v4/dataStructure.yml (existence checked only)
              validation/fixtures/* (read-only; hashed)
@@ -662,30 +662,30 @@ REPORT_COLUMNS = (
 _OWN_OPTIONS = ("--validation-report", "--validation-report-dir")
 
 
-def _selection(args: tuple[str, ...]) -> str:
+def _selection(config: pytest.Config) -> str:
     """Say which checks the command line selected.
 
+    The answer is read from pytest's own parsing rather than from the raw command
+    line, so a node id, a path, or the value of any option is recorded for what it is.
+    The paths and node ids count only when the person typed them; when pytest filled
+    them in from its configured test paths, the whole suite was selected.
+
     Args:
-        args: The command-line arguments pytest was given.
+        config: pytest's configuration for the run.
 
     Returns:
-        The paths and the -k or -m filters given, joined with spaces, or all when
-        the whole suite was selected.
+        The paths and node ids typed, and the -k or -m filters given, joined with
+        spaces, or all when the whole suite was selected.
     """
     kept: list[str] = []
-    skip_next = False
-    for i, arg in enumerate(args):
-        if skip_next:
-            skip_next = False
-            continue
-        if arg in _OWN_OPTIONS:
-            skip_next = arg == "--validation-report-dir"
-            continue
-        if arg in ("-k", "-m") and i + 1 < len(args):
-            kept.append(f"{arg} {args[i + 1]}")
-            skip_next = True
-        elif not arg.startswith("-"):
-            kept.append(arg)
+    if config.args_source == pytest.Config.ArgsSource.ARGS:
+        kept.extend(config.args)
+    keyword = config.getoption("keyword")
+    if keyword:
+        kept.append(f"-k {keyword}")
+    markexpr = config.getoption("markexpr")
+    if markexpr:
+        kept.append(f"-m {markexpr}")
     return " ".join(kept) or "all"
 
 
@@ -741,7 +741,7 @@ def pytest_sessionfinish(session, exitstatus):
         "started": f"{started:%Y-%m-%d %H:%M:%S %z}",
         "commit": commit,
         "run_by": _git("config", "user.name"),
-        "selection": _selection(tuple(session.config.invocation_params.args)),
+        "selection": _selection(session.config),
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
         "platform": platform.platform(),

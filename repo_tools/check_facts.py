@@ -108,7 +108,7 @@ DOCS = [
 #######################################################################################
 ### Measurements ###
 #
-# One function per countable fact. Each returns the true value, computed from a
+# One function per stated fact. Each returns the true value, computed from a
 # pinned file. They are deliberately small and independent so that a failing
 # measurement names exactly one fact.
 #
@@ -275,7 +275,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check countable claims in the markdown against the pinned files."
+        description="Check the figures stated in the markdown against the pinned files."
     )
     parser.add_argument(
         "--verbose", action="store_true", help="also show facts that match"

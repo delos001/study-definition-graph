@@ -19,6 +19,8 @@ Where a standard convention exists, the project follows it. The conventions in u
 
 The test of a well-written file is that a person who reads only its header block, its docstrings and its comments comes away with an accurate picture of what the file does. `src/sdg/sources/read_manifests.py` is the worked example.
 
+A change to the code is a change to its description. Before finishing an edit, read the file's header block, the docstrings of the functions touched and the comments around the change, and rewrite whatever the change made untrue. A new function goes into Usage, a new error into the docstring that lists errors, a new exit code into the Exit codes field, and a changed rule into the comment that explained the old one. A description that lags the code is a defect, not a cleanup for later.
+
 ## The header block
 
 Every file opens with a docstring holding eight fields, in this order:

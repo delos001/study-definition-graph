@@ -57,7 +57,7 @@ Get real protocol and SAP pairs and find where their content lives, deterministi
      - This is why boundary-finding (Phase 1) and content classification (Phase 2) are separate stages.
   2. **PDF addressability varies.**
      - Some protocols carry bookmarks, some only numbered headings in body text.
-     - The locator handles both, and a protocol with no bookmarks degrades to heading detection rather than failing, the same split `src/sdg/view/read_pdf.py` already draws for the pinned standards.
+     - The locator has two paths, one reading the bookmarks and one detecting numbered headings in the text, and a protocol with no bookmarks takes the second. Neither path is a fallback for the other. `src/sdg/view/read_pdf.py` already draws the same split for the pinned standards.
   3. **Grids need structure-aware extraction.**
      - The SoA collapses to unreadable linear text under a plain extract; `fitz.find_tables()` recovers its rows, columns, and footnote markers.
      - The grid and its footnote links must be preserved.

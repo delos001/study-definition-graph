@@ -13,10 +13,12 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
              A file that cannot be proven is refused, with a message naming the cause
              and the remedy.
 
-             This is the only way code obtains a pinned file. The
-             manifest is how the proof is made today; if a source is one day
-             served by an API, the inside of this module changes and the
-             stages calling it do not.
+             This is the only way a pipeline stage obtains a pinned file. The
+             two viewing commands in src/sdg/view/ open a pinned file directly,
+             by the decision of 2026-09-04, because they show a person the file
+             rather than produce anything from it. The manifest is how the
+             proof is made today; if a source is one day served by an API, the
+             inside of this module changes and the stages calling it do not.
 
              The sdg package must be installed from inside the repo (pip install
              -e .), or nothing under manifests/ can be found. The manifest

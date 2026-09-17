@@ -150,6 +150,18 @@ def test_the_index_ends_with_one_newline(written):
     assert text.endswith("```\n") and not text.endswith("\n\n")
 
 
+@code("HRS0145")
+@positive
+def test_the_index_is_written_with_lf_line_endings(folder):
+    """The index is written with LF line endings whatever machine regenerates it, so
+    the file does not flip endings between one run and the next. Read as bytes,
+    because reading as text would hide a carriage return."""
+    scripts = folder({"alpha.py": GOOD_HEADER})
+    assert bi.main([]) == 0
+    raw = (scripts / "README.md").read_bytes()
+    assert b"\r" not in raw
+
+
 @code("HRS0137")
 @positive
 def test_writing_reports_the_file_and_the_count(written):

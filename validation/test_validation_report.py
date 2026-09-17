@@ -332,6 +332,11 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
         ((), "all"),
         (("test_suite.py",), "test_suite.py"),
         (("-k", "adds"), "-k adds"),
+        (("test_suite.py::test_adds",), "test_suite.py::test_adds"),
+        (("-m", "positive"), "-m positive"),
+        (("--tb", "short"), "all"),
+        (("-p", "no:cacheprovider"), "all"),
+        (("--deselect", "test_suite.py::test_left_out"), "all"),
     ],
 )
 def test_the_selection_column_records_what_was_selected(
@@ -355,6 +360,30 @@ def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
     monkeypatch.setenv("GIT_CONFIG_VALUE_0", "Staged Tester")
     _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
     assert {r["run_by"] for r in the_report(out)} == {"Staged Tester"}
+
+
+@code("TST0013")
+@positive
+def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passing):
+    """The target_file column names the code file the check file mirrors, by the same
+    rule the inventory uses, and marks it when that file is not there, so a check
+    file that mirrors nothing shows as a gap rather than as a target."""
+    _, rows = passing
+    row = row_for(rows, "test_adds")
+    assert row["target_file"] == "src/sdg/suite.py (not found at run time)"
+
+
+@code("TST0014")
+@positive
+def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
+    """The check_file_sha256 column is the sha256 of the check file's bytes as they
+    were when the run started, so a report names the exact test code it ran."""
+    _, rows = passing
+    row = row_for(rows, "test_adds")
+    expected = hashlib.sha256(
+        (pytester.path / "test_suite.py").read_bytes()
+    ).hexdigest()
+    assert row["check_file_sha256"] == expected
 
 
 @code("TST0012")

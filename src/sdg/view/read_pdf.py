@@ -132,6 +132,8 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
     Raises:
         RegistryError: The list is missing, cannot be parsed, is shaped wrongly, names
             a default that is not in it, or names a file no manifest records.
+        NotInRepoError: The sdg package is not running from inside its repo.
+        ManifestError: A manifest is missing or cannot be read.
     """
     target = registry_file or REGISTRY_FILE
     try:
@@ -149,10 +151,28 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
 
     documents: dict[str, Document] = {}
     for row in content["documents"]:
+        # A row has to be a set of named fields. A bare value in its place would
+        # make the field lookup below crash, and the crash would exit 1 rather
+        # than the code that says the list is wrongly shaped.
+        if not isinstance(row, dict):
+            raise RegistryError(
+                f"{target.name} has an entry that is not a set of fields: {row!r}."
+            )
         missing_fields = [f for f in ("key", "label", "file") if not row.get(f)]
         if missing_fields:
             raise RegistryError(
                 f"{target.name} has an entry missing {', '.join(missing_fields)}."
+            )
+        # The patterns have to arrive as a list, and only a row with no boilerplate
+        # field at all means no patterns. One pattern written as a bare string
+        # would be read character by character, and its first character alone
+        # would match every line and strip every page to nothing; a null or an
+        # empty-looking value is refused rather than guessed at.
+        patterns = row["boilerplate"] if "boilerplate" in row else []
+        if not isinstance(patterns, list):
+            raise RegistryError(
+                f"{target.name}: the boilerplate for {row['key']} must be a list of patterns, "
+                f"not {patterns!r}."
             )
         # The manifest is the only record of where a pinned file lives, so a name
         # it does not carry is a mistake in the list rather than a missing download.
@@ -166,9 +186,7 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
             path=entry.path,
             label=row["label"],
             manifest=entry.manifest,
-            boilerplate=tuple(
-                re.compile(pattern) for pattern in row.get("boilerplate") or ()
-            ),
+            boilerplate=tuple(re.compile(pattern) for pattern in patterns),
         )
 
     default = content.get("default")
@@ -200,9 +218,9 @@ def load_toc(doc: fitz.Document) -> list[dict]:
     """Build the section map from the PDF's embedded bookmarks.
 
     The bookmarks give a start page per section but no end page, so each section's end
-    is inferred as one page before the next section that starts on a later page. The
-    "later page" test matters because several IG sections begin on the same page;
-    without it, those sections would get a negative or zero-length range.
+    is taken as the next bookmark's start page, included, because a section often runs
+    part way into the page where the next one begins. The overlap is trimmed at the
+    heading when the pages are extracted.
 
     An empty result means the PDF has no bookmarks, which is the normal case for the M11
     documents. Callers must treat empty as "this document cannot be addressed by

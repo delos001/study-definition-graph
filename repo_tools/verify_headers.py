@@ -72,7 +72,7 @@ from pathlib import Path
 # The parser and the field list live in build_index.py, which sits in this same
 # folder. Python puts a running script's own folder first on its search path,
 # so the plain import resolves without the sdg package being installed.
-from build_index import REQUIRED_FIELDS, parse_header
+from build_index import FIELD_RE, REQUIRED_FIELDS, parse_header
 
 #######################################################################################
 ### Settings ###
@@ -129,28 +129,49 @@ def exit_code_table(path: Path | None = None) -> dict[int, str]:
     return table
 
 
-def code_entries(lines: list[str]) -> list[tuple[int, str]]:
+def value_column(path: Path) -> int:
+    """Find the column where the Exit codes field's value starts in a file's header.
+
+    The header parser hands the field's first line over without the label in front of
+    it, so its indent is lost. The column is read here from the raw header instead of
+    being guessed from the lines that follow, because a guess goes wrong when the only
+    line that follows is the first entry's own continuation.
+
+    Args:
+        path: The file whose header is read.
+
+    Returns:
+        The column, or 0 when the file has no Exit codes line.
+    """
+    try:
+        docstring = ast.get_docstring(
+            ast.parse(path.read_text(encoding="utf-8")), clean=False
+        )
+    except (SyntaxError, OSError):
+        return 0
+    for line in (docstring or "").splitlines():
+        match = FIELD_RE.match(line)
+        if match and match.group(1) == "Exit codes":
+            return len(line) - len(match.group(2))
+    return 0
+
+
+def code_entries(lines: list[str], first_indent: int) -> list[tuple[int, str]]:
     """Read the code entries out of one Exit codes field.
 
     A field ends with a sentence or two of prose about the codes, and a long entry
     wraps onto the next line. The two are told apart by indentation: a wrapped line
     is indented further than the entry it belongs to, and the closing prose is not.
 
-    The first line is a special case. It sits beside the field label, so the header
-    parser hands it over with no indent at all, which would make every later line
-    look deeper than it. It is treated as sitting at the same indent as the lines
-    below it.
-
     Args:
         lines: The field's lines, as the header parser hands them over.
+        first_indent: The column the first line really sits at, since the parser
+            hands that line over with no indent.
 
     Returns:
         Each entry as its number and the cause written beside it, in the order the
             header lists them.
     """
-    body = [raw for raw in lines[1:] if raw.strip()]
-    base = min((len(raw) - len(raw.lstrip()) for raw in body), default=0)
-
     entries: list[tuple[int, str]] = []
     indents: list[int] = []
     for position, raw in enumerate(lines):
@@ -159,7 +180,7 @@ def code_entries(lines: list[str]) -> list[tuple[int, str]]:
         match = ENTRY_RE.match(raw)
         if match:
             entries.append((int(match.group(2)), match.group(3).strip()))
-            indents.append(base if position == 0 else len(match.group(1)))
+            indents.append(first_indent if position == 0 else len(match.group(1)))
             continue
         if entries and len(raw) - len(raw.lstrip()) > indents[-1]:
             number, wording = entries[-1]
@@ -317,7 +338,7 @@ def problems_in(path: Path, table: dict[int, str]) -> tuple[list[str], list[str]
     if "Date" in fields and not DATE_RE.match(date):
         problems.append(f"Date is {date!r}, not YYYY-MM-DD")
 
-    entries = code_entries(fields.get("Exit codes", []))
+    entries = code_entries(fields.get("Exit codes", []), value_column(path))
     codes = code_problems(entries, table)
 
     # The file is parsed a second time here rather than threaded through the header

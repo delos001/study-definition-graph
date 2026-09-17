@@ -86,7 +86,7 @@ Compares docs/sources_index.md with the manifests, so a pinned file cannot exist
 python repo_tools/check_sources_map.py
     report every disagreement
 python repo_tools/check_sources_map.py --quiet
-    print nothing; use the exit code. For hooks.
+    print nothing; use the exit code
 ```
 
 ## find_unrecorded_files.py

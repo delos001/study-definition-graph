@@ -254,6 +254,46 @@ def test_a_row_missing_a_field_is_refused(repo, write_list):
     assert "label" in str(raised.value)
 
 
+@code("VIW0069")
+@negative
+def test_a_row_that_is_not_a_set_of_fields_is_refused(repo, write_list):
+    """A row that is a bare value rather than a set of fields raises RegistryError
+    quoting the value, rather than crashing on the field lookup."""
+    plain_row = "\n".join(
+        [
+            "  - key: plain",
+            "    label: Plain Document",
+            "    file: Plain_Document.pdf",
+            "    boilerplate: []",
+            "",
+        ]
+    )
+    text = LIST_TEXT.replace(plain_row, "  - plain\n")
+    with pytest.raises(RegistryError) as raised:
+        load_registry(write_list(text))
+    assert "plain" in str(raised.value)
+
+
+@code("VIW0070")
+@pytest.mark.parametrize(
+    "written",
+    ["'^ *Page [0-9]+ *$'", "false", "0", "''", "null"],
+    ids=["one string", "false", "zero", "empty string", "null"],
+)
+@negative
+def test_a_boilerplate_that_is_not_a_list_is_refused(repo, write_list, written):
+    """A boilerplate written as anything but a list, a lone pattern string or an
+    empty-looking value, raises RegistryError naming the row, rather than reading
+    the string one character at a time or silently taking it as no patterns."""
+    text = LIST_TEXT.replace(
+        "    boilerplate:\n      - '^ *Page [0-9]+ *$'\n",
+        f"    boilerplate: {written}\n",
+    )
+    with pytest.raises(RegistryError) as raised:
+        load_registry(write_list(text))
+    assert "guide" in str(raised.value) and "list" in str(raised.value)
+
+
 @code("VIW0013")
 @negative
 def test_a_file_no_manifest_records_is_refused(repo, write_list):
@@ -280,9 +320,13 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
 @code("VIW0015")
 @negative
 def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
-    """When the list is missing, the command exits 31 rather than raising."""
+    """When the list is missing, the command exits 31 and says where the list was
+    expected and how to get it back, rather than raising."""
     monkeypatch.setattr(read_pdf, "REGISTRY_FILE", tmp_path / "gone.yml")
     assert read_pdf.main(["--docs"]) == 31
+    printed = capsys.readouterr().err
+    assert "is missing at" in printed and "gone.yml" in printed
+    assert "restore it from git" in printed
 
 
 @code("VIW0016")
@@ -291,7 +335,35 @@ def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, caps
     """When the list names a file no manifest records, the command exits 32, a
     different cause from a list that cannot be read."""
     text = LIST_TEXT.replace("Example_Guide.pdf", "Nobody_Recorded_This.pdf")
-    assert run(write_list, monkeypatch, capsys, text, "--docs").exit_code == 32
+    outcome = run(write_list, monkeypatch, capsys, text, "--docs")
+    assert outcome.exit_code == 32
+    assert "Nobody_Recorded_This.pdf" in outcome.printed
+    assert "no manifest records" in outcome.printed
+
+
+@code("VIW0067")
+@negative
+def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys):
+    """When the sdg package is not running from inside its repo, the command exits 6
+    and prints the install command, because the manifests that own each document's
+    path cannot be found from anywhere else."""
+    from sdg.sources import read_manifests
+
+    monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
+    outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
+    assert outcome.exit_code == 6
+    assert "pip install -e ." in outcome.printed
+
+
+@code("VIW0068")
+@negative
+def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
+    """When a manifest is not valid JSON, the command exits 3 and names that manifest
+    as the thing that cannot be read, rather than blaming the list or a document."""
+    (repo.root / "manifests" / "broken.json").write_text("{ not json", encoding="utf-8")
+    outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
+    assert outcome.exit_code == 3
+    assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
 
 
 @code("VIW0017")
@@ -443,10 +515,13 @@ def test_a_two_page_range_prints_both_pages_in_order(readable, capsys):
 @code("VIW0038")
 @positive
 def test_a_term_is_searched_for_across_pages(readable, capsys):
-    """A search names the pages that contain the term."""
+    """A search names the page that contains the term and shows the matching line,
+    rather than answering that no page contains it."""
     outcome = read(capsys, "--doc", "plain", "--find", "beta")
     assert outcome.exit_code == 0
-    assert "beta" in outcome.printed
+    assert "p.  2" in outcome.printed
+    assert "beta content" in outcome.printed
+    assert "No pages contain" not in outcome.printed
 
 
 @code("VIW0039")
@@ -476,7 +551,10 @@ def test_raw_keeps_the_page_furniture(readable, capsys):
 def test_a_section_that_does_not_exist_exits_23(readable, capsys):
     """Asking for a section the document does not hold exits 23, rather than printing
     nothing and reading as though the content were absent."""
-    assert read(capsys, "99.99").exit_code == 23
+    outcome = read(capsys, "99.99")
+    assert outcome.exit_code == 23
+    assert "No section matching" in outcome.printed
+    assert "--list" in outcome.printed
 
 
 @code("VIW0042")

@@ -35,6 +35,9 @@ Exit codes:  0   success (the key works)
              41  the Claude API answered with an error (a retired model name, an
                  exhausted balance, a rate limit; the API's own message is
                  printed)
+             43  the Claude API refused the key access to what was asked (the
+                 key is real, and the account it belongs to is not allowed to
+                 use the model)
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -194,20 +197,29 @@ def main(argv: list[str] | None = None) -> int:
             print(exc)
         return 28
 
-    # Three causes, three remedies. The two refusals that mean the key itself is
-    # the problem come first. A connection that never reached the API is a
+    # Four causes, four remedies. A key the API does not recognise is fixed by
+    # pasting the right one. A key the API recognises but will not let use the
+    # model is an account problem, and pasting again fixes nothing, so it gets
+    # its own code and remedy. A connection that never reached the API is a
     # network problem. Anything else the API answered, such as a retired model
-    # name, an exhausted credit balance or a rate limit, is neither, and only
-    # the API's own message says what it was, so that message is printed.
+    # name, an exhausted credit balance or a rate limit, is none of those, and
+    # only the API's own message says what it was, so that message is printed.
     try:
         reply = call_api(key)
-    except (anthropic.AuthenticationError, anthropic.PermissionDeniedError) as exc:
+    except anthropic.AuthenticationError as exc:
         if not args.quiet:
             print(
                 f"the Claude API rejected the key in {ENV_FILE} ({exc.__class__.__name__}).\n"
                 f"  fix -> check the key at https://console.anthropic.com/ and paste it again"
             )
         return 29
+    except anthropic.PermissionDeniedError as exc:
+        if not args.quiet:
+            print(
+                f"the Claude API knows the key in {ENV_FILE} but refused it access to {MODEL} ({exc.__class__.__name__}).\n"
+                "  fix -> the key is right; check the account it belongs to at https://console.anthropic.com/"
+            )
+        return 43
     except anthropic.APIConnectionError as exc:
         if not args.quiet:
             print(

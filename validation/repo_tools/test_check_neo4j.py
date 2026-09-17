@@ -308,6 +308,35 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
     assert "docker compose up -d" in outcome.printed
 
 
+@code("HRS0149")
+@negative
+def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
+    """When the driver fails with its general error rather than the service-unavailable
+    one, the run still exits 38 and says to start the container, because that class
+    is what the driver raises when a connection is lost part way."""
+    write_env(repo)
+    write_compose(repo)
+    refuse(monkeypatch, neo4j.exceptions.DriverError("connection lost"))
+    outcome = run(capsys)
+    assert outcome.exit_code == 38
+    assert "docker compose up -d" in outcome.printed
+
+
+@code("HRS0150")
+@negative
+def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsys):
+    """When the driver refuses the address before trying to connect, the run exits 44
+    and the message names the NEO4J_URI line, rather than saying the database is
+    off and telling the person to start the container."""
+    write_env(repo)
+    write_compose(repo)
+    refuse(monkeypatch, neo4j.exceptions.ConfigurationError("URI scheme missing"))
+    outcome = run(capsys)
+    assert outcome.exit_code == 44
+    assert "NEO4J_URI" in outcome.printed
+    assert "docker compose" not in outcome.printed
+
+
 @code("HRS0118")
 @negative
 def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
@@ -345,7 +374,10 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
     write_env(repo)
     write_compose(repo)
     answer(monkeypatch, script.Release("5.26.29", "enterprise"))
-    assert run(capsys).exit_code == 40
+    outcome = run(capsys)
+    assert outcome.exit_code == 40
+    assert "5.26.29 enterprise" in outcome.printed
+    assert "docker-compose.yml pins" in outcome.printed
 
 
 @code("HRS0121")

@@ -156,17 +156,23 @@ def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
     path = inputs / "examples" / "Example_Study.xlsx"
     original = zipfile.ZipFile(path)
     rewritten = io.BytesIO()
+    records_removed = 0
     with zipfile.ZipFile(rewritten, "w") as target:
         for item in original.infolist():
             data = original.read(item.filename)
             if item.filename.startswith("xl/worksheets/sheet"):
-                data = re.sub(rb"<dimension[^>]*/>", b"", data)
+                data, removed = re.subn(rb"<dimension[^>]*/>", b"", data)
+                records_removed += removed
             target.writestr(item, data)
     original.close()
     path.write_bytes(rewritten.getvalue())
+    # The staging has to have changed the file, or the check would pass on an
+    # ordinary workbook and prove nothing.
+    assert records_removed > 0
     outcome = run(capsys, "Example_Study")
     assert outcome.exit_code == 0
-    assert "study" in outcome.printed
+    # The sheet is named, and the count columns hold no digits.
+    assert re.search(r"study +rows x +cols", outcome.printed)
 
 
 @code("VIW0020")
@@ -217,10 +223,12 @@ def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
 @code("VIW0025")
 @positive
 def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
-    """Searching one workbook reports the cells that contain the term."""
+    """Searching one workbook reports each cell that contains the term by its sheet
+    and row, rather than answering that no cell contains it."""
     outcome = run(capsys, "Example_Terms", "--find", "Screening")
     assert outcome.exit_code == 0
-    assert "Screening" in outcome.printed
+    assert "terms row 2" in outcome.printed
+    assert "No cells contain" not in outcome.printed
 
 
 @code("VIW0026")
@@ -300,6 +308,7 @@ def test_all_without_find_is_a_usage_mistake(inputs, capsys):
     with pytest.raises(SystemExit) as raised:
         run(capsys, "--all")
     assert raised.value.code == 2
+    assert "--all requires --find" in capsys.readouterr().err
 
 
 @code("VIW0033")

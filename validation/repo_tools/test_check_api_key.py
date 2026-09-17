@@ -225,8 +225,8 @@ def test_empty_key_is_refused(repo, capsys):
 @code("HRS0076")
 @negative
 def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
-    """When the API refuses the key, the run exits 29 and the message says the key
-    was rejected and where to get a new one."""
+    """When the API does not recognise the key, the run exits 29 and the message says
+    the key was rejected and where to get a new one."""
     request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
         monkeypatch,
@@ -241,6 +241,31 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
     assert outcome.exit_code == 29
     assert "rejected the key" in outcome.printed
     assert "console.anthropic.com" in outcome.printed
+
+
+@code("HRS0148")
+@negative
+def test_key_without_access_is_reported_as_an_account_problem(
+    repo, monkeypatch, capsys
+):
+    """When the API knows the key but will not let it use the model, the run exits 43
+    and the message says the key is right and points at the account, rather than
+    telling the person to paste the key again."""
+    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    refuse(
+        monkeypatch,
+        anthropic.PermissionDeniedError(
+            "permission denied",
+            response=httpx.Response(403, request=request),
+            body=None,
+        ),
+    )
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    outcome = run(capsys)
+    assert outcome.exit_code == 43
+    assert "refused it access" in outcome.printed
+    assert "the key is right" in outcome.printed
+    assert "paste it again" not in outcome.printed
 
 
 @code("HRS0077")

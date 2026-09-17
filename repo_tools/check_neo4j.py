@@ -43,6 +43,8 @@ Exit codes:  0   success (the database answers and is the pinned version)
              38  Neo4j could not be reached
              39  Neo4j rejected the login
              40  the running Neo4j is not the pinned version
+             44  the Neo4j address in .env is not a valid address (the driver
+                 refused the NEO4J_URI line before trying to connect)
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -229,6 +231,8 @@ def ask_database(settings: Settings) -> Release:
         The version and edition the database reports for itself.
 
     Raises:
+        neo4j.exceptions.ConfigurationError: The address is not one the driver
+            accepts, so no connection was tried.
         neo4j.exceptions.ServiceUnavailable: Nothing answered at the address.
         neo4j.exceptions.AuthError: The database refused the user or password.
     """
@@ -300,8 +304,11 @@ def main(argv: list[str] | None = None) -> int:
         report(str(exc))
         return 13
 
-    # A refused login is caught first, because it means the settings are wrong;
-    # anything else means nothing answered at the address at all.
+    # A refused login is caught first, because it means the settings are wrong.
+    # An address the driver will not accept is caught next, and before the
+    # driver's general error, because it is a kind of that error and would
+    # otherwise be reported as a database that is off. Anything else means
+    # nothing answered at the address at all.
     try:
         running = ask_database(settings)
     except neo4j.exceptions.AuthError as exc:
@@ -310,6 +317,12 @@ def main(argv: list[str] | None = None) -> int:
             f"  fix -> make NEO4J_USER and NEO4J_PASSWORD in {ENV_FILE} match the NEO4J_AUTH line in {COMPOSE_FILE}"
         )
         return 39
+    except neo4j.exceptions.ConfigurationError as exc:
+        report(
+            f"the Neo4j address {settings.uri!r} in {ENV_FILE} is not a valid address ({exc.__class__.__name__}).\n"
+            "  fix -> make the NEO4J_URI line in .env match .env.example, for example bolt://localhost:7687"
+        )
+        return 44
     except (neo4j.exceptions.ServiceUnavailable, neo4j.exceptions.DriverError) as exc:
         report(
             f"Neo4j could not be reached at {settings.uri} ({exc.__class__.__name__}).\n"

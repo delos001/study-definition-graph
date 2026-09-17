@@ -32,7 +32,7 @@ import json
 import pytest
 
 import check_facts as cf
-from sdg.sources.read_manifests import ManifestError, NotInRepoError
+from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
 from sdg.sources.verify_pinned import IntegrityError, UnrecordedFileError
 from sdg.usdm.usdm_spec import PINNED_LOCAL, SpecShapeError
 
@@ -42,8 +42,27 @@ negative = pytest.mark.negative
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
 
+
+def corpus_is_present() -> bool:
+    """Say whether every pinned file the real run reads is on disk.
+
+    The run reads three things: the USDM model file, a USDM export under each worked
+    example, and the concepts workbook, whose path the manifest owns. A check that
+    skipped on the first alone would fail on the other two instead of skipping.
+    """
+    if not (cf.REPO_ROOT / PINNED_LOCAL).exists():
+        return False
+    if not any(cf.EXAMPLES.glob("*/*.json")):
+        return False
+    try:
+        entry = entry_named("cdisc_biomedical_concepts_latest.xlsx")
+    except (ManifestError, NotInRepoError):
+        return False
+    return entry is not None and entry.path.exists()
+
+
 needs_pinned_file = pytest.mark.skipif(
-    not (cf.REPO_ROOT / PINNED_LOCAL).exists(),
+    not corpus_is_present(),
     reason="pinned corpus not downloaded; run acquire_sources",
 )
 

@@ -332,8 +332,9 @@ def test_inherited_from_without_ref_is_named(variant):
 def test_missing_file_raises_filenotfound(tmp_path):
     """A path that does not exist raises FileNotFoundError (exit 8 at the command
     line), which is a different failure from a file that fails verification."""
-    with pytest.raises(FileNotFoundError):
+    with pytest.raises(FileNotFoundError) as caught:
         usdm_spec.load(tmp_path / "nope.yml")
+    assert "nope.yml" in str(caught.value)
 
 
 @code("USD0016")
@@ -400,6 +401,32 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes"]) == 10
     assert "no manifest entry records it" in capsys.readouterr().err
+
+
+@code("USD0032")
+@negative
+def test_cli_fingerprint_mismatch_exits_9(
+    manifest_dir, manifest_recording, monkeypatch, capsys
+):
+    """When the file is present but its sha256 differs from its manifest entry, the
+    command exits 9 and prints both values and the --allow-unpinned way round."""
+    manifest_dir(manifest_recording(FIXTURE))  # sha256 is the all-zero placeholder
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
+    assert usdm_spec.main(["--list-classes"]) == 9
+    err = capsys.readouterr().err
+    assert "manifest says 0000" in err and "--allow-unpinned" in err
+
+
+@code("USD0033")
+@negative
+def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
+    """When a manifest is not valid JSON, the command exits 3 and names the manifest
+    as the thing that cannot be read, rather than blaming the pinned file."""
+    manifest_dir("{ not json")
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
+    assert usdm_spec.main(["--list-classes"]) == 3
+    err = capsys.readouterr().err
+    assert "cdisc_usdm_v4.json" in err and "cannot read" in err
 
 
 @code("USD0021")

@@ -197,9 +197,9 @@ def test_a_path_outside_the_repo_is_allowed(
 def test_the_project_dir_outranks_the_message_cwd(
     repo, tmp_path_factory, monkeypatch, capsys
 ):
-    """The repo root is taken from CLAUDE_PROJECT_DIR rather than the message's cwd,
-    so a session that has moved into another folder still judges paths against the
-    real repo."""
+    """A path under another folder's inputs/ is allowed when the session has moved
+    into that folder, so the message's cwd is not what the hook takes as the repo
+    root."""
     other = tmp_path_factory.mktemp("other")
     outcome = edit(monkeypatch, capsys, str(other / "inputs" / "x.pdf"), cwd=str(other))
     assert not outcome.denied
@@ -258,6 +258,20 @@ def test_a_refusal_is_printed_in_the_form_claude_code_reads(repo, monkeypatch, c
 #
 # The wrong thing is refused, and the reason names the path and says where the file
 # is meant to come from instead.
+
+
+@code("CCH0016")
+@negative
+def test_a_pinned_file_is_refused_from_another_folder(
+    repo, tmp_path_factory, monkeypatch, capsys
+):
+    """A file under the real repo's inputs/ is refused even when the message says the
+    session has moved into another folder, so the root really is the project folder
+    and not the current one."""
+    other = tmp_path_factory.mktemp("other")
+    outcome = edit(monkeypatch, capsys, str(repo / "inputs" / "x.pdf"), cwd=str(other))
+    assert outcome.denied
+    assert "inputs/x.pdf" in outcome.reason
 
 
 @code("CCH0012")

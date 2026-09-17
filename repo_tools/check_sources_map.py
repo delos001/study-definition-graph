@@ -41,7 +41,7 @@ Outputs:     Nothing on disk. Prints one line per disagreement, or nothing when
 Usage:       python repo_tools/check_sources_map.py
                  report every disagreement
              python repo_tools/check_sources_map.py --quiet
-                 print nothing; use the exit code. For hooks.
+                 print nothing; use the exit code
 
 Exit codes:  0   success (the map and the manifests agree)
              1   unhandled error, Python's own

@@ -251,7 +251,10 @@ def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
         "extra", [fake_repo.entry("inputs/standards/example/Forgotten.xlsx")]
     )
     text = MAP + "\n- location: inputs/standards/nowhere/\n"
-    assert run(capsys, text).exit_code == 35
+    outcome = run(capsys, text)
+    assert outcome.exit_code == 35
+    assert "Forgotten.xlsx" in outcome.printed
+    assert "inputs/standards/nowhere" in outcome.printed
 
 
 @code("HRS0102")
@@ -262,6 +265,32 @@ def test_a_missing_map_exits_13(repo, capsys):
     outcome = Outcome(script.main([]), capsys.readouterr().out)
     assert outcome.exit_code == 13
     assert "cannot be read" in outcome.printed
+
+
+@code("HRS0146")
+@negative
+def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
+    """When the sdg package is not running from inside its repo, the run exits 6 with
+    the install command, instead of reporting a file with no heading."""
+    from sdg.sources import read_manifests
+
+    monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
+    outcome = run(capsys, MAP)
+    assert outcome.exit_code == 6
+    assert "pip install -e ." in outcome.printed
+
+
+@code("HRS0147")
+@negative
+def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
+    """When a manifest is not valid JSON, the run exits 3 and names that manifest as
+    the thing that cannot be read, instead of comparing a map against nothing."""
+    (fake_repo.root / "manifests" / "broken.json").write_text(
+        "{ not json", encoding="utf-8"
+    )
+    outcome = run(capsys, MAP)
+    assert outcome.exit_code == 3
+    assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
 
 
 @code("HRS0103")

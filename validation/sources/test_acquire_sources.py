@@ -488,6 +488,27 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
     assert "DISCARDED" in outcome.out
 
 
+@code("SRC0126")
+@negative
+def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
+    """With one file that cannot be fetched and another whose download does not
+    match its entry, both are reported and the exit code is 11, not 12, because
+    a file nothing could be downloaded for is worse than one whose download was
+    discarded."""
+    fake_repo.manifest(
+        "set_a",
+        [
+            recorded(fake_repo, "inputs/set_a/a.txt", CONTENT),
+            recorded(fake_repo, "inputs/set_a/b.txt", CONTENT),
+        ],
+    )
+    network({"https://example.invalid/b.txt": b"something else entirely\n"})
+    outcome = run(capsys)
+    assert outcome.code == 11
+    assert "FAILED" in outcome.out
+    assert "DISCARDED" in outcome.out
+
+
 @code("SRC0123")
 @negative
 def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):

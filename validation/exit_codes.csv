@@ -42,3 +42,5 @@ code,cause
 40,the running Neo4j is not the pinned version
 41,the Claude API answered with an error
 42,a pinned file is not shaped the way a measurement expects
+43,the Claude API refused the key access to what was asked
+44,the Neo4j address in .env is not a valid address

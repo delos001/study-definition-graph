@@ -21,11 +21,13 @@ Outputs:     Nothing on disk.
              Hands back, in memory: the manifests found, one entry, or an entry's fields.
 
 Usage:       Not run directly; imported.
-             from sdg.sources import manifests, entry_for
+             from sdg.sources import manifests, entry_for, entry_named
                 manifests()                  -> every manifest
                 manifests("cdisc_usdm_v4")   -> one manifest, by name
                 entry_for("inputs/standards/cdisc/usdm_v4/dataStructure.yml") -> that file's
                   entry, or None
+                entry_named("USDM-IG.pdf")   -> the entry recorded under that file name,
+                  or None
 
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
@@ -93,10 +95,10 @@ class ManifestError(Exception):
     """Raised when a manifest cannot be read, or an entry can never match a file.
 
     That covers a manifests folder that is missing or empty, a manifest that is not
-    valid JSON, an entry that lacks a required field, and a field holding a value that
-    can never be right: a size that is not a whole number, or a sha256 that is not 64
-    lowercase hex characters. The message names the file and the cause, quoting a bad
-    value as written.
+    valid JSON or is valid JSON of the wrong shape, an entry that lacks a required
+    field, and a field holding a value that can never be right: a size that is not a
+    whole number, or a sha256 that is not 64 lowercase hex characters. The message
+    names the file and the cause, quoting a bad value as written.
     """
 
 

@@ -62,7 +62,6 @@ from pathlib import Path
 
 # Resolved from this file's own location rather than the working directory, so
 # the script behaves the same run from the repo root or from inside repo_tools/.
-# Same approach as read_pdf.py.
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS_DIR = REPO_ROOT / "repo_tools"
 INDEX_PATH = SCRIPTS_DIR / "README.md"
