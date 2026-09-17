@@ -77,7 +77,7 @@ Identify the document type and what each section is about, with AI.
 
 - **Produces:**
   - two prompts, one for document type and one for section topic, in versioned files rather than string literals,
-  - the corpus grown to about three studies, since classification needs more than one example to mean anything,
+  - the study documents under `inputs/study_documents/` grown to about three studies, since classification needs more than one example to mean anything,
   - a response cache keyed by prompt version and input hash, so development re-runs are free.
 - **Verification:**
   - document type correct on all three studies,

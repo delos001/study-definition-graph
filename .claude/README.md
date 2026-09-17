@@ -6,7 +6,7 @@ This folder holds the Claude Code configuration for this repo. Claude Code hooks
 | --- | --- |
 | `settings.json` | The project settings, committed. It names every hook below and when it runs. |
 | `settings.local.json` | Personal settings for this machine, not committed. It holds nothing about hooks. |
-| `hooks/` | The scripts the hooks run. Each follows `.claude/rules/writing_python_files.md` like every other Python file, the header checker in the pre-commit hook holds them to it, and their checks live under `validation/claude_hooks/`. |
+| `hooks/` | The scripts the hooks run. Each follows `.claude/rules/writing_python_files.md` like every other Python file, `repo_tools/verify_headers.py`, run by the pre-commit hook `.githooks/pre-commit`, holds them to it, and their checks live under `validation/claude_hooks/`. |
 
 ## Hooks in use
 
@@ -24,5 +24,5 @@ These live in `.githooks/`, not here, and run for anyone who commits. They are l
 | --- | --- | --- |
 | Before every commit | `python repo_tools/build_index.py --check` | Refuses the commit if `repo_tools/README.md` is out of date with the header blocks it is generated from. |
 | Before every commit | `python repo_tools/verify_headers.py` | Refuses the commit if any Python file under `src/sdg/`, `repo_tools/`, `validation/` or `.claude/hooks/` lacks the full header block, has its fields out of order, has a Date that is not a plain calendar date, or lists exit codes that disagree with `validation/exit_codes.csv` or with its own `main()`. |
-| Before every commit | `python repo_tools/build_inventory.py --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the checks it is generated from. |
+| Before every commit | `python repo_tools/build_inventory.py --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the check files under `validation/` it is generated from. |
 | Before every commit | `python repo_tools/check_python_files.py --quiet` | Refuses the commit if any Python file fails `ruff format --check`, `ruff check` or `mypy`, all configured in `pyproject.toml`. |

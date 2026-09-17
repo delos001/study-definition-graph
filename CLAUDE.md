@@ -76,7 +76,7 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 ### What is pinned
 
 - Everything under `inputs/` is pinned: the standards, the worked examples and the study documents.
-- Only the tools that fetch and record pinned files write to `inputs/`, and they only add files that are missing. Nothing else writes there, and nothing ever edits a file already on disk.
+- Only `acquire_sources`, and any later tool that fetches and records pinned files, writes to `inputs/`, and they only add files that are missing. Nothing else writes there, and nothing ever edits a file already on disk.
 - The pipeline reads from `inputs/` and writes to `data/interim/` or `data/processed/`.
 
 ### Recording and naming
@@ -93,7 +93,7 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 - Never read a pinned PDF whole, because they can be very long. Take a section, a page range, or a search term.
 - `acquire_sources` fetches what is missing and checks what is present against its manifest entry.
 - `python repo_tools/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
-- Any count written into a document must be recomputable. Add a measurement for it to `repo_tools/check_facts.py`, which re-derives every stated figure from the pinned files. Run that tool after changing the corpus.
+- Any count written into a document must be recomputable. Add a measurement for it to `repo_tools/check_facts.py`, which re-derives every stated figure from the pinned files. Run `repo_tools/check_facts.py` after adding or changing a pinned file.
 
 ## Pipeline
 

@@ -1,7 +1,7 @@
 """
 Script:      build_inventory.py
 Description: Generates validation/validation_inventory.csv, the list of every check
-             in the test files, from the checks themselves, so the inventory
+             in the test files under validation/, from the checks themselves, so the inventory
              cannot drift from the code it describes. Each check's name, its
              permanent id (the @code marker), whether it is positive or
              negative, and the sentence it proves (its docstring's first

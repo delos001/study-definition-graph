@@ -1,6 +1,6 @@
 # validation/
 
-- conftest.py: pytest's shared setup for every test file below; stages the throwaway repo, adds --validation-report, writes the report
+- conftest.py: pytest's shared setup for every test file below; stages the throwaway repo, adds --validation-report, writes the validation report into reports/
 - test_validation_report.py: validates the report-writer in conftest.py
 - test_console_output.py: validates src/sdg/console_output.py
 - exit_codes.csv: the repo-wide exit-code table, one row per code

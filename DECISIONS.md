@@ -101,7 +101,7 @@ It splits cleanly.
 
 **Call live:**
 - **ClinicalTrials.gov API v2**, for finding and downloading protocol and SAP PDFs. Maintained, free, no snapshot worth keeping.
-- **The DDF conformance validation endpoint.** The CDISC reference implementation exposes an endpoint that checks whether a USDM document is conformant. If publicly reachable, calling it beats reimplementing the rules. Phase 0 confirms reachability without credentials; if it needs a key, we fall back to the published rule specifications.
+- **The DDF conformance validation endpoint.** The CDISC reference implementation exposes an endpoint that checks whether a USDM document is conformant. If publicly reachable, calling it beats reimplementing the rules. Phase 0 confirms reachability without credentials; if it needs a key, we fall back to the published rule specifications. Moved to Phase 3 on 2026-09-16; see the entry of that date, "The conformance checker question moves from Phase 0 to Phase 3".
 
 **Pin a downloaded copy:**
 - **The USDM model specification.** This is the one place where "always fetch latest" is actively harmful. USDM has shipped four major versions in under three years (v1.0 Aug 2022, v2.0 Jun 2023, v3.0 Apr 2024, v4.0 Jun 2025) plus errata on v3.0 and v4.0. If a new version lands mid-project, extraction output silently changes shape and you cannot tell whether a new failure came from the prompt or from the standard moving. Same instinct as pinning a library version. We record the commit and update deliberately.

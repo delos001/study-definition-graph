@@ -71,7 +71,7 @@ conda env create -f environment.yml
 # 4. Activate the sdg conda environment.
 conda activate sdg
 
-# 5. Install the package defined in the src/ folder in editable mode, so that the repo's
+# 5. Install the sdg package defined in the src/ folder in editable mode, so that the repo's
 #    commands like usdm_spec and read_pdf work correctly and code edits take effect with
 #    no reinstall.
 #    Dependencies stay owned by environment.yml, not this install.
