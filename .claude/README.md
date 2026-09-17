@@ -2,7 +2,6 @@
 
 This folder holds the Claude Code configuration for this repo.
 
-Claude Code hooks run around Claude's own tool calls in a session; they are different from git hooks, which run around git commands for anyone and live in `.githooks/`.
 
 | File | What it is |
 | --- | --- |
@@ -12,6 +11,8 @@ Claude Code hooks run around Claude's own tool calls in a session; they are diff
 | `rules/` | The rules Claude Code loads when a matching file is opened. `writing_python_files.md` is the one rule and covers every Python file the project writes. |
 
 ## Hooks in use
+
+Claude Code hooks run around Claude's own tool calls in a session; they are different from git hooks, which run around git commands for anyone and live in `.githooks/`.
 
 | Runs | Script | What it does |
 | --- | --- | --- |
