@@ -37,8 +37,7 @@ No pipeline work; the point is to stand up the tools and pin the sources, and to
   - repo skeleton,
   - Neo4j running in Docker, with a few nodes and edges created and queried by hand,
   - USDM v4.0 artifacts pinned to `inputs/standards/cdisc/usdm_v4/` with the commit recorded,
-  - loader that lists USDM classes and their fields from the pinned spec,
-  - determination of whether the DDF conformance endpoint and CORE are usable without member credentials.
+  - loader that lists USDM classes and their fields from the pinned spec.
 - **Verification:**
   - `python repo_tools/check_neo4j.py` exits 0, proving the database answers, accepts the login and is the pinned version,
   - `usdm_spec --list-classes` prints class names read from the pinned file.
@@ -90,7 +89,8 @@ Turn classified content into USDM-conformant structures.
 
 - **Produces:**
   - model output constrained to schemas generated from the pinned USDM spec, so output is USDM-shaped because it came from the standard rather than because a prompt asked,
-  - every extracted fact carrying provenance.
+  - every extracted fact carrying provenance,
+  - an answer to whether CDISC's own conformance checker, the service that says whether a USDM file is well formed, can be used without a paid CDISC membership. If it cannot, the pinned rules spreadsheet `USDM_CORE_Rules.xlsx` is what the output is checked against instead. This was listed under Phase 0 and moved here, because nothing before Phase 3 has output to check.
 - **Design consideration — chunking for prompting** (distinct from Phase 1's deterministic boundaries):
   - how a located section is split or retrieved when fed to the model (semantic chunking),
   - driven by prompt size and the "content spread across sections" finding in `BACKGROUND.md`.
@@ -119,7 +119,8 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - the page given to the model as an image (multimodal / computer-vision processing) rather than as extracted text:
     - text extraction loses the grid's spatial hierarchy,
     - consistent with the vision-based multimodal result recorded in `BACKGROUND.md`'s benchmarks,
-  - a hand-built answer set.
+  - a hand-built answer set,
+  - a decision on whether to run this phase on LangGraph, which is considered here because this is the first phase with a loop; the reasoning is in `DECISIONS.md` under "Routing complexity".
 - **Verification:**
   - bidirectional:
     - conformance-check the output,
