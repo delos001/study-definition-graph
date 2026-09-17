@@ -1,10 +1,12 @@
 # docs/
 
-This folder contains the project's documentation about itself: maps a working session consults, kept by hand and linked from `CLAUDE.md` and `README.md`.
+This folder contains the project's documentation about itself.
+
+The information is usually kept by hand and stored here when a the information is cross cutting across more than one pipeline component not directly related to another pipeline or validation component in a way that requires it to be stored next to that component.
 
 | File | What it shows |
 | --- | --- |
-| `sources_index.md` | Which pinned file answers which question and how to open it, and what was reviewed and not taken. |
+| `sources_index.md` | Which pinned file answers which question, how to open it, and which files were reviewed and not taken. |
 | `sdg_files_inventory.md` | Every file in `src/sdg/`, folder by folder, as a workflow or a step, with what each uses and which are run by hand. |
 | `validation_files_inventory.md` | Every file in `validation/`, folder by folder, with the code file each one validates. |
 | `repo_tools_files_inventory.md` | Every file in `repo_tools/`, with how each is run and what it uses. |
