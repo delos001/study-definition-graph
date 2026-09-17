@@ -11,6 +11,7 @@ Run every command in this repo from the `sdg` conda environment. The root [READM
 Every document in this repo is written for a person reading it. These rules apply to the markdown documents, and to the header blocks, docstrings and comments in the code.
 
 - Write plain words at the point where they are needed. A compressed phrase that has to be explained when asked was the wrong phrase. If a term cannot be avoided, say what it means in the same sentence.
+- A short name is written out at its first use in each document, with the words it stands for. The exceptions are the names the glossary in `BACKGROUND.md` defines and that the project treats as plain words: USDM, CDISC, ICH, SAP, SoA, AI, PDF, JSON, YAML, CSV, API and URL. Any other short name, such as the name of a code list, a standard, an agency or a file format, is written out where it first appears.
 - Write full sentences with a subject and a verb. No fragments, and no label with a colon standing in for a sentence.
 - One idea per sentence. A sentence carrying a parenthesis, a colon and two joined clauses is three sentences.
 - Say what a thing is before saying anything about it. A reader meeting `inputs/` needs to know it holds the pinned source files before hearing that it is gitignored.

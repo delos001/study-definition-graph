@@ -1,6 +1,6 @@
 {
   "set": "cdisc_usdm_v4",
-  "description": "USDM v4.0, the Unified Study Definitions Model: the model files the code reads, the legal values and conformance rules, the implementation guide, the API schema, and the UML master with its class diagrams.",
+  "description": "USDM v4.0, the Unified Study Definitions Model: the model files the code reads, the legal values and conformance rules, the implementation guide, the API schema, and the master model in the Unified Modeling Language (UML) with its class diagrams.",
   "publisher": "CDISC",
   "version": "4.0, released 2025-06-03",
   "source": "https://github.com/cdisc-org/DDF-RA",
@@ -40,7 +40,7 @@
       "local": "inputs/standards/cdisc/usdm_v4/USDM_CORE_Rules.xlsx",
       "format": "XLSX",
       "read_by": "both",
-      "role": "The conformance rules: 259 covering v3.0 and v4.0 together, of which the Version 4.0 column marks 210 as applying to v4. Answers whether a document is conformant.",
+      "role": "The conformance rules, covering v3.0 and v4.0 together; the Version 4.0 column marks the ones that apply to v4. Answers whether a document is conformant.",
       "bytes": 32916,
       "sha256": "5f30133d04230434f396326332f2c3bd67da536f4da766c3e94ecd310231c937"
     },
@@ -62,7 +62,7 @@
       "local": "inputs/standards/cdisc/usdm_v4/USDM-IG.pdf",
       "format": "PDF",
       "read_by": "person",
-      "role": "The implementation guide: how the model maps to real protocol content. 119 pages; never read whole. Section map and read ledger in docs/usdm_ig_ledger.md.",
+      "role": "The implementation guide: how the model maps to real protocol content. Long; never read whole. What has been read from it is in docs/standards_read_record.md.",
       "bytes": 5872581,
       "sha256": "5e244eee17289f7dbe0c75f5221c57b08056dd4f79cd5074007bcabd40fb1d2e"
     },
@@ -73,7 +73,7 @@
       "local": "inputs/standards/cdisc/usdm_v4/dataDictionary.MD",
       "format": "Markdown table",
       "read_by": "both",
-      "role": "Definitions, cardinality, NCI codes and codelist refs for every class and attribute. The semantics USDM_API.json omits.",
+      "role": "Definitions, cardinality, National Cancer Institute (NCI) codes and code list references for every class and attribute. The semantics USDM_API.json omits.",
       "bytes": 110540,
       "sha256": "5912a0a05a0ae9e9e3131ae827e3e28fe9e5de0b98c6d1c207804410dcc98837"
     },
@@ -260,7 +260,7 @@
       "local": "inputs/standards/cdisc/usdm_v4/DDF_USDM_Model_Informative.pdf",
       "format": "PDF",
       "read_by": "person",
-      "role": "The whole model as one diagram. Single page, vector, all text extractable, so unlike the 14 UML_Views PNGs it can be searched. Taken in preference to USDM_UML.png, which is the same view as an unsearchable image.",
+      "role": "The whole model as one diagram. Single page, vector, all text extractable, so unlike the UML_Views PNGs it can be searched. Taken in preference to USDM_UML.png, which is the same view as an unsearchable image.",
       "bytes": 137367,
       "sha256": "360d11863135b67dfaa6a8b1bb1fe61b8dd6e427f86523fc437404953320c8b5"
     },
@@ -271,7 +271,7 @@
       "local": "inputs/standards/cdisc/usdm_v4/UML_DELTA_3-0-0_4-0-0.csv",
       "format": "CSV",
       "read_by": "both",
-      "role": "What changed between USDM v3.0 and v4.0: 1302 rows of class, status (Added/Deleted/Modified), attribute and old value. Held because the crosswalks and the published prior art this project cites were written in the v3.1x era, so reading them correctly needs to know what moved.",
+      "role": "What changed between USDM v3.0 and v4.0: one row per change, giving the class, the status (Added, Deleted or Modified), the attribute and the old value. Held because the crosswalks and the published prior art this project cites were written in the v3.1x era, so reading them correctly needs to know what moved.",
       "bytes": 117892,
       "sha256": "5a82fb066013cbed1457b8bddf9243783fa159bce7b348902839d5d7cf4c26b3"
     }

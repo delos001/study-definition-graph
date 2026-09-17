@@ -186,6 +186,8 @@ def main(argv: list[str] | None = None) -> int:
             print(exc)
         return 6
 
+    # A missing .env and a .env with no key have different fixes, create the file
+    # or paste the key, so each gets its own exit code.
     try:
         key = read_key(REPO_ROOT / ENV_FILE)
     except EnvFileMissingError as exc:

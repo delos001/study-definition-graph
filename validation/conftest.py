@@ -8,7 +8,7 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              When pytest loads conftest.py it adds the following for the test_*.py
              scripts to use:
                - the --validation-report flag,
-               - three fixtures:
+               - the fixtures:
                     - manifest_dir points the manifest reader, src/sdg/sources/read_manifests.py, at a temporary folder,
                     - manifest_recording writes one manifest entry for one file,
                     - fake_repo builds a throwaway repo with pyproject.toml, manifests/
@@ -51,9 +51,10 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              fails before any test ran, a report is still written, with one row
              saying that no check ran.
 
-             It registers two markers the tests use to show which kind of test each is:
+             It registers the markers the tests carry:
                - @positive means the right thing works,
-               - @negative means the broken thing fails for the right reason.
+               - @negative means the broken thing fails for the right reason,
+               - @code carries the check's permanent id from validation/validation_inventory.csv.
 
              It also enables pytest's own "pytester" helper, which the report-writer's
              tests use to run small throwaway suites.
@@ -137,7 +138,7 @@ EXIT_MEANING = {
 ### Shared fixtures ###
 #
 # A fixture is a piece of setup that a test asks for by name. pytest builds it
-# before the test runs and clears it away afterwards. The three fixtures here
+# before the test runs and clears it away afterwards. The fixtures here
 # stage a pretend copy of the repo's manifests and pinned files in a folder that
 # pytest creates and deletes for each test, so no test ever reads or writes the
 # real manifests/ or inputs/.
@@ -228,7 +229,7 @@ def manifest_recording():
 class FakeRepo:
     """A small pretend repo on disk, for checks that need to walk a whole one.
 
-    It has the three things the manifest reader, src/sdg/sources/read_manifests.py, looks for: a pyproject.toml, a
+    It has what the manifest reader, src/sdg/sources/read_manifests.py, looks for: a pyproject.toml, a
     manifests/ folder with its study_documents/ subfolder, and an inputs/ folder. The
     methods put files and manifests into it. Every path a check gives is relative to the
     fake repo's root and is written with forward slashes, the same way a manifest writes
@@ -364,7 +365,7 @@ def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
 
 
 def pytest_addoption(parser):
-    """Add two options to the pytest command line.
+    """Add the report options to the pytest command line.
 
     --validation-report is off unless given. With it, one report is written after the
     run. --validation-report-dir says which folder the report goes in. It defaults to
@@ -527,7 +528,7 @@ def _first_paragraph(doc: str | None) -> str:
         doc: The docstring, or None when the check has none.
 
     Returns:
-        The first paragraph as one line, or an empty string when there is no docstring.
+        The first paragraph as one line, or the words (no docstring) when the check has none.
     """
     if not doc:
         return "(no docstring)"
@@ -656,10 +657,6 @@ REPORT_COLUMNS = (
     "pytest_version",
     "platform",
 )
-
-# pytest's own options that are not a selection of checks. Anything else on the
-# command line that names a path, or that follows -k or -m, is what was selected.
-_OWN_OPTIONS = ("--validation-report", "--validation-report-dir")
 
 
 def _selection(config: pytest.Config) -> str:

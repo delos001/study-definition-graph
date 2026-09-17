@@ -138,7 +138,7 @@ Each study is one real protocol in three forms: the protocol as published, the s
 A Biomedical Concept defines one clinical idea, such as a blood pressure measurement, once, so that data standards can refer to it instead of redefining it. In USDM an Activity refers to a Biomedical Concept by its ID. The CDISC Library API for these is members-only, so the files come from the public repository export.
 
 ### Document: cdisc_biomedical_concepts.xlsx
-- purpose: The full list of Biomedical Concepts, one row per concept parameter, with a LOINC code where the concept is a measurement.
+- purpose: The full list of Biomedical Concepts, one row per concept parameter, with a Logical Observation Identifiers Names and Codes (LOINC) code, the standard vocabulary for laboratory and clinical observations, where the concept is a measurement.
 - commit: 031429b
 
 | Question | How to Read |
@@ -197,7 +197,7 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: ICH_Step4_M11_Final_Template_2025_1119.pdf
 - purpose: The protocol template itself: the sections a protocol has and what goes in each.
-- commit: n/a
+- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -205,7 +205,7 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf
 - purpose: Defines each protocol data element, with its data type, how many values it takes, and whether it is required.
-- commit: n/a
+- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -213,7 +213,7 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: ICH_Step4_M11_Final_Guideline_2025_1119.pdf
 - purpose: The short guideline that sets M11's scope. The substance is in the other two documents.
-- commit: n/a
+- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -228,7 +228,7 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: E9-R1_Step4_Guideline_2019_1203.pdf
 - purpose: Defines what an estimand is and what its parts are.
-- commit: n/a
+- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -244,7 +244,7 @@ Resources that were looked at and not pinned. Listed so the same question is not
 
 | Resource | Where | Why not pinned |
 | --- | --- | --- |
-| cdisc-rules-engine | github.com/cdisc-org | The CORE conformance engine. It is a tool rather than data, so if it is adopted it will be pinned by version like the other software, not fingerprinted. Whether it can be used without a membership is issue #35. |
+| cdisc-rules-engine | github.com/cdisc-org | The CDISC Open Rules Engine (CORE), the conformance engine. It is a tool rather than data, so if it is adopted it will be pinned by version like the other software, not fingerprinted. Whether it can be used without a membership is issue #35. |
 | ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. The documents it returns are pinned under `inputs/study_documents/`; the API responses are not kept. |
 
 ### Reviewed and not taken
@@ -253,17 +253,17 @@ Resources that were looked at and not pinned. Listed so the same question is not
 | --- | --- |
 | cdisc-open-rules | A different rule family with its own ID space. Not USDM. |
 | usdm package on PyPI | Needs a CDISC Library API key our subscription does not have. Its workbook format is what produced the worked examples, so its documentation is still worth reading. |
-| ctis_mapping.xlsx | Maps to the EU CTIS registry. Out of scope. |
+| ctis_mapping.xlsx | Maps to the European Union's Clinical Trials Information System (CTIS). Out of scope. |
 | cpt_mapping.xlsx | Maps from an authoring template our source protocols do not use. |
-| sdtm_mapping.xlsx | Maps USDM out to SDTM. Downstream of this project and the opposite direction. |
+| sdtm_mapping.xlsx | Maps USDM out to the Study Data Tabulation Model (SDTM), the CDISC standard for submission datasets. Downstream of this project and the opposite direction. |
 | DDF-RA device and observational examples | Synthetic test data, not from a real protocol. |
 | DDF-RA change and delta files for older releases | Only matter if the pin moves, and it does not. The one v3.0-to-v4.0 delta is held because it helps read v3-era material. |
 | USDM_UML.png | The whole-model diagram as an image. The informative PDF is the same picture with searchable text. |
 | DDF-RA editor files and how-tos | CDISC's own authoring toolchain. |
-| CORE test data template | Its question, what CORE actually checks, is better answered by the JSONata rules below. |
-| COSMoS SDTM dataset specializations | Map concepts to SDTM variables. Downstream of this project. |
+| CORE test data template | Its question, what CORE actually checks, is better answered by the rules below, which are written in JSONata, a query language for JSON. |
+| COSMoS SDTM dataset specializations | Map concepts to SDTM variables. COSMoS (Conceptual and Operational Standards Metadata Services) is the CDISC project that publishes the Biomedical Concepts. Downstream of this project. |
 | COSMoS concept hierarchy file | Already present as sheets inside the pinned concepts workbook. |
-| COSMoS CRF specializations | Marked draft by CDISC and CDASH-side. |
+| COSMoS CRF specializations | Marked draft by CDISC, and on the side of data collection forms, the Clinical Data Acquisition Standards Harmonization (CDASH), rather than study definition. |
 | COSMoS governance documents | How CDISC authors concepts. This project uses concepts, it does not author them. |
 | LOINC database | The concepts workbook already carries LOINC codes inline, and the database needs a licence. |
 

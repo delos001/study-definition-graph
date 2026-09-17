@@ -99,9 +99,11 @@ def stage(monkeypatch) -> Stage:
     staged = Stage(on_path={"ruff", "mypy", "conda"})
 
     def which(name: str) -> str | None:
+        """Say where a tool is, for the tools the check staged as being on the path."""
         return f"/bin/{name}" if name in staged.on_path else None
 
     def run(command: list[str], cwd=None):
+        """Record the command instead of running it, and answer with the staged result."""
         staged.commands.append(list(command))
         staged.cwds.append(cwd)
         failed = tool_of(command) in staged.failing

@@ -130,6 +130,7 @@ def refuse(monkeypatch, error: Exception) -> None:
     """
 
     def raise_it(settings: script.Settings) -> script.Release:
+        """Stand in for the database call by raising the staged error."""
         raise error
 
     monkeypatch.setattr(script, "ask_database", raise_it)
@@ -246,7 +247,7 @@ def test_missing_env_file_is_refused(repo, capsys):
 @code("HRS0113")
 @negative
 def test_missing_settings_are_refused_by_name(repo, capsys):
-    """With a .env missing two of the three Neo4j lines, the run exits 37 and the
+    """With a .env holding only one of the Neo4j lines, the run exits 37 and the
     message names both missing settings."""
     write_env(repo, f"NEO4J_URI={URI}\n")
     outcome = run(capsys)
@@ -387,6 +388,7 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     looks for a .env file."""
 
     def not_in_repo() -> Path:
+        """Stand in for the repo check with the refusal it gives outside the repo."""
         raise script.NotInRepoError("sdg is not running from inside its repo")
 
     monkeypatch.setattr(script, "REPO_ROOT", tmp_path)

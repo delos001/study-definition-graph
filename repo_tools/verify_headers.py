@@ -143,6 +143,8 @@ def value_column(path: Path) -> int:
     Returns:
         The column, or 0 when the file has no Exit codes line.
     """
+    # A file that will not parse is already reported by the header parser, so the
+    # column falls back to 0 here rather than raising the same problem twice.
     try:
         docstring = ast.get_docstring(
             ast.parse(path.read_text(encoding="utf-8")), clean=False

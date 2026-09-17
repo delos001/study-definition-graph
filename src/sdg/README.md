@@ -14,7 +14,7 @@ The `sdg` package: the pipeline, as code other code imports, and the commands a 
 
 A file used by several stages goes in the root of `sdg/`. Today that is `console_output.py`, which makes the console print the standards' characters intact on Windows. When two or more such files are about the same thing, they move into a folder named for that thing. Nothing gets a folder before it has earned one.
 
-A script has one objective. Generally its functionality should be distinct or perform like things. Discrete jobs upstream or downstream of the objective should generally be evaluated to determine whether they belong in a separate callable, reusable script.
+A file does one job. When a file also does a piece of work that comes before or after its job, and another file could use that piece too, that piece belongs in a file of its own.
 
 Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one: it holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `docs/sdg_files_inventory.md`.
 

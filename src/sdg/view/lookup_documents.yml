@@ -14,7 +14,7 @@
 #                text using the same words survives.
 #
 # A document with nothing repeated on its pages carries an empty boilerplate
-# list. The M11 documents are that case: their most repeated lines, Definition,
+# list. The ICH M11 documents, the protocol template and its companions, are that case: their most repeated lines, Definition,
 # Data Type and Cardinality, are field labels in the body, and stripping those
 # would delete the content the document exists to convey.
 
@@ -49,7 +49,7 @@ documents:
     boilerplate: []
 
   # The whole USDM model as one vector diagram. Listed here despite being a
-  # picture because its text extracts cleanly, which the UML_Views PNGs of the
+  # picture because its text extracts cleanly, which the UML_Views images (PNG files) of the
   # same material do not. Everything is on page 1, so --find is the only
   # sensible mode.
   - key: model-diagram

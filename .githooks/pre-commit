@@ -10,7 +10,7 @@
 # terminal. The fourth needs ruff and mypy from the sdg conda environment; its
 # script finds them on the path when that environment is active and runs them
 # through conda when it is not. check_facts.py (reads every pinned file) and
-# acquire_sources (hashes 42 files) stay manual runs; see the README.
+# acquire_sources (hashes every pinned file) stay manual runs; see the README.
 
 set -e
 

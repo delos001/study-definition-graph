@@ -1,6 +1,6 @@
 # inputs/standards/crosswalks/
 
-Spreadsheets from CDISC that say how fields in other systems correspond to USDM fields. `ct-gov_mapping.xlsx` maps ClinicalTrials.gov registry fields; `m11_mapping.xlsx` maps ICH M11 protocol template elements. Both are pinned to DDF-RA commit `aa303cb`; the manifest is `manifests/crosswalks.json`.
+Spreadsheets from CDISC that say how fields in other systems correspond to USDM fields. `ct-gov_mapping.xlsx` maps ClinicalTrials.gov registry fields; `m11_mapping.xlsx` maps ICH M11 protocol template elements. Both are pinned to commit `aa303cb` of the Digital Data Flow reference architecture repository (DDF-RA); the manifest is `manifests/crosswalks.json`.
 
 CDISC marks them informative, not part of the standard, and describes them as provisional [1]:
 

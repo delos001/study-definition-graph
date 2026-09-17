@@ -8,7 +8,7 @@ This folder holds the Claude Code configuration for this repo.
 | `settings.json` | The project settings, committed. It names every hook below and when it runs. |
 | `settings.local.json` | Personal settings for this machine, not committed. It holds nothing about hooks. |
 | `hooks/` | The scripts the hooks run. Each follows `.claude/rules/writing_python_files.md` like every other Python file, `repo_tools/verify_headers.py`, run by the pre-commit hook `.githooks/pre-commit`, holds them to it, and their checks live under `validation/claude_hooks/`. |
-| `rules/` | The rules Claude Code loads when a matching file is opened. `writing_python_files.md` is the one rule and covers every Python file the project writes. |
+| `rules/` | The rules Claude Code loads when a matching file is opened. |
 
 ## Hooks in use
 
@@ -23,7 +23,7 @@ To add a hook, write its script in `hooks/` with a header block, name it in `set
 
 ## Rules
 
-| Used | Script | What it does |
+| Used | File | What it does |
 | --- | --- | --- |
-| When writing python script | writing_python_files | provides rules to ensure python scripts are written with consistent structure and convention and that they adhere to project script writing needs. |
+| When writing Python script | writing_python_files.md | Specifies how Python files are organized and described and what the repo's tools read from it: <br> - header block, <br> - exit codes, <br> - type hints, <br> - docstrings, <br> - comments, <br> - check markers |
 

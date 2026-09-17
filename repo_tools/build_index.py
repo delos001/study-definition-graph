@@ -30,7 +30,7 @@ Usage:       python repo_tools/build_index.py
                  regenerate repo_tools/README.md
              python repo_tools/build_index.py --check
                  report whether the file on disk is current; write nothing.
-                 For hooks and CI.
+                 For the pre-commit hook and continuous integration (CI) runs.
              python repo_tools/build_index.py --quiet
                  print nothing; use the exit code
 
@@ -356,7 +356,7 @@ def main(argv: list[str] | None = None) -> int:
         say("repo_tools/README.md is stale. Run: python repo_tools/build_index.py")
         return 15
 
-    # Written with LF, as validation/validation_inventory.csv is and as git stores it, so the file does
+    # Written with a bare line feed (LF) ending each line, as validation/validation_inventory.csv is and as git stores it, so the file does
     # not flip line endings with whichever machine last regenerated it.
     INDEX_PATH.write_text(generated, encoding="utf-8", newline="\n")
     say(f"repo_tools/README.md written, {len(entries)} script(s)")

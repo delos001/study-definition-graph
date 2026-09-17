@@ -13,9 +13,9 @@ Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
                should be), which the real file must never be. Broken variants are
                made in memory and written to a temporary folder pytest owns.
              - Real-file checks read the pinned dataStructure.yml itself and
-               assert the measured facts about it (86 classes, four multi-target
-               attributes, and that the fixture's classes are identical to the
-               pinned ones). They skip, with a reason, when inputs/ is not
+               assert the measured facts about it (the class count, the attributes
+               that reference several types, and that the fixture's classes are
+               identical to the pinned ones). They skip, with a reason, when inputs/ is not
                downloaded, so the logic checks still run on a fresh clone.
 
              Every check is marked positive (the right thing works) or negative
@@ -245,6 +245,7 @@ def test_attribute_missing_a_key_is_named(variant):
     KeyError traceback from the printer."""
 
     def rename(d):
+        """Rename one attribute's Relationship Type key, so the expected key is gone."""
         attr = d["Condition"]["Attributes"]["name"]
         attr["Kind"] = attr.pop("Relationship Type")
 
@@ -262,6 +263,7 @@ def test_attribute_missing_several_keys_lists_them(variant):
     of them, so one read of the error shows the whole problem."""
 
     def drop_two(d):
+        """Remove two keys from one attribute, so the error has two names to list."""
         for key in ("Type", "Cardinality"):
             d["Condition"]["Attributes"]["name"].pop(key)
 
@@ -322,7 +324,7 @@ def test_inherited_from_without_ref_is_named(variant):
 ### Refusing a file that cannot be trusted (exits 9 and 10) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
-# validation/sources/test_verify_pinned.py. These two prove the module is wired to it: a
+# validation/sources/test_verify_pinned.py. These prove the module is wired to it: a
 # file no manifest records, and a file
 # whose fingerprint differs, are refused through load() with the same messages.
 
@@ -469,6 +471,7 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", variant(lambda d: None))
 
     def locked(target):
+        """Stand in for the pinned-file check with the refusal a locked file gives."""
         raise PermissionError("locked by another program")
 
     monkeypatch.setattr(usdm_spec, "verify_pinned", locked)

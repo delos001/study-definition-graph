@@ -184,6 +184,8 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
         positive or negative marker. A file that cannot be parsed is one problem
         and no checks.
     """
+    # A file that will not parse is reported as one problem with no checks, so
+    # one broken file does not hide the state of the rest.
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
     except (SyntaxError, ValueError, OSError) as exc:

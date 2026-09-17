@@ -12,9 +12,9 @@ One heading per standard. Each row names the part read, where it sits in the doc
 
 | Section | Pages | What it established |
 | --- | --- | --- |
-| 2 Fundamentals of the USDM | 6-8 | USDM is 5 official standards, not 1: class diagram, API spec, Controlled Terminology, this IG, Conformance Rule Specifications. `USDM_API.json` is one of the five and the one carrying no semantics. v4.0 is aligned to ICH M11 CeSHarP. Publicly available protocols have been mapped to USDM and published as "USDM GitHub Examples" (p.8). |
-| 3.1 Relationship to Other CDISC Standards | 9-10 | USDM draws on BRIDG, supersedes PRM, and feeds SDTM Trial Design datasets. |
-| 6.4 Extension Mechanism | 100-107 | Sanctioned route for content the model does not cover, including explicitly "a need to overcome issues with the model". Implemented as `extensionAttributes`, present on all 80 concrete classes (measured 2026-08-18; the 81 previously recorded here was wrong): a list of `ExtensionAttribute` (id, url, value). Not part of the logical model; API-only. Extensions **must be documented** by whoever creates them. |
+| 2 Fundamentals of the USDM | 6-8 | USDM is 5 official standards, not 1: class diagram, API spec, Controlled Terminology, this implementation guide, Conformance Rule Specifications. `USDM_API.json` is one of the five and the one carrying no semantics. v4.0 is aligned to ICH M11, the harmonised protocol template, which ICH also calls CeSHarP. Publicly available protocols have been mapped to USDM and published as "USDM GitHub Examples" (p.8). |
+| 3.1 Relationship to Other CDISC Standards | 9-10 | USDM draws on the Biomedical Research Integrated Domain Group model (BRIDG), supersedes the Protocol Representation Model (PRM), and feeds the Trial Design datasets of the Study Data Tabulation Model (SDTM). |
+| 6.4 Extension Mechanism | 100-107 | Sanctioned route for content the model does not cover, including explicitly "a need to overcome issues with the model". Implemented as `extensionAttributes`, present on all 80 concrete classes (measured 2026-08-18): a list of `ExtensionAttribute` (id, url, value). Not part of the logical model; API-only. Extensions **must be documented** by whoever creates them. |
 
 ### Priority unread sections
 

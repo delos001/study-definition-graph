@@ -148,8 +148,8 @@ class Entry:
         str  # the name of the manifest file the entry came from, used in messages.
     )
 
-    # create decorator (@property) lets path be read like a field, entry.path, instead of
-    # called as entry.path().  It is worked out from local when asked for, not stored.
+    # The @property marker lets path be read like a field, as entry.path, instead of
+    # being called as entry.path(). It is worked out from local when asked for, not stored.
     @property
     def path(self) -> Path:
         """The file's location on this machine."""

@@ -15,7 +15,7 @@ python repo_tools/build_index.py
     regenerate repo_tools/README.md
 python repo_tools/build_index.py --check
     report whether the file on disk is current; write nothing.
-    For hooks and CI.
+    For the pre-commit hook and continuous integration (CI) runs.
 python repo_tools/build_index.py --quiet
     print nothing; use the exit code
 ```

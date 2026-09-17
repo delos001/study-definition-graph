@@ -1,7 +1,8 @@
 """
 Script:      usdm_spec.py
 Description: The single way to access the pinned USDM model. It reads
-             dataStructure.yml (the USDM v4.0 UML deliverable), and answers
+             dataStructure.yml (the USDM v4.0 model as published from the Unified
+             Modeling Language, UML), and answers
              questions about the standard's classes and their attributes.
 
              Design: The file is parsed once into its native form (the nested
@@ -124,7 +125,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     YAML in native form.
 
     The result is a dict keyed by class name, where each value is the class's own dict
-    of NCI code, definition, modifier and attributes. Nothing is reshaped. Two shape
+    of National Cancer Institute (NCI) code, definition, modifier and attributes. Nothing is reshaped. Two shape
     checks run before the dict is returned: every class has Modifier and Attributes, and
     every attribute has Type, Cardinality and Relationship Type, so a structurally
     different file fails here instead of deep inside a caller.
@@ -179,7 +180,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     if not isinstance(spec, dict) or not spec:
         raise SpecShapeError("spec is empty or not a mapping of classes")
 
-    # Make sure Modifier and Attributes are present on all 86 classes (measured).
+    # Make sure Modifier and Attributes are present on every class.
     for name, body in spec.items():
         if (
             not isinstance(body, dict)
@@ -193,7 +194,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
             )
 
     # Make sure every attribute carries the three keys the accessors and the
-    # printer index directly (all 833 attributes do, measured), so a renamed key
+    # printer index directly (every attribute does), so a renamed key
     # in a future USDM is named here rather than surfacing as a KeyError traceback.
     # The two reference-valued keys, Type (always) and Inherited From (when
     # present), must also hold a list of {'$ref': '#/X'} entries, since _unwrap()
@@ -326,7 +327,7 @@ def targets(attribute: dict) -> tuple[str, ...]:
 
     USDM writes every type as a list of {'$ref': '#/X'}, where X is a class name or one
     of five primitives: string, boolean, integer, float, date. Most attributes reference
-    one type; four reference several, Condition.appliesToIds among them, so the result
+    one type; a few reference several, Condition.appliesToIds among them, so the result
     is always a tuple. An attribute whose Type is [{'$ref': '#/string'}] yields
     ('string',).
 
@@ -353,8 +354,8 @@ def _print_classes(spec: dict) -> None:
     """Print every class name, marking the abstract ones, then a count summary.
 
     Names go to stdout so the listing can be piped: one per line, with [abstract]
-    appended to the abstract classes. The summary, for example 86 classes (80 concrete,
-    6 abstract), goes to stderr so it is not mixed into piped data. The count of
+    appended to the abstract classes. The summary line, the class count with how many
+    are concrete and how many abstract, goes to stderr so it is not mixed into piped data. The count of
     concrete classes is the figure docs/standards_read_record.md states and
     check_facts.py re-derives; here it is printed straight from the file.
 
@@ -385,6 +386,8 @@ def _print_attributes(spec: dict, class_name: str) -> int:
         0, or 5 with a guidance message when the class is unknown, so a typo yields the
             remedy rather than a traceback.
     """
+    # An unknown class name is a typo, not a broken model, so it is answered with
+    # the remedy and exit 5 rather than a traceback.
     try:
         attrs = attributes(spec, class_name)
     except KeyError:

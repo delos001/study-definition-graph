@@ -172,7 +172,7 @@ def test_quiet_prints_nothing(folder, capsys):
 @code("HRS0046")
 @positive
 def test_real_folders_pass():
-    """Every Python file in the four real code folders has a complete header, which
+    """Every Python file in the real code folders has a complete header, which
     is the run the pre-commit hook makes."""
     assert script.main(["--quiet"]) == 0
 
@@ -268,7 +268,7 @@ def test_unparseable_outranks_incomplete(folder, capsys):
 @code("HRS0079")
 @positive
 def test_all_four_code_folders_are_checked():
-    """The checker covers the four folders the writing rule names, so a file added
+    """The checker covers every folder .claude/rules/writing_python_files.md names, so a file added
     under any of them is held to the header block like any other."""
     covered = {
         folder.relative_to(script.REPO_ROOT).as_posix()

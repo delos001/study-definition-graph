@@ -53,8 +53,8 @@ from .read_manifests import Entry
 ### Settings ###
 
 # A file is read in pieces of this size while it is hashed. One megabyte keeps
-# memory use flat whatever the file size; the largest pinned file is a 5.9 MB
-# PDF.
+# memory use flat whatever the file size; the largest pinned files are PDFs of
+# several megabytes.
 CHUNK_BYTES = 1024 * 1024
 
 

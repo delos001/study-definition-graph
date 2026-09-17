@@ -128,6 +128,7 @@ class Release:
     edition: str
 
     def __str__(self) -> str:
+        """Give the version and edition as one phrase, the way the compose tag reads."""
         return f"{self.version} {self.edition}"
 
 
@@ -276,6 +277,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     def report(message: str) -> None:
+        """Print a message, unless --quiet was given."""
         if not args.quiet:
             print(message)
 
@@ -287,6 +289,8 @@ def main(argv: list[str] | None = None) -> int:
         report(str(exc))
         return 6
 
+    # A missing .env and a .env with no Neo4j lines have different fixes, so each
+    # gets its own exit code.
     try:
         settings = read_settings(REPO_ROOT / ENV_FILE)
     except EnvFileMissingError as exc:

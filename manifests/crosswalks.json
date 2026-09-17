@@ -1,6 +1,6 @@
 {
   "set": "crosswalks",
-  "description": "Crosswalks between USDM and other standards, from the DDF-RA Documents/Mappings directory. Informative material, not one of the five official USDM standards.",
+  "description": "Crosswalks between USDM and other standards, from the Documents/Mappings folder of the Digital Data Flow reference architecture repository (DDF-RA). Informative material, not one of the five official USDM standards.",
   "publisher": "CDISC",
   "version": "informative material alongside USDM 4.0, pinned by commit",
   "source": "https://github.com/cdisc-org/DDF-RA",
@@ -10,7 +10,7 @@
   "local_dir": "inputs/standards/crosswalks",
   "notes": {
     "caveat": "CDISC's Documents/README.md at the pinned commit describes these as provisional and written against USDM v3.1x. That README is stale: both files declare USDM v4.0.0 in their own Readme sheet, verified 2026-08-17. m11_mapping is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching USDM-IG p.8. ct-gov_mapping carries a \"v4.0 Change\" column. The quoted passage and its url are in the README beside these files.",
-    "excluded": "ctis_mapping.xlsx (EU registry, out of scope), cpt_mapping.xlsx (authoring template our sources do not use), sdtm_mapping.xlsx (USDM to SDTM, downstream and opposite direction)."
+    "excluded": "ctis_mapping.xlsx (the European Union's registry, out of scope), cpt_mapping.xlsx (authoring template our sources do not use), sdtm_mapping.xlsx (USDM to the Study Data Tabulation Model, SDTM; downstream and opposite direction)."
   },
   "files": [
     {
@@ -20,7 +20,7 @@
       "local": "inputs/standards/crosswalks/m11_mapping.xlsx",
       "format": "XLSX",
       "read_by": "both",
-      "role": "Crosswalk from ICH M11 CeSHarP protocol template elements to USDM. M11 is an authoring template our source protocols are not written in, so this is reference material, not a pipeline input.",
+      "role": "Crosswalk from the elements of the ICH M11 harmonised protocol template (CeSHarP) to USDM. M11 is an authoring template our source protocols are not written in, so this is reference material, not a pipeline input.",
       "bytes": 61250,
       "sha256": "82f35cfdd37628dfe8415ed4324303eb9c452e534f8aaea0002d31519f5ae341"
     },

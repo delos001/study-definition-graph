@@ -46,7 +46,7 @@ code = pytest.mark.code
 def corpus_is_present() -> bool:
     """Say whether every pinned file the real run reads is on disk.
 
-    The run reads three things: the USDM model file, a USDM export under each worked
+    The run reads the pinned files its measurements need: the USDM model file, a USDM export under each worked
     example, and the concepts workbook, whose path the manifest owns. A check that
     skipped on the first alone would fail on the other two instead of skipping.
     """

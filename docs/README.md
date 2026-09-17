@@ -2,7 +2,7 @@
 
 This folder contains the project's documentation about itself.
 
-The information is usually kept by hand and stored here when a the information is cross cutting across more than one pipeline component not directly related to another pipeline or validation component in a way that requires it to be stored next to that component.
+These documents are kept by hand. A document lives here when it cuts across more than one part of the pipeline, so it does not belong beside any one code folder or validation folder.
 
 | File | What it shows |
 | --- | --- |

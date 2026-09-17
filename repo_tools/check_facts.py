@@ -4,8 +4,8 @@ Description: Recomputes every figure asserted in the project's markdown, a count
              or a date, and compares it against what the documents actually say.
 
              This exists because two such numbers were found wrong in one
-             sitting: CLAUDE.md claimed the pinned PDFs run to 500 pages when
-             they run to 460, and PLAN.md carried a class count that had been
+             sitting: CLAUDE.md stated a page total for the pinned PDFs that
+             was wrong, and PLAN.md carried a class count that had been
              garbled during an edit. Neither was a typo. Both were figures
              derived once, written as prose, and never re-derived when the
              corpus changed underneath them.
@@ -141,7 +141,7 @@ def examples_with_estimands() -> int:
     """Count the worked-example studies whose USDM JSON defines at least one estimand.
 
     Estimands hang off each studyDesign. Counted because PLAN.md leans on their
-    scarcity, only one of the three examples defines any, to justify why Phase 1 must
+    scarcity, only one of the pinned examples defines any, to justify why Phase 1 must
     select for documents that actually define estimands. If the pinned files under inputs/ grow or an
     example gains an estimand, that argument has to move with it.
 

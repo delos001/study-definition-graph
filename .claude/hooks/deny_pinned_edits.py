@@ -46,6 +46,9 @@ import os
 import sys
 from pathlib import Path
 
+#######################################################################################
+### What counts as pinned ###
+
 # The one folder that holds pinned files. repo_tools/find_unrecorded_files.py
 # walks the same folder; the two agree because there is only one name.
 PINNED_FOLDER = "inputs"
@@ -54,6 +57,10 @@ PINNED_FOLDER = "inputs"
 OWN_FILES = ("README.md", ".gitkeep")
 
 MANIFEST_FOLDER = "manifests"
+
+
+#######################################################################################
+### Finding the repo root and the path inside it ###
 
 
 def repo_root(call: dict) -> Path:
@@ -87,10 +94,16 @@ def repo_relative(file_path: str, root: Path) -> Path | None:
     if not target.is_absolute():
         target = root / target
     target = target.resolve()
+    # A path outside the repo root cannot be made relative to it, and such a path
+    # is never pinned, so the answer is None rather than an error.
     try:
         return target.relative_to(root)
     except ValueError:
         return None
+
+
+#######################################################################################
+### Deciding whether the path is pinned ###
 
 
 def reason_to_deny(relative: Path) -> str | None:
@@ -126,6 +139,10 @@ def reason_to_deny(relative: Path) -> str | None:
     return None
 
 
+#######################################################################################
+### Entry point ###
+
+
 def main() -> int:
     """Read the tool call from stdin and print a deny decision when the path is pinned.
 
@@ -135,6 +152,8 @@ def main() -> int:
     Returns:
         Always 0. The decision is in what is printed, not in the exit code.
     """
+    # A message that is not JSON, or that carries no path, is not a Write or Edit
+    # the hook can judge, so it is allowed rather than blocking ordinary work.
     try:
         call = json.load(sys.stdin)
         file_path = call["tool_input"]["file_path"]

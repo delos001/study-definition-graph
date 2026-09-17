@@ -1,6 +1,6 @@
 {
   "set": "cdisc_biomedical_concepts",
-  "description": "CDISC Biomedical Concepts (COSMoS): standardized definitions of clinical measurements that a USDM activity can point at, with the field guide and an overview.",
+  "description": "CDISC Biomedical Concepts, published by the Conceptual and Operational Standards Metadata Services (COSMoS): standardized definitions of clinical measurements that a USDM activity can point at, with the field guide and an overview.",
   "publisher": "CDISC",
   "version": "2026-07-14, the newest package_date in the export, which is the release date of the most recent Biomedical Concept package it holds. The export itself is rolling, so the pinned commit fixes the copy and this date names the content.",
   "source": "https://github.com/cdisc-org/COSMoS",
@@ -9,7 +9,7 @@
   "local_dir": "inputs/standards/cdisc/biomedical_concepts_2026-07-14",
   "notes": {
     "commit_message": "Remove 'utilities/' from exclude list",
-    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (401), so the Biomedical Concepts are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding.",
+    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (answer code 401 not permitted), so the Biomedical Concepts (BC) are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding.",
     "naming_exception": "cdisc_biomedical_concepts_latest.xlsx is pinned as cdisc_biomedical_concepts.xlsx, the one departure from keeping the publisher's file name. CDISC's suffix says the file moves; this copy does not, and a pinned file named latest would contradict the pin every time the folder is read. The version is the newest package_date in the export, carried in the folder name. Decided 2026-09-08; the version wording corrected 2026-09-16."
   },
   "files": [
@@ -20,7 +20,7 @@
       "local": "inputs/standards/cdisc/biomedical_concepts_2026-07-14/cdisc_biomedical_concepts.xlsx",
       "format": "XLSX",
       "read_by": "both",
-      "role": "The concept library itself, one row per Biomedical Concept parameter. Answers what standardized concept an activity measures; the code columns carry a LOINC code where the concept is a measurement.",
+      "role": "The concept library itself, one row per Biomedical Concept parameter. Answers what standardized concept an activity measures; the code columns carry a Logical Observation Identifiers Names and Codes (LOINC) code where the concept is a measurement.",
       "bytes": 1368920,
       "sha256": "6c004f592c62ea2f06877ff86788a9c11d2a721d9f8a08809e7dc6f14d1fe1e6"
     },
@@ -42,7 +42,7 @@
       "local": "inputs/standards/cdisc/biomedical_concepts_2026-07-14/BC_Overview_Training.pdf",
       "format": "PDF",
       "read_by": "person",
-      "role": "What a Biomedical Concept is, conceptually, and how it sits above SDTM and CDASH. Grounding only; the searchable PDF, not the slide deck.",
+      "role": "What a Biomedical Concept is, conceptually, and how it sits above the Study Data Tabulation Model (SDTM) and the Clinical Data Acquisition Standards Harmonization (CDASH). Grounding only; the searchable PDF, not the slide deck.",
       "bytes": 1783874,
       "sha256": "482447cfa8173c20b5600afce8560e3d6546065d71cf0c4531dea00a13f71bfd"
     }

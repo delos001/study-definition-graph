@@ -259,6 +259,7 @@ def test_locked_file_passes_the_operating_systems_error_through(
     real_open = pathlib.Path.open
 
     def refuse(self, *args, **kwargs):
+        """Refuse to open the recorded file, and open any other file as usual."""
         if self == recorded_file:
             raise PermissionError(f"{self}: locked by another program")
         return real_open(self, *args, **kwargs)

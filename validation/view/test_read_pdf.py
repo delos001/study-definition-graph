@@ -102,6 +102,7 @@ def write_list(tmp_path):
     """
 
     def make(text):
+        """Write the given text as the list and give back its path."""
         path = tmp_path / "lookup_documents.yml"
         path.write_text(text, encoding="utf-8")
         return path

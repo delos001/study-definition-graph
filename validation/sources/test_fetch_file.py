@@ -7,7 +7,7 @@ Description: Automated checks for src/sdg/sources/fetch_file.py, the step that
              one way a failed download is reported and cleaned up.
 
              No check touches the network. The one call the module makes to the
-             HTTP library, httpx.stream, is replaced for the length of each check
+             Hypertext Transfer Protocol (HTTP) library, httpx.stream, is replaced for the length of each check
              by a fake server that serves bytes, answers with an error, or breaks
              part way through, as that check needs.
 
@@ -193,6 +193,8 @@ def attempt(server, tmp_path, behavior) -> Failed:
     """Stage the given server behaviour, try one download, and expect it to fail.
 
     Args:
+        server: The function that stages the fake server.
+        tmp_path: pytest's temporary folder, where the destination is placed.
         behavior: What the fake server does, a FakeResponse or an error.
 
     Returns:
@@ -370,6 +372,7 @@ def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkey
     raises FetchError for the download, not the removal's own error."""
 
     def refuse(self, missing_ok=False):
+        """Stand in for removing a file with a refusal, as a locked file gives."""
         raise PermissionError("cannot remove")
 
     monkeypatch.setattr(Path, "unlink", refuse)

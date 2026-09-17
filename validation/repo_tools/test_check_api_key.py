@@ -110,6 +110,7 @@ def refuse(monkeypatch, error: Exception) -> None:
     """
 
     def raise_it(key: str) -> str:
+        """Stand in for the call to the API by raising the staged error."""
         raise error
 
     monkeypatch.setattr(script, "call_api", raise_it)
@@ -314,6 +315,7 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     looks for a .env file."""
 
     def not_in_repo() -> Path:
+        """Stand in for the repo check with the refusal it gives outside the repo."""
         raise script.NotInRepoError("sdg is not running from inside its repo")
 
     monkeypatch.setattr(script, "REPO_ROOT", tmp_path)

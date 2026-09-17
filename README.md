@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph. Read as prose, the information from unstructured documents exists as a mental graph, for a person who has read them all. The result is variation and limitations to efficiently operationalizing the often extensive information, in that form.
+This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph. Read as prose, the information from unstructured documents exists as a mental graph, for a person who has read them all. A mental graph cannot be shared or queried, so the information is used inconsistently and carrying it into downstream work is slow and costly.
 
 Text extraction is a fairly well solved problem, but with that process, content and relationships within and across unstructured files dissipate.
 
@@ -32,8 +32,8 @@ This project is IN DEVELOPMENT.
 
 The project has six phases, Phase 0 to Phase 5, described in [PLAN.md](PLAN.md).
 
-- Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
-- the build sequence and per-phase verification are in [PLAN.md](PLAN.md).
+Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
+The build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 
 ## Where to look
 
@@ -102,8 +102,7 @@ acquire_sources
 ```
 
 ### Neo4j
-Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`.
-That password is set in `docker-compose.yml` and is for local development only.
+Neo4j Browser is at <http://localhost:7474>, user `neo4j`, password `studydefinition`. That password is set in `docker-compose.yml` and is for local development only.
 
 ```
 # To start/restart the database:
@@ -176,7 +175,7 @@ study-definition-graph/
   manifests/               # where each pinned file came from, and its fingerprint
     study_documents/       #   records for each study's pinned documents
   inputs/                  # pinned source files the project reads; gitignored
-    standards/             #   published standards used by this project (e.g. USDM, ICH M11)
+    standards/             #   published standards used by this project, such as USDM and the ICH M11 protocol template
     worked_examples/       #   real protocols CDISC mapped to USDM, with their mappings
     study_documents/       #   study-specific documents (e.g. protocols and SAPs)
   local_definitions/       # definitions this project adds to published standards; draft

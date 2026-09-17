@@ -247,6 +247,8 @@ def main(argv: list[str] | None = None) -> int:
             print(exc)
         return 3
 
+    # A map that cannot be read is reported with the operating system's reason
+    # and exit 13, rather than being compared as though it were empty.
     try:
         text = MAP_FILE.read_text(encoding="utf-8")
     except OSError as exc:

@@ -9,7 +9,8 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              Run --docs to see them and whether each one is downloaded.
 
              They differ in one way that governs this script's design. The USDM
-             IG and E9(R1) carry embedded bookmarks, so they can be addressed by
+             implementation guide (IG) and the ICH E9(R1) estimands addendum carry
+             embedded bookmarks, so they can be addressed by
              section number. The others carry none, so they answer only to
              --find and --pages. That is a property of the source files, not a
              limitation this script can code around, so section modes fail
@@ -90,7 +91,7 @@ from sdg.console_output import use_utf8_output
 from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
 
 #######################################################################################
-### Settings ###
+### The lookup documents and how they are loaded ###
 
 # The list of documents this tool can open lives beside it as data, so adding or
 # removing one is a row rather than a code change, and so the path on disk keeps
@@ -136,6 +137,9 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
         ManifestError: A manifest is missing or cannot be read.
     """
     target = registry_file or REGISTRY_FILE
+    # A list that is missing or is not valid YAML becomes the reader's own error, the
+    # same one a wrongly shaped list raises, so main() can turn all three into exit
+    # 31 with the cause in the message rather than showing a traceback.
     try:
         content = yaml.safe_load(target.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
@@ -222,7 +226,7 @@ def load_toc(doc: fitz.Document) -> list[dict]:
     part way into the page where the next one begins. The overlap is trimmed at the
     heading when the pages are extracted.
 
-    An empty result means the PDF has no bookmarks, which is the normal case for the M11
+    An empty result means the PDF has no bookmarks, which is the normal case for the ICH M11
     documents. Callers must treat empty as "this document cannot be addressed by
     section" rather than as "this document has no sections".
 
@@ -335,7 +339,7 @@ def strip_boilerplate(text: str, patterns: tuple[re.Pattern, ...]) -> str:
     """Remove the repeated per-page header and footer lines.
 
     Patterns are passed in rather than read from a module global because they are per-
-    document: the USDM IG has four, the M11 PDFs have none. The work is done line by
+    document: the USDM implementation guide has several, the ICH M11 PDFs have none. The work is done line by
     line rather than with a multiline regex, so a pattern that fails to match leaves
     that single line intact instead of silently discarding a block of body text.
 
@@ -534,8 +538,8 @@ def searchable(text: str) -> str:
     is really "De" + U+FB01 + "nition" and a plain substring search for it silently
     finds nothing. That is the worst failure mode available here: not an error, just an
     empty result that reads as "the document does not mention this". Of the registered
-    documents only the model diagram is affected, with 21 ligatures, but normalising
-    costs nothing and a missed hit is a wrong conclusion. NFKD decomposes ligatures back
+    documents only the model diagram is affected, but normalising
+    costs nothing and a missed hit is a wrong conclusion. NFKD, the Unicode normalization form that splits a combined character back into its parts, decomposes ligatures back
     into their letters and is applied to both the search term and the page text, so the
     two are always compared on the same footing.
 
@@ -626,7 +630,10 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_output()
 
     # The registry is read before the parser is built, because --doc offers the
-    # keys it holds and falls back to the default it names.
+    # keys it holds and falls back to the default it names. A list that is missing
+    # or wrongly shaped exits 31, a list naming a file no manifest records exits
+    # 32, and a manifest problem keeps the manifest reader's own codes, so a caller
+    # can tell those causes apart without reading the message.
     try:
         documents, default_document = load_registry()
     except UnknownFileError as exc:

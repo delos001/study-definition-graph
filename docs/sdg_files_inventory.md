@@ -28,7 +28,7 @@ The words in brackets after a name say the file is run by hand; a file with no b
 - read_xlsx.py (by hand): uses console_output, read_manifests
 ### steps
 ### data
-- lookup_documents.yml (the documents read_pdf can open, and what to strip from their pages)
+- lookup_documents.yml: the documents read_pdf can open, and what to strip from their pages
 
 ## locate/
 ### workflows

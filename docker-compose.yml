@@ -11,7 +11,7 @@ services:
     # "off" remains a state we choose.
     restart: unless-stopped
     ports:
-      - "7474:7474"   # Browser (HTTP)
+      - "7474:7474"   # the browser page, served over HTTP, the protocol web pages use
       - "7687:7687"   # Bolt (driver)
     environment:
       # Matches .env.example. Local development only.

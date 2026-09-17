@@ -1,6 +1,6 @@
 {
   "set": "usdm_examples",
-  "description": "CDISC's own worked examples: three real protocols with the USDM v4.0 JSON produced from each, plus the human-authored source spreadsheet that was the intermediate mapping step.",
+  "description": "CDISC's own worked examples: real protocols with the USDM v4.0 JSON produced from each, plus the human-authored source spreadsheet that was the intermediate mapping step.",
   "publisher": "CDISC",
   "version": "worked examples alongside USDM 4.0, pinned by commit",
   "source": "https://github.com/cdisc-org/DDF-RA",

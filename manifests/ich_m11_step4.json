@@ -7,10 +7,10 @@
   "retrieved": "2026-08-18",
   "local_dir": "inputs/standards/ich/m11_step4",
   "notes": {
-    "caveat": "M11 reached Step 4 on 2025-11-19, after USDM v4.0 was published (2025-06-03) and after the DDF-RA m11_mapping.xlsx crosswalk was authored against the Updated Step 2 Draft of 2025-03-14. The crosswalk therefore maps USDM v4.0 to a superseded M11 draft. That is expected: USDM and M11 are maintained by different bodies on different release cycles, and a v4.0 pin pointing at its contemporaneous M11 draft is internally consistent. Do not treat the mismatch as an error to reconcile.",
+    "caveat": "M11 reached Step 4 on 2025-11-19, after USDM v4.0 was published (2025-06-03) and after the m11_mapping.xlsx crosswalk in the Digital Data Flow reference architecture repository (DDF-RA) was authored against the Updated Step 2 Draft of 2025-03-14. The crosswalk therefore maps USDM v4.0 to a superseded M11 draft. That is expected: USDM and M11 are maintained by different bodies on different release cycles, and a v4.0 pin pointing at its contemporaneous M11 draft is internally consistent. Do not treat the mismatch as an error to reconcile.",
     "pinning": "ICH publishes PDFs at stable URLs with no version control system, so there is no commit to pin. The pin here is the sha256 plus the retrieval date. Re-download and re-hash to detect a silent replacement at the same URL.",
-    "unverified": "Step 4 status and the 2025-11-19 adoption date were read from page 1 of each PDF. Whether Step 4 or the EU's Step 5 listing creates an obligation applicable to protocol authors, and on what timeline, has NOT been verified. BACKGROUND.md's design constraint on this point needs re-checking rather than inverting.",
-    "alternate_source": "EMA hosts the same three documents at Step 5 (EU implementation), dated 2025-12-15, under https://www.ema.europa.eu/en/ich-m11-guideline-clinical-study-protocol-template-technical-specifications-scientific-guideline. ICH was taken as the primary body."
+    "unverified": "Step 4 status and the 2025-11-19 adoption date were read from page 1 of each PDF. Whether Step 4 or the European Union's Step 5 listing creates an obligation applicable to protocol authors, and on what timeline, has NOT been verified. BACKGROUND.md's design constraint on this point needs re-checking rather than inverting.",
+    "alternate_source": "The European Medicines Agency (EMA) hosts the same three documents at Step 5, the European Union's implementation, dated 2025-12-15, under https://www.ema.europa.eu/en/ich-m11-guideline-clinical-study-protocol-template-technical-specifications-scientific-guideline. ICH was taken as the primary body."
   },
   "files": [
     {
@@ -42,7 +42,7 @@
       "format": "PDF",
       "read_by": "person",
       "pages": 245,
-      "role": "Data elements and their technical attributes (definition, conformance, cardinality) for interoperable electronic exchange of protocol content. Structurally the M11 counterpart of the USDM data dictionary, and at 245 pages the largest artifact in the corpus.",
+      "role": "Data elements and their technical attributes (definition, conformance, cardinality) for interoperable electronic exchange of protocol content. Structurally the M11 counterpart of the USDM data dictionary, and the longest document the project pins.",
       "bytes": 3846369,
       "sha256": "57b8bf8edf32bf359a90a8632f0d771e7956fac5083f2f3a31350a47520e7691"
     }

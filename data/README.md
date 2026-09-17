@@ -1,6 +1,6 @@
 # data/
 
-This file contains pipeline related output documents.
+This folder contains pipeline related output documents.
 
 Nothing here is downloaded: the documents and standards read by the pipeline are in `inputs/`, and information used to score the pipeline's output is in `eval/`.
 

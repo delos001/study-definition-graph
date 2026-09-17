@@ -27,7 +27,7 @@ Each stage is a self-contained step with an explicit input and output, so a fail
 
 Each phase states its goal, what it produces, and how it is verified. Phases 3 to 5 are sketches, to be detailed when reached.
 
-### Phase 0 — Foundation and orientation
+### Phase 0: Foundation and orientation
 
 No pipeline work; the point is to stand up the tools and pin the sources, and to get hands-on with anything not used before.
 
@@ -42,7 +42,7 @@ No pipeline work; the point is to stand up the tools and pin the sources, and to
   - `python repo_tools/check_neo4j.py` exits 0, proving the database answers, accepts the login and is the pinned version,
   - `usdm_spec --list-classes` prints class names read from the pinned file.
 
-### Phase 1 — Acquire documents and locate their content
+### Phase 1: Acquire documents and locate their content
 
 Get real protocol and SAP pairs and find where their content lives, deterministically.
 
@@ -71,7 +71,7 @@ Get real protocol and SAP pairs and find where their content lives, deterministi
   - located sections match the PDF's real table of contents on manual check,
   - the SoA table is found with its footnote markers intact.
 
-### Phase 2 — Classify
+### Phase 2: Classify
 
 Identify the document type and what each section is about, with AI.
 
@@ -83,22 +83,22 @@ Identify the document type and what each section is about, with AI.
   - document type correct on all three studies,
   - section categories spot-checked against source.
 
-### Phase 3 (sketch) — Extract into USDM shape
+### Phase 3 (sketch): Extract into USDM shape
 
 Turn classified content into USDM-conformant structures.
 
 - **Produces:**
   - model output constrained to schemas generated from the pinned USDM spec, so output is USDM-shaped because it came from the standard rather than because a prompt asked,
   - every extracted fact carrying provenance,
-  - an answer to whether CDISC's own conformance checker, the service that says whether a USDM file is well formed, can be used without a paid CDISC membership. If it cannot, the pinned rules spreadsheet `USDM_CORE_Rules.xlsx` is what the output is checked against instead. This was listed under Phase 0 and moved here, because nothing before Phase 3 has output to check.
-- **Design consideration — chunking for prompting** (distinct from Phase 1's deterministic boundaries):
+  - an answer to whether CDISC's own conformance checker, the service that says whether a USDM file is well formed, can be used without a paid CDISC membership. If it cannot, the pinned rules spreadsheet `USDM_CORE_Rules.xlsx` is what the output is checked against instead.
+- **Design consideration, chunking for prompting** (distinct from Phase 1's deterministic boundaries):
   - how a located section is split or retrieved when fed to the model (semantic chunking),
   - driven by prompt size and the "content spread across sections" finding in `BACKGROUND.md`.
 - **Verification:**
   - every record validates against its schema and has non-null provenance,
   - both assertable in `validation/`.
 
-### Phase 4 (sketch) — Build the graph and test whether it earns its place
+### Phase 4 (sketch): Build the graph and test whether it earns its place
 
 Load the graph, link across documents, and answer the question the project exists to answer.
 
@@ -110,7 +110,7 @@ Load the graph, link across documents, and answer the question the project exist
   - one Cypher query, checked by hand, *which protocol endpoints have no corresponding estimand in the SAP, and which section did each come from?*
   - If a plain text search answers it just as well, that is a finding worth recording, not a failure to hide.
 
-### Phase 5 (sketch) — The Schedule of Activities, done properly
+### Phase 5 (sketch): The Schedule of Activities, done properly
 
 Reconstruct the timing graph from the flattened grid plus its footnotes and prose.
 
@@ -134,7 +134,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - No existing pipeline to inherit,
   - per-document-type handling is built here.
 - **Prompts and context are composed, not enumerated.**
-  - Variability is high: sponsor × therapeutic area × document type × section, and more.
+  - Variability is high, because sponsor, therapeutic area, document type and section possibilities multiply together, and those are not the only axes.
   - A distinct prompt per combination scales as the *product* of the axes (thousands of files; one update touches hundreds).
   - Goal: define orthogonal axes and compose behavior from them, so the count scales as the *sum* (tens of files; one update touches one).
   - Axes will not be perfectly orthogonal; genuine cross-axis interactions are handled through **adjacency** (a pattern carried from prior work), not by enumerating the product.
@@ -147,7 +147,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - A protocol fits USDM, a SAP fits partly, an Investigator's Brochure largely does not.
   - Three approaches are visible, none chosen:
     - map only the parts that fit and drop the rest: simple, but silently loses content,
-    - extend USDM through its own extension mechanism (IG 6.4): one model, but extensions are carried forever,
+    - extend USDM through its own extension mechanism, section 6.4 of the implementation guide `inputs/standards/cdisc/usdm_v4/USDM-IG.pdf`: one model, but extensions are carried forever,
     - give non-protocol document types their own target model: fits each better, but makes cross-document linking a translation problem.
   - Settled by working through a real document, not decided in advance.
 - **Whether a graph beats a text search is not assumed.**

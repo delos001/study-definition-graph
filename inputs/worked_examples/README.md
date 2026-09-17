@@ -1,6 +1,6 @@
 # inputs/worked_examples/
 
-CDISC's worked examples for USDM v4.0: real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same forms. Pinned to DDF-RA commit `aa303cb`; the manifest is `manifests/usdm_examples.json`.
+CDISC's worked examples for USDM v4.0: real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same forms. Pinned to commit `aa303cb` of the Digital Data Flow reference architecture repository (DDF-RA); the manifest is `manifests/usdm_examples.json`.
 
 | Form | What it is |
 | --- | --- |
@@ -10,7 +10,7 @@ CDISC's worked examples for USDM v4.0: real protocols that CDISC staff mapped in
 
 | Study | Folder |
 | --- | --- |
-| The CDISC Pilot Study (LZZT) | `CDISC_Pilot/` |
+| The CDISC Pilot Study, code-named LZZT | `CDISC_Pilot/` |
 | A type 2 diabetes study, NCT03421379 | `EliLilly_NCT03421379_Diabetes/` |
 | A Wilson's disease study, NCT04573309 | `Alexion_NCT04573309_Wilsons/` |
 

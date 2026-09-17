@@ -1,6 +1,6 @@
 # Background
 
-USDM (Unified Study Definitions Model) is CDISC's clinical study plan data model developed with TransCelerate through the Digital Data Flow (DDF) initiative [1][2]. Version 4.0, released June 2025 [3], aligns with ICH M11 [1], which the FDA and EMA are adopting at different paces; neither USDM nor M11 is mandatory as of Q3 2026 [7][8]. Complementary process guidance, conformance support, and relationship mapping to other industry standards have been developed concurrently [1].
+USDM (Unified Study Definitions Model) is CDISC's clinical study plan data model developed with TransCelerate through the Digital Data Flow (DDF) initiative [1][2]. Version 4.0, released June 2025 [3], aligns with ICH M11, the harmonised protocol template [1], which the United States Food and Drug Administration (FDA) and the European Medicines Agency (EMA) are adopting at different paces; neither USDM nor M11 is mandatory as of Q3 2026 [7][8]. Complementary process guidance, conformance support, and relationship mapping to other industry standards have been developed concurrently [1].
 
 Development and release of these models and resources provide an opportunity to extract and transform the requirements in study planning and design documents to be utilized by almost all downstream processes within drug and device development.  Combined with technology, such as AI and careful deterministic programming, these standards and processes have the potential to disrupt the status quo, substantially improving the speed and safety with which the industry brings treatments to patients.  Commercial vendors already generate USDM-conformant outputs from clinical documents using AI and/or generate USDM standard documents from scratch [4].
 
@@ -11,13 +11,13 @@ The project's premise is that USDM has a typed structural home for much of the i
 To attack the premise, unstructured clinical documents will be ingested into a standards-conformant knowledge graph, by building a working pipeline.  This approach is expected to surface use cases downstream of study planning, and the project aims to identify and evaluate them.  Candidate areas include:
 
 - Data Acquisition: define data needs, oversight and risk, procure data sources/providers, verify data conformance
-- Clinical Monitoring: site management, SDR, protocol compliance, regulatory compliance
-- Data Quality: data validation, clinical validation for centralized and decentralized data, RBM, CSM
+- Clinical Monitoring: site management, source data review (SDR), protocol compliance, regulatory compliance
+- Data Quality: data validation, clinical validation for centralized and decentralized data, risk-based monitoring (RBM), central statistical monitoring (CSM)
 - Standardization Mapping
 - Data Analysis
 - Medical Writing
 
-Further, this project is quasi-exploratory so competency building in the domains will be observed in the methods and technology choices.
+The project is also partly exploratory. Learning the domains as the work goes will show in the methods and tools chosen.
 
 This project will utilize USDM and is not claiming to be a novel approach by such use.
 
@@ -37,16 +37,18 @@ That shape recurs outside the schedule and outside the protocol, which is why th
 
 ## Published benchmarks
 
-- 2026 *Journal of Biomedical Informatics*: retrieval with clinical-tailored prompts reached **89.0% weighted accuracy** across six information categories versus **62.6%** for a standalone LLM with refined prompts. Peer-reviewed. [5]
+- 2026 *Journal of Biomedical Informatics*: retrieval with clinical-tailored prompts reached **89.0% weighted accuracy** across six information categories versus **62.6%** for a standalone large language model (LLM) with refined prompts. The study is peer-reviewed. [5]
 - Same study: the Schedule of Assessments problem was addressed with two stages, table detection then **vision-based multimodal processing**, because text-only methods lose spatial hierarchy.
 - Same study: content for a single category is typically spread across different sections, which is the justification for retrieval over whole-document processing.
 - Same study: low-confidence cases routed to human review had the model decision confirmed **87%** of the time; reviewers saw a median 60-minute (40%) time reduction.
-- One tool (ProtocolMiner) produced accurate, detailed timelines for **22 of 29** legacy schedules (~76%), with minor errors in the rest, and mapped them into USDM (and FHIR) structures. Single study, single tool, so low-to-moderate confidence, but prior art exists: this is not unexplored ground. [6]
+- One tool (ProtocolMiner) produced accurate, detailed timelines for **22 of 29** legacy schedules (~76%), with minor errors in the rest, and mapped them into USDM structures, and into the Fast Healthcare Interoperability Resources standard (FHIR). Single study, single tool, so low-to-moderate confidence, but prior art exists: this is not unexplored ground. [6]
 - **Negative finding**: no published accuracy threshold, validation standard, or normative human-review requirement exists for AI-generated USDM content.
 
 ## Glossary
 
-- **USDM** (Unified Study Definitions Model): CDISC's data model for a clinical study's *plan*, published as a set of formal specifications that include a UML logical model and an API specification.
+- **USDM** (Unified Study Definitions Model): CDISC's data model for a clinical study's *plan*, published as a set of formal specifications that include a class diagram in the Unified Modeling Language (UML) and an API specification.
+- **CDISC** (Clinical Data Interchange Standards Consortium): the standards body that publishes USDM and the other clinical data standards the project pins.
+- **ICH** (International Council for Harmonisation): the body that publishes the guidelines regulators adopt, including M11, the protocol template, and E9(R1), the estimands addendum.
 - **Protocol**: the document defining what a study will do.
 - **Schedule of Activities (SoA)**: the visit-by-activity grid in a protocol.
 - **SAP** (Statistical Analysis Plan): the document describing how a study's data will be analyzed.
@@ -54,9 +56,14 @@ That shape recurs outside the schedule and outside the protocol, which is why th
 - **Protocol synopsis**: a condensed summary of a protocol, usually a few pages.
 - **Knowledge graph**: data stored as things (nodes) and relationships (edges) rather than rows.
 - **Neo4j**: a graph database that runs as a server, with a browser-based interface for querying and visualizing the graph.
-- **Cypher**: Neo4j's query language, analogous to SQL for a relational database.
+- **Cypher**: Neo4j's query language, analogous to SQL, the query language of a relational database.
 - **Entity resolution**: deciding whether two differently-named records refer to the same real-world thing.
 - **Provenance**: a record, for each extracted fact, of where it came from and how it was produced.
+- **PDF**: the portable document format, the file type the pinned standards and protocols come in.
+- **JSON**, **YAML** and **CSV**: three plain-text file formats for structured data, used here for the manifests and the worked-example outputs, for the lookup lists and registries, and for the tables of checks and exit codes.
+- **API** (application programming interface): the way one program asks another for data or work over a connection, such as the ClinicalTrials.gov service the pipeline fetches documents from and the Claude service it sends text to.
+- **URL**: the address a file or service is fetched from.
+- **AI** (artificial intelligence): used here for a large language model, a program that reads and writes text, and for the pipeline stages that call one.
 
 ## References
 

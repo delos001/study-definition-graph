@@ -153,7 +153,7 @@ def test_the_index_ends_with_one_newline(written):
 @code("HRS0145")
 @positive
 def test_the_index_is_written_with_lf_line_endings(folder):
-    """The index is written with LF line endings whatever machine regenerates it, so
+    """The index is written with a bare line feed (LF) ending each line whatever machine regenerates it, so
     the file does not flip endings between one run and the next. Read as bytes,
     because reading as text would hide a carriage return."""
     scripts = folder({"alpha.py": GOOD_HEADER})

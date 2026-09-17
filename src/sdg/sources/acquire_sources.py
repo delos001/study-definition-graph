@@ -185,6 +185,8 @@ def main(argv: list[str] | None = None) -> int:
                 continue
 
             say(f"  fetching     {entry.name}")
+            # A url that cannot be fetched is reported and counted, and the run goes on
+            # to the next entry, so one dead address does not stop the rest.
             try:
                 partial = fetch(entry.url, entry.path)
             except FetchError as exc:

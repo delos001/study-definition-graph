@@ -37,10 +37,11 @@ Usage:       Not run directly; imported.
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
-             FetchError   the url could not be reached or is not one the HTTP
-                          library can parse, the server answered with an error,
-                          the download stopped part way, or the destination's
-                          folder could not be created; the message names the
+             FetchError   the url could not be reached or is not one the Hypertext
+                          Transfer Protocol (HTTP) library can parse, the server
+                          answered with an error, the download stopped part way,
+                          or the destination's folder could not be created; the
+                          message names the
                           url and the cause
 
 Date:        2026-09-08
@@ -61,7 +62,7 @@ import httpx
 ### Settings ###
 
 # A download is given up after this many seconds of silence from the server.
-# The limit is generous because two of the pinned files are PDFs of several
+# The limit is generous because some of the pinned files are PDFs of several
 # megabytes served by ICH, and a slow link must not be mistaken for a dead url.
 TIMEOUT_SECONDS = 60.0
 
