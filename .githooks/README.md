@@ -1,8 +1,16 @@
 # .githooks/
 
-This folder holds the git hooks for this repo. A git hook runs when git does something, here a commit, and it runs for anyone who commits from any tool. It is enabled once per clone with `git config core.hooksPath .githooks`, which the README's setup section includes. Claude Code hooks, which run around Claude's own tool calls, are a different thing and live in `.claude/`.
+This folder holds the git hooks for this repo.
 
-The header, index and inventory checks, `repo_tools/verify_headers.py`, `repo_tools/build_index.py` and `repo_tools/build_inventory.py`, use only the standard library, so they run from any terminal. The ruff and mypy check, `repo_tools/check_python_files.py`, needs the `sdg` environment. It finds the tools on the path when that environment is active and runs them through `conda run` when it is not, which is slower but needs no set-up.
+A git hook runs when git does something and it runs for anyone who commits from any tool.
+
+It is enabled once per clone with `git config core.hooksPath .githooks`, which the README's setup section includes. Claude Code hooks, which run around Claude's own tool calls, are a different thing and live in `.claude/`.
+
+- The header, index and inventory checks, `repo_tools/verify_headers.py`,
+  `repo_tools/build_index.py` and `repo_tools/build_inventory.py`, use only the standard library, so they run from any terminal.
+
+- The ruff and mypy check, `repo_tools/check_python_files.py`, needs the `sdg`
+  environment. It finds the tools on the path when that environment is active and runs them through `conda run` when it is not, which is slower but needs no set-up.
 
 ## Hooks in use
 

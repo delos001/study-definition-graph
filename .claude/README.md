@@ -19,3 +19,11 @@ Claude Code hooks run around Claude's own tool calls in a session; they are diff
 | Before every Write or Edit | `hooks/deny_pinned_edits.py` | Refuses the call if the path is under `inputs/`, except a `README.md` or `.gitkeep`, or is one of the hand-written manifests at the top of `manifests/`. One rule, no list: everything under `inputs/` is pinned. The repo root comes from `CLAUDE_PROJECT_DIR`, so the check holds whatever folder the session has moved to. This makes the CLAUDE.md rule that pinned files are never edited something Claude cannot break by mistake. It does not see edits made through a shell command. |
 
 To add a hook, write its script in `hooks/` with a header block, name it in `settings.json`, and add a row to the table above.
+
+
+## Rules
+
+| Used | Script | What it does |
+| --- | --- | --- |
+| When writing python script | writing_python_files | provides rules to ensure python scripts are written with consistent structure and convention and that they adhere to project script writing needs. |
+
