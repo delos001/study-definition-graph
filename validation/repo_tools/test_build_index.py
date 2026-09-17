@@ -6,7 +6,7 @@ Description: Automated checks for repo_tools/build_index.py, which generates
              is stale. Each check writes one or two small scripts to a
              temporary folder, points the generator at it, and asserts what it
              writes or which exit code it returns. One check runs --check on
-             the real repo_tools/ folder, the same check the hook runs.
+             the real repo_tools/ folder, the same check the pre-commit hook, .githooks/pre-commit, runs.
 
 Inputs:      repo_tools/*.py and repo_tools/README.md  (read-only; the one real-folder check)
 

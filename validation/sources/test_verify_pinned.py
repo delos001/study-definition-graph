@@ -224,7 +224,7 @@ def test_staged_record_is_the_same_by_string_or_path(recorded_file):
 @code("SRC0104")
 @negative
 def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
-    """When the package is not running from inside its repo, verify_pinned()
+    """When the sdg package is not running from inside its repo, verify_pinned()
     raises NotInRepoError with the install command, not an IntegrityError."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"
@@ -271,7 +271,7 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
 @negative
 def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
     """A manifest that cannot be read is passed through as the manifest reader's
-    own error, naming the manifest file and the git restore remedy."""
+    own error from src/sdg/sources/read_manifests.py, naming the manifest file and the git restore remedy."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", "{ not json")
     message = refused_with(ManifestError)

@@ -16,7 +16,7 @@ Description: Confirms the project's Neo4j database is running, accepts the login
              pin.
 
              This tool needs Docker running with the container up, so it is not
-             part of the pre-commit hook. It is one of the checks README.md asks
+             part of the pre-commit hook, .githooks/pre-commit. It is one of the checks README.md asks
              a person to run after setup.
 
 Inputs:      .env at the repo root             (read-only; the three NEO4J_ lines)
@@ -60,7 +60,7 @@ from pathlib import Path
 import neo4j
 import yaml
 
-# The repo root comes from the package, so this script needs the editable
+# The repo root comes from the sdg package, so this script needs the editable
 # install (pip install -e ., README.md step 5) the same as the pipeline does.
 from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
 
@@ -219,7 +219,7 @@ def read_pinned_release(compose_path: Path) -> Release:
 def ask_database(settings: Settings) -> Release:
     """Connect to the database and ask it which version and edition it is running.
 
-    The call is kept in its own function so the checks can stand in for it and
+    The call is kept in its own function so the checks under validation/ can stand in for it and
     never need Docker.
 
     Args:

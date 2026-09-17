@@ -109,7 +109,7 @@ def network(monkeypatch):
 ### Shared staging ###
 #
 # Two helpers build entries and run the workflow. Each fixture stages one state
-# of the corpus, runs the workflow once, and gives back the exit code and the
+# of the pinned files, runs the workflow once, and gives back the exit code and the
 # report so several checks can each look at one thing.
 
 
@@ -313,7 +313,7 @@ def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
 @positive
 def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys):
     """With the dry-run option, the run exits 0 when every file is present and
-    matching, so a quiet dry run answers whether the corpus is complete from
+    matching, so a quiet dry run answers whether the pinned files are complete from
     the exit code alone."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL)])
@@ -360,7 +360,7 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 #######################################################################################
 ### Negative checks ###
 #
-# Each situation stages one bad state of the corpus. The checks that share it
+# Each situation stages one bad state of the pinned files. The checks that share it
 # each assert one thing: the report line that names the state, what was left
 # alone on disk, or the exit code the header gives that state.
 

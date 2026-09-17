@@ -340,7 +340,7 @@ def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo):
     """With a wrong package name and an unreadable manifest, the error is about
-    the package, which shows the repo check came first."""
+    the sdg package, which shows the repo check came first."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"
     )

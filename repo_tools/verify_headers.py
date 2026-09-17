@@ -71,7 +71,7 @@ from pathlib import Path
 
 # The parser and the field list live in build_index.py, which sits in this same
 # folder. Python puts a running script's own folder first on its search path,
-# so the plain import resolves without the package being installed.
+# so the plain import resolves without the sdg package being installed.
 from build_index import REQUIRED_FIELDS, parse_header
 
 #######################################################################################

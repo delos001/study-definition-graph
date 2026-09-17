@@ -6,7 +6,7 @@ Description: Checks for repo_tools/verify_headers.py, the hand-run script the
              a temporary folder, points the script's checked folders at it,
              runs main() in-process, and asserts the exit code or the problem
              line the header promises. One check runs the script over the four
-             real code folders, the same run the hook makes.
+             real code folders, the same run the pre-commit hook, .githooks/pre-commit, makes.
 
 Inputs:      src/sdg/**/*.py, repo_tools/*.py, validation/**/*.py and
              .claude/hooks/*.py  (read-only; the one real-folder check)
@@ -131,7 +131,7 @@ def complete(folder, capsys) -> Outcome:
 #
 # The right thing works: complete headers pass silently, a package marker file is
 # not held to the header rule, --quiet leaves the exit code to speak, and the real
-# folders pass the same run the hook makes.
+# folders pass the same run the pre-commit hook, .githooks/pre-commit, makes.
 
 
 @code("HRS0042")

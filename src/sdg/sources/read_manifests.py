@@ -30,7 +30,7 @@ Usage:       Not run directly; imported.
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
-             NotInRepoError   the package is not running from inside its repo
+             NotInRepoError   the sdg package is not running from inside its repo
              ManifestError    a manifest cannot be read, an entry lacks a required
                               field, or a field holds a value that can never be
                               right: a size that is not a whole number, or a
@@ -58,7 +58,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 MANIFEST_DIR = REPO_ROOT / "manifests"
 
-# Study manifests are in manifests/study_documents/. The fetch script writes one per study.
+# Study manifests are in manifests/study_documents/. The pipeline stage that downloads a study writes one per study.
 # All manifests need to be read to identify documents that have been pinned.
 STUDY_MANIFEST_DIR = MANIFEST_DIR / "study_documents"
 
@@ -81,10 +81,10 @@ SHA256_RE = re.compile(r"[0-9a-f]{64}")
 
 
 class NotInRepoError(Exception):
-    """Raised when the package is not running from inside its repo, so it cannot find
+    """Raised when the sdg package is not running from inside its repo, so it cannot find
     manifests/.
 
-    This happens when the package was installed without -e, which copies the code into
+    This happens when the sdg package was installed without -e, which copies the code into
     Python's own library folder instead of pointing at the repo.
     """
 
@@ -107,14 +107,14 @@ class ManifestError(Exception):
 def require_repo() -> Path:
     """Check that this module is running from inside the repo.
 
-    The check is that pyproject.toml exists at the expected root and names this package.
+    The check is that pyproject.toml exists at the expected root and names the sdg package.
     A missing manifests folder is a different problem, reported by manifests().
 
     Returns:
         The repo root.
 
     Raises:
-        NotInRepoError: The package is not running from inside its repo.
+        NotInRepoError: The sdg package is not running from inside its repo.
     """
     pyproject = REPO_ROOT / "pyproject.toml"
     if pyproject.exists() and 'name = "sdg"' in pyproject.read_text(encoding="utf-8"):
@@ -286,7 +286,7 @@ def manifests(only: str | None = None) -> list[Manifest]:
         The manifests, in path order.
 
     Raises:
-        NotInRepoError: The package is not running from inside its repo.
+        NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: The manifests folder is missing or empty, the named manifest does
             not exist, or a manifest cannot be read.
     """
@@ -357,7 +357,7 @@ def entry_named(name: str) -> Entry | None:
         The entry with that name, or None when no manifest has one.
 
     Raises:
-        NotInRepoError: The package is not running from inside its repo.
+        NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: A manifest cannot be read.
     """
     for manifest in manifests():
@@ -379,7 +379,7 @@ def entry_for(target: str | Path) -> Entry | None:
         The entry that records the file, or None when no manifest does.
 
     Raises:
-        NotInRepoError: The package is not running from inside its repo.
+        NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: A manifest cannot be read.
     """
     local = as_local(target)

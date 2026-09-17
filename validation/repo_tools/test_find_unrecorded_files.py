@@ -63,7 +63,7 @@ def repo(fake_repo, monkeypatch):
     """Give a check the fake repo with one recorded file on disk.
 
     The script copies the repo root and the pinned folder when it is first loaded,
-    so the fake_repo fixture's repointing of the manifest reader does not reach them.
+    so the fake_repo fixture's repointing of the manifest reader, src/sdg/sources/read_manifests.py, does not reach them.
     Both are repointed here for the length of the check.
 
     Returns:
@@ -246,7 +246,7 @@ def test_no_manifests_exits_3(repo, capsys):
 @code("HRS0030")
 @negative
 def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
-    """When the package is not running from inside its repo, the run exits 6 with
+    """When the sdg package is not running from inside its repo, the run exits 6 with
     the install command, instead of reporting that no manifests were found."""
     from sdg.sources import read_manifests
 

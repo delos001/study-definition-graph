@@ -92,7 +92,7 @@ def partial_path(destination: Path) -> Path:
     """Give the temporary name a download is written under: the destination plus .part.
 
     The naming rule lives in this one function, so that finalize_file.py can find the
-    file and the checks can find the file to look at.
+    file and the checks under validation/ can find the file to look at.
 
     Args:
         destination: Where the finished file will live.

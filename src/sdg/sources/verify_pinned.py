@@ -18,7 +18,7 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
              served by an API, the inside of this module changes and the
              stages calling it do not.
 
-             The package must be installed from inside the repo (pip install
+             The sdg package must be installed from inside the repo (pip install
              -e .), or nothing under manifests/ can be found. The manifest
              reader checks that before it looks for anything.
 
@@ -40,7 +40,7 @@ Usage:       Not run directly; imported.
 Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
-             NotInRepoError       the package is not running from inside its repo
+             NotInRepoError       the sdg package is not running from inside its repo
              ManifestError        a manifest is missing or cannot be read
              FileNotFoundError    the file has not been downloaded
              UnrecordedFileError  no manifest entry records the file
@@ -141,7 +141,7 @@ def verify_pinned(target: str | Path) -> PinnedFile:
             provenance, meaning the sha256, the url and the manifest name.
 
     Raises:
-        NotInRepoError: The package is not running from inside its repo.
+        NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: A manifest is missing or cannot be read. Raised by the manifest
             reader and passed through, because it is a manifest problem, not a file
             problem, and the remedy is to restore the manifests.

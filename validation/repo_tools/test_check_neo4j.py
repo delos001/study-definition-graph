@@ -351,7 +351,7 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
 @code("HRS0121")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
-    """When the package is installed from outside the repo, the run exits 6 before it
+    """When the sdg package is installed from outside the repo, the run exits 6 before it
     looks for a .env file."""
 
     def not_in_repo() -> Path:

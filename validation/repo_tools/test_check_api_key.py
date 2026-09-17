@@ -285,7 +285,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
 @code("HRS0078")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
-    """When the package is installed from outside the repo, the run exits 6 before it
+    """When the sdg package is installed from outside the repo, the run exits 6 before it
     looks for a .env file."""
 
     def not_in_repo() -> Path:

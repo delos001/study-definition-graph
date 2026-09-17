@@ -42,7 +42,7 @@ from __future__ import annotations
 import argparse
 import sys
 
-# The manifests are read through the package, so this script needs the
+# The manifests are read through the sdg package, so this script needs the
 # editable install (pip install -e ., README.md step 5) the same as the
 # pipeline does.
 from sdg.sources import ManifestError, NotInRepoError, manifests
@@ -75,7 +75,7 @@ def unrecorded_files(found: list[Manifest]) -> list[str]:
     The project's own files, meaning the READMEs and Excel's lock files, are left out.
 
     Args:
-        found: The manifests, as the manifest reader hands them back.
+        found: The manifests, as the manifest reader, src/sdg/sources/read_manifests.py, hands them back.
 
     Returns:
         The repo-relative paths of the unrecorded files, sorted.
@@ -119,7 +119,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # The reader checks the package is running from inside its repo before it
+    # The manifest reader, src/sdg/sources/read_manifests.py, checks the sdg package is running from inside its repo before it
     # looks for any manifest, so the wrong install is reported as that.
     try:
         found = manifests()

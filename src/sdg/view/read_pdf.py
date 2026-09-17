@@ -21,7 +21,7 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              than silently producing incomplete text.
 
 Inputs:      src/sdg/view/lookup_documents.yml   (read-only, the list of documents)
-             manifests/*.json                     (read-only, through the manifest reader,
+             manifests/*.json                     (read-only, through src/sdg/sources/read_manifests.py,
                                                    which owns each document's path)
              the listed PDFs under inputs/        (read-only, pinned)
              Section numbers and page ranges come from each PDF's own bookmarks.

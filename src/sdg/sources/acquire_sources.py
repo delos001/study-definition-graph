@@ -50,7 +50,7 @@ Exit codes:  0   success (every entry's file is on disk and matches its entry)
              the exit code is the worst one seen, in the order 11, 12, 8, 9,
              13, because a corpus with a file missing is worse than one whose
              files are all present but one has changed. So --dry-run --quiet
-             answers whether the corpus is complete and intact from the exit
+             answers whether the pinned files under inputs/ are complete and intact from the exit
              code alone.
 
 Date:        2026-09-08
@@ -130,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
 
     say = make_reporter(args.quiet)
 
-    # The reader checks that the package is running from inside its repo
+    # The manifest reader, src/sdg/sources/read_manifests.py, checks that the sdg package is running from inside its repo
     # before it looks for any manifest, so a package installed the wrong way
     # is reported as that and not as "no manifests found".
     try:

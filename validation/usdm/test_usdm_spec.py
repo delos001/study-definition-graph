@@ -23,7 +23,7 @@ Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
 
 Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only)
              manifests/cdisc_usdm_v4.json                         (read-only, through
-                                                                   the manifest reader)
+                                                                   src/sdg/sources/read_manifests.py)
              inputs/standards/cdisc/usdm_v4/dataStructure.yml     (read-only; real-file
                                                                    checks only)
 
@@ -408,9 +408,9 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
 )
 @negative
 def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
-    """When the package is not running from inside its repo, the command exits 6
+    """When the sdg package is not running from inside its repo, the command exits 6
     and prints the install command, rather than reporting the spec as missing.
-    Staged as it really happens: the root the package takes to be the repo is a
+    Staged as it really happens: the root the sdg package takes to be the repo is a
     folder with no repo in it, and the spec path, which follows that root, does
     not exist there. Checked with and without --allow-unpinned, since that flag
     bypasses the manifest check and must not bypass this one."""

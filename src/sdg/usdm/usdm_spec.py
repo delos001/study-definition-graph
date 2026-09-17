@@ -32,7 +32,7 @@ Description: The single way to access the pinned USDM model. It reads
              USDM sources we hold."
 
 Inputs:      inputs/standards/cdisc/usdm_v4/dataStructure.yml   (read-only, pinned)
-             manifests/*.json                    (read-only, through the manifest reader)
+             manifests/*.json                    (read-only, through src/sdg/sources/read_manifests.py)
 
 Outputs:     Plain text on stdout. Writes nothing to disk.
 
@@ -74,7 +74,7 @@ from pathlib import Path
 # dataStructure.yml is YAML, so reading it is a one-call job for this library.
 import yaml
 
-# The pinned-file check hands back a verified file; the manifest reader gives the
+# The pinned-file check hands back a verified file; the manifest reader, src/sdg/sources/read_manifests.py, gives the
 # repo root and the install check. The four errors are imported so main() can give
 # each its own exit code.
 from sdg.console_output import use_utf8_output
@@ -145,7 +145,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
 
     Raises:
         FileNotFoundError: The pinned file is absent.
-        NotInRepoError: The package is not running from inside its repo.
+        NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: A manifest is missing or cannot be read.
         UnrecordedFileError: No manifest entry records the file.
         IntegrityError: The file does not match its manifest entry.

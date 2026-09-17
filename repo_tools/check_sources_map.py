@@ -28,15 +28,15 @@ Description: Compares docs/sources_index.md with the manifests, so a pinned file
 
 Inputs:      docs/sources_index.md                              (read-only)
              manifests/*.json, manifests/study_documents/*.json (read-only, through
-                                                                 the manifest reader)
+                                                                 src/sdg/sources/read_manifests.py)
 
 Outputs:     Nothing on disk. Prints one line per disagreement, or nothing when
              the map and the manifests agree.
 
              This runs from the validation suite rather than the pre-commit
-             hook. The hook keeps to tools that need only the standard library,
+             hook, .githooks/pre-commit. The hook keeps to tools that need only the standard library,
              so a commit works in a terminal where the sdg environment is not
-             active, and this one reads the manifests through the package.
+             active, and this one reads the manifests through the sdg package.
 
 Usage:       python repo_tools/check_sources_map.py
                  report every disagreement
@@ -98,7 +98,7 @@ PLACEHOLDER_RE = re.compile(r"<[^>]+>")
 
 
 def map_patterns(text: str) -> list[tuple[str, str]]:
-    """Collect the file patterns the map's document headings name, each with its group's
+    """Collect the file patterns the document headings in docs/sources_index.md name, each with its group's
     location.
 
     A heading belongs to the group whose location line most recently came before it. A
@@ -106,7 +106,7 @@ def map_patterns(text: str) -> list[tuple[str, str]]:
     covers nothing.
 
     Args:
-        text: The map, as read from disk.
+        text: The map, docs/sources_index.md, as read from disk.
 
     Returns:
         One pair per file a heading names, in the order the map lists them: the
@@ -128,10 +128,10 @@ def map_patterns(text: str) -> list[tuple[str, str]]:
 
 
 def map_locations(text: str) -> list[str]:
-    """Collect the folders the map's location lines name.
+    """Collect the folders the location lines in docs/sources_index.md name.
 
     Args:
-        text: The map, as read from disk.
+        text: The map, docs/sources_index.md, as read from disk.
 
     Returns:
         One repo-relative folder per location line, in the order the map lists them.
@@ -159,7 +159,7 @@ def covers(location: str, pattern: str, local: str) -> bool:
     covers nothing.
 
     Args:
-        location: The group's location, as the map writes it, without a trailing slash.
+        location: The group's location, as the map, docs/sources_index.md, writes it, without a trailing slash.
         pattern: The heading, as the map writes it.
         local: The file's path from the repo root, as the manifest records it.
 
@@ -177,8 +177,8 @@ def unmapped_files(found: list[Manifest], patterns: list[tuple[str, str]]) -> li
     """List every recorded file that no document heading covers.
 
     Args:
-        found: The manifests, as the manifest reader hands them back.
-        patterns: The patterns the map's headings name, each with its group's location.
+        found: The manifests, as the manifest reader, src/sdg/sources/read_manifests.py, hands them back.
+        patterns: The patterns the headings in docs/sources_index.md name, each with its group's location.
 
     Returns:
         The repo-relative paths of the uncovered files, sorted.
@@ -195,10 +195,10 @@ def unmapped_files(found: list[Manifest], patterns: list[tuple[str, str]]) -> li
 
 
 def empty_locations(found: list[Manifest], locations: list[str]) -> list[str]:
-    """List every location the map names that no manifest records a file in.
+    """List every location the map, docs/sources_index.md, names that no manifest records a file in.
 
     Args:
-        found: The manifests, as the manifest reader hands them back.
+        found: The manifests, as the manifest reader, src/sdg/sources/read_manifests.py, hands them back.
         locations: The folders the map's location lines name.
 
     Returns:
@@ -218,7 +218,7 @@ def empty_locations(found: list[Manifest], locations: list[str]) -> list[str]:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Read the map and the manifests, and report where they disagree.
+    """Read the map, docs/sources_index.md, and the manifests, and report where they disagree.
 
     Args:
         argv: The command-line arguments, or None to read the real ones.
@@ -234,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # The reader checks the package is running from inside its repo before it
+    # The manifest reader, src/sdg/sources/read_manifests.py, checks the sdg package is running from inside its repo before it
     # looks for any manifest, so the wrong install is reported as that.
     try:
         found = manifests()

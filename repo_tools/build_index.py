@@ -10,7 +10,7 @@ Description: Generates repo_tools/README.md from the header block of every scrip
              re-derives every stated number, and acquire_sources, which
              replaced a README code block that nothing executed.
 
-             The second purpose matters more than the index. The writing_python_files rule requires
+             The second purpose matters more than the index. The rule in .claude/rules/writing_python_files.md requires
              a header block on every script, and until now nothing enforced it,
              so it held only while everyone remembered. This fails on a script
              whose header is missing or incomplete, which turns that rule into
@@ -337,7 +337,7 @@ def main(argv: list[str] | None = None) -> int:
     if incomplete:
         say()
         say(
-            "The writing_python_files rule requires the full header block on every script. Index not written."
+            "The rule in .claude/rules/writing_python_files.md requires the full header block on every script. Index not written."
         )
         return 17
 
@@ -355,7 +355,7 @@ def main(argv: list[str] | None = None) -> int:
         say("repo_tools/README.md is stale. Run: python repo_tools/build_index.py")
         return 15
 
-    # Written with LF, as the inventory is and as git stores it, so the file does
+    # Written with LF, as validation/validation_inventory.csv is and as git stores it, so the file does
     # not flip line endings with whichever machine last regenerated it.
     INDEX_PATH.write_text(generated, encoding="utf-8", newline="\n")
     say(f"repo_tools/README.md written, {len(entries)} script(s)")

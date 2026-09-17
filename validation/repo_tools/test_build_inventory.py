@@ -224,8 +224,8 @@ def test_hand_kept_columns_are_carried_over_by_id(tests_folder, capsys):
 @code("HRS0057")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
-    """Rows are grouped in the pipeline's order, sources first and the report writer's
-    own checks last, whatever order the files are found in."""
+    """Rows are grouped in the pipeline's order, sources first and the checks for the report writer in validation/conftest.py
+    last, whatever order the files are found in."""
     inventory = tests_folder(
         {
             "test_validation_report.py": TWO_CHECKS.replace("ABC", "TTT"),
@@ -249,7 +249,7 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
 def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
     tests_folder, capsys
 ):
-    """A test file at the top level of validation/, other than the report writer's own,
+    """A test file at the top level of validation/, other than validation/test_validation_report.py,
     is grouped as sdg, and its target is the file of the same name at the top of
     src/sdg/."""
     inventory = tests_folder({"test_alpha.py": TWO_CHECKS})

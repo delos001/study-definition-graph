@@ -22,7 +22,7 @@ Description: Recomputes every figure asserted in the project's markdown, a count
              figures live behind a [n] reference marker instead.
 
 Inputs:      inputs/**              (read-only, pinned, each verified through verify_pinned)
-             manifests/*.json       (read-only, through the manifest reader)
+             manifests/*.json       (read-only, through src/sdg/sources/read_manifests.py)
              *.md and docs/*.md     (read-only, scanned for the stated figure)
 
 Outputs:     A report on stdout. Writes nothing to disk.
@@ -142,7 +142,7 @@ def examples_with_estimands() -> int:
 
     Estimands hang off each studyDesign. Counted because PLAN.md leans on their
     scarcity, only one of the three examples defines any, to justify why Phase 1 must
-    select for documents that actually define estimands. If the corpus grows or an
+    select for documents that actually define estimands. If the pinned files under inputs/ grow or an
     example gains an estimand, that argument has to move with it.
 
     Returns:
@@ -282,7 +282,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # Reported before any measurement, since one of them needs the package and
+    # Reported before any measurement, since one of them needs the sdg package and
     # the fix is the same one-line install either way.
     if SDG_MISSING is not None:
         print(f"the sdg package is not installed ({SDG_MISSING})")
@@ -291,7 +291,7 @@ def main(argv: list[str] | None = None) -> int:
 
     # Standard text carries characters the Windows console mangles; see
     # sdg.console_output for why. Called after the guard above, since the
-    # helper comes from the package that guard reports missing.
+    # helper comes from the sdg package that guard reports missing.
     use_utf8_output()
 
     drifted = unasserted = 0

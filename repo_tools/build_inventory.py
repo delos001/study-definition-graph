@@ -80,7 +80,7 @@ COLUMNS = (
 )
 
 # Rows are grouped by the folder the test file sits in, in the order the pipeline
-# runs, then the package's own top-level files, then the tools and hooks, with the
+# runs, then the top-level files of the sdg package, then the tools and hooks, with the
 # record writer's own checks last. Within a folder, files are in name order and
 # checks in file order.
 TYPE_ORDER = (

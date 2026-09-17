@@ -10,7 +10,7 @@ Description: A Claude Code hook that refuses any Write or Edit to a pinned file
              into it itself, README.md and .gitkeep, are allowed. The
              hand-written manifests at the top of manifests/ are refused too;
              the machine-written ones under manifests/study_documents/ are
-             not, since the fetch script is meant to write them.
+             not, since the pipeline stage that downloads a study is meant to write them.
 
              The repo root is taken from CLAUDE_PROJECT_DIR, which Claude Code
              sets to the folder the session was opened in. The call's cwd is
@@ -22,7 +22,7 @@ Description: A Claude Code hook that refuses any Write or Edit to a pinned file
              into something Claude cannot break by mistake. It does not cover
              edits made through a shell command; those are still on the person
              reviewing the session. It uses only the standard library and
-             reads no file, so it works before the package is installed.
+             reads no file, so it works before the sdg package is installed.
 
 Inputs:      stdin  (JSON from Claude Code: tool_name, tool_input.file_path, cwd)
              CLAUDE_PROJECT_DIR  (environment, the repo root)

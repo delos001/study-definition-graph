@@ -58,7 +58,7 @@ code = pytest.mark.code
 def with_repo_tools(monkeypatch) -> None:
     """Put repo_tools/ on the import path of the throwaway suite's process.
 
-    The copied conftest imports the inventory generator from there. The real run gets
+    The copied conftest imports the inventory generator, repo_tools/build_inventory.py, from there. The real run gets
     that path from pyproject.toml, which the throwaway suite does not read.
 
     Args:

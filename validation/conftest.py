@@ -9,7 +9,7 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              scripts to use:
                - the --validation-report flag,
                - three fixtures:
-                    - manifest_dir points the manifest reader at a temporary folder,
+                    - manifest_dir points the manifest reader, src/sdg/sources/read_manifests.py, at a temporary folder,
                     - manifest_recording writes one manifest entry for one file,
                     - fake_repo builds a throwaway repo with pyproject.toml, manifests/
                       and inputs/.
@@ -96,10 +96,11 @@ from pathlib import Path
 import pytest
 
 # The rule that says which code file a check file proves lives in the inventory
-# generator, which fills the same column of the inventory. Importing it means the
+# generator, repo_tools/build_inventory.py, which fills the same column of the
+# inventory. Importing it means the
 # inventory and a report can never disagree. pyproject.toml puts repo_tools/ on
 # pytest's import path, and the generator uses only the standard library, so this
-# import cannot fail because the package is broken.
+# import cannot fail because the sdg package is broken.
 from build_inventory import type_and_target
 
 VALIDATION_DIR = Path(__file__).resolve().parent
@@ -107,7 +108,7 @@ REPO_ROOT = VALIDATION_DIR.parent
 FIXTURE_DIR = VALIDATION_DIR / "fixtures"
 
 # These two lines name the pinned model file and the manifest that records it.
-# They are written here as literals rather than imported from the loader, so
+# They are written here as literals rather than imported from the loader, src/sdg/usdm/usdm_spec.py, so
 # the test setup does not depend on a module the tests themselves are meant to
 # prove. The loader's test, once rewritten, is where the two are checked against
 # each other.
@@ -141,9 +142,9 @@ EXIT_MEANING = {
 # pytest creates and deletes for each test, so no test ever reads or writes the
 # real manifests/ or inputs/.
 #
-# The first two fixtures serve the model loader's tests, which stage one
+# The first two fixtures serve the tests of the model loader, src/sdg/usdm/usdm_spec.py, which stage one
 # manifest with one entry, broken in one chosen way. The third, fake_repo,
-# serves the tests of the sources package and of the scripts, which need a
+# serves the tests of src/sdg/sources/ and of the tools in repo_tools/, which need a
 # whole small repo to walk.
 
 
@@ -153,7 +154,7 @@ def manifest_dir(tmp_path, monkeypatch):
 
     The function takes manifest text and writes it as cdisc_usdm_v4.json in a temporary
     folder. Passing None writes nothing, which stages the case where no manifest exists.
-    Before the function is handed over, the manifest reader is pointed at that folder,
+    Before the function is handed over, the manifest reader, src/sdg/sources/read_manifests.py, is pointed at that folder,
     and its study manifests folder is pointed at a subfolder that does not exist, so
     nothing real is read. monkeypatch puts both settings back when the check ends.
 
@@ -227,7 +228,7 @@ def manifest_recording():
 class FakeRepo:
     """A small pretend repo on disk, for checks that need to walk a whole one.
 
-    It has the three things the manifest reader looks for: a pyproject.toml, a
+    It has the three things the manifest reader, src/sdg/sources/read_manifests.py, looks for: a pyproject.toml, a
     manifests/ folder with its study_documents/ subfolder, and an inputs/ folder. The
     methods put files and manifests into it. Every path a check gives is relative to the
     fake repo's root and is written with forward slashes, the same way a manifest writes
@@ -243,7 +244,7 @@ class FakeRepo:
         self.root = root
         (root / "manifests" / "study_documents").mkdir(parents=True)
         (root / "inputs").mkdir(parents=True)
-        # The manifest reader checks that it is running inside its own repo by
+        # The manifest reader, src/sdg/sources/read_manifests.py, checks that it is running inside its own repo by
         # looking for this exact line in pyproject.toml. The fake repo has to
         # carry the same line, or every test would be refused as running from
         # the wrong place.
@@ -333,7 +334,7 @@ class FakeRepo:
 
 @pytest.fixture
 def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
-    """Give a check a FakeRepo and point the manifest reader at it.
+    """Give a check a FakeRepo and point the manifest reader, src/sdg/sources/read_manifests.py, at it.
 
     The reader keeps three locations: the repo root, the manifests folder and the study
     manifests folder. All three are pointed at the fake repo for the length of the
@@ -583,7 +584,7 @@ def _pinned_data_version() -> tuple[str, str]:
         The recorded sha256, and whether the file was present.
     """
     present = "present" if (REPO_ROOT / PINNED_LOCAL).exists() else "absent"
-    # The manifest is read directly here rather than through the package, so a
+    # The manifest is read directly here rather than through the sdg package, so a
     # broken package cannot stop the report from being written.
     try:
         entries = json.loads(MANIFEST.read_text(encoding="utf-8")).get("files", [])
@@ -691,7 +692,7 @@ def _selection(args: tuple[str, ...]) -> str:
 def _target_of(test_file: Path) -> str:
     """Name the code file a test file proves.
 
-    The rule is the inventory generator's, imported above, so the report's target
+    The rule is the inventory generator's, repo_tools/build_inventory.py, imported above, so the report's target
     column and the inventory's agree by construction.
 
     Args:
