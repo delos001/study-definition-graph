@@ -2,7 +2,7 @@
 
 This file contains pipeline related output documents.
 
-Nothing here is downloaded: the documents and standards the pipeline reads are in `inputs/`, and what its output is scored against is in `eval/`.
+Nothing here is downloaded: the documents and standards read by the pipeline are in `inputs/`, and information used to score the pipeline's output is in `eval/`.
 
 Everything here can be regenerated from `inputs/` and the code, so nothing is committed except this file and the `.gitkeep` placeholders.
 
