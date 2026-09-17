@@ -1,6 +1,6 @@
 # src/sdg/
 
-The `sdg` package: the pipeline, as code other code imports, and the commands a person runs on the project's inputs, `read_pdf`, `read_xlsx` and `usdm_spec`. It has one folder per group of work, in the order the pipeline runs. Each folder's `README.md` lists the files in it; each file's header block is the full account of that file. Nothing is described at more than one level.
+The `sdg` package: the pipeline, as code other code imports, and the commands a person runs on the project's inputs, `acquire_sources`, `read_pdf`, `read_xlsx` and `usdm_spec`. It has one folder per group of work, in the order the pipeline runs. A folder gets a `README.md` listing its files once it has files to list; each file's header block is the full account of that file. Nothing is described at more than one level.
 
 | Folder | What it does |
 | --- | --- |

@@ -244,7 +244,7 @@ Resources that were looked at and not pinned. Listed so the same question is not
 
 | Resource | Where | Why not pinned |
 | --- | --- | --- |
-| cdisc-rules-engine | github.com/cdisc-org | The CORE conformance engine. It is a tool, so it is version-pinned as software rather than fingerprinted as data. |
+| cdisc-rules-engine | github.com/cdisc-org | The CORE conformance engine. It is a tool rather than data, so if it is adopted it will be pinned by version like the other software, not fingerprinted. Whether it can be used without a membership is issue #35. |
 | ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. The documents it returns are pinned under `inputs/study_documents/`; the API responses are not kept. |
 
 ### Reviewed and not taken

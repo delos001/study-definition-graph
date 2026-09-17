@@ -78,7 +78,7 @@ conda activate sdg
 pip install -e .
 
 # 6. Start the Neo4j container. Its version, two ports (browser and driver), and
-#    password come from docker-compose.yml in the repo folder, pinned to 5.26.29-community.
+#    password come from docker-compose.yml in the repo folder.
 #    The graph persists in Docker volumes.
 docker compose up -d
 
@@ -188,7 +188,7 @@ study-definition-graph/
   eval/                    # expected results the pipeline is scored against
   prompts/                 # prompts sent to the model (e.g. classification and extraction)
   src/                     # Python source
-    sdg/                   #   pipeline package, one folder per stage
+    sdg/                   #   pipeline package, one folder per group of work
       classify/            #     decide a document's type and what each section is about
       extract/             #     turn classified content into USDM structures
       graph/               #     load structures into Neo4j and query them

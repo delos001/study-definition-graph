@@ -23,7 +23,7 @@ Description: Recomputes every figure asserted in the project's markdown, a count
 
 Inputs:      inputs/**              (read-only, pinned, each verified through verify_pinned)
              manifests/*.json       (read-only, through src/sdg/sources/read_manifests.py)
-             *.md and docs/*.md     (read-only, scanned for the stated figure)
+             the documents named in the DOCS list in this file   (read-only, scanned for the stated figure)
 
 Outputs:     A report on stdout. Writes nothing to disk.
 
