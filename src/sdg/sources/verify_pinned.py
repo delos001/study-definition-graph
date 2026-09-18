@@ -31,7 +31,7 @@ Outputs:     Nothing on disk. Hands back the file with its identity: local
              path, path on this machine, sha256, url, and the manifest that
              records it.
 
-Usage:       Not run directly; imported.
+Usage:       This file is not run directly; other code imports it.
              from sdg.sources import verify_pinned
                 spec = verify_pinned("inputs/standards/cdisc/usdm_v4/dataStructure.yml")
                 spec.read_text()   -> the content
@@ -39,7 +39,7 @@ Usage:       Not run directly; imported.
                 spec.url           -> where it came from, carrying the version
              A string is read as a path from the repo root; a Path may be absolute.
 
-Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              NotInRepoError       the sdg package is not running from inside its repo

@@ -27,7 +27,7 @@ Inputs:      src/sdg/view/lookup_documents.yml   (read-only, the list of documen
              the listed PDFs under inputs/        (read-only, pinned)
              Section numbers and page ranges come from each PDF's own bookmarks.
 
-Outputs:     Plain text on stdout. Writes nothing to disk.
+Outputs:     It prints plain text to standard output and writes nothing to disk.
 
 Usage:       read_pdf --docs
                  list the registered documents and whether each is downloaded,
@@ -110,7 +110,7 @@ class UnknownFileError(RegistryError):
 @dataclass(frozen=True)
 class Document:
     """One lookup PDF: where it is, what to call it, which manifest records
-    it, and the page furniture to strip from every extract."""
+    it, and the repeated header and footer lines to strip from every extract."""
 
     path: Path
     label: str
@@ -278,7 +278,7 @@ def find_section(sections: list[dict], wanted: str) -> dict | None:
 
     Pass 1 is an exact match on the section number, so "4.23" cannot accidentally match
     "4.230" or a section whose body mentions 4.23. Pass 2 is a case-insensitive
-    substring match on the title, so a user who remembers "footnote" but not the number
+    match on any part of the title, so a user who remembers "footnote" but not the number
     still gets there. A trailing period is tolerated because "4.23." is a natural way to
     type it.
 
@@ -379,9 +379,9 @@ def describe_lost_content(page: fitz.Page) -> str:
     """
     image_count = len(page.get_images(full=True))
 
-    # find_tables() is heuristic and can raise on unusual page structures, so a
+    # find_tables() guesses where a table is and can raise on unusual page structures, so a
     # failure here degrades to "no tables reported" rather than aborting a read
-    # the user asked for. Table detection is advisory; the text is the payload.
+    # the user asked for. Table detection is advisory; the text is what was asked for.
     #
     # It also prints an unsolicited advisory line to stdout, which would land in
     # the middle of the extracted text and could be mistaken for document
@@ -535,7 +535,7 @@ def searchable(text: str) -> str:
     """Give a form of the text suitable for matching, not for display.
 
     Some PDFs store typographic ligatures as single characters, so the word "Definition"
-    is really "De" + U+FB01 + "nition" and a plain substring search for it silently
+    is really "De" + U+FB01 + "nition" and a plain search for that run of characters silently
     finds nothing. That is the worst failure mode available here: not an error, just an
     empty result that reads as "the document does not mention this". Of the registered
     documents only the model diagram is affected, but normalising
@@ -676,7 +676,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # Mode: list the registry. Answered before opening any file, so it still
+    # This mode lists the registry. It is answered before any file is opened, so it still
     # works on a fresh clone where inputs/ has not been downloaded.
     if args.docs:
         # The listing reports a missing document through the exit code as well as
@@ -731,7 +731,7 @@ def main(argv: list[str] | None = None) -> int:
         )
         return 24
 
-    # Mode: print the section map.
+    # This mode prints the section map.
     if args.list or (not args.section and not args.pages and not args.find):
         for section in sections:
             span = (
@@ -742,7 +742,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{span:>8}  {section['title']}")
         return 0
 
-    # Mode: search every page.
+    # This mode searches every page.
     if args.find:
         hits = search_pages(doc, sections, args.find)
         if not hits:
@@ -752,7 +752,7 @@ def main(argv: list[str] | None = None) -> int:
         print("\n".join(hits))
         return 0
 
-    # Mode: an explicit page range, bypassing the section map. Used when the
+    # This mode takes an explicit page range and bypasses the section map. It is used when the
     # bookmarks are too coarse, which happens where sections share a start page,
     # and it is the only page-addressed mode available for the M11 documents.
     # Page mode addresses pages, not sections, so nothing is trimmed.
@@ -767,7 +767,7 @@ def main(argv: list[str] | None = None) -> int:
             parser.error(str(exc))
         label = f"pages {args.pages}"
 
-    # Mode: resolve a section number or title fragment.
+    # This mode resolves a section number or a fragment of a title.
     else:
         found = find_section(sections, args.section)
         if found is None:

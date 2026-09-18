@@ -1,1 +1,1 @@
-"""study-definition-graph: USDM-shaped extraction pipeline. See README.md."""
+"""The sdg package turns clinical documents into USDM-shaped output. See README.md."""

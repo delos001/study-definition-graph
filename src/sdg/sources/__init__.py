@@ -1,5 +1,5 @@
 """
-sdg.sources: get and keep the pipeline's inputs.
+The sdg.sources folder gets and keeps the pipeline's inputs.
 See README.md.
 """
 

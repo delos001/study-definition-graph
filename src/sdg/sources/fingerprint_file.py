@@ -27,12 +27,12 @@ Outputs:     Nothing on disk.
              bytes and the sha256; or the comparison result, listed as 'matched' or
              which value differed and how.
 
-Usage:       Not run directly; imported.
+Usage:       This file is not run directly; other code imports it.
              from sdg.sources import fingerprint, compare
                 fingerprint(path)        -> Fingerprint: two values, .bytes and .sha256
                 compare(path, entry)     -> matched, or the difference found
 
-Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              FileNotFoundError   the path does not exist

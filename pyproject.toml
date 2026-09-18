@@ -7,8 +7,8 @@ name = "sdg"
 version = "0.0.0"
 requires-python = ">=3.12"
 
-# Commands installed with the package, so a person types read_pdf rather than
-# python -m sdg.view.read_pdf. Each names the module and the function it runs.
+# These commands are installed with the package, so a person types read_pdf rather
+# than python -m sdg.view.read_pdf. Each names the module and the function it runs.
 [project.scripts]
 acquire_sources = "sdg.sources.acquire_sources:main"
 read_pdf = "sdg.view.read_pdf:main"
@@ -26,7 +26,7 @@ where = ["src"]
 [tool.pytest.ini_options]
 # validation/repo_tools/ imports the repo tools by name (import build_index), and
 # validation/claude_hooks/ imports the Claude Code hooks the same way, so both folders
-# go on the import path. Declared here once, not in each test file.
+# go on the import path. They are declared here once, not in each test file.
 pythonpath = ["repo_tools", ".claude/hooks"]
 testpaths = ["validation"]
 

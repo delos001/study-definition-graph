@@ -229,7 +229,7 @@ def test_unexpected_modifier_value_is_named(variant):
 @negative
 def test_attributes_not_a_mapping_is_named(variant):
     """Turning a class's Attributes into a list is refused with a message naming
-    the class, before any accessor could trip over it."""
+    the class, before any reading function could trip over it."""
     broken = variant(lambda d: d["StudyIdentifier"].__setitem__("Attributes", []))
     with pytest.raises(
         usdm_spec.SpecShapeError, match="'StudyIdentifier': Attributes is not a mapping"

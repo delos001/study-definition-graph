@@ -166,7 +166,8 @@ def test_the_manifest_is_carried_for_the_missing_file_message(repo, write_list):
 @code("VIW0004")
 @positive
 def test_boilerplate_patterns_are_compiled(repo, write_list):
-    """A boilerplate pattern is compiled, and it matches the page furniture it was
+    """A boilerplate pattern is compiled, and it matches the repeated header and footer
+    lines it was
     written for."""
     documents, _ = load_registry(write_list(LIST_TEXT))
     assert documents["guide"].boilerplate[0].match("   Page 12  ")
@@ -468,7 +469,7 @@ def usage_mistake(capsys, *argv):
 ### Positive checks on a document ###
 #
 # The right thing works on a document that is present: a section is found by number,
-# a page range is printed, a term is searched for, and the repeated page furniture is
+# a page range is printed, a term is searched for, and the repeated header and footer lines are
 # stripped unless it is asked for.
 
 
@@ -785,7 +786,8 @@ def test_a_page_with_a_table_gets_the_not_shown_note():
 @code("VIW0055")
 @positive
 def test_a_ligature_is_decomposed_for_searching():
-    """The searchable form of text holding the fi ligature spells the word with its
+    """The searchable form of text holding the fi ligature, a single character standing
+    for the two letters f and i, spells the word with its
     plain letters, so a search for the word finds it."""
     assert "definition" in read_pdf.searchable("Deﬁnition")
 

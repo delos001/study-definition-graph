@@ -20,7 +20,7 @@ Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
 Outputs:     Nothing on disk.
              Hands back, in memory: the manifests found, one entry, or an entry's fields.
 
-Usage:       Not run directly; imported.
+Usage:       This file is not run directly; other code imports it.
              from sdg.sources import manifests, entry_for, entry_named
                 manifests()                  -> every manifest
                 manifests("cdisc_usdm_v4")   -> one manifest, by name
@@ -29,7 +29,7 @@ Usage:       Not run directly; imported.
                 entry_named("USDM-IG.pdf")   -> the entry recorded under that file name,
                   or None
 
-Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              NotInRepoError   the sdg package is not running from inside its repo

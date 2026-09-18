@@ -57,7 +57,7 @@ CHUNKS = (b"first part, ", b"second part\n")
 ### The fake server ###
 #
 # fetch() makes one call to the HTTP library, httpx.stream(...). It uses that
-# call as a context manager that yields a response, asks the response to
+# call in a with block that hands back a response, asks the response to
 # raise_for_status(), then reads it with iter_bytes(). The fake below stands in
 # for that call. Each check tells it how to behave: serve these chunks, answer
 # with an error, or break after so many chunks. It also records what fetch()

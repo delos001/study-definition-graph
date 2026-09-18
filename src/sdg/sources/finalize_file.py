@@ -24,12 +24,12 @@ Outputs:     place: the file under its final name; the .part name is gone.
              discard: nothing; the .part file is gone.
              Hands back the final path (place) or nothing (discard).
 
-Usage:       Not run directly; imported.
+Usage:       This file is not run directly; other code imports it.
              from sdg.sources import place, discard
                 place(partial)     -> final path
                 discard(partial)   -> nothing
 
-Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              FileExistsError     a file is already at the final name; nothing moved

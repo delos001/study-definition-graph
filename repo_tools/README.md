@@ -108,5 +108,5 @@ Checks that every Python file in the four code folders, src/sdg/, repo_tools/, v
 python repo_tools/verify_headers.py
     check every file, report each problem
 python repo_tools/verify_headers.py --quiet
-    print nothing; use the exit code. For hooks.
+    print nothing; use the exit code
 ```

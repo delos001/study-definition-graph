@@ -2,9 +2,9 @@
 #
 # Pre-commit hook for study-definition-graph.
 #
-# Enabled by `git config core.hooksPath .githooks`, which the setup section of
-# the root README.md runs after the clone. Committed rather than left in .git/hooks so a
-# fresh clone gets it.
+# It is enabled by `git config core.hooksPath .githooks`, which the setup section
+# of the root README.md runs after the clone. It is committed rather than left in
+# .git/hooks, so a fresh clone gets it.
 #
 # The first three checks use only the standard library, so they run from any
 # terminal. The fourth needs ruff and mypy from the sdg conda environment; its
@@ -17,7 +17,7 @@ set -e
 # repo_tools/README.md is generated from each script's header block. A commit that
 # edits a header without regenerating ships an index that disagrees with the
 # scripts it describes, which is the exact drift the generator exists to stop.
-# Pure standard library, so plain `python` is enough.
+# It uses only the standard library, so plain `python` is enough.
 python repo_tools/build_index.py --check || {
   echo "pre-commit: run 'python repo_tools/build_index.py' and stage repo_tools/README.md"
   exit 1
@@ -26,7 +26,7 @@ python repo_tools/build_index.py --check || {
 # Every Python file under src/sdg/, repo_tools/, validation/ and .claude/hooks/
 # opens with the header block .claude/rules/writing_python_files.md requires, and its exit codes agree
 # with validation/exit_codes.csv. A file that falls short is refused here so the
-# rule holds whoever made the edit. Standard library only.
+# rule holds whoever made the edit. This check uses only the standard library.
 python repo_tools/verify_headers.py || {
   echo "pre-commit: fix the header blocks named above, then commit again"
   exit 1
@@ -34,7 +34,7 @@ python repo_tools/verify_headers.py || {
 
 # validation/validation_inventory.csv is generated from the checks in the test files.
 # A commit that changes a check without regenerating the inventory ships a list
-# that disagrees with the checks it describes. Standard library only.
+# that disagrees with the checks it describes. This check uses only the standard library.
 python repo_tools/build_inventory.py --check || {
   echo "pre-commit: run 'python repo_tools/build_inventory.py' and stage validation/validation_inventory.csv"
   exit 1

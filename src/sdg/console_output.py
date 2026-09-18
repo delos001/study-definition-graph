@@ -7,16 +7,16 @@ Description: Makes the console print text as UTF-8, so characters from the
              set that turns those into question marks. Any script that prints
              standard text calls this once, before its first print.
 
-Inputs:      None.
+Inputs:      It reads nothing.
 
 Outputs:     Nothing on disk. Changes the encoding of the running program's
              standard output.
 
-Usage:       Not run directly; imported.
+Usage:       This file is not run directly; other code imports it.
              from sdg.console_output import use_utf8_output
                 use_utf8_output()   at the top of main()
 
-Exit codes:  None. Not run on its own, and it never raises.
+Exit codes:  There are none. This file is not run on its own, and it never raises.
 
 Date:        2026-09-11
 Owner:       Jason Delosh

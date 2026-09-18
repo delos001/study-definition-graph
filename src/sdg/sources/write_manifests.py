@@ -2,7 +2,7 @@
 Script:      write_manifests.py
 Description: Writes one manifest entry, or updates one that exists.
 
-             DRAFT. Nothing uses this yet. Its first users will be the Phase 1
+             This file is a draft, and nothing uses it yet. Its first users will be the Phase 1
              study fetcher, which records each downloaded study document under
              manifests/study_documents/, and the update command from issue #18, which
              moves a source to a new version. The shape of what it writes is
@@ -25,7 +25,7 @@ Usage:       Not run directly; imported. The function's name and arguments
              are settled when its first user is built (issue #21); nothing is
              importable yet.
 
-Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              ManifestError   the manifest cannot be read or written, or the entry

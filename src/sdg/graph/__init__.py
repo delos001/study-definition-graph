@@ -1,3 +1,4 @@
 """
-sdg.graph: load structures into Neo4j, link documents, answer questions.
+The sdg.graph folder loads structures into Neo4j, links documents and answers questions.
+See README.md.
 """

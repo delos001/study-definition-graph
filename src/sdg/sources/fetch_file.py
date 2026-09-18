@@ -30,11 +30,11 @@ Outputs:     the downloaded file at <destination>.part, and the destination's fo
              if it did not exist; nothing else on disk.
              Hands back the path of that temporary file.
 
-Usage:       Not run directly; imported.
+Usage:       This file is not run directly; other code imports it.
              from sdg.sources import fetch
                 fetch(url, destination)   -> path of the .part file written
 
-Exit codes:  None. Not run on its own, so no exit code. On a problem it stops
+Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
              FetchError   the url could not be reached or is not one the Hypertext

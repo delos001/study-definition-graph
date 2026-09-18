@@ -38,7 +38,7 @@ Outputs:     Nothing on disk. Prints one line per problem, or nothing when
 Usage:       python repo_tools/verify_headers.py
                  check every file, report each problem
              python repo_tools/verify_headers.py --quiet
-                 print nothing; use the exit code. For hooks.
+                 print nothing; use the exit code
 
 Exit codes:  0   success (every header is complete and in order)
              1   unhandled error, Python's own

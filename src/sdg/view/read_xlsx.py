@@ -13,7 +13,7 @@ Description: Reads a sheet out of any Excel workbook under inputs/, the folder
              instead.
 
 Inputs:      Any .xlsx under inputs/. Opened read-only; nothing is written back.
-Outputs:     Plain text on stdout. Writes nothing to disk.
+Outputs:     It prints plain text to standard output and writes nothing to disk.
 
 Usage:       read_xlsx <workbook>
                  list the sheets, with row and column counts
@@ -344,7 +344,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # Mode: search every workbook. Handled before workbook resolution because
+    # This mode searches every workbook. It is handled before a workbook is resolved because
     # --all makes the positional workbook argument meaningless.
     if args.all:
         # A usage mistake, so it is reported the way the parser reports one.
@@ -371,7 +371,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"No workbook matching {args.workbook!r}.", file=sys.stderr)
         return 26
 
-    # Mode: search one workbook.
+    # This mode searches one workbook.
     if args.find:
         hits = search_workbook(workbook_path, args.find)
         if not hits:
@@ -384,7 +384,7 @@ def main(argv: list[str] | None = None) -> int:
     # As in search_workbook: the file is closed however the mode ends.
     workbook = openpyxl.load_workbook(workbook_path, read_only=True, data_only=True)
     try:
-        # Mode: list the sheets. This is the default because a worked example holds
+        # This mode lists the sheets. It is the default because a worked example holds
         # many sheets and a person rarely knows the sheet name up front.
         if not args.sheet:
             print(f"{workbook_path.name}  ({len(workbook.sheetnames)} sheets)\n")
@@ -398,7 +398,7 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"  {sheet_name:32} {row_count:>5} rows x {column_count:>3} cols")
             return 0
 
-        # Mode: print one sheet. Sheet names are matched case-insensitively so
+        # This mode prints one sheet. Sheet names are matched whatever their capitalisation, so
         # "maintimeline" finds "mainTimeline".
         actual = next(
             (n for n in workbook.sheetnames if n.lower() == args.sheet.lower()), None

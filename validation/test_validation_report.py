@@ -207,7 +207,7 @@ def test_no_flag_writes_nothing(pytester, monkeypatch):
 @code("TST0003")
 @negative
 def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
-    """A test whose own checks pass but whose clean-up step throws is a failed
+    """A test whose own checks pass but whose clean-up step raises an error is a failed
     run to pytest (exit 1). The report says FAIL, and that test's row says error
     with 'clean-up failed', never passed."""
     result, out = run_suite(
@@ -262,7 +262,7 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
 @code("TST0005")
 @negative
 def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
-    """A test whose set-up step throws never runs; the report says FAIL and the
+    """A test whose set-up step raises an error never runs; the report says FAIL and the
     row says error."""
     result, out = run_suite(
         pytester,

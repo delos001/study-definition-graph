@@ -4,7 +4,8 @@ channels:
   - conda-forge
 
 dependencies:
-  # Python 3.12 rather than 3.13: the PDF and table stack is better tested there.
+  # Python is 3.12 rather than 3.13, because the PDF and table stack is better
+  # tested there.
   - python=3.12
 
   # Binary or compiled dependencies go through conda.

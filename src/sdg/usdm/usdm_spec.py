@@ -9,7 +9,7 @@ Description: The single way to access the pinned USDM model. It reads
              dicts and lists exactly as CDISC published them). Every function
              works off that one parse.
              - Nothing here re-models USDM into a new set of names.
-             - Simple accessors hand back a slice of the parsed data unchanged;
+             - Simple functions hand back a slice of the parsed data unchanged;
              - Exception: USDM wraps every reference in a "$ref" string and this
              script takes that wrapping off, in one helper (_unwrap()).
 
@@ -36,7 +36,7 @@ Description: The single way to access the pinned USDM model. It reads
 Inputs:      inputs/standards/cdisc/usdm_v4/dataStructure.yml   (read-only, pinned)
              manifests/*.json                    (read-only, through src/sdg/sources/read_manifests.py)
 
-Outputs:     Plain text on stdout. Writes nothing to disk.
+Outputs:     It prints plain text to standard output and writes nothing to disk.
 
 Usage:       usdm_spec --list-classes
                  print every class name in the standard, abstract ones marked
@@ -194,7 +194,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
                 f"class {name!r} has unexpected Modifier {body['Modifier']!r}"
             )
 
-    # Make sure every attribute carries the three keys the accessors and the
+    # Make sure every attribute carries the three keys the reading functions and the
     # printer index directly (every attribute does), so a renamed key
     # in a future USDM is named here rather than surfacing as a KeyError traceback.
     # The two reference-valued keys, Type (always) and Inherited From (when
@@ -248,7 +248,7 @@ def _is_ref_list(value: object) -> bool:
 #######################################################################################
 ### Reading the standard ###
 #
-# Small accessors over the spec that Loading produced.
+# Small functions that read the spec the Loading section produced.
 # Each takes a dict (and a class name where one is needed) and hands back a slice of
 # USDM in native form. No reshaping occurs with the exception of _unwrap(), which
 # takes the "$ref" wrapping off a list of references; targets() and the printer
@@ -270,7 +270,7 @@ def class_names(spec: dict) -> list[str]:
 def is_abstract(spec: dict, class_name: str) -> bool:
     """Say whether a class is abstract, from USDM's own Modifier value.
 
-    Abstract is USDM's word for a shared parent never instantiated alone. An abstract
+    Abstract is USDM's word for a shared parent never created on its own. An abstract
     class is like a blank template you never fill in directly; you only fill in its more
     specific sub-templates. For example, Identifier is abstract: you never create an
     Identifier, only a more specific one like StudyIdentifier or

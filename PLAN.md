@@ -122,7 +122,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - a hand-built answer set,
   - a decision on whether to run this phase on LangGraph, which is considered here because this is the first phase with a loop; the reasoning is in `DECISIONS.md` under "Routing complexity".
 - **Verification:**
-  - bidirectional:
+  - The check runs in both directions:
     - conformance-check the output,
     - and reconcile each USDM element back to the source text it came from,
   - score against `eval/` as precision and recall per case, not one accuracy number,
@@ -136,7 +136,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
 - **Prompts and context are composed, not enumerated.**
   - Variability is high, because sponsor, therapeutic area, document type and section possibilities multiply together, and those are not the only axes.
   - A distinct prompt per combination scales as the *product* of the axes, which means thousands of files, and one update touches hundreds of them.
-  - Goal: define orthogonal axes and compose behavior from them, so the count scales as the *sum* (tens of files; one update touches one).
+  - The goal is to define orthogonal axes and compose behavior from them, so the count scales as the *sum* (tens of files; one update touches one).
   - Axes will not be perfectly orthogonal; genuine cross-axis interactions are handled through **adjacency** (a pattern carried from prior work), not by enumerating the product.
   - The axes themselves are not yet known; there may be 3 or 13. They are expected to emerge from real extraction work, not fixed in advance.
 - **When an extraction is wrong, measure whether the prompt or the retrieval is at fault.**
@@ -149,12 +149,12 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
     - map only the parts that fit and drop the rest: simple, but silently loses content,
     - extend USDM through its own extension mechanism, section 6.4 of the implementation guide `inputs/standards/cdisc/usdm_v4/USDM-IG.pdf`: one model, but extensions are carried forever,
     - give non-protocol document types their own target model: fits each better, but makes cross-document linking a translation problem.
-  - Settled by working through a real document, not decided in advance.
+  - This is settled by working through a real document, not decided in advance.
 - **Whether a graph beats a text search is not assumed.**
   - Phase 4 tests it with one cross-document question,
   - a text search winning is a recorded finding.
-- **Target hard cases**
-  - each being content the document's own layout does not express: footnote conditionals on schedule cells;
+- **Target hard cases**, each being content the document's own layout does not express.
+  - footnote conditionals on schedule cells,
   - patient-routing rules written as prose,
   - eligibility logic written as sentences,
   - the same thing under two names across two documents.
@@ -169,7 +169,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
 ## Evaluation practice
 
 - **Golden dataset entry:**
-  - input, expert-validated expected output, and metadata (category, difficulty, edge-case flag).
+  - An entry holds the input, the expert-validated expected output, and metadata: category, difficulty and an edge-case flag.
   - Practitioner guidance suggests 20 to 50 reviewed items catches gross regressions.
 - **Acceptance thresholds** are agreed before testing begins, and benchmarked at or above the performance of whatever process is being replaced.
 - **Regression evaluation** re-runs a fixed set after every model, prompt, retriever, or tool change, compared against the last passing baseline.
