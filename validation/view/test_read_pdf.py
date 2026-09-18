@@ -322,8 +322,8 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
 @code("VIW0015")
 @negative
 def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
-    """When lookup_documents.yml is missing, the command exits 31 and says where lookup_documents.yml was
-    expected and how to get it back, rather than raising."""
+    """When lookup_documents.yml is missing, the command exits 31 and says where the file
+    was expected and how to get it back, rather than raising."""
     monkeypatch.setattr(read_pdf, "REGISTRY_FILE", tmp_path / "gone.yml")
     assert read_pdf.main(["--docs"]) == 31
     printed = capsys.readouterr().err
