@@ -1,0 +1,14 @@
+column,definition,example,source,allowed_values
+validation_folder_path,"The folder the test file sits in, from the repo root.",validation/sources,"The file's folder location, read by the generator from the path.",Any folder under validation/.
+validation_file_name,The test file's name.,test_fetch_file.py,The file's name.,A name that starts with test_ and ends with .py.
+target_folder_path,The folder containing the code file the test file validates.,src/sdg/sources,"The file's location determined from its own path, by the rule in type_and_target() in repo_tools/build_inventory.py.",A folder in the repo.
+target_file_name,The file name that the test file validates.,fetch_file.py,"The test file's name, with test_ removed from the front.",A file name in the target folder.
+validation_check_name,The validation check's function name.,,The function name in the test file.,A name that starts with test_.
+validation_check_id,The validation check's unique and permanent id. A validation report joins to the inventory on it.,,The function's @code marker in the test file.,"Three capital letters and four digits, such as SRC0042, unique across the inventory."
+validation_objective,Why the validation check exists. The objectives are defined in README.md under Objectives.,,The function's @objective marker in the test file.,behavior; stability; agreement; conformance; accuracy; performance; regression; environment_readiness
+behavior_case,Whether a behavior check expects the code to succeed (positive) from a normal/working situation or to refuse (negative) from a broken situation.,,The function's @positive or @negative marker in the test file.,positive; negative. Empty for a check of any objective other than behavior.
+expected_result,What must be true for the check to pass.,,The first paragraph of the function's docstring.,"A sentence that starts with a word, never with a character a spreadsheet reads as a formula."
+status,Status of the validation check's usage. The statuses are defined in README.md under Statuses.,,Kept by hand in the inventory. The generator carries it over by the check's id.,pending; active; inactive; superseded; retired
+superseded_by,The ids of the validation checks that now cover the validation of a superseded validation check.,,Kept by hand in the inventory. The generator carries it over by the check's id.,"Ids of active checks, separated by semicolons. Filled only when the status is superseded."
+status_reason,One plain sentence saying why a check is inactive or retired.,,Kept by hand in the inventory. The generator carries it over by the check's id.,Filled when the status is inactive or retired.
+version,The validation check's version. The rule for raising it is in README.md under Versions.,,Kept by hand in the inventory. The generator carries it over by the check's id.,A whole number from 1 up.

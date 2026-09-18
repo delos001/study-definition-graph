@@ -16,6 +16,6 @@ A file used by several stages goes in the root of `sdg/`. Today that is `console
 
 A file does one job. When a file also does a piece of work that comes before or after its job, and another file could use that piece too, that piece belongs in a file of its own.
 
-Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one. It holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `docs/sdg_files_inventory.md`.
+Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one. It holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `src/sdg/sdg_file_catalog.md`.
 
 Installed once with `pip install -e .`, which is a step in the setup block of the root `README.md`. The tools that keep the repository's own files in order are in `repo_tools/`, and the checks that prove this code works are in `validation/`.

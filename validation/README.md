@@ -1,31 +1,181 @@
 # validation/
 
-This folder holds the automated checks for the code in `src/sdg/`, the repo tools in `repo_tools/` and the Claude Code hooks in `.claude/hooks/`. Every check is listed in `validation_inventory.csv` with its permanent id, its kind, the promise it proves and its status. That file is the inventory; this one only says what is in the folder.
+This folder holds the repo's validation suite and the files that support it.
 
-## How to run
+Guidance for writing a validation check is in `.claude/rules/writing_python_files.md`.
 
-From the repo root, in the `sdg` environment:
+Instructions for running the validation checks are under How to run, at the end of this file.
 
-```powershell
-pytest                       # run every check; prints results, writes nothing
-pytest -v                    # one line per check
-pytest --validation-report   # run every check and write a validation report (see below)
-```
 
-## What is here
+## In this folder
 
-| Path | What it is |
-| --- | --- |
-| `conftest.py` | pytest's shared fixtures and configuration for this folder; pytest requires the name. Adds the `--validation-report` flag, the `positive`, `negative` and `code` markers, and the fixtures that stage manifests and files in a temporary folder so no check touches the real `manifests/` or `inputs/`. |
-| `sources/`, `usdm/`, `view/`, `repo_tools/` | One subfolder per code folder, mirroring `src/sdg/sources/`, `src/sdg/usdm/`, `src/sdg/view/` and `repo_tools/`. A test file lives at the same relative path as the file it tests and carries its name: `validation/sources/test_fetch_file.py` tests `src/sdg/sources/fetch_file.py`. |
-| `claude_hooks/` | The checks for the Claude Code hooks in `.claude/hooks/`. The folder cannot carry the dot-name it mirrors, because pytest does not look inside a folder whose name starts with a dot. |
-| `test_validation_report.py` | The checks for the report-writer in `conftest.py`. It stays at the top level because `conftest.py` does. |
-| `test_console_output.py` | The checks for `src/sdg/console_output.py`. It stays at the top level because that file sits at the top of the package rather than in a stage folder. |
-| `fixtures/` | Small stand-ins for the pinned files under `inputs/`. The checks under `validation/` read these so that no check touches a real pinned file. `usdm_three_classes.yml` holds three classes copied verbatim from the pinned `dataStructure.yml`. |
-| `validation_inventory.csv` | One row per check: the code file it targets, the test file, the check name, its permanent id (the `@code` marker), whether it is positive or negative, the one sentence it proves, its status and its version. Generated from the test files by `python repo_tools/build_inventory.py`; status and version are the hand-kept columns and are carried over by id. The pre-commit hook, `.githooks/pre-commit`, refuses a commit when `validation_inventory.csv` is out of date. |
-| `exit_codes.csv` | The repo-wide exit-code table, one row per code: the number and the one cause it means. Every header's `Exit codes` field uses these numbers and this wording. |
-| `reports/` | Validation reports, one CSV file per validation run, one row per check. Written only when asked; committed. |
+### Top level support files
+
+Support files are the machinery and records the validation checks rely on.
+- `validation_inventory.csv`
+  - Lists every check, one row per check.
+  - Records what each check looks at, and why it exists.
+  - Written by `python repo_tools/build_inventory.py`.
+  - Its columns are defined in `validation_inventory_dictionary.csv`, and the terms it uses under Objectives and Terms the inventory uses below.
+  - To change a value, edit its source, which the `source` column of the dictionary names, then run `python repo_tools/build_inventory.py`.
+  - A value edited directly in the CSV is overwritten the next time the inventory is rebuilt. The hand-kept columns are the exception, and they are edited in the CSV itself.
+- `exit_codes.csv`: Holds the repo-wide table of exit codes, one row per code.
+- `validation_file_catalog.md`: Describes every validation file in this folder in detail.
+- `conftest.py`: Holds pytest's shared fixtures and configuration for this folder, and writes the validation report.
+
+### Top level validation files
+
+These are validation files like the ones in the folders. They sit at the top level because the files they validate sit at the top of their own folders.
+- `test_console_output.py`: Validates `src/sdg/console_output.py`.
+- `test_validation_report.py`: Validates `conftest.py`.
+
+### Folders
+
+- Each folder of valiadtion checks mirrors a folder of code it validates. A test file sits at the same relative path as the file it validates.
+
+- The validation file carries its target name with `test_` in front, so `validation/sources/test_fetch_file.py` validates `src/sdg/sources/fetch_file.py`.
+
+- `claude_hooks/`
+  - Holds the validation checks for the Claude Code hooks in `.claude/hooks/`.
+  - Its name differs from the folder it mirrors, because pytest does not look inside a folder whose name starts with a dot.
+
+- `fixtures/`
+  - Holds small stand-ins for the pinned files under `inputs/` that are read by staged checks. Real pinned files are not touched.
+  - Holds no checks.
+
+- `repo_tools/`
+  - Holds the validation checks for the repo maintenance tools in `repo_tools/`.
+
+- `reports/`
+  - Holds the validation reports, one CSV file per validation run.
+  - Receives a report only from `pytest --validation-report`.
+  - See validation reports section below for details.
+
+- `sources/`
+  - Holds the validation checks for `src/sdg/sources/`.
+
+- `usdm/`
+  - Holds the validation checks for `src/sdg/usdm/`.
+
+- `view/`
+  - Holds the validation checks for scripts in `src/sdg/view/`.
+
+## Objectives
+
+An objective is why a check exists. It is not what the check looks at, because the same file can be checked for different reasons. How a check is set up, what fixes a failure and who fixes it all follow from its objective. Every check has exactly one.
+
+These objectives are in use.
+
+- **behavior** answers whether the code does what it promises when it runs, and refuses what it should refuse.
+  - The check sets up the situation itself, and it states the exact expected result itself.
+  - A check against real documents, real pipeline output or a reference a person built is not a behavior check, even when it runs the code.
+  - Speed is not part of behavior. It belongs to performance.
+  - A failure is fixed by correcting the code.
+- **stability** answers whether something is unchanged since it was recorded.
+  - The check compares one thing with itself at two points in time, usually through the checksum a manifest records. In digital preservation this is called a fixity check.
+  - Any difference is a problem.
+  - A failure is fixed by restoring the recorded version, or by deciding to record a new one, which is a re-pin.
+- **agreement** answers whether two things that must correspond actually do.
+  - The check compares two different things at the same moment, where one is generated from the other or must match it. An example is `repo_tools/README.md` and the script headers it is generated from.
+  - It does not matter whether the two matched before.
+  - A failure is fixed by regenerating or correcting the side that is out of line.
+- **conformance** answers whether something follows the rule or standard it is held to.
+  - The check compares one thing with a written rule. Examples are the header layout in `.claude/rules/writing_python_files.md` and the fields every manifest entry must have.
+  - A failure is fixed by changing the thing to meet the rule.
+
+These objectives are defined but not in use yet.
+
+- **accuracy** answers how close the pipeline's output is to the expected answer.
+  - The check compares output from real documents with a reference a person built, such as the answer keys in `eval/`.
+  - The result is a score, such as precision and recall per case, judged against a threshold agreed before testing.
+  - The reference itself can be wrong. A miss is investigated first, because the cause may be the prompt, the retrieval or the reference.
+- **performance** answers whether the code is fast enough, or light enough on the machine.
+  - The check measures time or resource use on a realistic input against a threshold.
+- **regression** answers whether the code's output on a fixed input has changed since the last accepted result.
+  - Unlike stability, a change is expected when the code changes.
+  - A change is judged, and it is either fixed or accepted as the new baseline.
+- **environment_readiness** answers whether the setup the project depends on is present and working.
+  - `repo_tools/check_neo4j.py` and `repo_tools/check_api_key.py` answer this today when a person runs them.
+  - A check with this objective would run against the live setup rather than a staged one.
+
+### Behavior cases
+
+Every behavior check is one of two cases.
+
+- **positive** means the check sets up a working situation and expects the code to succeed.
+- **negative** means the check sets up a broken situation and expects the code to refuse it for the right reason, with the right message or exit code.
+
+The situation is anything the check controls, such as the input, the options, the files on disk or the network. A check that asserts something is absent is not negative for that reason alone. For example, checking that a deleted check's row is gone from the inventory is positive, because deleting a check is normal work and the code is expected to succeed.
+
+## Terms the inventory uses
+
+### Statuses
+
+A status answers whether what the check guards is still guarded.
+
+| Status | What it means | What else the row must hold |
+| --- | --- | --- |
+| `pending` | The check is planned or being built. It is not in use yet. | Nothing else. |
+| `active` | The check exists and runs in every run. | Nothing else. |
+| `inactive` | The check was in use and is switched off for now. It has not been withdrawn. | `status_reason` says why it is off. |
+| `superseded` | Other checks now cover what this check guarded, so nothing is lost. | `superseded_by` names those checks, and each one is active. |
+| `retired` | The check was withdrawn, and nothing covers what it guarded. That is a loss of capability. | `status_reason` says why the loss was accepted. |
+
+- A superseded or retired check cannot still be in the test files.
+- `python repo_tools/build_inventory.py --check-status` checks these rules on the inventory as it is, and every regeneration checks them too.
+- Until the first validation run, a deleted check's row is removed rather than given a status. After that run every row is kept, whatever its status, so a report can always be traced to the checks that existed when it was made.
+
+### Versions
+
+- A check's version is a whole number, starting at 1.
+- A check moves to the next number when all three of these have happened:
+  1. The changed check passes its validation.
+  2. The validation report is filed.
+  3. The check is put into production.
+- Until the first validation run, every check stays at version 1.
 
 ## Validation reports
 
-Development runs write nothing. When the code is declared ready, run `pytest --validation-report`. `conftest.py` then writes one CSV file into `reports/`, named for the date and the commit, with one row per check. Each row leads with the check: its code, name, kind, what it proves, its outcome, and the reason when the outcome is not passed. Then come the run's details, meaning the verdict, the commit, who ran it, when and which checks were selected, and at the far right the file hashes, the pinned data version and the tool versions. The check columns carry the inventory's column names, so a row joins to it by check_name_code. Commit that file. A report says PASS only when pytest itself exited 0.
+- Development runs write nothing.
+- When the code is declared ready, run `pytest --validation-report`. `conftest.py` then writes one CSV file into `reports/`, named for the date and the commit. Commit that file.
+- A report has one row per check that ran. Each row leads with the check, meaning its id, name, objective, behavior case, expected result, outcome, and the reason when the outcome is not passed. Then come the run's details, meaning the verdict, the commit, who ran it, when it ran and which checks were selected. At the far right are the file hashes, the pinned data version and the tool versions.
+- The check columns carry the inventory's column names, so a row joins to the inventory by `validation_check_id`.
+- A check whose pinned file is not downloaded, or no longer matches its manifest entry, is skipped, and its row gives the reason. Only the stability check for that file fails, so one changed file shows as one failure.
+- A report says PASS only when pytest itself exited 0.
+
+## How to run
+
+Run every command from the repo root, in the `sdg` environment.
+
+### During development
+
+```powershell
+pytest
+pytest -v
+```
+
+- Run the checks whenever you change code or a check. The pre-commit hook does not run them, so this is up to you.
+- `pytest` runs every check in every test file under `validation/` and prints the results. It writes nothing.
+- `pytest -v` does the same, with one line per check naming it.
+
+### Running only some checks
+
+```powershell
+pytest validation/sources/test_fetch_file.py
+pytest -k manifest
+```
+
+- Name a test file to run only its checks.
+- Use `-k`, pytest's own filter, followed by a word to run only the checks that match it.
+- A check matches when its name or its test file's name contains the word, so `-k manifest` runs every check in `test_read_manifests.py` as well as the checks elsewhere with "manifest" in their names.
+
+### When the code is declared ready
+
+```powershell
+pytest --validation-report
+```
+
+- This run produces a validation report, the formal record that the code was validated.
+- It runs the same checks as `pytest`, then writes one report into `reports/`.
+- A run narrowed to some checks can also write a report. The report's `selection` column records what was selected, so a partial run cannot pass for a full one.
+- What a report holds is described under Validation reports below.

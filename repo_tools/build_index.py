@@ -233,7 +233,7 @@ def render(entries: list[tuple[str, dict[str, list[str]]]]) -> str:
         GENERATED_NOTICE,
         "",
         "Every tool here can be run by a person. Some are also run by the pre-commit "
-        "hook or by pytest and `docs/repo_tools_files_inventory.md` specifies which. "
+        "hook or by pytest and `repo_tools/repo_tools_file_catalog.md` specifies which. "
         "Importable pipeline code lives in `src/sdg/`.",
         "",
         "Each entry is a summary. The script's own header block is the full account of "

@@ -11,4 +11,4 @@ Code here is used in two ways. Other code imports it, for example `from sdg.sour
 | `sdg/` | This is the `sdg` package. Its own `README.md` lists the folders inside it. |
 | `sdg.egg-info/` | `pip install -e .` writes this folder. It holds a few small text files that tell Python the package is installed and where. It is not source and is not committed. It is safe to delete, because the next install recreates it. |
 
-`docs/sdg_files_inventory.md` lists every file in `sdg/`, folder by folder, as a workflow or a step, with what each uses.
+`src/sdg/sdg_file_catalog.md` lists every file in `sdg/`, folder by folder, as a workflow or a step, with what each uses.
