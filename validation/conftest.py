@@ -34,10 +34,11 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check. A row holds the check's code, its kind, what it
-                 proves, which is its docstring's first paragraph, its own outcome,
-                 and the reason when that is not passed: the assertion message, the
-                 step that broke, or why it was skipped.
+                 one row per check. A row holds the check's id, its objective, its
+                 behavior case when it is a behavior check, its expected result,
+                 which is its docstring's first paragraph, its own outcome, and the
+                 reason when that is not passed: the assertion message, the step
+                 that broke, or why it was skipped.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
@@ -52,9 +53,13 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              saying that no check ran.
 
              It registers the markers the tests carry:
-               - @positive means the right thing works,
-               - @negative means the broken thing fails for the right reason,
-               - @code carries the check's permanent id from validation/validation_inventory.csv.
+               - @code carries the check's permanent id from validation/validation_inventory.csv,
+               - @objective carries why the check exists, one of the objectives
+                 validation/README.md defines,
+               - @positive, on a behavior check, means a working situation where
+                 the code is expected to succeed,
+               - @negative, on a behavior check, means a broken situation where
+                 the code is expected to refuse for the right reason.
 
              It also enables pytest's own "pytester" helper, which the report-writer's
              tests use to run small throwaway suites.
@@ -102,7 +107,7 @@ import pytest
 # inventory and a report can never disagree. pyproject.toml puts repo_tools/ on
 # pytest's import path, and the generator uses only the standard library, so this
 # import cannot fail because the sdg package is broken.
-from build_inventory import type_and_target
+from build_inventory import split_path, type_and_target
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 REPO_ROOT = VALIDATION_DIR.parent
@@ -397,9 +402,19 @@ def pytest_configure(config):
     Args:
         config: pytest's configuration.
     """
-    config.addinivalue_line("markers", "positive: proves the right thing works")
     config.addinivalue_line(
-        "markers", "negative: proves the broken thing fails, and for the right reason"
+        "markers",
+        "objective(name): why the check exists, one of the objectives in "
+        "validation/README.md",
+    )
+    config.addinivalue_line(
+        "markers",
+        "positive: a behavior check of a working situation, expected to succeed",
+    )
+    config.addinivalue_line(
+        "markers",
+        "negative: a behavior check of a broken situation, expected to refuse "
+        "for the right reason",
     )
     # The code is the check's short, permanent id in validation/validation_inventory.csv:
     # a type prefix and four digits, such as SRC0042, assigned once and never
@@ -458,8 +473,9 @@ def pytest_runtest_makereport(item, call):
             "file": Path(str(item.fspath)),
             "code": _code(item),
             "name": item.name,
-            "kind": _kind(item),
-            "proves": _first_paragraph(item.obj.__doc__),
+            "objective": _objective(item),
+            "case": _case(item),
+            "expected_result": _first_paragraph(item.obj.__doc__),
             "outcome": outcome,
             "reason": "",
         },
@@ -502,27 +518,41 @@ def _code(item) -> str:
     return str(marker.args[0]) if marker and marker.args else ""
 
 
-def _kind(item) -> str:
-    """Read a check's kind off its marker.
+def _objective(item) -> str:
+    """Read a check's objective off its objective marker.
 
     Args:
         item: The check.
 
     Returns:
-        positive, negative, or unmarked when it carries neither.
+        The objective, or an empty string when the check carries no objective marker.
+    """
+    marker = item.get_closest_marker("objective")
+    return str(marker.args[0]) if marker and marker.args else ""
+
+
+def _case(item) -> str:
+    """Read a behavior check's case off its marker.
+
+    Args:
+        item: The check.
+
+    Returns:
+        positive, negative, or an empty string when it carries neither, as a check of
+        any objective other than behavior does.
     """
     if item.get_closest_marker("positive"):
         return "positive"
     if item.get_closest_marker("negative"):
         return "negative"
-    return "unmarked"
+    return ""
 
 
 def _first_paragraph(doc: str | None) -> str:
     """Give a check's docstring's first paragraph as one line.
 
-    That paragraph is the plain statement of what the check proves, and it is what the
-    report shows for the check.
+    That paragraph is the check's expected result, and it is what the report shows for
+    the check.
 
     Args:
         doc: The docstring, or None when the check has none.
@@ -631,18 +661,21 @@ def pytest_sessionstart(session):
 # The columns of a report, in the order they are written: what each check proved
 # comes first, then what the run was, then the technical details a reader needs
 # only to reproduce a failure. The check columns carry the same names as
-# validation/validation_inventory.csv, so a row joins to it by check_name_code.
+# validation/validation_inventory.csv, so a row joins to it by validation_check_id.
 REPORT_COLUMNS = (
     "run_id",
     "run_verdict",
-    "check_name_code",
-    "check_name",
-    "kind",
-    "proves",
+    "validation_check_id",
+    "validation_check_name",
+    "validation_objective",
+    "behavior_case",
+    "expected_result",
     "check_outcome",
     "outcome_reason",
-    "check_file",
-    "target_file",
+    "validation_folder_path",
+    "validation_file_name",
+    "target_folder_path",
+    "target_file_name",
     "pytest_exit_status",
     "exit_meaning",
     "started",
@@ -686,21 +719,25 @@ def _selection(config: pytest.Config) -> str:
     return " ".join(kept) or "all"
 
 
-def _target_of(test_file: Path) -> str:
+def _target_of(test_file: Path) -> tuple[str, str]:
     """Name the code file a test file proves.
 
     The rule is the inventory generator's, repo_tools/build_inventory.py, imported above, so the report's target
-    column and the inventory's agree by construction.
+    columns and the inventory's agree by construction.
 
     Args:
         test_file: The test file's path.
 
     Returns:
-        The target's repo-relative path, marked when it was not found at run time.
+        The target's folder and its file name, the name marked when the file was not
+        found at run time.
     """
-    _, name = type_and_target(test_file, VALIDATION_DIR)
+    _, path = type_and_target(test_file, VALIDATION_DIR)
+    folder, name = split_path(path)
     # The mirrored file is named even when it is not there, so the gap shows.
-    return name if (REPO_ROOT / name).exists() else f"{name} (not found at run time)"
+    if not (REPO_ROOT / path).exists():
+        name = f"{name} (not found at run time)"
+    return folder, name
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -757,20 +794,27 @@ def pytest_sessionfinish(session, exitstatus):
         for outcome in _outcomes.values():
             by_file.setdefault(outcome["file"], []).append(outcome)
         for file, outcomes in by_file.items():
+            validation_folder, validation_file = split_path(
+                f"validation/{file.relative_to(VALIDATION_DIR).as_posix()}"
+            )
+            target_folder, target_file = _target_of(file)
             per_file = {
-                "check_file": f"validation/{file.relative_to(VALIDATION_DIR).as_posix()}",
+                "validation_folder_path": validation_folder,
+                "validation_file_name": validation_file,
                 "check_file_sha256": _sha256(file),
-                "target_file": _target_of(file),
+                "target_folder_path": target_folder,
+                "target_file_name": target_file,
             }
             for outcome in outcomes:
                 rows.append(
                     {
                         **run,
                         **per_file,
-                        "check_name_code": outcome["code"],
-                        "check_name": outcome["name"],
-                        "kind": outcome["kind"],
-                        "proves": outcome["proves"],
+                        "validation_check_id": outcome["code"],
+                        "validation_check_name": outcome["name"],
+                        "validation_objective": outcome["objective"],
+                        "behavior_case": outcome["case"],
+                        "expected_result": outcome["expected_result"],
                         "check_outcome": outcome["outcome"],
                         "outcome_reason": outcome["reason"],
                     }
@@ -781,13 +825,16 @@ def pytest_sessionfinish(session, exitstatus):
         rows.append(
             {
                 **run,
-                "check_file": "",
+                "validation_folder_path": "",
+                "validation_file_name": "",
                 "check_file_sha256": "",
-                "target_file": "",
-                "check_name_code": "",
-                "check_name": "",
-                "kind": "",
-                "proves": "",
+                "target_folder_path": "",
+                "target_file_name": "",
+                "validation_check_id": "",
+                "validation_check_name": "",
+                "validation_objective": "",
+                "behavior_case": "",
+                "expected_result": "",
                 "check_outcome": "none",
                 "outcome_reason": "no check ran: pytest failed before any test ran",
             }

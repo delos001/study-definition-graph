@@ -361,3 +361,27 @@ Every list of folders or files names the folder as it is, with the date. Prose t
 ## The conformance checker question moves from Phase 0 to Phase 3, decided 2026-09-16
 
 The Phase 0 audit compared the list of what Phase 0 was to produce in `PLAN.md` against the repo and found one item with no answer recorded anywhere: whether CDISC's own conformance checker can be used without a paid membership. The question may well have been looked into and the answer never written down, since the plan already leans on the pinned rules spreadsheet as the fallback. Rather than guess, the item moves to Phase 3, where there is USDM output to check and the answer is first needed. It is a sub-issue of the Phase 3 issue, and the pinned spreadsheet stays the fallback if the checker needs a membership.
+
+## Every check is classified by its objective, decided 2026-09-18
+
+A review of `validation/validation_inventory.csv` found that every check was marked positive or negative, including checks that fit neither. A positive check sets up a working situation and expects the code to succeed. A negative check sets up a broken situation and expects the code to refuse for the right reason. Some checks do neither. They look at the real repo and ask whether it is in order, for example whether `repo_tools/README.md` still matches the headers it is generated from. Pipeline checks in later phases will add more that fit neither, such as scoring output against the answer keys in `eval/`. No standard covered the question, so the choice is **unguided**.
+
+Checks are now grouped by their objective, meaning why the check exists, not what it looks at. The same file can be checked for different reasons. How a check is set up, what fixes a failure and who fixes it all follow from the reason. The objectives are defined in `validation/README.md`.
+
+- Four objectives are in use: behavior, stability, agreement and conformance.
+- Four more are defined but not in use yet: accuracy, performance, regression and environment readiness.
+- Positive and negative now apply only to behavior checks, in a column renamed `behavior_case`.
+- Behavior means what the code does when it runs, in a situation the check sets up. Speed is kept out of it, because a speed check is set up, judged and fixed differently.
+
+A check has one objective, and its objective is decided before the check is written. A check found to serve two objectives is split when the parts would have different fixes or different owners. The review produced these changes:
+
+- USD0027 checked the pinned USDM file's checksum and its shape in one step. It keeps only the shape check, and the checksum moves to a new stability check.
+- HRS0046 ran the whole header checker, which tests both the header layout and the exit codes a header lists. It becomes two checks.
+- SRC0071 and USD0028 added nothing that other checks do not already cover, so they are removed.
+- HRS0018 stays whole. It verifies the pinned files it reads only as a precondition, because a figure measured from a changed file cannot be trusted.
+
+A check that reads a pinned file which no longer matches its manifest is now skipped as blocked, not failed. Without this, one changed file would show up in a report as many separate failures. One new stability check, run once per pinned file, is the only check that fails when a pinned file has changed.
+
+Each check has one of five statuses: pending, active, inactive, superseded or retired. Superseded and retired are kept apart on purpose. A superseded check stops because other checks now cover what it guarded. A retired check stops and nothing covers what it guarded, which is a loss of capability, so the inventory must record why that was accepted. The inventory gains `superseded_by` for the ids of the covering checks and `status_reason` for the reason. The reasoning belongs in the inventory rather than here, because this file records how the project was built and the inventory is what a later validation is read against.
+
+A check's version is a whole number. It moves to the next number when a changed check passes its validation, its report is filed and it goes into production. Until the first validation run, every check stays at version 1 and a deleted check's row is removed. After that run, rows are kept whatever their status.

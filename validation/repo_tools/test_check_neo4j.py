@@ -44,6 +44,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 URI = "bolt://localhost:7687"
 USER = "neo4j"
@@ -170,6 +173,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 
 
 @code("HRS0105")
+@objective("behavior")
 @positive
 def test_matching_database_exits_0(working):
     """A database that answers with the pinned version gives an exit code of 0."""
@@ -177,6 +181,7 @@ def test_matching_database_exits_0(working):
 
 
 @code("HRS0106")
+@objective("behavior")
 @positive
 def test_matching_database_reports_the_version(working):
     """The report names the address it reached and the version that answered."""
@@ -185,6 +190,7 @@ def test_matching_database_reports_the_version(working):
 
 
 @code("HRS0107")
+@objective("behavior")
 @positive
 def test_the_password_is_never_printed(working):
     """The password itself is never printed, so it cannot end up in a terminal log."""
@@ -192,6 +198,7 @@ def test_the_password_is_never_printed(working):
 
 
 @code("HRS0108")
+@objective("behavior")
 @positive
 def test_quoted_settings_are_read(repo):
     """Settings written with quotes around them, as a person might paste them, are
@@ -203,6 +210,7 @@ def test_quoted_settings_are_read(repo):
 
 
 @code("HRS0109")
+@objective("behavior")
 @positive
 def test_the_pin_is_read_from_the_image_tag(repo):
     """The version and edition are read from the image tag in docker-compose.yml."""
@@ -211,6 +219,7 @@ def test_the_pin_is_read_from_the_image_tag(repo):
 
 
 @code("HRS0110")
+@objective("behavior")
 @positive
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     """With the quiet option, nothing at all is printed."""
@@ -219,6 +228,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 
 
 @code("HRS0111")
+@objective("behavior")
 @positive
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
     """With the quiet option, the exit code still reports the missing settings."""
@@ -234,6 +244,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 
 
 @code("HRS0112")
+@objective("behavior")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
     """With no .env file at all, the run exits 27 and the message says to create it
@@ -245,6 +256,7 @@ def test_missing_env_file_is_refused(repo, capsys):
 
 
 @code("HRS0113")
+@objective("behavior")
 @negative
 def test_missing_settings_are_refused_by_name(repo, capsys):
     """With a .env holding only one of the Neo4j lines, the run exits 37 and the
@@ -257,6 +269,7 @@ def test_missing_settings_are_refused_by_name(repo, capsys):
 
 
 @code("HRS0114")
+@objective("behavior")
 @negative
 def test_missing_compose_file_is_refused(repo, capsys):
     """With no docker-compose.yml, the run exits 13 and the message says to restore
@@ -269,6 +282,7 @@ def test_missing_compose_file_is_refused(repo, capsys):
 
 
 @code("HRS0115")
+@objective("behavior")
 @negative
 def test_compose_file_without_an_image_is_refused(repo, capsys):
     """With a docker-compose.yml that names no image for the neo4j service, the run
@@ -284,6 +298,7 @@ def test_compose_file_without_an_image_is_refused(repo, capsys):
 
 
 @code("HRS0116")
+@objective("behavior")
 @negative
 def test_unpinned_image_tag_is_refused(repo, capsys):
     """With an image written without a version, the run exits 13 and the message
@@ -296,6 +311,7 @@ def test_unpinned_image_tag_is_refused(repo, capsys):
 
 
 @code("HRS0117")
+@objective("behavior")
 @negative
 def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When nothing answers at the address, the run exits 38 and the message says to
@@ -310,6 +326,7 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
 
 
 @code("HRS0149")
+@objective("behavior")
 @negative
 def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When the driver fails with its general error rather than the service-unavailable
@@ -324,6 +341,7 @@ def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
 
 
 @code("HRS0150")
+@objective("behavior")
 @negative
 def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsys):
     """When the driver refuses the address before trying to connect, the run exits 44
@@ -339,6 +357,7 @@ def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsy
 
 
 @code("HRS0118")
+@objective("behavior")
 @negative
 def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
     """When the database refuses the user or password, the run exits 39 and the
@@ -354,6 +373,7 @@ def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
 
 
 @code("HRS0119")
+@objective("behavior")
 @negative
 def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys):
     """When the database answers with a version other than the pin, the run exits 40
@@ -368,6 +388,7 @@ def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys)
 
 
 @code("HRS0120")
+@objective("behavior")
 @negative
 def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys):
     """When the database is the pinned version number but another edition, the run
@@ -382,6 +403,7 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
 
 
 @code("HRS0121")
+@objective("behavior")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     """When the sdg package is installed from outside the repo, the run exits 6 before it

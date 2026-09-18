@@ -22,7 +22,7 @@ python repo_tools/build_index.py --quiet
 
 ## build_inventory.py
 
-Generates validation/validation_inventory.csv, the list of every check in the test files under validation/, from the checks themselves, so the inventory cannot drift from the code it describes. Each check's name, its permanent id (the @code marker), whether it is positive or negative, and the sentence it proves (its docstring's first paragraph) are read from the file. Two columns are kept by hand and carried over from the existing inventory by id: status and version. A new check starts as active at version 1. A check that no longer exists drops out.
+Generates validation/validation_inventory.csv, the list of every check in the test files under validation/, from the checks themselves, so the inventory cannot drift from the code it describes. Each check's name, its permanent id (the @code marker), its objective (the @objective marker), whether a behavior check is positive or negative, and its expected result (its docstring's first paragraph) are read from the file. Four columns are kept by hand and carried over from the existing inventory by id: status, superseded_by, status_reason and version. A new check starts as active at version 1. A check that no longer exists drops out, which holds until the first validation run.
 
 ```
 python repo_tools/build_inventory.py
@@ -30,6 +30,9 @@ python repo_tools/build_inventory.py
 python repo_tools/build_inventory.py --check
     report whether the inventory on disk is current; write nothing.
     For hooks.
+python repo_tools/build_inventory.py --check-status
+    check only the hand-kept columns of the inventory on disk;
+    write nothing
 python repo_tools/build_inventory.py --quiet
     print nothing; use the exit code
 ```

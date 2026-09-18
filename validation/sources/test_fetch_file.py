@@ -43,6 +43,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 # The url every check downloads from. Nothing is at it; the fake server below
 # answers in its place.
@@ -215,6 +218,7 @@ def attempt(server, tmp_path, behavior) -> Failed:
 
 
 @code("SRC0031")
+@objective("behavior")
 @positive
 def test_download_is_written_under_the_part_name(completed):
     """A completed download is written to <destination>.part, and that path is
@@ -224,6 +228,7 @@ def test_download_is_written_under_the_part_name(completed):
 
 
 @code("SRC0032")
+@objective("behavior")
 @positive
 def test_download_holds_the_bytes_the_server_sent(completed):
     """The .part file holds exactly the bytes the server sent, in order."""
@@ -231,6 +236,7 @@ def test_download_holds_the_bytes_the_server_sent(completed):
 
 
 @code("SRC0033")
+@objective("behavior")
 @positive
 def test_nothing_appears_under_the_final_name(completed):
     """A completed download does not create the final name; that is the place
@@ -239,6 +245,7 @@ def test_nothing_appears_under_the_final_name(completed):
 
 
 @code("SRC0034")
+@objective("behavior")
 @positive
 def test_missing_folders_are_created(completed):
     """The folders on the way to the destination are created when they do not
@@ -247,6 +254,7 @@ def test_missing_folders_are_created(completed):
 
 
 @code("SRC0035")
+@objective("behavior")
 @positive
 def test_leftover_part_file_is_replaced(tmp_path, server):
     """A .part file left by an earlier run is replaced by the new download, not
@@ -262,6 +270,7 @@ def test_leftover_part_file_is_replaced(tmp_path, server):
 
 
 @code("SRC0036")
+@objective("behavior")
 @positive
 def test_request_is_a_get_on_the_given_url(completed):
     """The request is a GET on the url fetch() was given."""
@@ -270,6 +279,7 @@ def test_request_is_a_get_on_the_given_url(completed):
 
 
 @code("SRC0037")
+@objective("behavior")
 @positive
 def test_request_asks_to_follow_redirects(completed):
     """The request asks the HTTP library to follow a redirect, so a file the
@@ -278,6 +288,7 @@ def test_request_asks_to_follow_redirects(completed):
 
 
 @code("SRC0038")
+@objective("behavior")
 @positive
 def test_request_carries_the_module_timeout(completed):
     """The request gives up after the number of seconds fetch_file.py sets."""
@@ -285,6 +296,7 @@ def test_request_carries_the_module_timeout(completed):
 
 
 @code("SRC0039")
+@objective("behavior")
 @positive
 def test_partial_path_adds_part_to_the_file_name():
     """partial_path() adds .part to the file name and keeps the folder."""
@@ -300,6 +312,7 @@ def test_partial_path_adds_part_to_the_file_name():
 
 
 @code("SRC0040")
+@objective("behavior")
 @negative
 def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server):
     """A server that answers with an error status makes fetch() raise
@@ -312,6 +325,7 @@ def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server)
 
 
 @code("SRC0041")
+@objective("behavior")
 @negative
 def test_error_status_leaves_no_part_file(tmp_path, server):
     """After an error status, no .part file is left on disk."""
@@ -322,6 +336,7 @@ def test_error_status_leaves_no_part_file(tmp_path, server):
 
 
 @code("SRC0042")
+@objective("behavior")
 @negative
 def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, server):
     """A connection that cannot be made makes fetch() raise FetchError, and the
@@ -332,6 +347,7 @@ def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, se
 
 
 @code("SRC0043")
+@objective("behavior")
 @negative
 def test_unreachable_server_leaves_no_part_file(tmp_path, server):
     """After a failed connection, no .part file is left on disk."""
@@ -340,6 +356,7 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
 
 
 @code("SRC0116")
+@objective("behavior")
 @negative
 def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, server):
     """A url the HTTP library cannot parse makes fetch() raise FetchError, and the
@@ -352,6 +369,7 @@ def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, serve
 
 
 @code("SRC0117")
+@objective("behavior")
 @negative
 def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
     """A plain file sitting where the destination's folder should be makes fetch()
@@ -366,6 +384,7 @@ def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
 
 
 @code("SRC0118")
+@objective("behavior")
 @negative
 def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkeypatch):
     """When the .part file cannot be removed after a failed download, fetch() still
@@ -381,6 +400,7 @@ def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkey
 
 
 @code("SRC0044")
+@objective("behavior")
 @negative
 def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
     """A transfer that breaks after the first chunk makes fetch() raise
@@ -390,6 +410,7 @@ def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
 
 
 @code("SRC0045")
+@objective("behavior")
 @negative
 def test_broken_transfer_removes_the_half_written_part_file(tmp_path, server):
     """After a transfer breaks part way, the half-written .part file is

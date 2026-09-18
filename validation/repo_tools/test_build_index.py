@@ -34,6 +34,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 # A complete header in this repo's convention: a two-line first paragraph, a
 # second paragraph that must not reach the index, and a Usage whose relative
@@ -115,6 +118,7 @@ def written(folder, capsys):
 
 
 @code("HRS0001")
+@objective("behavior")
 @positive
 def test_writes_the_entry_from_the_header(written):
     """repo_tools/README.md holds each script's name, the first paragraph of its Description
@@ -124,6 +128,7 @@ def test_writes_the_entry_from_the_header(written):
 
 
 @code("HRS0134")
+@objective("behavior")
 @positive
 def test_the_second_paragraph_is_left_out(written):
     """Only the first paragraph of a Description reaches repo_tools/README.md; the rest stays in
@@ -133,6 +138,7 @@ def test_the_second_paragraph_is_left_out(written):
 
 
 @code("HRS0135")
+@objective("behavior")
 @positive
 def test_the_index_opens_with_the_title_and_the_notice(written):
     """repo_tools/README.md opens with its title and the notice saying it is generated, so
@@ -142,6 +148,7 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
 
 
 @code("HRS0136")
+@objective("behavior")
 @positive
 def test_the_index_ends_with_one_newline(written):
     """repo_tools/README.md ends with exactly one newline, so a regenerated file compares equal
@@ -151,6 +158,7 @@ def test_the_index_ends_with_one_newline(written):
 
 
 @code("HRS0145")
+@objective("behavior")
 @positive
 def test_the_index_is_written_with_lf_line_endings(folder):
     """repo_tools/README.md is written with a bare line feed (LF) ending each line
@@ -165,6 +173,7 @@ def test_the_index_is_written_with_lf_line_endings(folder):
 
 
 @code("HRS0137")
+@objective("behavior")
 @positive
 def test_writing_reports_the_file_and_the_count(written):
     """A run that writes repo_tools/README.md exits 0 and says which file it wrote and how many
@@ -175,6 +184,7 @@ def test_writing_reports_the_file_and_the_count(written):
 
 
 @code("HRS0002")
+@objective("behavior")
 @positive
 def test_scripts_are_listed_in_name_order(folder):
     """Two scripts appear in alphabetical order whatever order they were
@@ -192,6 +202,7 @@ def test_scripts_are_listed_in_name_order(folder):
 
 
 @code("HRS0003")
+@objective("behavior")
 @positive
 def test_check_passes_when_index_is_current(folder, capsys):
     """With the check option, the run exits 0 and writes nothing when repo_tools/README.md
@@ -205,6 +216,7 @@ def test_check_passes_when_index_is_current(folder, capsys):
 
 
 @code("HRS0004")
+@objective("behavior")
 @negative
 def test_check_fails_when_index_is_missing(folder, capsys):
     """With the check option and no index on disk, the run exits 15, names the command
@@ -216,6 +228,7 @@ def test_check_fails_when_index_is_missing(folder, capsys):
 
 
 @code("HRS0132")
+@objective("behavior")
 @negative
 def test_check_fails_when_index_is_stale(folder, capsys):
     """With the check option and an index that no longer matches the headers, the run
@@ -233,6 +246,7 @@ def test_check_fails_when_index_is_stale(folder, capsys):
 
 
 @code("HRS0005")
+@objective("behavior")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
     """With the quiet option, nothing is printed; the exit code is the whole
@@ -247,6 +261,7 @@ def test_quiet_prints_nothing(folder, capsys):
 
 
 @code("HRS0006")
+@objective("behavior")
 @negative
 def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
     """A header missing required fields exits 17, naming the script and every
@@ -266,6 +281,7 @@ def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
 
 
 @code("HRS0007")
+@objective("behavior")
 @negative
 def test_no_docstring_exits_17(folder, capsys):
     """A script with no module docstring has no header block at all: exit 17,
@@ -276,6 +292,7 @@ def test_no_docstring_exits_17(folder, capsys):
 
 
 @code("HRS0008")
+@objective("behavior")
 @negative
 def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
     """A script that is not valid Python exits 19, and 19 outranks 17 when another
@@ -288,6 +305,7 @@ def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
 
 
 @code("HRS0009")
+@objective("behavior")
 @negative
 def test_no_scripts_exits_20(folder, capsys):
     """An empty scripts folder exits 20."""
@@ -301,7 +319,7 @@ def test_no_scripts_exits_20(folder, capsys):
 
 
 @code("HRS0010")
-@positive
+@objective("agreement")
 def test_real_index_is_current():
     """repo_tools/README.md matches the headers of the real scripts, which is the
     check the pre-commit hook runs."""

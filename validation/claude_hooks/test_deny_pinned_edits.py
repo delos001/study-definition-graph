@@ -44,6 +44,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 
 #######################################################################################
@@ -140,6 +143,7 @@ def edit(monkeypatch, capsys, file_path: str, cwd: str | None = None) -> Outcome
 
 
 @code("CCH0001")
+@objective("behavior")
 @positive
 def test_an_ordinary_file_is_allowed(repo, monkeypatch, capsys):
     """A file outside inputs/ and manifests/ is allowed, and nothing is printed."""
@@ -149,6 +153,7 @@ def test_an_ordinary_file_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0002")
+@objective("behavior")
 @positive
 def test_the_inputs_readme_is_allowed(repo, monkeypatch, capsys):
     """The README.md the project writes into inputs/ itself is allowed."""
@@ -156,6 +161,7 @@ def test_the_inputs_readme_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0003")
+@objective("behavior")
 @positive
 def test_a_nested_gitkeep_under_inputs_is_allowed(repo, monkeypatch, capsys):
     """A .gitkeep placeholder anywhere under inputs/ is allowed, since the project
@@ -165,6 +171,7 @@ def test_a_nested_gitkeep_under_inputs_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0004")
+@objective("behavior")
 @positive
 def test_a_study_manifest_is_allowed(repo, monkeypatch, capsys):
     """A manifest under manifests/study_documents/ is allowed, because the pipeline
@@ -174,6 +181,7 @@ def test_a_study_manifest_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0005")
+@objective("behavior")
 @positive
 def test_the_manifests_readme_is_allowed(repo, monkeypatch, capsys):
     """The README.md at the top of manifests/ is allowed, since only the .json
@@ -182,6 +190,7 @@ def test_the_manifests_readme_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0006")
+@objective("behavior")
 @positive
 def test_a_path_outside_the_repo_is_allowed(
     repo, tmp_path_factory, monkeypatch, capsys
@@ -193,6 +202,7 @@ def test_a_path_outside_the_repo_is_allowed(
 
 
 @code("CCH0007")
+@objective("behavior")
 @positive
 def test_the_project_dir_outranks_the_message_cwd(
     repo, tmp_path_factory, monkeypatch, capsys
@@ -206,6 +216,7 @@ def test_the_project_dir_outranks_the_message_cwd(
 
 
 @code("CCH0008")
+@objective("behavior")
 @positive
 def test_the_message_cwd_is_used_when_the_variable_is_absent(
     tmp_path, monkeypatch, capsys
@@ -219,6 +230,7 @@ def test_the_message_cwd_is_used_when_the_variable_is_absent(
 
 
 @code("CCH0009")
+@objective("behavior")
 @positive
 def test_a_malformed_message_is_allowed(repo, monkeypatch, capsys):
     """A message that is not the JSON Claude Code sends is allowed, with nothing
@@ -229,6 +241,7 @@ def test_a_malformed_message_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0010")
+@objective("behavior")
 @positive
 def test_a_message_without_a_path_is_allowed(repo, monkeypatch, capsys):
     """A well-formed message that names no file path is allowed, since there is
@@ -241,6 +254,7 @@ def test_a_message_without_a_path_is_allowed(repo, monkeypatch, capsys):
 
 
 @code("CCH0011")
+@objective("behavior")
 @positive
 def test_a_refusal_is_printed_in_the_form_claude_code_reads(repo, monkeypatch, capsys):
     """A refusal is printed as the JSON Claude Code reads: a PreToolUse event with the
@@ -261,6 +275,7 @@ def test_a_refusal_is_printed_in_the_form_claude_code_reads(repo, monkeypatch, c
 
 
 @code("CCH0016")
+@objective("behavior")
 @negative
 def test_a_pinned_file_is_refused_from_another_folder(
     repo, tmp_path_factory, monkeypatch, capsys
@@ -275,6 +290,7 @@ def test_a_pinned_file_is_refused_from_another_folder(
 
 
 @code("CCH0012")
+@objective("behavior")
 @negative
 def test_a_pinned_file_is_refused(repo, monkeypatch, capsys):
     """A file directly under inputs/ is refused, and the reason names the path and
@@ -286,6 +302,7 @@ def test_a_pinned_file_is_refused(repo, monkeypatch, capsys):
 
 
 @code("CCH0013")
+@objective("behavior")
 @negative
 def test_a_nested_pinned_file_is_refused(repo, monkeypatch, capsys):
     """A file deep under inputs/ is refused the same as one at the top, because the
@@ -297,6 +314,7 @@ def test_a_nested_pinned_file_is_refused(repo, monkeypatch, capsys):
 
 
 @code("CCH0014")
+@objective("behavior")
 @negative
 def test_a_hand_written_manifest_is_refused(repo, monkeypatch, capsys):
     """A .json manifest at the top of manifests/ is refused, and the reason says a
@@ -308,6 +326,7 @@ def test_a_hand_written_manifest_is_refused(repo, monkeypatch, capsys):
 
 
 @code("CCH0015")
+@objective("behavior")
 @negative
 def test_a_relative_path_is_judged_against_the_repo_root(repo, monkeypatch, capsys):
     """A repo-relative path is resolved against the repo root before it is judged, so

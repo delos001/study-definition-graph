@@ -42,6 +42,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 GUIDE = "inputs/standards/example/Example_Guide.pdf"
 PLAIN = "inputs/standards/example/Plain_Document.pdf"
@@ -138,6 +141,7 @@ def run(write_list, monkeypatch, capsys, text, *argv):
 
 
 @code("VIW0001")
+@objective("behavior")
 @positive
 def test_every_row_becomes_a_document(repo, write_list):
     """Each row in lookup_documents.yml becomes one document, keyed by the key a person types."""
@@ -146,6 +150,7 @@ def test_every_row_becomes_a_document(repo, write_list):
 
 
 @code("VIW0002")
+@objective("behavior")
 @positive
 def test_the_path_comes_from_the_manifest(repo, write_list):
     """A document's path is taken from its manifest entry, so lookup_documents.yml never states
@@ -155,6 +160,7 @@ def test_the_path_comes_from_the_manifest(repo, write_list):
 
 
 @code("VIW0003")
+@objective("behavior")
 @positive
 def test_the_manifest_is_carried_for_the_missing_file_message(repo, write_list):
     """A document carries the manifest that records it, which the missing-file message
@@ -164,6 +170,7 @@ def test_the_manifest_is_carried_for_the_missing_file_message(repo, write_list):
 
 
 @code("VIW0004")
+@objective("behavior")
 @positive
 def test_boilerplate_patterns_are_compiled(repo, write_list):
     """A boilerplate pattern is compiled, and it matches the repeated header and footer
@@ -174,6 +181,7 @@ def test_boilerplate_patterns_are_compiled(repo, write_list):
 
 
 @code("VIW0005")
+@objective("behavior")
 @positive
 def test_an_empty_boilerplate_list_strips_nothing(repo, write_list):
     """A document with nothing repeated on its pages carries no patterns."""
@@ -182,6 +190,7 @@ def test_an_empty_boilerplate_list_strips_nothing(repo, write_list):
 
 
 @code("VIW0006")
+@objective("behavior")
 @positive
 def test_the_default_is_the_one_the_list_names(repo, write_list):
     """The key used when --doc is absent is the one lookup_documents.yml names as its default."""
@@ -190,6 +199,7 @@ def test_the_default_is_the_one_the_list_names(repo, write_list):
 
 
 @code("VIW0007")
+@objective("behavior")
 @positive
 def test_docs_names_every_document(repo, write_list, monkeypatch, capsys):
     """With every listed document on disk, --docs names each one."""
@@ -199,6 +209,7 @@ def test_docs_names_every_document(repo, write_list, monkeypatch, capsys):
 
 
 @code("VIW0008")
+@objective("behavior")
 @positive
 def test_docs_exits_0_when_every_document_is_present(
     repo, write_list, monkeypatch, capsys
@@ -215,6 +226,7 @@ def test_docs_exits_0_when_every_document_is_present(
 
 
 @code("VIW0009")
+@objective("behavior")
 @negative
 def test_a_missing_list_is_refused(repo, tmp_path):
     """With no list of lookup documents on disk, loading raises RegistryError naming
@@ -226,6 +238,7 @@ def test_a_missing_list_is_refused(repo, tmp_path):
 
 
 @code("VIW0010")
+@objective("behavior")
 @negative
 def test_a_list_that_is_not_yaml_is_refused(repo, write_list):
     """A list that is not valid YAML raises RegistryError saying so, rather than failing
@@ -236,6 +249,7 @@ def test_a_list_that_is_not_yaml_is_refused(repo, write_list):
 
 
 @code("VIW0011")
+@objective("behavior")
 @negative
 def test_a_list_with_no_documents_is_refused(repo, write_list):
     """A file with no documents list raises RegistryError saying which part is
@@ -246,6 +260,7 @@ def test_a_list_with_no_documents_is_refused(repo, write_list):
 
 
 @code("VIW0012")
+@objective("behavior")
 @negative
 def test_a_row_missing_a_field_is_refused(repo, write_list):
     """A row without its label raises RegistryError naming the field that is
@@ -257,6 +272,7 @@ def test_a_row_missing_a_field_is_refused(repo, write_list):
 
 
 @code("VIW0069")
+@objective("behavior")
 @negative
 def test_a_row_that_is_not_a_set_of_fields_is_refused(repo, write_list):
     """A row that is a bare value rather than a set of fields raises RegistryError
@@ -277,6 +293,7 @@ def test_a_row_that_is_not_a_set_of_fields_is_refused(repo, write_list):
 
 
 @code("VIW0070")
+@objective("behavior")
 @pytest.mark.parametrize(
     "written",
     ["'^ *Page [0-9]+ *$'", "false", "0", "''", "null"],
@@ -297,6 +314,7 @@ def test_a_boilerplate_that_is_not_a_list_is_refused(repo, write_list, written):
 
 
 @code("VIW0013")
+@objective("behavior")
 @negative
 def test_a_file_no_manifest_records_is_refused(repo, write_list):
     """A row naming a file that no manifest records raises UnknownFileError naming the
@@ -309,6 +327,7 @@ def test_a_file_no_manifest_records_is_refused(repo, write_list):
 
 
 @code("VIW0014")
+@objective("behavior")
 @negative
 def test_a_default_that_is_not_listed_is_refused(repo, write_list):
     """A default naming a key lookup_documents.yml does not hold raises RegistryError, rather than
@@ -320,6 +339,7 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
 
 
 @code("VIW0015")
+@objective("behavior")
 @negative
 def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
     """When lookup_documents.yml is missing, the command exits 31 and says where the file
@@ -332,6 +352,7 @@ def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
 
 
 @code("VIW0016")
+@objective("behavior")
 @negative
 def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, capsys):
     """When lookup_documents.yml names a file no manifest records, the command exits 32, a
@@ -344,6 +365,7 @@ def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, caps
 
 
 @code("VIW0067")
+@objective("behavior")
 @negative
 def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys):
     """When the sdg package is not running from inside its repo, the command exits 6
@@ -358,6 +380,7 @@ def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys
 
 
 @code("VIW0068")
+@objective("behavior")
 @negative
 def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
     """When a manifest is not valid JSON, the command exits 3 and names that manifest
@@ -369,6 +392,7 @@ def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
 
 
 @code("VIW0017")
+@objective("behavior")
 @negative
 def test_docs_exits_8_when_a_document_is_not_downloaded(
     fake_repo, write_list, monkeypatch, capsys
@@ -474,6 +498,7 @@ def usage_mistake(capsys, *argv):
 
 
 @code("VIW0034")
+@objective("behavior")
 @positive
 def test_a_section_is_found_by_number(readable, capsys):
     """Asking for a section by its number prints that section's text."""
@@ -483,6 +508,7 @@ def test_a_section_is_found_by_number(readable, capsys):
 
 
 @code("VIW0035")
+@objective("behavior")
 @positive
 def test_a_section_is_found_by_title(readable, capsys):
     """Asking for part of a section's title prints that section."""
@@ -490,6 +516,7 @@ def test_a_section_is_found_by_title(readable, capsys):
 
 
 @code("VIW0036")
+@objective("behavior")
 @positive
 def test_the_section_map_lists_every_section(readable, capsys):
     """The section map names every section the document's bookmarks hold."""
@@ -499,6 +526,7 @@ def test_the_section_map_lists_every_section(readable, capsys):
 
 
 @code("VIW0037")
+@objective("behavior")
 @positive
 def test_a_page_range_is_printed(readable, capsys):
     """A page range prints those pages, which is the mode a document without
@@ -507,6 +535,7 @@ def test_a_page_range_is_printed(readable, capsys):
 
 
 @code("VIW0044")
+@objective("behavior")
 @positive
 def test_a_two_page_range_prints_both_pages_in_order(readable, capsys):
     """A range of two pages prints both, first page first."""
@@ -515,6 +544,7 @@ def test_a_two_page_range_prints_both_pages_in_order(readable, capsys):
 
 
 @code("VIW0038")
+@objective("behavior")
 @positive
 def test_a_term_is_searched_for_across_pages(readable, capsys):
     """A search names the page that contains the term and shows the matching line,
@@ -527,6 +557,7 @@ def test_a_term_is_searched_for_across_pages(readable, capsys):
 
 
 @code("VIW0039")
+@objective("behavior")
 @positive
 def test_page_furniture_is_stripped(readable, capsys):
     """A line matching the document's boilerplate pattern is left out of an extract,
@@ -535,6 +566,7 @@ def test_page_furniture_is_stripped(readable, capsys):
 
 
 @code("VIW0040")
+@objective("behavior")
 @positive
 def test_raw_keeps_the_page_furniture(readable, capsys):
     """With --raw the boilerplate is kept, for a session that needs the page exactly
@@ -549,6 +581,7 @@ def test_raw_keeps_the_page_furniture(readable, capsys):
 
 
 @code("VIW0041")
+@objective("behavior")
 @negative
 def test_a_section_that_does_not_exist_exits_23(readable, capsys):
     """Asking for a section the document does not hold exits 23, rather than printing
@@ -560,6 +593,7 @@ def test_a_section_that_does_not_exist_exits_23(readable, capsys):
 
 
 @code("VIW0042")
+@objective("behavior")
 @negative
 def test_section_mode_on_a_document_without_bookmarks_exits_24(readable, capsys):
     """Asking for a section of a document that carries no bookmarks exits 24 and names
@@ -570,6 +604,7 @@ def test_section_mode_on_a_document_without_bookmarks_exits_24(readable, capsys)
 
 
 @code("VIW0045")
+@objective("behavior")
 @negative
 def test_a_page_range_that_is_not_numbers_is_a_usage_mistake(readable, capsys):
     """A page range that is not a number, or two joined by a dash, exits 2 and shows
@@ -580,6 +615,7 @@ def test_a_page_range_that_is_not_numbers_is_a_usage_mistake(readable, capsys):
 
 
 @code("VIW0049")
+@objective("behavior")
 @negative
 def test_a_page_range_with_a_trailing_dash_is_a_usage_mistake(readable, capsys):
     """A page range written with a dash and no second number exits 2, rather than being
@@ -590,6 +626,7 @@ def test_a_page_range_with_a_trailing_dash_is_a_usage_mistake(readable, capsys):
 
 
 @code("VIW0046")
+@objective("behavior")
 @negative
 def test_a_page_range_starting_before_page_1_is_a_usage_mistake(readable, capsys):
     """A page range starting at 0 exits 2 and says so, rather than printing the last
@@ -600,6 +637,7 @@ def test_a_page_range_starting_before_page_1_is_a_usage_mistake(readable, capsys
 
 
 @code("VIW0047")
+@objective("behavior")
 @negative
 def test_a_page_range_past_the_document_is_a_usage_mistake(readable, capsys):
     """A page range running past the last page exits 2 and says how many pages the
@@ -610,6 +648,7 @@ def test_a_page_range_past_the_document_is_a_usage_mistake(readable, capsys):
 
 
 @code("VIW0048")
+@objective("behavior")
 @negative
 def test_a_page_range_ending_before_it_starts_is_a_usage_mistake(readable, capsys):
     """A page range whose last page comes before its first exits 2 and says so, rather
@@ -620,6 +659,7 @@ def test_a_page_range_ending_before_it_starts_is_a_usage_mistake(readable, capsy
 
 
 @code("VIW0043")
+@objective("behavior")
 @negative
 def test_a_document_not_downloaded_exits_8(fake_repo, write_list, monkeypatch, capsys):
     """Reading a document that is recorded but not on disk exits 8 and names the
@@ -686,6 +726,7 @@ def shared_page(fake_repo, write_list, monkeypatch):
 
 
 @code("VIW0051")
+@objective("behavior")
 @positive
 def test_the_previous_sections_text_is_left_out_at_the_start(shared_page, capsys):
     """When a section begins part way down a page, the text of the section before it
@@ -697,6 +738,7 @@ def test_the_previous_sections_text_is_left_out_at_the_start(shared_page, capsys
 
 
 @code("VIW0066")
+@objective("behavior")
 @positive
 def test_the_next_sections_text_is_left_out_when_both_share_one_page(
     shared_page, capsys
@@ -710,6 +752,7 @@ def test_the_next_sections_text_is_left_out_when_both_share_one_page(
 
 
 @code("VIW0052")
+@objective("behavior")
 @positive
 def test_the_next_sections_text_is_left_out_at_the_end(readable, capsys):
     """When the next section begins on a section's last page, the next section's text
@@ -761,6 +804,7 @@ def page_with_table():
 
 
 @code("VIW0053")
+@objective("behavior")
 @positive
 def test_a_page_with_a_picture_gets_the_not_shown_note():
     """A page holding a picture gets the NOT SHOWN note counting one image, so the gap
@@ -771,6 +815,7 @@ def test_a_page_with_a_picture_gets_the_not_shown_note():
 
 
 @code("VIW0054")
+@objective("behavior")
 @positive
 def test_a_page_with_a_table_gets_the_not_shown_note():
     """A page holding a ruled table gets the NOT SHOWN note counting one table."""
@@ -784,6 +829,7 @@ def test_a_page_with_a_table_gets_the_not_shown_note():
 
 
 @code("VIW0055")
+@objective("behavior")
 @positive
 def test_a_ligature_is_decomposed_for_searching():
     """The searchable form of text holding the fi ligature, a single character standing
@@ -793,6 +839,7 @@ def test_a_ligature_is_decomposed_for_searching():
 
 
 @code("VIW0056")
+@objective("behavior")
 @positive
 def test_an_exact_section_number_beats_a_title_match():
     """A section whose number is exactly what was typed is chosen over an earlier
@@ -817,6 +864,7 @@ def test_an_exact_section_number_beats_a_title_match():
 
 
 @code("VIW0057")
+@objective("behavior")
 @positive
 def test_a_trailing_period_on_a_section_number_is_tolerated(readable, capsys):
     """A section number typed with a trailing period finds the same section."""
@@ -826,6 +874,7 @@ def test_a_trailing_period_on_a_section_number_is_tolerated(readable, capsys):
 
 
 @code("VIW0058")
+@objective("behavior")
 @positive
 def test_a_search_hit_names_the_section_it_falls_in(readable, capsys):
     """A search hit on a document with bookmarks names the section its page falls

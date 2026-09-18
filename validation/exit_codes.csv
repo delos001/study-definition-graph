@@ -17,7 +17,7 @@ code,cause
 15,repo_tools/README.md is stale or missing
 16,the validation inventory is stale or missing
 17,"a header block is missing, incomplete, out of order, or has a bad Date"
-18,"a check has no id, no kind, or a duplicate id"
+18,"a check's markers or first sentence are missing or wrong, or its id is a duplicate"
 19,a Python file could not be parsed
 20,no files found to work on
 21,ruff or mypy reported a problem
@@ -44,3 +44,4 @@ code,cause
 42,a pinned file is not shaped the way a measurement expects
 43,the Claude API refused the key access to what was asked
 44,the Neo4j address in .env is not a valid address
+45,a hand-kept column of the validation inventory breaks its rules

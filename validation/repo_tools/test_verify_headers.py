@@ -37,6 +37,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 # A complete header in this repo's convention, with the eight fields in order.
 GOOD_HEADER = '''"""
@@ -135,6 +138,7 @@ def complete(folder, capsys) -> Outcome:
 
 
 @code("HRS0042")
+@objective("behavior")
 @positive
 def test_complete_header_exits_0(complete):
     """A file whose header holds the eight fields in order makes the run exit 0."""
@@ -142,6 +146,7 @@ def test_complete_header_exits_0(complete):
 
 
 @code("HRS0043")
+@objective("behavior")
 @positive
 def test_complete_header_prints_nothing(complete):
     """When every header is complete, nothing is printed."""
@@ -149,6 +154,7 @@ def test_complete_header_prints_nothing(complete):
 
 
 @code("HRS0044")
+@objective("behavior")
 @positive
 def test_init_file_is_skipped(folder, capsys):
     """An __init__.py with a one-paragraph docstring and no header block is not a
@@ -159,6 +165,7 @@ def test_init_file_is_skipped(folder, capsys):
 
 
 @code("HRS0045")
+@objective("behavior")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
     """With the quiet option, nothing is printed even when a header is incomplete;
@@ -170,7 +177,7 @@ def test_quiet_prints_nothing(folder, capsys):
 
 
 @code("HRS0046")
-@positive
+@objective("conformance")
 def test_real_folders_pass():
     """Every Python file in the real code folders has a complete header, which
     is the run the pre-commit hook makes."""
@@ -186,6 +193,7 @@ def test_real_folders_pass():
 
 
 @code("HRS0047")
+@objective("behavior")
 @negative
 def test_missing_fields_exit_17(folder, capsys):
     """A header lacking fields makes the run exit 17, and the problem line names the
@@ -203,6 +211,7 @@ def test_missing_fields_exit_17(folder, capsys):
 
 
 @code("HRS0048")
+@objective("behavior")
 @negative
 def test_fields_out_of_order_exit_17(folder, capsys):
     """A header with its fields in the wrong order makes the run exit 17, and the
@@ -219,6 +228,7 @@ def test_fields_out_of_order_exit_17(folder, capsys):
 
 
 @code("HRS0049")
+@objective("behavior")
 @negative
 def test_bad_date_exits_17(folder, capsys):
     """A Date that is not a plain calendar date makes the run exit 17, and the
@@ -232,6 +242,7 @@ def test_bad_date_exits_17(folder, capsys):
 
 
 @code("HRS0050")
+@objective("behavior")
 @negative
 def test_no_docstring_exits_17(folder, capsys):
     """A file with no module docstring has no header block at all: the run exits 17
@@ -243,6 +254,7 @@ def test_no_docstring_exits_17(folder, capsys):
 
 
 @code("HRS0051")
+@objective("behavior")
 @negative
 def test_unparseable_file_exits_19(folder, capsys):
     """A file that is not valid Python makes the run exit 19, and the problem line
@@ -254,6 +266,7 @@ def test_unparseable_file_exits_19(folder, capsys):
 
 
 @code("HRS0052")
+@objective("behavior")
 @negative
 def test_unparseable_outranks_incomplete(folder, capsys):
     """When one file cannot be parsed and another has an incomplete header, the run
@@ -266,7 +279,7 @@ def test_unparseable_outranks_incomplete(folder, capsys):
 
 
 @code("HRS0079")
-@positive
+@objective("agreement")
 def test_all_four_code_folders_are_checked():
     """The checker covers every folder .claude/rules/writing_python_files.md names, so a file added
     under any of them is held to the header block like any other."""
@@ -298,6 +311,7 @@ def with_codes(lines: str) -> str:
 
 
 @code("HRS0080")
+@objective("behavior")
 @positive
 def test_wording_from_the_table_passes(folder, capsys):
     """An entry written with the wording in validation/exit_codes.csv for its number passes."""
@@ -306,6 +320,7 @@ def test_wording_from_the_table_passes(folder, capsys):
 
 
 @code("HRS0081")
+@objective("behavior")
 @positive
 def test_a_bracketed_aside_is_allowed(folder, capsys):
     """An entry may add a bracketed aside after the wording in validation/exit_codes.csv, saying what the
@@ -321,6 +336,7 @@ def test_a_bracketed_aside_is_allowed(folder, capsys):
 
 
 @code("HRS0082")
+@objective("behavior")
 @positive
 def test_a_wrapped_entry_is_read_as_one(folder, capsys):
     """An entry too long for one line is joined before it is compared, so wrapping it
@@ -337,6 +353,7 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
 
 
 @code("HRS0151")
+@objective("behavior")
 @positive
 def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
     """An entry that wraps and is the last thing in the field keeps its second line,
@@ -353,6 +370,7 @@ def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
 
 
 @code("HRS0083")
+@objective("behavior")
 @positive
 def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
     """The sentence a field ends with is not mistaken for an entry, so it is never
@@ -368,6 +386,7 @@ def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
 
 
 @code("HRS0084")
+@objective("behavior")
 @negative
 def test_a_code_the_table_lacks_exits_33(folder, capsys):
     """An entry for a number validation/exit_codes.csv does not hold makes the run exit 33, and the
@@ -379,6 +398,7 @@ def test_a_code_the_table_lacks_exits_33(folder, capsys):
 
 
 @code("HRS0085")
+@objective("behavior")
 @negative
 def test_different_wording_exits_33(folder, capsys):
     """An entry giving a number a second meaning makes the run exit 33, and the problem
@@ -391,6 +411,7 @@ def test_different_wording_exits_33(folder, capsys):
 
 
 @code("HRS0086")
+@objective("behavior")
 @negative
 def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
     """When one file has an incomplete header and another has a wrong code, the run
@@ -408,6 +429,7 @@ def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
 
 
 @code("HRS0087")
+@objective("behavior")
 @negative
 def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
     """With validation/exit_codes.csv missing, the run exits 13 and says the file cannot
@@ -420,6 +442,7 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
 
 
 @code("HRS0142")
+@objective("behavior")
 @negative
 def test_a_table_with_a_code_that_is_not_a_number_exits_13(folder, capsys):
     """With a row of validation/exit_codes.csv holding a code that is not a number, the run
@@ -457,6 +480,7 @@ def with_main(returns: str, codes: str = "0   success") -> str:
 
 
 @code("HRS0088")
+@objective("behavior")
 @positive
 def test_a_listed_return_passes(folder, capsys):
     """A code main() returns and the header lists is no problem."""
@@ -465,6 +489,7 @@ def test_a_listed_return_passes(folder, capsys):
 
 
 @code("HRS0089")
+@objective("behavior")
 @positive
 def test_a_return_of_a_call_is_passed_over(folder, capsys):
     """A return of something other than a plain number is passed over rather than
@@ -474,6 +499,7 @@ def test_a_return_of_a_call_is_passed_over(folder, capsys):
 
 
 @code("HRS0090")
+@objective("behavior")
 @positive
 def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
     """A header may list a code main() does not return as a plain number, because the
@@ -490,6 +516,7 @@ def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
 
 
 @code("HRS0140")
+@objective("behavior")
 @positive
 def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
     """A number returned by a helper function defined inside main() is the helper's,
@@ -505,6 +532,7 @@ def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
 
 
 @code("HRS0091")
+@objective("behavior")
 @negative
 def test_an_unlisted_return_exits_34(folder, capsys):
     """A code main() returns that the header does not list makes the run exit 34, and
@@ -516,6 +544,7 @@ def test_an_unlisted_return_exits_34(folder, capsys):
 
 
 @code("HRS0092")
+@objective("behavior")
 @pytest.mark.parametrize(
     "choice",
     ["    return 8 if argv else 0", "    return 0 if argv else 8"],
@@ -530,6 +559,7 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
 
 
 @code("HRS0152")
+@objective("behavior")
 @negative
 def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
     """When one file has no header and another forgets a code its main() returns, the
@@ -548,6 +578,7 @@ def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
 
 
 @code("HRS0093")
+@objective("behavior")
 @negative
 def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
     """When one file forgets a code and another rewords one, the run exits 34, because

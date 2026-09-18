@@ -42,6 +42,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 # The rows every staged workbook holds. The empty cell and the cell holding a
 # newline are here because both appear in the real worked-example spreadsheets.
@@ -131,6 +134,7 @@ def run(capsys, *argv):
 
 
 @code("VIW0018")
+@objective("behavior")
 @positive
 def test_a_name_fragment_finds_the_workbook(inputs, capsys):
     """A fragment of a filename finds the one workbook it matches, so a nested path
@@ -139,6 +143,7 @@ def test_a_name_fragment_finds_the_workbook(inputs, capsys):
 
 
 @code("VIW0019")
+@objective("behavior")
 @positive
 def test_listing_names_every_sheet(inputs, capsys):
     """Naming a workbook without a sheet lists every sheet it holds."""
@@ -148,6 +153,7 @@ def test_listing_names_every_sheet(inputs, capsys):
 
 
 @code("VIW0050")
+@objective("behavior")
 @positive
 def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
     """A workbook whose sheet file carries no dimension record, which some writers
@@ -176,6 +182,7 @@ def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
 
 
 @code("VIW0020")
+@objective("behavior")
 @positive
 def test_a_sheet_prints_as_a_table(inputs, capsys):
     """A named sheet prints as a table holding the cells it was written with."""
@@ -185,6 +192,7 @@ def test_a_sheet_prints_as_a_table(inputs, capsys):
 
 
 @code("VIW0021")
+@objective("behavior")
 @positive
 def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
     """A sheet name is matched whatever its case, so mainTimeline answers to
@@ -193,6 +201,7 @@ def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
 
 
 @code("VIW0022")
+@objective("behavior")
 @positive
 def test_records_format_prints_one_field_per_line(inputs, capsys):
     """In records format each field is on its own line, which is what makes a sheet
@@ -204,6 +213,7 @@ def test_records_format_prints_one_field_per_line(inputs, capsys):
 
 
 @code("VIW0023")
+@objective("behavior")
 @positive
 def test_an_empty_cell_prints_as_nothing(inputs, capsys):
     """An empty cell prints as blank rather than as the word None, which would fill a
@@ -213,6 +223,7 @@ def test_an_empty_cell_prints_as_nothing(inputs, capsys):
 
 
 @code("VIW0024")
+@objective("behavior")
 @positive
 def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
     """A cell holding a newline is printed on one line, so the row stays aligned."""
@@ -221,6 +232,7 @@ def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
 
 
 @code("VIW0025")
+@objective("behavior")
 @positive
 def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
     """Searching one workbook reports each cell that contains the term by its sheet
@@ -232,6 +244,7 @@ def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
 
 
 @code("VIW0026")
+@objective("behavior")
 @positive
 def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
     """A search that matches nothing says so and exits 0, because finding nothing is
@@ -242,6 +255,7 @@ def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
 
 
 @code("VIW0027")
+@objective("behavior")
 @positive
 def test_all_searches_every_workbook(inputs, capsys):
     """With --all the search covers every workbook under the inputs folder, not just
@@ -252,6 +266,7 @@ def test_all_searches_every_workbook(inputs, capsys):
 
 
 @code("VIW0028")
+@objective("behavior")
 @positive
 def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
     """A ~$ lock file that Excel leaves beside an open workbook is left out of
@@ -270,6 +285,7 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 
 
 @code("VIW0029")
+@objective("behavior")
 @negative
 def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
     """Naming a sheet the workbook does not hold exits 25 and says to run without
@@ -280,6 +296,7 @@ def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
 
 
 @code("VIW0030")
+@objective("behavior")
 @negative
 def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
     """A name matching no workbook exits 26 and repeats the name that was looked
@@ -290,6 +307,7 @@ def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
 
 
 @code("VIW0031")
+@objective("behavior")
 @negative
 def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
     """A fragment matching more than one workbook exits 26 and lists what it matched,
@@ -301,6 +319,7 @@ def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
 
 
 @code("VIW0032")
+@objective("behavior")
 @negative
 def test_all_without_find_is_a_usage_mistake(inputs, capsys):
     """Asking for --all without --find exits 2, the argument parser's own code, because
@@ -312,6 +331,7 @@ def test_all_without_find_is_a_usage_mistake(inputs, capsys):
 
 
 @code("VIW0033")
+@objective("behavior")
 @negative
 def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
     """Running with no workbook named exits 2 and lists the workbooks a person can
@@ -330,6 +350,7 @@ def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
 
 
 @code("VIW0061")
+@objective("behavior")
 @positive
 def test_a_full_path_finds_the_workbook(inputs, capsys):
     """A workbook named by its full path is opened."""
@@ -337,6 +358,7 @@ def test_a_full_path_finds_the_workbook(inputs, capsys):
 
 
 @code("VIW0062")
+@objective("behavior")
 @positive
 def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tmp_path):
     """A workbook named by its path from the repo root is opened, whichever folder the
@@ -348,6 +370,7 @@ def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tm
 
 
 @code("VIW0063")
+@objective("behavior")
 @positive
 def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
     """A filename typed in the wrong case finds the workbook."""
@@ -359,6 +382,7 @@ def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
 
 
 @code("VIW0059")
+@objective("behavior")
 @positive
 def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
     """In table format a cell longer than the width limit is cut short and ends with
@@ -373,6 +397,7 @@ def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
 
 
 @code("VIW0060")
+@objective("behavior")
 @positive
 def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
     """In records format a row's empty field is left out rather than printed as a
@@ -390,6 +415,7 @@ def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
 
 
 @code("VIW0064")
+@objective("behavior")
 @positive
 def test_a_search_reports_one_hit_per_row(inputs):
     """A row in which the term appears in two cells is reported once, since one line
@@ -400,6 +426,7 @@ def test_a_search_reports_one_hit_per_row(inputs):
 
 
 @code("VIW0065")
+@objective("behavior")
 @positive
 def test_a_search_hit_cuts_a_long_cell_short(inputs):
     """A hit in a cell longer than 120 characters shows the first 120 characters and

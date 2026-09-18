@@ -5,9 +5,11 @@ Description: Checks for repo_tools/build_inventory.py, the hand-run script that
              test files and, under --check, is the pre-commit hook that refuses
              a commit whose inventory is stale. Each check writes one or two
              small test files to a temporary validation folder, points the script at
-             it, and asserts what it writes or which exit code it returns. One
-             check runs --check on the real validation/ folder, the same run the
-             hook makes.
+             it, and asserts what it writes or which exit code it returns. The
+             checks on the hand-kept columns also write an inventory by hand
+             into that folder, so a status can be staged that the test files
+             alone could not produce. One check runs --check on the real
+             validation/ folder, the same run the hook makes.
 
 Inputs:      validation/**/test_*.py and validation/validation_inventory.csv
              (read-only; the one real-folder check)
@@ -40,17 +42,23 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
-# One test file with two well-formed checks, written the way the real files are.
+# One test file with two well-formed behavior checks, written the way the real files
+# are.
 TWO_CHECKS = '''
 import pytest
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
 code = pytest.mark.code
+objective = pytest.mark.objective
 
 
 @code("ABC0001")
+@objective("behavior")
 @positive
 def test_first():
     """The first thing works.
@@ -60,9 +68,25 @@ def test_first():
 
 
 @code("ABC0002")
+@objective("behavior")
 @negative
 def test_second():
     """The wrong thing is refused."""
+'''
+
+# One test file with a single check of an objective other than behavior, which
+# carries no positive or negative marker.
+AGREEMENT_CHECK = '''
+import pytest
+
+code = pytest.mark.code
+objective = pytest.mark.objective
+
+
+@code("ABC0003")
+@objective("agreement")
+def test_third():
+    """The two files match."""
 '''
 
 
@@ -70,7 +94,7 @@ def test_second():
 ### Shared staging ###
 #
 # One fixture builds a temporary validation folder the script reads in place of the real
-# one, and one helper runs the script and keeps what it printed.
+# one, and helpers run the script, read an inventory back, and write one by hand.
 
 
 @dataclass(frozen=True)
@@ -146,6 +170,64 @@ def rows_of(inventory: Path) -> list[dict[str, str]]:
         return list(csv.DictReader(fh))
 
 
+def write_rows(inventory: Path, rows: list[dict[str, str]]) -> None:
+    """Write an inventory by hand, in the script's own column order.
+
+    Args:
+        inventory: The inventory file.
+        rows: The rows to write, each a dict keyed by column name.
+    """
+    with inventory.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=script.COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def with_hand_kept(inventory: Path, check_id: str, **values: str) -> None:
+    """Change the hand-kept columns of one row of an inventory already on disk.
+
+    Args:
+        inventory: The inventory file.
+        check_id: The id of the row to change.
+        **values: The hand-kept columns to set, by name.
+    """
+    rows = rows_of(inventory)
+    for row in rows:
+        if row["validation_check_id"] == check_id:
+            row.update(values)
+    write_rows(inventory, rows)
+
+
+def removed_row(check_id: str, **values: str) -> dict[str, str]:
+    """Build an inventory row for a check that is no longer in any test file.
+
+    Only --check-status reads such a row, since the generator drops it.
+
+    Args:
+        check_id: The row's id.
+        **values: The hand-kept columns to set, by name.
+
+    Returns:
+        The row, with every column filled in.
+    """
+    row = {column: "" for column in script.COLUMNS}
+    row.update(
+        validation_folder_path="validation/repo_tools",
+        validation_file_name="test_alpha.py",
+        target_folder_path="repo_tools",
+        target_file_name="alpha.py",
+        validation_check_name="test_gone",
+        validation_check_id=check_id,
+        validation_objective="behavior",
+        behavior_case="positive",
+        expected_result="A thing that is no longer checked.",
+        status="active",
+        version="1",
+    )
+    row.update(values)
+    return row
+
+
 @pytest.fixture
 def generated(tests_folder, capsys) -> list[dict[str, str]]:
     """Stage one test file under validation/repo_tools/ with two checks, run the script, and
@@ -155,73 +237,111 @@ def generated(tests_folder, capsys) -> list[dict[str, str]]:
     return rows_of(inventory)
 
 
+@pytest.fixture
+def written(tests_folder, capsys) -> Path:
+    """Stage one test file with two checks, run the script, and hand back the inventory
+    it wrote, for a check that then changes the hand-kept columns."""
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    assert run(capsys).exit_code == 0
+    return inventory
+
+
 #######################################################################################
 ### Positive checks ###
 #
 # The right thing works: the rows come from the checks, the hand-kept columns come
-# from the existing inventory, --check passes on a current file, and the real
-# inventory is current.
+# from the existing inventory, a deleted check drops out, and --check passes on a
+# current file.
 
 
 @code("HRS0053")
+@objective("behavior")
 @positive
 def test_row_holds_the_check_as_written(generated):
-    """A row carries the check's name, id, kind and the first paragraph of its
-    docstring as one line, with the second paragraph left out."""
-    first = next(r for r in generated if r["check_name"] == "test_first")
-    assert first["check_name_code"] == "ABC0001"
-    assert first["kind"] == "positive"
-    assert first["proves"] == "The first thing works."
+    """A row carries the check's name, id, objective, case and the first paragraph of
+    its docstring as one line, with the second paragraph left out."""
+    first = next(r for r in generated if r["validation_check_name"] == "test_first")
+    assert first["validation_check_id"] == "ABC0001"
+    assert first["validation_objective"] == "behavior"
+    assert first["behavior_case"] == "positive"
+    assert first["expected_result"] == "The first thing works."
 
 
 @code("HRS0054")
+@objective("behavior")
 @positive
-def test_row_names_the_group_and_the_target(generated):
-    """A test file under validation/repo_tools/ is grouped as repo_tools, and its target is the
-    script of the same name."""
+def test_row_names_the_check_file_and_the_target(generated):
+    """A test file under validation/repo_tools/ targets the script of the same name in
+    repo_tools/, and both paths are written as a folder and a file name."""
     first = generated[0]
-    assert first["type"] == "repo_tools"
-    assert first["target_file"] == "repo_tools/alpha.py"
-    assert first["check_file"] == "validation/repo_tools/test_alpha.py"
+    assert first["validation_folder_path"] == "validation/repo_tools"
+    assert first["validation_file_name"] == "test_alpha.py"
+    assert first["target_folder_path"] == "repo_tools"
+    assert first["target_file_name"] == "alpha.py"
 
 
 @code("HRS0122")
+@objective("behavior")
 @positive
 def test_a_hook_check_targets_the_hook(tests_folder, capsys):
-    """A test file under validation/claude_hooks/ is grouped as claude_hooks, and its
-    target is the hook of the same name in .claude/hooks/."""
+    """A test file under validation/claude_hooks/ targets the hook of the same name in
+    .claude/hooks/."""
     inventory = tests_folder({"claude_hooks/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     first = rows_of(inventory)[0]
-    assert first["type"] == "claude_hooks"
-    assert first["target_file"] == ".claude/hooks/alpha.py"
+    assert first["target_folder_path"] == ".claude/hooks"
+    assert first["target_file_name"] == "alpha.py"
+
+
+@code("HRS0154")
+@objective("behavior")
+@positive
+def test_a_check_outside_behavior_has_no_case(tests_folder, capsys):
+    """A check whose objective is not behavior, and which carries no positive or
+    negative marker, gets a row with its objective and an empty behavior case."""
+    inventory = tests_folder({"repo_tools/test_alpha.py": AGREEMENT_CHECK})
+    assert run(capsys).exit_code == 0
+    row = rows_of(inventory)[0]
+    assert row["validation_objective"] == "agreement"
+    assert row["behavior_case"] == ""
 
 
 @code("HRS0055")
+@objective("behavior")
 @positive
 def test_new_check_starts_active_at_version_1(generated):
-    """A check with no existing row starts with status active and version 1."""
-    assert {(r["status"], r["version"]) for r in generated} == {("active", "1")}
+    """A check with no existing row starts active at version 1, with superseded_by and
+    status_reason empty."""
+    assert {
+        (r["status"], r["superseded_by"], r["status_reason"], r["version"])
+        for r in generated
+    } == {("active", "", "", "1")}
 
 
 @code("HRS0056")
+@objective("behavior")
 @positive
-def test_hand_kept_columns_are_carried_over_by_id(tests_folder, capsys):
-    """When the inventory already has a row for a check's id, its status and
-    version are kept, whatever else changed."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
-    assert run(capsys).exit_code == 0
-    text = inventory.read_text(encoding="utf-8").replace(
-        "ABC0002,negative,The wrong thing is refused.,active,1",
-        "ABC0002,negative,The wrong thing is refused.,pending,3",
+def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
+    """When the inventory already has a row for a check's id, its status,
+    superseded_by, status_reason and version are kept, whatever else changed."""
+    with_hand_kept(
+        written,
+        "ABC0002",
+        status="inactive",
+        status_reason="Switched off while the fake server is rebuilt.",
+        version="3",
     )
-    inventory.write_text(text, encoding="utf-8")
     assert run(capsys).exit_code == 0
-    second = next(r for r in rows_of(inventory) if r["check_name_code"] == "ABC0002")
-    assert (second["status"], second["version"]) == ("pending", "3")
+    second = next(r for r in rows_of(written) if r["validation_check_id"] == "ABC0002")
+    assert (second["status"], second["status_reason"], second["version"]) == (
+        "inactive",
+        "Switched off while the fake server is rebuilt.",
+        "3",
+    )
 
 
 @code("HRS0057")
+@objective("behavior")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
     """Rows are grouped in the pipeline's order, sources first and the checks for the report writer in validation/conftest.py
@@ -234,32 +354,45 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
         }
     )
     assert run(capsys).exit_code == 0
-    assert [r["type"] for r in rows_of(inventory)] == [
-        "sources",
-        "sources",
-        "repo_tools",
-        "repo_tools",
+    assert [r["validation_folder_path"] for r in rows_of(inventory)] == [
+        "validation/sources",
+        "validation/sources",
+        "validation/repo_tools",
+        "validation/repo_tools",
         "validation",
         "validation",
     ]
 
 
 @code("HRS0141")
+@objective("behavior")
 @positive
 def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
     tests_folder, capsys
 ):
     """A test file at the top level of validation/, other than validation/test_validation_report.py,
-    is grouped as sdg, and its target is the file of the same name at the top of
-    src/sdg/."""
+    targets the file of the same name at the top of src/sdg/."""
     inventory = tests_folder({"test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     first = rows_of(inventory)[0]
-    assert first["type"] == "sdg"
-    assert first["target_file"] == "src/sdg/alpha.py"
+    assert first["target_folder_path"] == "src/sdg"
+    assert first["target_file_name"] == "alpha.py"
+
+
+@code("HRS0062")
+@objective("behavior")
+@positive
+def test_deleted_check_drops_out(tests_folder, capsys):
+    """A row whose check no longer exists in any test file is not written again."""
+    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    assert run(capsys).exit_code == 0
+    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.split('@code("ABC0002")')[0]})
+    assert run(capsys).exit_code == 0
+    assert [r["validation_check_id"] for r in rows_of(inventory)] == ["ABC0001"]
 
 
 @code("HRS0058")
+@objective("behavior")
 @positive
 def test_check_passes_when_inventory_is_current(tests_folder, capsys):
     """With the check option, the run exits 0 and writes nothing when the inventory
@@ -274,6 +407,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
 
 
 @code("HRS0059")
+@objective("behavior")
 @positive
 def test_quiet_prints_nothing(tests_folder, capsys):
     """With the quiet option, nothing is printed; the exit code is the whole
@@ -284,8 +418,59 @@ def test_quiet_prints_nothing(tests_folder, capsys):
     assert outcome.printed == ""
 
 
-@code("HRS0060")
+#######################################################################################
+### Positive checks on the hand-kept columns ###
+#
+# Statuses that follow their rules pass, and --check-status looks at the hand-kept
+# columns of the inventory on disk without writing anything.
+
+
+@code("HRS0155")
+@objective("behavior")
 @positive
+def test_check_status_passes_a_superseded_check_with_an_active_successor(
+    written, capsys
+):
+    """With the check-status option, a removed check marked superseded, whose
+    superseded_by names an active check, passes: the run exits 0 and writes
+    nothing."""
+    rows = rows_of(written)
+    rows.append(removed_row("ABC0009", status="superseded", superseded_by="ABC0001"))
+    write_rows(written, rows)
+    before = written.read_text(encoding="utf-8")
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 0
+    assert written.read_text(encoding="utf-8") == before
+    assert "the hand-kept columns are in order" in outcome.printed
+
+
+@code("HRS0156")
+@objective("behavior")
+@positive
+def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
+    """With the check-status option, a removed check marked retired, whose
+    status_reason says why, passes with exit 0."""
+    rows = rows_of(written)
+    rows.append(
+        removed_row(
+            "ABC0009",
+            status="retired",
+            status_reason="The command it tested was withdrawn.",
+        )
+    )
+    write_rows(written, rows)
+    assert run(capsys, "--check-status").exit_code == 0
+
+
+#######################################################################################
+### Checks on the real repo ###
+#
+# The real inventory agrees with the real test files, which is the run the pre-commit
+# hook makes.
+
+
+@code("HRS0060")
+@objective("agreement")
 def test_real_inventory_is_current():
     """validation/validation_inventory.csv matches the checks in the real test files,
     which is the run the pre-commit hook makes."""
@@ -296,11 +481,13 @@ def test_real_inventory_is_current():
 ### Negative checks ###
 #
 # The wrong thing is refused, and the message names the cause: a stale inventory, a
-# deleted check, a check without its markers, a duplicated id, a file that will not
-# parse, and an empty validation folder.
+# check without its markers or with the wrong ones, a first sentence a spreadsheet
+# would read as a formula, a duplicated id, a file that will not parse, and an empty
+# validation folder.
 
 
 @code("HRS0061")
+@objective("behavior")
 @negative
 def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
     """With the check option and no inventory on disk, the run exits 16, names the
@@ -313,6 +500,7 @@ def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
 
 
 @code("HRS0133")
+@objective("behavior")
 @negative
 def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     """With the check option and an inventory that no longer matches the checks, the
@@ -329,18 +517,8 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     assert "is stale. Run: python repo_tools/build_inventory.py" in outcome.printed
 
 
-@code("HRS0062")
-@negative
-def test_deleted_check_drops_out(tests_folder, capsys):
-    """A row whose check no longer exists in any test file is not written again."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
-    assert run(capsys).exit_code == 0
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.split('@code("ABC0002")')[0]})
-    assert run(capsys).exit_code == 0
-    assert [r["check_name_code"] for r in rows_of(inventory)] == ["ABC0001"]
-
-
 @code("HRS0063")
+@objective("behavior")
 @negative
 def test_check_without_id_exits_18(tests_folder, capsys):
     """A check with no @code marker makes the run exit 18, naming the file and the
@@ -356,18 +534,112 @@ def test_check_without_id_exits_18(tests_folder, capsys):
     )
 
 
-@code("HRS0064")
+@code("HRS0157")
+@objective("behavior")
 @negative
-def test_check_without_kind_exits_18(tests_folder, capsys):
-    """A check with neither @positive nor @negative makes the run exit 18, naming
-    the file and the check."""
+def test_check_without_objective_exits_18(tests_folder, capsys):
+    """A check with no @objective marker makes the run exit 18, naming the file and
+    the check, and the inventory is not written."""
+    inventory = tests_folder(
+        {
+            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+                '@code("ABC0002")\n@objective("behavior")\n', '@code("ABC0002")\n'
+            )
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 18
+    assert not inventory.exists()
+    assert "test_second has no @objective marker" in outcome.printed
+
+
+@code("HRS0158")
+@objective("behavior")
+@negative
+def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
+    """A check whose @objective names no defined objective makes the run exit 18, and
+    the message quotes the value and lists the objectives."""
+    tests_folder(
+        {
+            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+                '@code("ABC0002")\n@objective("behavior")',
+                '@code("ABC0002")\n@objective("behaviour")',
+            )
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 18
+    assert "test_second has @objective('behaviour'), which is not one of" in (
+        outcome.printed
+    )
+
+
+@code("HRS0064")
+@objective("behavior")
+@negative
+def test_behavior_check_without_a_case_exits_18(tests_folder, capsys):
+    """A behavior check with neither @positive nor @negative makes the run exit 18,
+    naming the file and the check."""
     tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
-    assert "test_second has no @positive or @negative marker" in outcome.printed
+    assert "test_second is a behavior check with no @positive or @negative marker" in (
+        outcome.printed
+    )
+
+
+@code("HRS0159")
+@objective("behavior")
+@negative
+def test_a_case_on_a_check_outside_behavior_exits_18(tests_folder, capsys):
+    """A check whose objective is not behavior but which carries @positive makes the
+    run exit 18, and the message says only a behavior check carries one."""
+    tests_folder(
+        {
+            "repo_tools/test_alpha.py": AGREEMENT_CHECK.replace(
+                '@objective("agreement")\n',
+                '@objective("agreement")\n@positive\n',
+            ).replace(
+                "objective = pytest.mark.objective",
+                "objective = pytest.mark.objective\npositive = pytest.mark.positive",
+            )
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 18
+    assert "test_third has the objective agreement, so it cannot carry @positive" in (
+        outcome.printed
+    )
+
+
+@code("HRS0160")
+@objective("behavior")
+@negative
+@pytest.mark.parametrize("start", ["=", "+", "-", "@"])
+def test_a_first_sentence_a_spreadsheet_reads_as_a_formula_exits_18(
+    tests_folder, capsys, start
+):
+    """A check whose first sentence starts with a character a spreadsheet reads as a
+    formula makes the run exit 18, and the message names the character and says to
+    start with a word."""
+    inventory = tests_folder(
+        {
+            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+                '"""The wrong thing', f'"""{start}The wrong thing'
+            )
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 18
+    assert not inventory.exists()
+    assert f"test_second has a first sentence starting with {start!r}" in (
+        outcome.printed
+    )
+    assert "start it with a word" in outcome.printed
 
 
 @code("HRS0065")
+@objective("behavior")
 @negative
 def test_duplicate_id_exits_18(tests_folder, capsys):
     """Two checks carrying the same id make the run exit 18, and the message names
@@ -379,6 +651,7 @@ def test_duplicate_id_exits_18(tests_folder, capsys):
 
 
 @code("HRS0066")
+@objective("behavior")
 @negative
 def test_unparseable_file_exits_19(tests_folder, capsys):
     """A test file that is not valid Python makes the run exit 19, and the message
@@ -390,6 +663,7 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
 
 
 @code("HRS0067")
+@objective("behavior")
 @negative
 def test_no_test_files_exits_20(tests_folder, capsys):
     """A validation folder with no test files makes the run exit 20."""
@@ -397,3 +671,143 @@ def test_no_test_files_exits_20(tests_folder, capsys):
     outcome = run(capsys)
     assert outcome.exit_code == 20
     assert "no test files found" in outcome.printed
+
+
+#######################################################################################
+### Negative checks on the hand-kept columns ###
+#
+# A hand-kept column that breaks its rule is refused with exit 45 and the row named,
+# and nothing is written. A problem with a check's markers outranks it.
+
+
+@code("HRS0161")
+@objective("behavior")
+@negative
+def test_a_status_not_in_the_list_exits_45(written, capsys):
+    """A row whose status is not one of the five makes the run exit 45, quoting the
+    status, and the inventory is not rewritten."""
+    with_hand_kept(written, "ABC0002", status="archived")
+    before = written.read_text(encoding="utf-8")
+    outcome = run(capsys)
+    assert outcome.exit_code == 45
+    assert written.read_text(encoding="utf-8") == before
+    assert "ABC0002 has status 'archived', which is not one of" in outcome.printed
+
+
+@code("HRS0162")
+@objective("behavior")
+@negative
+@pytest.mark.parametrize("status", ["inactive", "retired"])
+def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, status):
+    """A removed check marked inactive or retired with status_reason empty makes the
+    check-status run exit 45, saying the reason is missing."""
+    rows = rows_of(written)
+    rows.append(removed_row("ABC0009", status=status))
+    write_rows(written, rows)
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 45
+    assert f"ABC0009 is {status} but status_reason does not say why" in (
+        outcome.printed
+    )
+
+
+@code("HRS0163")
+@objective("behavior")
+@negative
+def test_superseded_without_a_successor_exits_45(written, capsys):
+    """A removed check marked superseded with superseded_by empty makes the
+    check-status run exit 45, saying no check is named."""
+    rows = rows_of(written)
+    rows.append(removed_row("ABC0009", status="superseded"))
+    write_rows(written, rows)
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 45
+    assert "ABC0009 is superseded but superseded_by names no check" in outcome.printed
+
+
+@code("HRS0164")
+@objective("behavior")
+@negative
+def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
+    """A row that names checks in superseded_by while its status is not superseded
+    makes the run exit 45."""
+    with_hand_kept(written, "ABC0002", superseded_by="ABC0001")
+    outcome = run(capsys)
+    assert outcome.exit_code == 45
+    assert "ABC0002 names checks in superseded_by but is active, not superseded" in (
+        outcome.printed
+    )
+
+
+@code("HRS0165")
+@objective("behavior")
+@negative
+def test_a_successor_that_is_not_active_exits_45(written, capsys):
+    """A superseded row whose superseded_by names a check that is not active in the
+    inventory makes the check-status run exit 45, naming that check."""
+    rows = rows_of(written)
+    rows.append(removed_row("ABC0009", status="superseded", superseded_by="ABC0404"))
+    write_rows(written, rows)
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 45
+    assert "ABC0009 is superseded by ABC0404, which is not an active check" in (
+        outcome.printed
+    )
+
+
+@code("HRS0166")
+@objective("behavior")
+@negative
+def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
+    """A row whose version is not a whole number from 1 up, such as 1.1, makes the
+    run exit 45, quoting the value."""
+    with_hand_kept(written, "ABC0002", version="1.1")
+    outcome = run(capsys)
+    assert outcome.exit_code == 45
+    assert "ABC0002 has version '1.1', which is not a whole number" in outcome.printed
+
+
+@code("HRS0167")
+@objective("behavior")
+@negative
+def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
+    """A row marked retired whose check is still in the test files makes the run exit
+    45, saying to remove the check or change its status."""
+    with_hand_kept(
+        written, "ABC0002", status="retired", status_reason="No longer needed."
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 45
+    assert "ABC0002 is retired but is still in the test files" in outcome.printed
+
+
+@code("HRS0168")
+@objective("behavior")
+@negative
+def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
+    """With the check-status option and no inventory on disk, the run exits 16 and
+    names the command that writes one."""
+    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 16
+    assert "is missing. Run: python repo_tools/build_inventory.py" in outcome.printed
+
+
+@code("HRS0169")
+@objective("behavior")
+@negative
+def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, capsys):
+    """When one check has no @objective marker and another row has a status not in
+    the list, the run exits 18, and both problems are named."""
+    with_hand_kept(written, "ABC0001", status="archived")
+    tests_folder(
+        {
+            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+                '@code("ABC0002")\n@objective("behavior")\n', '@code("ABC0002")\n'
+            )
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 18
+    assert "test_second has no @objective marker" in outcome.printed
+    assert "ABC0001 has status 'archived'" in outcome.printed

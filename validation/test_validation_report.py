@@ -46,6 +46,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 
 #######################################################################################
@@ -114,8 +117,8 @@ def row_for(rows: list[dict[str, str]], check_name: str) -> dict[str, str]:
     Returns:
         That check's row.
     """
-    matches = [r for r in rows if r["check_name"] == check_name]
-    assert len(matches) == 1, [r["check_name"] for r in rows]
+    matches = [r for r in rows if r["validation_check_name"] == check_name]
+    assert len(matches) == 1, [r["validation_check_name"] for r in rows]
     return matches[0]
 
 
@@ -127,6 +130,7 @@ PASSING_SUITE = '''
     import pytest
 
     @pytest.mark.code("XYZ0001")
+    @pytest.mark.objective("behavior")
     @pytest.mark.positive
     def test_adds():
         """Two and two make four."""
@@ -147,6 +151,7 @@ def passing(pytester, monkeypatch):
 
 
 @code("TST0001")
+@objective("behavior")
 @positive
 def test_passing_run_is_recorded_as_pass(passing):
     """A suite whose tests all pass gets a report saying PASS, with pytest's exit
@@ -159,31 +164,36 @@ def test_passing_run_is_recorded_as_pass(passing):
 
 
 @code("TST0007")
+@objective("behavior")
 @positive
 def test_a_passing_check_gets_a_row_with_its_details(passing):
-    """A check that passed gets one row carrying its code, its kind, the sentence it
-    proves and the outcome passed."""
+    """A check that passed gets one row carrying its id, its objective, its behavior
+    case, its expected result and the outcome passed."""
     _, rows = passing
     adds = row_for(rows, "test_adds")
-    assert adds["check_name_code"] == "XYZ0001"
-    assert adds["kind"] == "positive"
-    assert adds["proves"] == "Two and two make four."
+    assert adds["validation_check_id"] == "XYZ0001"
+    assert adds["validation_objective"] == "behavior"
+    assert adds["behavior_case"] == "positive"
+    assert adds["expected_result"] == "Two and two make four."
     assert adds["check_outcome"] == "passed"
 
 
 @code("TST0008")
+@objective("behavior")
 @positive
 def test_a_skipped_check_is_shown_as_skipped_with_its_reason(passing):
     """A check that was skipped gets a row saying skipped, with the skip's reason and,
-    since it carries no marker, the kind unmarked."""
+    since it carries no markers, an empty objective and behavior case."""
     _, rows = passing
     left_out = row_for(rows, "test_left_out")
-    assert left_out["kind"] == "unmarked"
+    assert left_out["validation_objective"] == ""
+    assert left_out["behavior_case"] == ""
     assert left_out["check_outcome"] == "skipped"
     assert left_out["outcome_reason"] == "not today"
 
 
 @code("TST0002")
+@objective("behavior")
 @positive
 def test_no_flag_writes_nothing(pytester, monkeypatch):
     """Without --validation-report, a run writes no report at all, so development
@@ -205,6 +215,7 @@ def test_no_flag_writes_nothing(pytester, monkeypatch):
 
 
 @code("TST0003")
+@objective("behavior")
 @negative
 def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
     """A test whose own checks pass but whose clean-up step raises an error is a failed
@@ -237,6 +248,7 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
 
 
 @code("TST0004")
+@objective("behavior")
 @negative
 def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
     """A test whose checks fail gives a FAIL report with that row marked failed and
@@ -254,12 +266,13 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
     rows = the_report(out)
     assert {r["run_verdict"] for r in rows} == {"FAIL"}
     row = row_for(rows, "test_wrong")
-    assert row["proves"] == "Claims two and two make five."
+    assert row["expected_result"] == "Claims two and two make five."
     assert row["check_outcome"] == "failed"
     assert row["outcome_reason"].startswith("assert")
 
 
 @code("TST0005")
+@objective("behavior")
 @negative
 def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
     """A test whose set-up step raises an error never runs; the report says FAIL and the
@@ -285,6 +298,7 @@ def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
 
 
 @code("TST0006")
+@objective("behavior")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch):
     """When a test file cannot even be loaded (a syntax error), no test runs and
@@ -310,6 +324,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
 
 
 @code("TST0009")
+@objective("behavior")
 @positive
 def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
     pytester, monkeypatch
@@ -325,6 +340,7 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
 
 
 @code("TST0010")
+@objective("behavior")
 @positive
 @pytest.mark.parametrize(
     ("extra_args", "expected"),
@@ -349,6 +365,7 @@ def test_the_selection_column_records_what_was_selected(
 
 
 @code("TST0011")
+@objective("behavior")
 @positive
 def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
     """The run_by column carries the user name git is configured with, so a report
@@ -363,17 +380,21 @@ def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
 
 
 @code("TST0013")
+@objective("behavior")
 @positive
 def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passing):
-    """The target_file column names the code file the check file mirrors, by the same
-    rule the inventory uses, and marks it when that file is not there, so a check
-    file that mirrors nothing shows as a gap rather than as a target."""
+    """The target_folder_path and target_file_name columns name the code file the
+    check file mirrors, by the same rule the inventory uses, and the file name is
+    marked when that file is not there, so a check file that mirrors nothing shows as
+    a gap rather than as a target."""
     _, rows = passing
     row = row_for(rows, "test_adds")
-    assert row["target_file"] == "src/sdg/suite.py (not found at run time)"
+    assert row["target_folder_path"] == "src/sdg"
+    assert row["target_file_name"] == "suite.py (not found at run time)"
 
 
 @code("TST0014")
+@objective("behavior")
 @positive
 def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
     """The check_file_sha256 column is the sha256 of the check file's bytes as they
@@ -387,6 +408,7 @@ def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
 
 
 @code("TST0012")
+@objective("behavior")
 @positive
 def test_fixture_sha256s_names_each_fixture_file_with_its_hash(pytester, monkeypatch):
     """The fixture_sha256s column names each file in the fixtures folder beside

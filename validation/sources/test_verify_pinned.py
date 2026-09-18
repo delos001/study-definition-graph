@@ -50,6 +50,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 # The real pinned model file and the manifest that records it. The checks against
 # them skip when the file is not downloaded, so a fresh clone still runs the rest.
@@ -127,6 +130,7 @@ def refused_with(error, target=LOCAL) -> str:
 
 
 @code("SRC0096")
+@objective("behavior")
 @needs_pinned_file
 @positive
 def test_real_file_carries_its_recorded_identity(real_entry):
@@ -140,6 +144,7 @@ def test_real_file_carries_its_recorded_identity(real_entry):
 
 
 @code("SRC0097")
+@objective("behavior")
 @needs_pinned_file
 @positive
 def test_real_file_path_is_where_the_manifest_says():
@@ -151,6 +156,7 @@ def test_real_file_path_is_where_the_manifest_says():
 
 
 @code("SRC0098")
+@objective("behavior")
 @needs_pinned_file
 @positive
 def test_real_file_content_reads():
@@ -160,6 +166,7 @@ def test_real_file_content_reads():
 
 
 @code("SRC0099")
+@objective("behavior")
 @needs_pinned_file
 @positive
 def test_real_file_record_is_the_same_by_string_or_path():
@@ -177,6 +184,7 @@ def test_real_file_record_is_the_same_by_string_or_path():
 
 
 @code("SRC0100")
+@objective("behavior")
 @positive
 def test_recorded_file_carries_its_identity(recorded_file):
     """A file whose entry is correct comes back with the sha256, url and
@@ -188,6 +196,7 @@ def test_recorded_file_carries_its_identity(recorded_file):
 
 
 @code("SRC0101")
+@objective("behavior")
 @positive
 def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
     """A verified file's path is the full path of the file on this machine, and
@@ -198,6 +207,7 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
 
 
 @code("SRC0102")
+@objective("behavior")
 @positive
 def test_recorded_file_content_reads(recorded_file):
     """read_text() on a verified file gives its content."""
@@ -205,6 +215,7 @@ def test_recorded_file_content_reads(recorded_file):
 
 
 @code("SRC0103")
+@objective("behavior")
 @positive
 def test_staged_record_is_the_same_by_string_or_path(recorded_file):
     """A repo-relative string and a full Path to the same staged file give the
@@ -222,6 +233,7 @@ def test_staged_record_is_the_same_by_string_or_path(recorded_file):
 
 
 @code("SRC0104")
+@objective("behavior")
 @negative
 def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
     """When the sdg package is not running from inside its repo, verify_pinned()
@@ -233,6 +245,7 @@ def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
 
 
 @code("SRC0105")
+@objective("behavior")
 @negative
 def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
     """A file that a manifest records but that is not on disk raises
@@ -246,6 +259,7 @@ def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
 
 
 @code("SRC0127")
+@objective("behavior")
 @negative
 def test_locked_file_passes_the_operating_systems_error_through(
     recorded_file, monkeypatch
@@ -273,6 +287,7 @@ def test_locked_file_passes_the_operating_systems_error_through(
 
 
 @code("SRC0106")
+@objective("behavior")
 @negative
 def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
     """A file that no manifest records is refused with a message saying so and
@@ -284,6 +299,7 @@ def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
 
 
 @code("SRC0107")
+@objective("behavior")
 @negative
 def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_repo):
     """The message for an unrecorded file does not carry the mismatch remedy,
@@ -295,6 +311,7 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
 
 
 @code("SRC0108")
+@objective("behavior")
 @negative
 def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
     """A manifest that cannot be read is passed through as the manifest reader's
@@ -307,6 +324,7 @@ def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
 
 
 @code("SRC0109")
+@objective("behavior")
 @negative
 def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
     """The message for an unreadable manifest does not carry the mismatch
@@ -317,6 +335,7 @@ def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
 
 
 @code("SRC0110")
+@objective("behavior")
 @negative
 def test_no_manifests_is_reported_as_none_found(fake_repo):
     """When the manifests folder is empty, the refusal says no manifests were
@@ -328,6 +347,7 @@ def test_no_manifests_is_reported_as_none_found(fake_repo):
 
 
 @code("SRC0111")
+@objective("behavior")
 @negative
 def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
     """An entry with no sha256 is refused as lacking that field, with the
@@ -340,6 +360,7 @@ def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
 
 
 @code("SRC0112")
+@objective("behavior")
 @negative
 def test_mismatch_shows_both_sha256_values(mismatch_message):
     """When the bytes differ from the entry at the same size, the message shows
@@ -350,6 +371,7 @@ def test_mismatch_shows_both_sha256_values(mismatch_message):
 
 
 @code("SRC0113")
+@objective("behavior")
 @negative
 def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
     """The mismatch message names the manifest the file is recorded in."""
@@ -357,6 +379,7 @@ def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
 
 
 @code("SRC0114")
+@objective("behavior")
 @negative
 def test_mismatch_offers_the_three_ways_back(mismatch_message):
     """The mismatch message offers the three ways back: re-fetch, read
@@ -367,6 +390,7 @@ def test_mismatch_offers_the_three_ways_back(mismatch_message):
 
 
 @code("SRC0115")
+@objective("behavior")
 @negative
 def test_size_mismatch_is_reported_as_size_with_both_numbers(fake_repo):
     """When the size differs from the entry, the refusal reports a size

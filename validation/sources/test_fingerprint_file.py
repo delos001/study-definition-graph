@@ -41,6 +41,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 # The bytes most checks write. Short, so a check that changes them can show the
 # change in one line.
@@ -93,6 +96,7 @@ def file_on_disk(tmp_path):
 
 
 @code("SRC0059")
+@objective("behavior")
 @positive
 def test_fingerprint_measures_the_size(file_on_disk):
     """fingerprint() gives back the file's size in bytes."""
@@ -100,6 +104,7 @@ def test_fingerprint_measures_the_size(file_on_disk):
 
 
 @code("SRC0060")
+@objective("behavior")
 @positive
 def test_fingerprint_measures_the_sha256(file_on_disk):
     """fingerprint() gives back the file's sha256, the same as an independent
@@ -108,6 +113,7 @@ def test_fingerprint_measures_the_sha256(file_on_disk):
 
 
 @code("SRC0061")
+@objective("behavior")
 @positive
 def test_reading_in_pieces_loses_nothing(tmp_path):
     """A file bigger than the piece fingerprint_file.py reads at a time hashes the same
@@ -119,6 +125,7 @@ def test_reading_in_pieces_loses_nothing(tmp_path):
 
 
 @code("SRC0062")
+@objective("behavior")
 @positive
 def test_matching_file_compares_as_matched(file_on_disk):
     """A file whose size and sha256 equal its entry's compares as matched."""
@@ -135,6 +142,7 @@ def test_matching_file_compares_as_matched(file_on_disk):
 
 
 @code("SRC0063")
+@objective("behavior")
 @negative
 def test_size_difference_is_reported_with_both_numbers(file_on_disk):
     """When the size differs from the entry, the result is not matched and the
@@ -145,6 +153,7 @@ def test_size_difference_is_reported_with_both_numbers(file_on_disk):
 
 
 @code("SRC0064")
+@objective("behavior")
 @negative
 def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
     """When the size differs, the sha256 is not computed at all."""
@@ -160,6 +169,7 @@ def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
 
 
 @code("SRC0065")
+@objective("behavior")
 @negative
 def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
     """When the size matches but the bytes differ, the result is not matched
@@ -178,6 +188,7 @@ def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
 
 
 @code("SRC0066")
+@objective("behavior")
 @negative
 def test_fingerprint_refuses_a_missing_file(tmp_path):
     """fingerprint() raises FileNotFoundError naming the path when the file
@@ -189,6 +200,7 @@ def test_fingerprint_refuses_a_missing_file(tmp_path):
 
 
 @code("SRC0067")
+@objective("behavior")
 @negative
 def test_compare_refuses_a_missing_file(tmp_path):
     """compare() raises FileNotFoundError naming the path when the file does
@@ -200,6 +212,7 @@ def test_compare_refuses_a_missing_file(tmp_path):
 
 
 @code("SRC0068")
+@objective("behavior")
 @negative
 def test_fingerprint_refuses_a_folder(tmp_path):
     """fingerprint() raises FileNotFoundError naming the path when a folder
@@ -212,6 +225,7 @@ def test_fingerprint_refuses_a_folder(tmp_path):
 
 
 @code("SRC0069")
+@objective("behavior")
 @negative
 def test_compare_refuses_a_folder(tmp_path):
     """compare() raises FileNotFoundError naming the path when a folder sits

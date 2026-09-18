@@ -36,6 +36,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 CONTENT = b"pinned bytes\n"
 RECORDED = "inputs/set_a/good.txt"
@@ -118,6 +121,7 @@ def stray_quiet(repo, capsys) -> Outcome:
 
 
 @code("HRS0032")
+@objective("behavior")
 @positive
 def test_recorded_files_only_exits_0(clean):
     """When every file under inputs/ is recorded, the run exits 0."""
@@ -125,6 +129,7 @@ def test_recorded_files_only_exits_0(clean):
 
 
 @code("HRS0033")
+@objective("behavior")
 @positive
 def test_recorded_files_only_prints_nothing(clean):
     """When every file under inputs/ is recorded, nothing is printed."""
@@ -132,6 +137,7 @@ def test_recorded_files_only_prints_nothing(clean):
 
 
 @code("HRS0021")
+@objective("behavior")
 @positive
 def test_quiet_prints_nothing(stray_quiet):
     """With the quiet option, nothing at all is printed, even when a file is
@@ -140,6 +146,7 @@ def test_quiet_prints_nothing(stray_quiet):
 
 
 @code("HRS0034")
+@objective("behavior")
 @positive
 def test_quiet_keeps_the_exit_code(stray_quiet):
     """With the quiet option, the exit code still reports the unrecorded file."""
@@ -147,6 +154,7 @@ def test_quiet_keeps_the_exit_code(stray_quiet):
 
 
 @code("HRS0035")
+@objective("behavior")
 @positive
 def test_own_files_are_not_reported(repo, capsys):
     """A README.md and a .gitkeep under inputs/ are the project's own files and are
@@ -157,6 +165,7 @@ def test_own_files_are_not_reported(repo, capsys):
 
 
 @code("HRS0036")
+@objective("behavior")
 @positive
 def test_lock_file_is_not_reported(repo, capsys):
     """An Excel ~$ lock file beside a workbook under inputs/ is not data and is not
@@ -166,6 +175,7 @@ def test_lock_file_is_not_reported(repo, capsys):
 
 
 @code("HRS0037")
+@objective("behavior")
 @positive
 def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
     """A repo with no inputs/ folder at all has nothing unrecorded and exits 0, as
@@ -187,6 +197,7 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 
 
 @code("HRS0038")
+@objective("behavior")
 @negative
 def test_unrecorded_file_exits_10(stray):
     """A file under inputs/ that no manifest records makes the run exit 10."""
@@ -194,6 +205,7 @@ def test_unrecorded_file_exits_10(stray):
 
 
 @code("HRS0039")
+@objective("behavior")
 @negative
 def test_unrecorded_file_is_listed_by_path(stray):
     """An unrecorded file is printed by its repo-relative path."""
@@ -201,6 +213,7 @@ def test_unrecorded_file_is_listed_by_path(stray):
 
 
 @code("HRS0040")
+@objective("behavior")
 @negative
 def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
     """The summary counts the unrecorded files and says they cannot be restored from
@@ -210,6 +223,7 @@ def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
 
 
 @code("HRS0041")
+@objective("behavior")
 @negative
 def test_part_file_is_reported(repo, capsys):
     """An unfinished .part download under inputs/ is reported as unrecorded, since
@@ -221,6 +235,7 @@ def test_part_file_is_reported(repo, capsys):
 
 
 @code("HRS0028")
+@objective("behavior")
 @negative
 def test_unreadable_manifest_exits_3(repo, capsys):
     """A manifest that is not valid JSON makes the run exit 3, and the message names
@@ -232,6 +247,7 @@ def test_unreadable_manifest_exits_3(repo, capsys):
 
 
 @code("HRS0029")
+@objective("behavior")
 @negative
 def test_no_manifests_exits_3(repo, capsys):
     """An empty manifests folder makes the run exit 3, and the message says no
@@ -244,6 +260,7 @@ def test_no_manifests_exits_3(repo, capsys):
 
 
 @code("HRS0030")
+@objective("behavior")
 @negative
 def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
     """When the sdg package is not running from inside its repo, the run exits 6 with

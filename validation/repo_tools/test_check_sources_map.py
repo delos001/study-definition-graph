@@ -39,6 +39,9 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
+# Every check carries an @objective line: why the check exists, one of the
+# objectives validation/README.md defines.
+objective = pytest.mark.objective
 
 PINNED = "inputs/standards/example/Example_Guide.pdf"
 CONTENT = b"pinned bytes\n"
@@ -114,6 +117,7 @@ def run(capsys, text, *argv):
 
 
 @code("HRS0094")
+@objective("behavior")
 @positive
 def test_a_map_naming_every_file_exits_0(repo, capsys):
     """A map with a heading for every recorded file, and a location the files live in,
@@ -122,6 +126,7 @@ def test_a_map_naming_every_file_exits_0(repo, capsys):
 
 
 @code("HRS0095")
+@objective("behavior")
 @positive
 def test_a_map_naming_every_file_prints_nothing(repo, capsys):
     """When the map and the manifests agree, nothing is printed."""
@@ -129,6 +134,7 @@ def test_a_map_naming_every_file_prints_nothing(repo, capsys):
 
 
 @code("HRS0096")
+@objective("behavior")
 @positive
 def test_a_placeholder_heading_covers_a_group(repo, fake_repo, capsys):
     """A heading written with a placeholder stands for every file of that shape, which
@@ -151,6 +157,7 @@ def test_a_placeholder_heading_covers_a_group(repo, fake_repo, capsys):
 
 
 @code("HRS0097")
+@objective("behavior")
 @positive
 def test_a_starred_heading_covers_a_subfolder(repo, fake_repo, capsys):
     """A heading written with a star and a subfolder covers the files in it, which is
@@ -163,6 +170,7 @@ def test_a_starred_heading_covers_a_subfolder(repo, fake_repo, capsys):
 
 
 @code("HRS0098")
+@objective("behavior")
 @positive
 def test_one_heading_may_name_two_files(repo, fake_repo, capsys):
     """A heading naming two files joined by the word and covers both, as the two
@@ -187,6 +195,7 @@ def test_one_heading_may_name_two_files(repo, fake_repo, capsys):
 
 
 @code("HRS0099")
+@objective("behavior")
 @negative
 def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
     """A recorded file that no heading covers exits 35, and the line names the file,
@@ -202,6 +211,7 @@ def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
 
 
 @code("HRS0138")
+@objective("behavior")
 @negative
 def test_a_placeholder_heading_does_not_reach_outside_its_group(
     repo, fake_repo, capsys
@@ -231,6 +241,7 @@ def test_a_placeholder_heading_does_not_reach_outside_its_group(
 
 
 @code("HRS0100")
+@objective("behavior")
 @negative
 def test_a_location_nothing_lives_in_exits_36(repo, capsys):
     """A location line naming a folder no manifest records a file in exits 36, and the
@@ -242,6 +253,7 @@ def test_a_location_nothing_lives_in_exits_36(repo, capsys):
 
 
 @code("HRS0101")
+@objective("behavior")
 @negative
 def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
     """When a file has no heading and a location holds nothing, the run exits 35,
@@ -258,6 +270,7 @@ def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
 
 
 @code("HRS0102")
+@objective("behavior")
 @negative
 def test_a_missing_map_exits_13(repo, capsys):
     """With no map on disk, the run exits 13 and says the map cannot be read, rather
@@ -268,6 +281,7 @@ def test_a_missing_map_exits_13(repo, capsys):
 
 
 @code("HRS0146")
+@objective("behavior")
 @negative
 def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
     """When the sdg package is not running from inside its repo, the run exits 6 with
@@ -281,6 +295,7 @@ def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
 
 
 @code("HRS0147")
+@objective("behavior")
 @negative
 def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
     """When a manifest is not valid JSON, the run exits 3 and names that manifest as
@@ -305,6 +320,7 @@ def quiet_with_a_forgotten_file(repo, fake_repo, capsys):
 
 
 @code("HRS0103")
+@objective("behavior")
 @positive
 def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
     """With the quiet option, nothing is printed even when a recorded file has no
@@ -313,6 +329,7 @@ def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
 
 
 @code("HRS0153")
+@objective("behavior")
 @positive
 def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
     """With the quiet option, the exit code still reports the recorded file that has
@@ -330,7 +347,7 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 
 
 @code("HRS0104")
-@positive
+@objective("agreement")
 def test_the_real_map_and_manifests_agree():
     """The repo's own sources map, docs/sources_index.md, names every file its manifests record, and every
     location it names holds recorded files."""
