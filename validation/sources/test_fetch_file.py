@@ -280,7 +280,7 @@ def test_request_asks_to_follow_redirects(completed):
 @code("SRC0038")
 @positive
 def test_request_carries_the_module_timeout(completed):
-    """The request gives up after the number of seconds the module sets."""
+    """The request gives up after the number of seconds fetch_file.py sets."""
     assert completed.request["timeout"] == fetch_file.TIMEOUT_SECONDS
 
 
@@ -343,7 +343,7 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
 @negative
 def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, server):
     """A url the HTTP library cannot parse makes fetch() raise FetchError, and the
-    message names the url and the cause, so the workflow counts it and carries on
+    message names the url and the cause, so acquire_sources counts it and carries on
     rather than stopping with a traceback."""
     failed = attempt(server, tmp_path, httpx.InvalidURL("Invalid IPv6 URL"))
     assert URL in failed.message

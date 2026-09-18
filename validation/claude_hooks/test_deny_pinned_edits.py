@@ -167,8 +167,8 @@ def test_a_nested_gitkeep_under_inputs_is_allowed(repo, monkeypatch, capsys):
 @code("CCH0004")
 @positive
 def test_a_study_manifest_is_allowed(repo, monkeypatch, capsys):
-    """A manifest under manifests/study_documents/ is allowed, because the fetch
-    script is meant to write those."""
+    """A manifest under manifests/study_documents/ is allowed, because the pipeline
+    stage that downloads a study, not yet written, is meant to write those."""
     path = repo / "manifests" / "study_documents" / "NCT00000000.json"
     assert not edit(monkeypatch, capsys, str(path)).denied
 

@@ -9,8 +9,8 @@
   "local_dir": "inputs/standards/cdisc/biomedical_concepts_2026-07-14",
   "notes": {
     "commit_message": "Remove 'utilities/' from exclude list",
-    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (answer code 401 not permitted), so the Biomedical Concepts (BC) are taken from the public COSMoS repo export instead. The two doc files are process references, not data: 'Completion GLs' is the field dictionary for the BC export; 'Overview Training' is conceptual grounding.",
-    "naming_exception": "cdisc_biomedical_concepts_latest.xlsx is pinned as cdisc_biomedical_concepts.xlsx, the one departure from keeping the publisher's file name. CDISC's suffix says the file moves; this copy does not, and a pinned file named latest would contradict the pin every time the folder is read. The version is the newest package_date in the export, carried in the folder name. Decided 2026-09-08; the version wording corrected 2026-09-16."
+    "note": "The CDISC Library COSMoS API returns 'Members-only content' on this subscription (answer code 401 not permitted), so the Biomedical Concepts (BC) are taken from the public COSMoS repo export instead. The two other files are process references, not data. 'Completion GLs' is the field dictionary for the BC export, and 'Overview Training' is conceptual grounding.",
+    "naming_exception": "cdisc_biomedical_concepts_latest.xlsx is pinned as cdisc_biomedical_concepts.xlsx, the one departure from keeping the publisher's file name. CDISC's suffix says the file moves. This copy does not, and a pinned file named latest would contradict the pin every time the folder is read. The version is the newest package_date in the export, carried in the folder name. This was decided 2026-09-08, and the version wording was corrected 2026-09-16."
   },
   "files": [
     {

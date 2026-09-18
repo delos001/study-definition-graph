@@ -144,8 +144,8 @@ def test_every_occurrence_is_checked(fact, capsys):
 @positive
 def test_unasserted_fact_is_reported_but_passes(fact, capsys):
     """A fact no document states is reported NOT ASSERTED with its measured
-    value but does not fail the run (exit 0): the documents are not wrong,
-    the script is just tracking something they do not claim."""
+    value but does not fail the run, which exits 0, because the documents are
+    not wrong when they leave out something the script measures."""
     fact(lambda: 3, "Nothing about them here.\n")
     assert cf.main([]) == 0
     out = capsys.readouterr().out
@@ -235,7 +235,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
 ):
     """A measurement that raises is reported under a label naming the cause,
     with the exception's own message, and the run exits with that cause's
-    number from the repo-wide table: 8 not downloaded, 13 cannot read, 42 unexpected
+    number from validation/exit_codes.csv: 8 not downloaded, 13 cannot read, 42 unexpected
     shape, 3 bad manifest, 10 unrecorded, 9 mismatch, 4 wrong shape, 6 not in repo."""
 
     def measure():
@@ -274,6 +274,6 @@ def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsy
 @positive
 def test_real_documents_match_real_corpus():
     """Against the pinned corpus and the committed documents, every stated
-    figure re-derives: exit 0. This is the same run README.md asks for after
+    figure re-derives: exit 0. This is the same run the root README.md asks for after
     setup, and it proves every pinned file the script reads still verifies."""
     assert cf.main([]) == 0

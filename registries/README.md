@@ -1,6 +1,6 @@
 # registries/
 
-This folder holds the codes the project assigns to clients, therapeutic areas and document types. Several parts of the project are scoped by these codes. The local USDM extensions in `local_definitions/usdm_extensions/` use them, and the prompt axes described in the Scope section of `PLAN.md` are expected to use them too.
+This folder holds the codes the project assigns to clients, therapeutic areas and document types. Several parts of the project are scoped by these codes. The local USDM extensions in `local_definitions/usdm_extensions/` use them, and the prompt axes, the properties such as sponsor and document type that a prompt is composed from, described in the Scope section of `PLAN.md`, are expected to use them too.
 
 The files are written here and committed to git. They are not pinned, so the rules for `inputs/` do not apply to them.
 

@@ -8,14 +8,14 @@ The words in brackets after a name say the file is run by hand; a file with no b
 ### workflows
 - acquire_sources.py (by hand): uses read_manifests, fetch_file, fingerprint_file, finalize_file
 - verify_pinned.py: uses read_manifests, fingerprint_file
-- update_sources.py: uses fetch_file, fingerprint_file, finalize_file, write_manifests - pending
+- update_sources.py: uses fetch_file, fingerprint_file, finalize_file, write_manifests; not yet written
 
 ### steps
 - read_manifests.py
 - fetch_file.py
 - fingerprint_file.py: uses read_manifests
 - finalize_file.py: uses fetch_file
-- write_manifests.py - pending
+- write_manifests.py: not yet written
 
 ## usdm/
 ### workflows
@@ -34,22 +34,22 @@ The words in brackets after a name say the file is run by hand; a file with no b
 ### workflows
 ### steps
 
-- pending phase 1
+- This folder is empty until Phase 1.
 
 ## classify/
 ### workflows
 ### steps
 
-- pending phase 2
+- This folder is empty until Phase 2.
 
 ## extract/
 ### workflows
 ### steps
 
-- pending phase 3
+- This folder is empty until Phase 3.
 
 ## graph/
 ### workflows
 ### steps
 
-- pending phase 4
+- This folder is empty until Phase 4.

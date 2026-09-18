@@ -50,7 +50,7 @@ Get real protocol and SAP pairs and find where their content lives, deterministi
   - protocol and SAP PDFs pulled from the ClinicalTrials.gov API v2, selecting studies that post both protocol and SAP files and whose SAP actually defines estimands,
   - extracted text with section boundaries located without AI,
   - the SoA grid preserved with its footnote markers intact.
-- **Design considerations.** Phase 1 is designed against five findings from the orientation walks (recorded in `DECISIONS.md`), not against the specification:
+- **Design considerations.** Phase 1 is designed against five findings from the orientation walks, the first hands-on readings of the pinned examples, recorded in `DECISIONS.md`, not against the specification:
   1. **A heading does not tell you what a section contains.**
      - Estimand content has been found under headings like "Efficacy Criteria" and "Times of Analyses."
      - So Phase 1 locates section *boundaries* but never infers *content* from a title.
@@ -91,7 +91,7 @@ Turn classified content into USDM-conformant structures.
   - model output constrained to schemas generated from the pinned USDM spec, so output is USDM-shaped because it came from the standard rather than because a prompt asked,
   - every extracted fact carrying provenance,
   - an answer to whether CDISC's own conformance checker, the service that says whether a USDM file is well formed, can be used without a paid CDISC membership. If it cannot, the pinned rules spreadsheet `USDM_CORE_Rules.xlsx` is what the output is checked against instead.
-- **Design consideration, chunking for prompting** (distinct from Phase 1's deterministic boundaries):
+- **Design consideration, chunking for prompting.** This is distinct from the deterministic boundaries Phase 1 finds:
   - how a located section is split or retrieved when fed to the model (semantic chunking),
   - driven by prompt size and the "content spread across sections" finding in `BACKGROUND.md`.
 - **Verification:**
@@ -135,10 +135,10 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - per-document-type handling is built here.
 - **Prompts and context are composed, not enumerated.**
   - Variability is high, because sponsor, therapeutic area, document type and section possibilities multiply together, and those are not the only axes.
-  - A distinct prompt per combination scales as the *product* of the axes (thousands of files; one update touches hundreds).
+  - A distinct prompt per combination scales as the *product* of the axes, which means thousands of files, and one update touches hundreds of them.
   - Goal: define orthogonal axes and compose behavior from them, so the count scales as the *sum* (tens of files; one update touches one).
   - Axes will not be perfectly orthogonal; genuine cross-axis interactions are handled through **adjacency** (a pattern carried from prior work), not by enumerating the product.
-  - The axes themselves are not yet known (there may be 3 or 13); they are expected to emerge from real extraction work, not fixed in advance.
+  - The axes themselves are not yet known; there may be 3 or 13. They are expected to emerge from real extraction work, not fixed in advance.
 - **When an extraction is wrong, measure whether the prompt or the retrieval is at fault.**
   - Is the dominant cause the prompt, or what got retrieved and linked in the first place?
   - Practitioner opinion leans prompt; this project produces evidence rather than inheriting the assumption.
@@ -159,7 +159,7 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - eligibility logic written as sentences,
   - the same thing under two names across two documents.
 - **Deferred, not dropped.**
-  - The design write-up is revisited after Phase 4, when positions can be grounded in what actually broke:
+  - The written design for the four items below waits until after Phase 4, when positions can be grounded in what actually broke:
     - taxonomy,
     - prompt-library spec,
     - ontology governance,

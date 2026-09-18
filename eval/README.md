@@ -2,7 +2,7 @@
 
 This folder contains information the pipeline's output is scored against.
 
-Answer keys, and later the agreed acceptance thresholds and scoring definitions, which are fixed before testing begins.  So, they are stored here rather than under `inputs/`.
+It holds the answer keys, and later the agreed acceptance thresholds and scoring definitions, which are fixed before testing begins. They are written here rather than downloaded, so they sit here rather than under `inputs/`.
 
 Note: CDISC's worked examples, which serve as the first answer keys, are downloads and so sit under `inputs/worked_examples/`.
 

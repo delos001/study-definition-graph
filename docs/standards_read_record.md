@@ -1,6 +1,6 @@
 # Standards read record
 
-What has been read from each pinned standard, and what each part established. A claim about a standard is grounded only when the part it rests on appears here. Anything not listed has not been consulted, and a claim about it is inference until it is.
+This record says what has been read from each pinned standard, and what each part established. A claim about a standard is grounded only when the part it rests on appears here. Anything not listed has not been consulted, and a claim about it is inference until it is.
 
 One heading per standard. Each row names the part read, where it sits in the document, and what it established, so a later session can rely on the finding without reading the part again, or can go straight to it when the finding needs checking. Which file answers which question, and how to open it, is `docs/sources_index.md`. A document's own section numbers and page ranges come from its bookmarks, printed with `read_pdf --list`.
 
@@ -14,7 +14,7 @@ One heading per standard. Each row names the part read, where it sits in the doc
 | --- | --- | --- |
 | 2 Fundamentals of the USDM | 6-8 | USDM is 5 official standards, not 1: class diagram, API spec, Controlled Terminology, this implementation guide, Conformance Rule Specifications. `USDM_API.json` is one of the five and the one carrying no semantics. v4.0 is aligned to ICH M11, the harmonised protocol template, which ICH also calls CeSHarP. Publicly available protocols have been mapped to USDM and published as "USDM GitHub Examples" (p.8). |
 | 3.1 Relationship to Other CDISC Standards | 9-10 | USDM draws on the Biomedical Research Integrated Domain Group model (BRIDG), supersedes the Protocol Representation Model (PRM), and feeds the Trial Design datasets of the Study Data Tabulation Model (SDTM). |
-| 6.4 Extension Mechanism | 100-107 | Sanctioned route for content the model does not cover, including explicitly "a need to overcome issues with the model". Implemented as `extensionAttributes`, present on all 80 concrete classes (measured 2026-08-18): a list of `ExtensionAttribute` (id, url, value). Not part of the logical model; API-only. Extensions **must be documented** by whoever creates them. |
+| 6.4 Extension Mechanism | 100-107 | Sanctioned route for content the model does not cover, including explicitly "a need to overcome issues with the model". Implemented as `extensionAttributes`, a list of `ExtensionAttribute` entries each holding an id, a url and a value, present on all 80 concrete classes (measured 2026-08-18). Not part of the logical model; API-only. Extensions **must be documented** by whoever creates them. |
 
 ### Priority unread sections
 

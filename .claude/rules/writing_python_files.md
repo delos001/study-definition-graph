@@ -11,7 +11,7 @@ paths:
 This rule covers every Python file the project writes. There are four kinds:
 
 - the package under `src/sdg/`, which holds the pipeline's workflows and steps, the code other code imports;
-- the repo tools under `repo_tools/`, which keep the repository's own files in order and are run by a person or by the pre-commit hook;
+- the repo tools under `repo_tools/`, which keep the repository's own files in order and are run by a person or by the pre-commit hook, `.githooks/pre-commit`;
 - the checks under `validation/`, which prove the package and the scripts do what they say;
 - the Claude Code hooks under `.claude/hooks/`, which run around Claude's own tool calls in a session and hold it to the repo's rules.
 

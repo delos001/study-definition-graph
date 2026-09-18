@@ -110,7 +110,7 @@ def test_fingerprint_measures_the_sha256(file_on_disk):
 @code("SRC0061")
 @positive
 def test_reading_in_pieces_loses_nothing(tmp_path):
-    """A file bigger than the piece the module reads at a time hashes the same
+    """A file bigger than the piece fingerprint_file.py reads at a time hashes the same
     as a hash of the whole file."""
     content = b"x" * (fingerprint_file.CHUNK_BYTES * 2 + 17)
     path = tmp_path / "big.bin"

@@ -17,9 +17,10 @@ Description: The single way to access the pinned USDM model. It reads
              module, so there is one way to obtain any fact about USDM and no
              second representation to keep faithful.
 
-             Cross-cutting queries the flat file cannot answer directly
-             (which classes reference a given class; the whole-model edge list)
-             will be added here as later phases need them, not built up front.
+             The flat file cannot answer some questions directly, such as which
+             classes reference a given class, or what every link in the model
+             is. Those will be added here as later phases need them, not built
+             up front.
 
              Before reading the file, load() obtains it through the pinned-file
              check in sdg.sources, which checks it against the fingerprint recorded in
@@ -101,8 +102,8 @@ DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 ### Loading ###
 #
 # This section turns the pinned dataStructure.yml into the in-memory spec the rest of
-# the module reads: obtain the verified file through verify_pinned(), parse the YAML,
-# confirm its shape, and return the parsed dict.
+# the module reads. It obtains the verified file through verify_pinned(), reads the
+# YAML, confirms its shape, and hands back the result.
 #
 # Exceptions are classes so the specific kind of failure can be caught and reported
 # with a specific exit code (see header) rather than a generic traceback. The shape

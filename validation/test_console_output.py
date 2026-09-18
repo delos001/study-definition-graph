@@ -52,8 +52,8 @@ code = pytest.mark.code
 @code("SDG0001")
 @positive
 def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
-    """When standard output is Python's real text-file class, the call switches its
-    encoding to UTF-8 for the rest of the run."""
+    """When standard output is Python's real text-file class, use_utf8_output()
+    switches its encoding to UTF-8 for the rest of the run."""
     stream = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
     monkeypatch.setattr(sys, "stdout", stream)
     use_utf8_output()
@@ -64,8 +64,8 @@ def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
 @positive
 def test_a_captured_stream_is_left_alone_without_error(monkeypatch):
     """When standard output is not Python's real text-file class, as when another
-    program has captured it, the call returns without an error and leaves the stream
-    as it was."""
+    program has captured it, use_utf8_output() returns without an error and leaves
+    the stream as it was."""
     stream = io.StringIO()
     monkeypatch.setattr(sys, "stdout", stream)
     use_utf8_output()

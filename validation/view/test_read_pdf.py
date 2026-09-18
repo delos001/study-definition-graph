@@ -140,7 +140,7 @@ def run(write_list, monkeypatch, capsys, text, *argv):
 @code("VIW0001")
 @positive
 def test_every_row_becomes_a_document(repo, write_list):
-    """Each row in the list becomes one document, keyed by the key a person types."""
+    """Each row in lookup_documents.yml becomes one document, keyed by the key a person types."""
     documents, _ = load_registry(write_list(LIST_TEXT))
     assert sorted(documents) == ["guide", "plain"]
 
@@ -148,7 +148,7 @@ def test_every_row_becomes_a_document(repo, write_list):
 @code("VIW0002")
 @positive
 def test_the_path_comes_from_the_manifest(repo, write_list):
-    """A document's path is taken from its manifest entry, so the list never states
+    """A document's path is taken from its manifest entry, so lookup_documents.yml never states
     where a file lives."""
     documents, _ = load_registry(write_list(LIST_TEXT))
     assert documents["guide"].path == repo.root / GUIDE
@@ -183,7 +183,7 @@ def test_an_empty_boilerplate_list_strips_nothing(repo, write_list):
 @code("VIW0006")
 @positive
 def test_the_default_is_the_one_the_list_names(repo, write_list):
-    """The key used when --doc is absent is the one the list names as its default."""
+    """The key used when --doc is absent is the one lookup_documents.yml names as its default."""
     _, default = load_registry(write_list(LIST_TEXT))
     assert default == "guide"
 
@@ -310,7 +310,7 @@ def test_a_file_no_manifest_records_is_refused(repo, write_list):
 @code("VIW0014")
 @negative
 def test_a_default_that_is_not_listed_is_refused(repo, write_list):
-    """A default naming a key the list does not hold raises RegistryError, rather than
+    """A default naming a key lookup_documents.yml does not hold raises RegistryError, rather than
     leaving --doc with a default it cannot accept."""
     text = LIST_TEXT.replace("default: guide", "default: nowhere")
     with pytest.raises(RegistryError) as raised:
@@ -321,7 +321,7 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
 @code("VIW0015")
 @negative
 def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
-    """When the list is missing, the command exits 31 and says where the list was
+    """When lookup_documents.yml is missing, the command exits 31 and says where lookup_documents.yml was
     expected and how to get it back, rather than raising."""
     monkeypatch.setattr(read_pdf, "REGISTRY_FILE", tmp_path / "gone.yml")
     assert read_pdf.main(["--docs"]) == 31
@@ -333,7 +333,7 @@ def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
 @code("VIW0016")
 @negative
 def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, capsys):
-    """When the list names a file no manifest records, the command exits 32, a
+    """When lookup_documents.yml names a file no manifest records, the command exits 32, a
     different cause from a list that cannot be read."""
     text = LIST_TEXT.replace("Example_Guide.pdf", "Nobody_Recorded_This.pdf")
     outcome = run(write_list, monkeypatch, capsys, text, "--docs")
@@ -360,7 +360,7 @@ def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys
 @negative
 def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
     """When a manifest is not valid JSON, the command exits 3 and names that manifest
-    as the thing that cannot be read, rather than blaming the list or a document."""
+    as the thing that cannot be read, rather than blaming lookup_documents.yml or a document."""
     (repo.root / "manifests" / "broken.json").write_text("{ not json", encoding="utf-8")
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
     assert outcome.exit_code == 3

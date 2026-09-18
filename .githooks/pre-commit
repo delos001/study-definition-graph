@@ -2,15 +2,15 @@
 #
 # Pre-commit hook for study-definition-graph.
 #
-# Enabled by `git config core.hooksPath .githooks`, which the README's setup
-# section runs after the clone. Committed rather than left in .git/hooks so a
+# Enabled by `git config core.hooksPath .githooks`, which the setup section of
+# the root README.md runs after the clone. Committed rather than left in .git/hooks so a
 # fresh clone gets it.
 #
 # The first three checks use only the standard library, so they run from any
 # terminal. The fourth needs ruff and mypy from the sdg conda environment; its
 # script finds them on the path when that environment is active and runs them
-# through conda when it is not. check_facts.py (reads every pinned file) and
-# acquire_sources (hashes every pinned file) stay manual runs; see the README.
+# through conda when it is not. repo_tools/check_facts.py (reads every pinned file)
+# and acquire_sources (hashes every pinned file) stay manual runs; see the root README.md.
 
 set -e
 
@@ -24,7 +24,7 @@ python repo_tools/build_index.py --check || {
 }
 
 # Every Python file under src/sdg/, repo_tools/, validation/ and .claude/hooks/
-# opens with the header block the writing_python_files rule requires, and its exit codes agree
+# opens with the header block .claude/rules/writing_python_files.md requires, and its exit codes agree
 # with validation/exit_codes.csv. A file that falls short is refused here so the
 # rule holds whoever made the edit. Standard library only.
 python repo_tools/verify_headers.py || {

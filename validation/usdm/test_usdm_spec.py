@@ -132,8 +132,8 @@ def test_lists_every_class_sorted(three):
 @code("USD0002")
 @positive
 def test_abstract_flag_comes_from_modifier(three):
-    """is_abstract() reports USDM's own Modifier: Identifier (a parent never
-    instantiated alone) is abstract, StudyIdentifier (its concrete child) is not."""
+    """is_abstract() reports USDM's own Modifier, so Identifier, a parent never used
+    on its own, is abstract, and StudyIdentifier, its concrete child, is not."""
     assert usdm_spec.is_abstract(three, "Identifier") is True
     assert usdm_spec.is_abstract(three, "StudyIdentifier") is False
 
@@ -242,7 +242,7 @@ def test_attributes_not_a_mapping_is_named(variant):
 def test_attribute_missing_a_key_is_named(variant):
     """Renaming 'Relationship Type' on one attribute is refused with a message
     naming Class.attribute and the missing key, rather than surfacing later as a
-    KeyError traceback from the printer."""
+    KeyError traceback from the attribute printer in usdm_spec.py."""
 
     def rename(d):
         """Rename one attribute's Relationship Type key, so the expected key is gone."""
@@ -292,8 +292,9 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
 @code("USD0013")
 @negative
 def test_empty_type_list_is_refused(variant):
-    """An empty Type list is refused the same way: an attribute with no type is
-    not a shape this module can answer questions about."""
+    """An attribute whose Type list is empty is refused with a message naming the
+    attribute, because an attribute with no type is not a shape usdm_spec.py can
+    answer questions about."""
     broken = variant(
         lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", [])
     )
@@ -307,7 +308,7 @@ def test_empty_type_list_is_refused(variant):
 @negative
 def test_inherited_from_without_ref_is_named(variant):
     """An Inherited From entry lacking its '$ref' is refused, naming the
-    attribute and the field, so the printer never indexes a missing key."""
+    attribute and the field, so the attribute printer in usdm_spec.py never indexes a missing key."""
     broken = variant(
         lambda d: d["StudyIdentifier"]["Attributes"]["id"].__setitem__(
             "Inherited From", [{"ref": "x"}]
@@ -342,9 +343,8 @@ def test_missing_file_raises_filenotfound(tmp_path):
 @code("USD0016")
 @negative
 def test_unrecorded_file_is_refused_through_load():
-    """A file no manifest entry records (this fixture, with the check left on)
-    is refused by load() with the pinned-file check's message saying exactly that,
-    not with the fingerprint-mismatch remedy."""
+    """A file no manifest entry records is refused by load() with the pinned-file
+    check's message saying exactly that, not with the fingerprint-mismatch remedy."""
     with pytest.raises(usdm_spec.UnrecordedFileError) as caught:
         usdm_spec.load(FIXTURE)
     message = str(caught.value)
@@ -387,7 +387,7 @@ def test_cli_no_mode_exits_2():
 @negative
 def test_cli_missing_spec_exits_8(monkeypatch, capsys):
     """When the pinned file is not downloaded, the command exits 8 and tells the
-    user to run the acquire workflow."""
+    user to run acquire_sources."""
     # A path under the repo, because the message prints it relative to the repo
     # root, as it does for the real pinned path. Nothing is written there.
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE.with_name("nope.yml"))
@@ -439,10 +439,11 @@ def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
 def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
     """When the sdg package is not running from inside its repo, the command exits 6
     and prints the install command, rather than reporting the spec as missing.
+
     Staged as it really happens: the root the sdg package takes to be the repo is a
-    folder with no repo in it, and the spec path, which follows that root, does
-    not exist there. Checked with and without --allow-unpinned, since that flag
-    bypasses the manifest check and must not bypass this one."""
+    folder with no repo in it, and the spec path, which follows that root, does not
+    exist there. Checked with and without --allow-unpinned, since that flag bypasses
+    the manifest check and must not bypass this one."""
     from sdg.sources import read_manifests
 
     monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path)
@@ -497,9 +498,8 @@ def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
 @code("USD0024")
 @positive
 def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
-    """With the allow-unpinned option, the manifest check is skipped and the file
-    is read in place: the fixture, which no manifest records, lists its three
-    classes and exits 0."""
+    """With the allow-unpinned option, the manifest check is skipped and a file no
+    manifest records is read in place, listing its classes and exiting 0."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 0
     out, err = capsys.readouterr()
@@ -556,7 +556,7 @@ def test_pinned_file_verifies_and_loads():
 @positive
 def test_pinned_file_has_86_classes_80_concrete():
     """The pinned model holds 86 classes, 80 concrete and 6 abstract; the 80 is the
-    figure docs/standards_read_record.md states and check_facts.py re-derives."""
+    figure docs/standards_read_record.md states and repo_tools/check_facts.py re-derives."""
     spec = usdm_spec.load()
     names = usdm_spec.class_names(spec)
     abstract = [n for n in names if usdm_spec.is_abstract(spec, n)]
@@ -601,9 +601,9 @@ def test_pinned_file_types_are_classes_or_five_primitives():
 @needs_pinned_file
 @positive
 def test_fixture_classes_are_identical_to_pinned():
-    """Each of the fixture's three classes is identical, key for key, to the same
-    class in the pinned file, so the logic checks above ran on real USDM shapes and
-    not on an approximation of them."""
+    """Each class in the small fixture file is identical, key for key, to the same
+    class in the pinned model, so the checks that ran on the fixture ran on real
+    USDM shapes and not on an approximation of them."""
     pinned = usdm_spec.load()
     sample = usdm_spec.load(FIXTURE, verify=False)
     for name in FIXTURE_CLASSES:

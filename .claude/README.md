@@ -7,7 +7,7 @@ This folder holds the Claude Code configuration for this repo.
 | --- | --- |
 | `settings.json` | The project settings, committed. It names every hook below and when it runs. |
 | `settings.local.json` | Personal settings for this machine, not committed. It holds nothing about hooks. |
-| `hooks/` | The scripts the hooks run. Each follows `.claude/rules/writing_python_files.md` like every other Python file, `repo_tools/verify_headers.py`, run by the pre-commit hook `.githooks/pre-commit`, holds them to it, and their checks live under `validation/claude_hooks/`. |
+| `hooks/` | The scripts the hooks run. Each follows `.claude/rules/writing_python_files.md` like every other Python file. `repo_tools/verify_headers.py`, run by the pre-commit hook `.githooks/pre-commit`, holds them to it. Their checks live under `validation/claude_hooks/`. |
 | `rules/` | The rules Claude Code loads when a matching file is opened. |
 
 ## Hooks in use

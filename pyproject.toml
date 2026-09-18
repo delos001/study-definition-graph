@@ -32,7 +32,7 @@ testpaths = ["validation"]
 
 [tool.ruff]
 # Line length matches ruff's default formatter width. The four folders listed are the
-# ones the writing_python_files rule covers.
+# ones .claude/rules/writing_python_files.md covers.
 line-length = 88
 target-version = "py312"
 src = ["src", "repo_tools", "validation", ".claude/hooks"]
@@ -50,7 +50,7 @@ ignore = ["E501"]
 known-first-party = ["sdg"]
 
 [tool.mypy]
-# Every function must carry hints, per the writing_python_files rule. The
+# Every function must carry hints, as .claude/rules/writing_python_files.md requires. The
 # packages below ship no type stubs, so their imports are allowed untyped.
 python_version = "3.12"
 files = ["src", "repo_tools", "validation", ".claude/hooks"]

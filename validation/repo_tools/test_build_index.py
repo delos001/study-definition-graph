@@ -117,7 +117,7 @@ def written(folder, capsys):
 @code("HRS0001")
 @positive
 def test_writes_the_entry_from_the_header(written):
-    """The index holds each script's name, the first paragraph of its Description
+    """repo_tools/README.md holds each script's name, the first paragraph of its Description
     joined to one line, and its Usage block with the relative indentation kept."""
     _, text, _ = written
     assert EXPECTED_ENTRY in text
@@ -126,7 +126,7 @@ def test_writes_the_entry_from_the_header(written):
 @code("HRS0134")
 @positive
 def test_the_second_paragraph_is_left_out(written):
-    """Only the first paragraph of a Description reaches the index; the rest stays in
+    """Only the first paragraph of a Description reaches repo_tools/README.md; the rest stays in
     the header."""
     _, text, _ = written
     assert "second paragraph" not in text
@@ -135,7 +135,7 @@ def test_the_second_paragraph_is_left_out(written):
 @code("HRS0135")
 @positive
 def test_the_index_opens_with_the_title_and_the_notice(written):
-    """The index opens with its title and the notice saying it is generated, so
+    """repo_tools/README.md opens with its title and the notice saying it is generated, so
     nobody edits it by hand."""
     _, text, _ = written
     assert text.startswith("# repo_tools/\n\n" + bi.GENERATED_NOTICE)
@@ -144,7 +144,7 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
 @code("HRS0136")
 @positive
 def test_the_index_ends_with_one_newline(written):
-    """The index ends with exactly one newline, so a regenerated file compares equal
+    """repo_tools/README.md ends with exactly one newline, so a regenerated file compares equal
     to itself and --check does not fail on whitespace."""
     _, text, _ = written
     assert text.endswith("```\n") and not text.endswith("\n\n")
@@ -153,9 +153,11 @@ def test_the_index_ends_with_one_newline(written):
 @code("HRS0145")
 @positive
 def test_the_index_is_written_with_lf_line_endings(folder):
-    """The index is written with a bare line feed (LF) ending each line whatever machine regenerates it, so
-    the file does not flip endings between one run and the next. Read as bytes,
-    because reading as text would hide a carriage return."""
+    """repo_tools/README.md is written with a bare line feed (LF) ending each line
+    whatever machine regenerates it, so the file does not flip endings between one
+    run and the next.
+
+    It is read as bytes, because reading as text would hide a carriage return."""
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main([]) == 0
     raw = (scripts / "README.md").read_bytes()
@@ -165,7 +167,7 @@ def test_the_index_is_written_with_lf_line_endings(folder):
 @code("HRS0137")
 @positive
 def test_writing_reports_the_file_and_the_count(written):
-    """A run that writes the index exits 0 and says which file it wrote and how many
+    """A run that writes repo_tools/README.md exits 0 and says which file it wrote and how many
     scripts it holds."""
     exit_code, _, printed = written
     assert exit_code == 0
@@ -176,7 +178,7 @@ def test_writing_reports_the_file_and_the_count(written):
 @positive
 def test_scripts_are_listed_in_name_order(folder):
     """Two scripts appear in alphabetical order whatever order they were
-    written, so the index is stable between runs."""
+    written, so repo_tools/README.md is stable between runs."""
     scripts = folder(
         {"zeta.py": GOOD_HEADER.replace("alpha", "zeta"), "alpha.py": GOOD_HEADER}
     )
@@ -192,7 +194,7 @@ def test_scripts_are_listed_in_name_order(folder):
 @code("HRS0003")
 @positive
 def test_check_passes_when_index_is_current(folder, capsys):
-    """With the check option, the run exits 0 and writes nothing when the index
+    """With the check option, the run exits 0 and writes nothing when repo_tools/README.md
     on disk equals what would be generated."""
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main([]) == 0
@@ -248,7 +250,7 @@ def test_quiet_prints_nothing(folder, capsys):
 @negative
 def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
     """A header missing required fields exits 17, naming the script and every
-    missing field, and the index is not written."""
+    missing field, and repo_tools/README.md is not written."""
     scripts = folder(
         {
             "alpha.py": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace(

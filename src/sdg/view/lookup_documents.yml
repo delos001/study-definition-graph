@@ -14,9 +14,10 @@
 #                text using the same words survives.
 #
 # A document with nothing repeated on its pages carries an empty boilerplate
-# list. The ICH M11 documents, the protocol template and its companions, are that case: their most repeated lines, Definition,
-# Data Type and Cardinality, are field labels in the body, and stripping those
-# would delete the content the document exists to convey.
+# list. The ICH M11 documents, the protocol template and its companions, are that
+# case. Their most repeated lines, Definition, Data Type and Cardinality, are field
+# labels in the body, and stripping those would delete the content the document
+# exists to convey.
 
 documents:
   - key: ig

@@ -605,7 +605,7 @@ def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
 @code("SRC0029")
 @negative
 def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys):
-    """A package not running from inside its repo exits 6, and the message
+    """The sdg package, when not running from inside its repo, exits 6, and the message
     gives the install command."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"

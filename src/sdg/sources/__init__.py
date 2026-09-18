@@ -5,8 +5,8 @@ See README.md.
 
 # Each function that other code is meant to use is listed here, so a caller
 # writes `from sdg.sources import manifests` and never names the file it is
-# in. A function not listed is still importable by its file, only the short
-# form is missing. The list grows as each file's code is written.
+# in. A function not listed can still be imported from its own file. Only the
+# short form is missing. The list grows as each file's code is written.
 
 from .fetch_file import FetchError, fetch, partial_path
 from .finalize_file import discard, place

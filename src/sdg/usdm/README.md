@@ -1,6 +1,6 @@
 # src/sdg/usdm/
 
-Read the USDM standard so the pipeline knows what a class is, what it holds, and what it points at.
+This folder reads the USDM standard, so the pipeline knows what a class is, what it holds, and what it points at.
 
 | File | What it does |
 | --- | --- |

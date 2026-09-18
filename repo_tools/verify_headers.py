@@ -2,7 +2,7 @@
 Script:      verify_headers.py
 Description: Checks that every Python file in the four code folders, src/sdg/,
              repo_tools/, validation/ and .claude/hooks/, opens with the full
-             header block the writing_python_files rule requires, with the eight fields in the set
+             header block .claude/rules/writing_python_files.md requires, with the eight fields in the set
              order and a Date in YYYY-MM-DD form. It reports each file that falls
              short and names what is wrong.
 

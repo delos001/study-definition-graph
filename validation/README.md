@@ -1,6 +1,6 @@
 # validation/
 
-Automated checks for the code in `src/sdg/`, the repo tools in `repo_tools/` and the Claude Code hooks in `.claude/hooks/`. Every check is listed in `validation_inventory.csv` with its permanent id, its kind, the promise it proves and its status. That file is the inventory; this one only says what is in the folder.
+This folder holds the automated checks for the code in `src/sdg/`, the repo tools in `repo_tools/` and the Claude Code hooks in `.claude/hooks/`. Every check is listed in `validation_inventory.csv` with its permanent id, its kind, the promise it proves and its status. That file is the inventory; this one only says what is in the folder.
 
 ## How to run
 
@@ -28,4 +28,4 @@ pytest --validation-report   # run every check and write a validation report (se
 
 ## Validation reports
 
-Development runs write nothing. When the code is declared ready, run `pytest --validation-report`. `conftest.py` then writes one CSV file into `reports/`, named for the date and the commit, with one row per check. Each row leads with the check: its code, name, kind, what it proves, its outcome and, when that is not passed, the reason. Then come the run's details, meaning the verdict, the commit, who ran it, when and which checks were selected, and at the far right the file hashes, the pinned data version and the tool versions. The check columns carry the inventory's column names, so a row joins to it by check_name_code. Commit that file. A report says PASS only when pytest itself exited 0.
+Development runs write nothing. When the code is declared ready, run `pytest --validation-report`. `conftest.py` then writes one CSV file into `reports/`, named for the date and the commit, with one row per check. Each row leads with the check: its code, name, kind, what it proves, its outcome, and the reason when the outcome is not passed. Then come the run's details, meaning the verdict, the commit, who ran it, when and which checks were selected, and at the far right the file hashes, the pinned data version and the tool versions. The check columns carry the inventory's column names, so a row joins to it by check_name_code. Commit that file. A report says PASS only when pytest itself exited 0.

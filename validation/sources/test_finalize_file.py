@@ -156,7 +156,8 @@ def test_place_refuses_when_the_final_name_is_taken(blocked):
 @code("SRC0051")
 @negative
 def test_refused_place_leaves_the_existing_file_untouched(blocked):
-    """The file already at the final name keeps its bytes."""
+    """When placing a download is refused because a file is already at the final name,
+    that file keeps its bytes."""
     _, staged = blocked
     assert staged.final.read_bytes() == EXISTING
 
@@ -164,7 +165,8 @@ def test_refused_place_leaves_the_existing_file_untouched(blocked):
 @code("SRC0052")
 @negative
 def test_refused_place_leaves_the_part_file_where_it_was(blocked):
-    """The .part file stays where it was, with its bytes."""
+    """When placing a download is refused because a file is already at the final name,
+    the .part file stays where it was, with its bytes."""
     _, staged = blocked
     assert staged.partial.read_bytes() == CONTENT
 

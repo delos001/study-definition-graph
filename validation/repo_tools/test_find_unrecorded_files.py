@@ -213,7 +213,7 @@ def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
 @negative
 def test_part_file_is_reported(repo, capsys):
     """An unfinished .part download under inputs/ is reported as unrecorded, since
-    the acquire workflow did not get to finish it."""
+    acquire_sources did not get to finish it."""
     repo.file("inputs/set_a/other.txt.part", b"half")
     outcome = run(capsys)
     assert outcome.exit_code == 10

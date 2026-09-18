@@ -6,10 +6,10 @@ Description: Checks for the validation-report writer in validation/conftest.py. 
              when pytest said the run failed.
 
              Each check builds a tiny throwaway test suite in a temporary
-             folder (using pytest's own "pytester" helper), gives it a copy of
-             validation/conftest.py, runs pytest on it as a separate process with
-             --validation-report pointed at a temporary folder, and reads the
-             CSV report that comes out. Nothing is written under
+             folder, using pytest's own pytester helper, and gives it a copy of
+             validation/conftest.py. It then runs pytest on that suite as a
+             separate process, with --validation-report pointed at a temporary
+             folder, and reads the CSV report that comes out. Nothing is written under
              validation/reports/.
 
 Inputs:      validation/conftest.py   (read-only; copied into each throwaway suite)
@@ -51,7 +51,7 @@ code = pytest.mark.code
 #######################################################################################
 ### Shared staging ###
 #
-# One helper runs a throwaway suite with the real conftest beside it, and one reads
+# One helper runs a throwaway suite with the real validation/conftest.py beside it, and one reads
 # the report back as rows.
 
 
@@ -389,8 +389,8 @@ def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
 @code("TST0012")
 @positive
 def test_fixture_sha256s_names_each_fixture_file_with_its_hash(pytester, monkeypatch):
-    """The fixture_sha256s column names each file in the fixtures folder beside the
-    conftest with its sha256, so a report says the exact bytes the checks ran on."""
+    """The fixture_sha256s column names each file in the fixtures folder beside
+    validation/conftest.py with its sha256, so a report says the exact bytes the checks ran on."""
     content = b"fixture bytes\n"
     fixtures = pytester.path / "fixtures"
     fixtures.mkdir()

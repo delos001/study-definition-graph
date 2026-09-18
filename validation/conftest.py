@@ -34,10 +34,10 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check with its code, its kind, what it proves (its
-                 docstring's first paragraph), its own outcome and, when that is not
-                 passed, the reason: the assertion message, the step that broke, or
-                 why it was skipped.
+                 one row per check. A row holds the check's code, its kind, what it
+                 proves, which is its docstring's first paragraph, its own outcome,
+                 and the reason when that is not passed: the assertion message, the
+                 step that broke, or why it was skipped.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:

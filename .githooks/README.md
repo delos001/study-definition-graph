@@ -4,7 +4,7 @@ This folder holds the git hooks for this repo.
 
 A git hook runs when git does something and it runs for anyone who commits from any tool.
 
-It is enabled once per clone with `git config core.hooksPath .githooks`, which the README's setup section includes. Claude Code hooks, which run around Claude's own tool calls, are a different thing and live in `.claude/`.
+It is enabled once per clone with `git config core.hooksPath .githooks`, which the setup section of the root `README.md` includes. Claude Code hooks, which run around Claude's own tool calls, are a different thing and live in `.claude/`.
 
 - The header, index and inventory checks, `repo_tools/verify_headers.py`, `repo_tools/build_index.py` and `repo_tools/build_inventory.py`, use only the standard library, so they run from any terminal.
 

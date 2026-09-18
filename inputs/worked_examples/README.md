@@ -1,6 +1,6 @@
 # inputs/worked_examples/
 
-CDISC's worked examples for USDM v4.0: real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same forms. Pinned to commit `aa303cb` of the Digital Data Flow reference architecture repository (DDF-RA); the manifest is `manifests/usdm_examples.json`.
+This folder holds CDISC's worked examples for USDM v4.0, real protocols that CDISC staff mapped into USDM by hand. Each study has its own folder holding the same forms. They are pinned to commit `aa303cb` of the Digital Data Flow reference architecture repository (DDF-RA); the manifest is `manifests/usdm_examples.json`.
 
 | Form | What it is |
 | --- | --- |
@@ -14,13 +14,13 @@ CDISC's worked examples for USDM v4.0: real protocols that CDISC staff mapped in
 | A type 2 diabetes study, NCT03421379 | `EliLilly_NCT03421379_Diabetes/` |
 | A Wilson's disease study, NCT04573309 | `Alexion_NCT04573309_Wilsons/` |
 
-These serve as the first answer keys, with a caveat: a worked example is one person's interpretation and can be wrong, so scoring must be able to flag a suspect reference rather than penalize a correct extraction that disagrees with it (`eval/README.md`).
+These serve as the first answer keys, with a caveat. A worked example is one person's interpretation and can be wrong, so scoring must be able to flag a suspect reference rather than penalize a correct extraction that disagrees with it; `eval/README.md` says the same.
 
 CDISC ships two further examples in the same folder, Devices and Observational, which are not held. CDISC's own description [1]:
 
 > In addition, two temporary examples have been included with release 3.10.2. The data contained within the example is test data and not taken from an existing protocol. These files will be replaced with a realistic example as we pass through public review for USDM v4.
 
-Which file answers which question: `docs/sources_index.md`.
+`docs/sources_index.md` says which file answers which question.
 
 ## References
 

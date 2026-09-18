@@ -10,8 +10,8 @@ Description: Confirms the project's Neo4j database is running, accepts the login
              then compares the answer with the image tag in docker-compose.yml.
              Reaching the database and logging in are proven on the way, because
              the question cannot be asked otherwise. The version comparison is
-             the point: the compose file pins the version so a failure can be
-             attributed, and a container started outside the compose file, for
+             the point. The compose file pins the version so a failure can be
+             attributed. A container started outside the compose file, for
              example from the run button in Docker Desktop, does not carry that
              pin.
 

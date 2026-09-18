@@ -70,7 +70,7 @@ INDEX_PATH = SCRIPTS_DIR / "README.md"
 #######################################################################################
 ### Settings ###
 
-# Every field the writing_python_files rule requires. Presence is checked for all of them, though
+# Every field .claude/rules/writing_python_files.md requires. Presence is checked for all of them, though
 # only Description and Usage are printed. Checking the full set is the point: a
 # script that documents what it does but not what it writes still fails.
 REQUIRED_FIELDS = (

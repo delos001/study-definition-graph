@@ -156,9 +156,9 @@ def main(argv: list[str] | None = None) -> int:
         for entry in manifest.entries:
             # A file already on disk is checked, never replaced. A mismatch is
             # a decision for a person, so it is reported and left alone. So is
-            # a path that cannot be read at all, a folder where a file should
-            # be or a workbook Excel has locked: the run carries on and the
-            # exit code says a person has to look.
+            # a path that cannot be read at all, such as a folder where a file
+            # should be or a workbook Excel has locked. The run carries on, and
+            # the exit code says a person has to look.
             if entry.path.exists():
                 if entry.path.is_dir():
                     say(

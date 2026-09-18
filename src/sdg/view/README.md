@@ -1,6 +1,6 @@
 # src/sdg/view/
 
-Show a person what is inside a pinned document, a PDF section or a workbook sheet, from the terminal. Both commands open their files read-only and write nothing.
+This folder shows a person what is inside a pinned document, a PDF section or a workbook sheet, from the terminal. Both commands open their files read-only and write nothing.
 
 | File | What it does |
 | --- | --- |

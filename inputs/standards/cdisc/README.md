@@ -1,6 +1,6 @@
 # inputs/standards/cdisc/
 
-Standards published by CDISC.
+This folder holds the standards CDISC publishes.
 
 | Folder | What it holds |
 | --- | --- |

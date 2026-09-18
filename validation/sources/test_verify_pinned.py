@@ -252,8 +252,10 @@ def test_locked_file_passes_the_operating_systems_error_through(
 ):
     """A recorded file that is on disk but cannot be opened raises PermissionError
     unchanged, naming the path, rather than being wrapped as a mismatch or a missing
-    file. The operating system's refusal is staged by replacing the file open, since
-    a real lock cannot be made reliably inside a check."""
+    file.
+
+    The operating system's refusal is staged by replacing the file open, since a
+    real lock cannot be made reliably inside a check."""
     import pathlib
 
     real_open = pathlib.Path.open

@@ -125,9 +125,9 @@ acquire_sources --dry-run
 # Confirms nothing exists in inputs/ that a manifest does not record.
 python repo_tools/find_unrecorded_files.py
 
-# Recomputes every number (e.g. page count, class count) stated in the project's documents
-# (e.g. README.md, PLAN.md, CLAUDE.md, and docs/) from the pinned documents under inputs/
-# and reports any figure that no longer agrees.
+# Recomputes every figure the project's documents state, such as a class count, from
+# the pinned files under inputs/, and reports any figure that no longer agrees. The
+# documents it reads are listed in the script.
 python repo_tools/check_facts.py
 
 # Confirms the pinned USDM model file inputs/standards/cdisc/usdm_v4/dataStructure.yml

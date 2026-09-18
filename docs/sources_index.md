@@ -1,6 +1,6 @@
 # Sources
 
-Which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group.
+This map says which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group.
 
 The reading commands run from the repo root in the `sdg` environment. `read_pdf` opens only the documents listed in `src/sdg/view/lookup_documents.yml`, which also says which documents belong there. `read_xlsx` finds any workbook under `inputs/` by part of its name.
 
@@ -196,7 +196,7 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 The M11 documents have no bookmarks, so `read_pdf` reaches them only by search term or page range, never by section number.
 
 ### Document: ICH_Step4_M11_Final_Template_2025_1119.pdf
-- purpose: The protocol template itself: the sections a protocol has and what goes in each.
+- purpose: The protocol template itself. It says which sections a protocol has and what goes in each.
 - commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
@@ -238,7 +238,7 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ## Not held
 
-Resources that were looked at and not pinned. Listed so the same question is not asked twice.
+These resources were looked at and not pinned. They are listed so the same question is not asked twice.
 
 ### Used live, not pinned
 

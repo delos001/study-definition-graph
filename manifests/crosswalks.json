@@ -9,7 +9,7 @@
   "retrieved": "2026-08-17",
   "local_dir": "inputs/standards/crosswalks",
   "notes": {
-    "caveat": "CDISC's Documents/README.md at the pinned commit describes these as provisional and written against USDM v3.1x. That README is stale: both files declare USDM v4.0.0 in their own Readme sheet, verified 2026-08-17. m11_mapping is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching USDM-IG p.8. ct-gov_mapping carries a \"v4.0 Change\" column. The quoted passage and its url are in the README beside these files.",
+    "caveat": "CDISC's Documents/README.md at the pinned commit describes these as provisional and written against USDM v3.1x. That README is stale. Both files declare USDM v4.0.0 in their own Readme sheet, verified 2026-08-17. m11_mapping is aligned to the M11 Updated Step 2 Draft of 14 March 2025, matching USDM-IG p.8. ct-gov_mapping carries a \"v4.0 Change\" column. The quoted passage and its url are in inputs/standards/crosswalks/README.md.",
     "excluded": "ctis_mapping.xlsx (the European Union's registry, out of scope), cpt_mapping.xlsx (authoring template our sources do not use), sdtm_mapping.xlsx (USDM to the Study Data Tabulation Model, SDTM; downstream and opposite direction)."
   },
   "files": [

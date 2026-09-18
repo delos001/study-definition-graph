@@ -1,6 +1,6 @@
 # validation/
 
-- conftest.py: pytest's shared setup for every test file below; stages the throwaway repo, adds --validation-report, writes the validation report into reports/
+- conftest.py: pytest's shared setup for every test file below; stages a pretend repo in a temporary folder, adds --validation-report, writes the validation report into reports/
 - test_validation_report.py: validates the report-writer in conftest.py
 - test_console_output.py: validates src/sdg/console_output.py
 - exit_codes.csv: the repo-wide exit-code table, one row per code
@@ -16,7 +16,7 @@
 - test_fetch_file.py: validates src/sdg/sources/fetch_file.py
 - test_fingerprint_file.py: validates src/sdg/sources/fingerprint_file.py
 - test_finalize_file.py: validates src/sdg/sources/finalize_file.py
-- test_write_manifests.py: validates src/sdg/sources/write_manifests.py - pending
+- test_write_manifests.py: validates src/sdg/sources/write_manifests.py; not yet written
 
 ## usdm/
 - test_usdm_spec.py: validates src/sdg/usdm/usdm_spec.py

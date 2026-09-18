@@ -293,18 +293,31 @@ def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
     assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
 
 
-@code("HRS0103")
-@positive
-def test_quiet_prints_nothing_and_keeps_the_exit_code(repo, fake_repo, capsys):
-    """With the quiet option nothing is printed, and the exit code still reports the
-    file no heading covers."""
+@pytest.fixture
+def quiet_with_a_forgotten_file(repo, fake_repo, capsys):
+    """Stage a recorded file the map does not cover, run the tool with the quiet
+    option, and hand back what the run produced."""
     fake_repo.file("inputs/standards/example/Forgotten.xlsx", CONTENT)
     fake_repo.manifest(
         "extra", [fake_repo.entry("inputs/standards/example/Forgotten.xlsx")]
     )
-    outcome = run(capsys, MAP, "--quiet")
-    assert outcome.exit_code == 35
-    assert outcome.printed == ""
+    return run(capsys, MAP, "--quiet")
+
+
+@code("HRS0103")
+@positive
+def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
+    """With the quiet option, nothing is printed even when a recorded file has no
+    heading in the map."""
+    assert quiet_with_a_forgotten_file.printed == ""
+
+
+@code("HRS0153")
+@positive
+def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
+    """With the quiet option, the exit code still reports the recorded file that has
+    no heading in the map."""
+    assert quiet_with_a_forgotten_file.exit_code == 35
 
 
 #######################################################################################
@@ -319,6 +332,6 @@ def test_quiet_prints_nothing_and_keeps_the_exit_code(repo, fake_repo, capsys):
 @code("HRS0104")
 @positive
 def test_the_real_map_and_manifests_agree():
-    """The repo's own sources map names every file its manifests record, and every
+    """The repo's own sources map, docs/sources_index.md, names every file its manifests record, and every
     location it names holds recorded files."""
     assert script.main(["--quiet"]) == 0
