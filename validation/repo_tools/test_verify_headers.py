@@ -176,14 +176,6 @@ def test_quiet_prints_nothing(folder, capsys):
     assert outcome.printed == ""
 
 
-@code("HRS0046")
-@objective("conformance")
-def test_real_folders_pass():
-    """Every Python file in the real code folders has a complete header, which
-    is the run the pre-commit hook makes."""
-    assert script.main(["--quiet"]) == 0
-
-
 #######################################################################################
 ### Negative checks ###
 #
@@ -276,18 +268,6 @@ def test_unparseable_outranks_incomplete(folder, capsys):
     assert outcome.exit_code == 19
     assert "alpha.py: cannot parse" in outcome.printed
     assert "beta.py: no module docstring" in outcome.printed
-
-
-@code("HRS0079")
-@objective("agreement")
-def test_all_four_code_folders_are_checked():
-    """The checker covers every folder .claude/rules/writing_python_files.md names, so a file added
-    under any of them is held to the header block like any other."""
-    covered = {
-        folder.relative_to(script.REPO_ROOT).as_posix()
-        for folder in script.CHECKED_FOLDERS
-    }
-    assert covered == {"src/sdg", "repo_tools", "validation", ".claude/hooks"}
 
 
 #######################################################################################
@@ -595,3 +575,56 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
     assert outcome.exit_code == 34
     assert "exit code 8 is returned by main()" in outcome.printed
     assert "exit code 8 says" in outcome.printed
+
+
+#######################################################################################
+### Checks on the real repo ###
+#
+# These read the real code folders. The header block is held to its rule, the exit
+# codes a header lists are held to the table and to main(), and the checker is held to
+# the folders the rule names.
+
+
+@code("HRS0046")
+@objective("conformance")
+def test_real_headers_follow_the_rule():
+    """Every Python file in the real code folders has a header block with the eight
+    fields in order and a valid Date, as .claude/rules/writing_python_files.md
+    requires."""
+    table = script.exit_code_table()
+    problems = {
+        path.relative_to(script.REPO_ROOT).as_posix(): script.problems_in(path, table)[
+            0
+        ]
+        for path in script.files_to_check()
+    }
+    assert {name: found for name, found in problems.items() if found} == {}
+
+
+@code("HRS0170")
+@objective("agreement")
+def test_real_exit_codes_agree_with_the_table_and_main():
+    """In every Python file in the real code folders, each exit code the header lists
+    opens with the wording validation/exit_codes.csv gives it, and each code main()
+    returns as a plain number is listed."""
+    table = script.exit_code_table()
+    problems = {
+        path.relative_to(script.REPO_ROOT).as_posix(): script.problems_in(path, table)[
+            1
+        ]
+        for path in script.files_to_check()
+    }
+    assert {name: found for name, found in problems.items() if found} == {}
+
+
+@code("HRS0079")
+@objective("agreement")
+def test_all_four_code_folders_are_checked():
+    """The checker covers the four folders .claude/rules/writing_python_files.md names,
+    so a file added under any of them is held to the header block like any other. The
+    check compares with its own copy of the four, not with the rule file itself."""
+    covered = {
+        folder.relative_to(script.REPO_ROOT).as_posix()
+        for folder in script.CHECKED_FOLDERS
+    }
+    assert covered == {"src/sdg", "repo_tools", "validation", ".claude/hooks"}

@@ -32,7 +32,7 @@ import json
 import pytest
 
 import check_facts as cf
-from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
+from sdg.sources.read_manifests import ManifestError, NotInRepoError
 from sdg.sources.verify_pinned import IntegrityError, UnrecordedFileError
 from sdg.usdm.usdm_spec import PINNED_LOCAL, SpecShapeError
 
@@ -46,27 +46,14 @@ code = pytest.mark.code
 objective = pytest.mark.objective
 
 
-def corpus_is_present() -> bool:
-    """Say whether every pinned file the real run reads is on disk.
-
-    The run reads the pinned files its measurements need: the USDM model file, a USDM export under each worked
-    example, and the concepts workbook, whose path the manifest owns. A check that
-    skipped on the first alone would fail on the other two instead of skipping.
-    """
-    if not (cf.REPO_ROOT / PINNED_LOCAL).exists():
-        return False
-    if not any(cf.EXAMPLES.glob("*/*.json")):
-        return False
-    try:
-        entry = entry_named("cdisc_biomedical_concepts_latest.xlsx")
-    except (ManifestError, NotInRepoError):
-        return False
-    return entry is not None and entry.path.exists()
-
-
-needs_pinned_file = pytest.mark.skipif(
-    not corpus_is_present(),
-    reason="pinned corpus not downloaded; run acquire_sources",
+# The real run reads the pinned files its measurements need: the USDM model file, the
+# USDM export under each worked example, and the concepts workbook.
+# validation/conftest.py skips the real-run check when any of them is not downloaded
+# or no longer matches its manifest entry.
+needs_pinned_file = pytest.mark.needs_pinned(
+    PINNED_LOCAL,
+    "inputs/worked_examples/*/*.json",
+    "inputs/standards/cdisc/biomedical_concepts_*/cdisc_biomedical_concepts.xlsx",
 )
 
 
@@ -285,7 +272,9 @@ def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsy
 @objective("agreement")
 @needs_pinned_file
 def test_real_documents_match_real_corpus():
-    """Against the pinned corpus and the committed documents, every stated
-    figure re-derives: exit 0. This is the same run the root README.md asks for after
-    setup, and it proves every pinned file the script reads still verifies."""
+    """Against the pinned files and the committed documents, every stated figure
+    re-derives: exit 0. This is the same run the root README.md asks for after setup.
+    The pinned files it reads must match their manifest entries before a figure can
+    be trusted, so a changed one skips this check as blocked rather than failing
+    it."""
     assert cf.main([]) == 0

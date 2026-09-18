@@ -59,14 +59,24 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - @positive, on a behavior check, means a working situation where
                  the code is expected to succeed,
                - @negative, on a behavior check, means a broken situation where
-                 the code is expected to refuse for the right reason.
+                 the code is expected to refuse for the right reason,
+               - @needs_pinned names the real pinned files a check reads.
+
+             Before a check marked @needs_pinned runs, each pinned file it names is
+             looked at. The check is skipped, with the reason recorded, when a file
+             is not downloaded or when it no longer matches its manifest entry. The
+             second case is called blocked. Only the stability check for that file
+             fails, so one changed file is reported as one failure, not as a
+             failure of every check that reads it.
 
              It also enables pytest's own "pytester" helper, which the report-writer's
              tests use to run small throwaway suites.
 
 Inputs:      git (for the commit hash and user name; read-only)
-             manifests/cdisc_usdm_v4.json (read-only; the pinned data version)
-             inputs/standards/cdisc/usdm_v4/dataStructure.yml (existence checked only)
+             manifests/*.json (read-only; the pinned data version, and the entries
+                 the @needs_pinned files are looked up in)
+             inputs/** (read-only; only the files a @needs_pinned check names, which
+                 are measured)
              validation/fixtures/* (read-only; hashed)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
@@ -92,6 +102,8 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import fnmatch
+import functools
 import hashlib
 import json
 import platform
@@ -394,7 +406,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Tell pytest about the markers the checks use: positive, negative and code.
+    """Tell pytest about the markers the checks use: code, objective, positive, negative
+    and needs_pinned.
 
     A marker is a label a check carries. pytest warns about a label it has not been told
     about, so each is declared here with a sentence saying what it means.
@@ -422,6 +435,103 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "code(id): the check's id in validation/validation_inventory.csv"
     )
+    config.addinivalue_line(
+        "markers",
+        "needs_pinned(*paths): the real pinned files the check reads, each written as "
+        "a manifest writes it, where * stands for any run of characters",
+    )
+
+
+#######################################################################################
+### Pinned files a check depends on ###
+#
+# A check that reads real pinned files names them with @needs_pinned. Before the check
+# runs, every file that matches is looked at, and the check is skipped with the
+# reason when one is not downloaded or no longer matches its manifest entry. A
+# skipped check is recorded as skipped in a report, with that reason. The stability
+# check for each pinned file, in validation/sources/test_verify_pinned.py, is the only
+# check that fails for a changed file, so the change is reported once. A marker that
+# names a file no manifest records is a mistake in the check, so that check errors
+# rather than skips, and the run fails.
+
+
+class UnmatchedPatternError(Exception):
+    """A @needs_pinned marker names a file that no manifest records."""
+
+
+def pinned_skip_reason(pattern: str) -> str | None:
+    """Say why a check that reads the pinned files matching a pattern cannot run.
+
+    The pattern is a path as a manifest writes it, where * stands for any run of
+    characters. Each manifest entry whose path matches is looked at in turn, and the
+    first problem found is the answer.
+
+    Args:
+        pattern: The pinned file or files the check reads.
+
+    Returns:
+        None when every matching file is on disk and matches its entry. Otherwise the
+        reason: a file is not downloaded, or a file no longer matches its entry,
+        which is reported as blocked.
+
+    Raises:
+        UnmatchedPatternError: No manifest records a file matching the pattern.
+        NotInRepoError: The sdg package is not running from inside its repo.
+        ManifestError: A manifest is missing or cannot be read.
+    """
+    # Imported here rather than at the top, so the report can still be written when
+    # the sdg package itself is broken.
+    from sdg.sources.fingerprint_file import compare
+    from sdg.sources.read_manifests import manifests
+
+    matched = [
+        entry
+        for manifest in manifests()
+        for entry in manifest.entries
+        if fnmatch.fnmatchcase(entry.local, pattern)
+    ]
+    if not matched:
+        raise UnmatchedPatternError(
+            f"no manifest records a file matching {pattern}; "
+            "correct the @needs_pinned marker"
+        )
+    for entry in matched:
+        if not entry.path.is_file():
+            return f"not downloaded: {entry.local}; run acquire_sources"
+        if not compare(entry.path, entry).matched:
+            return (
+                f"blocked: {entry.local} does not match its manifest entry; "
+                "see the stability check for that file"
+            )
+    return None
+
+
+# Each pattern is looked at once per run, since a pinned file does not change while
+# the checks run and measuring it again for every check would only cost time.
+_cached_skip_reason = functools.cache(pinned_skip_reason)
+
+
+def pytest_runtest_setup(item):
+    """Skip a check whose pinned files are not downloaded or no longer match.
+
+    pytest calls this before it sets up each check, so the pinned files are looked at
+    before any fixture could point the manifest reader somewhere else. A marker naming
+    a file no manifest records makes the check's set-up fail instead, which pytest
+    reports as an error.
+
+    Args:
+        item: The check about to run.
+    """
+    for marker in item.iter_markers("needs_pinned"):
+        for pattern in marker.args:
+            # A pattern that matches nothing is not a state of the repo to skip on,
+            # so it is turned into a set-up failure with the message kept.
+            try:
+                reason = _cached_skip_reason(pattern)
+            except UnmatchedPatternError as exc:
+                pytest.fail(str(exc), pytrace=False)
+            if reason:
+                pytest.skip(reason)
 
 
 #######################################################################################

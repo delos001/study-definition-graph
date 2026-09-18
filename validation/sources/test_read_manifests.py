@@ -55,18 +55,6 @@ code = pytest.mark.code
 # objectives validation/README.md defines.
 objective = pytest.mark.objective
 
-# The manifests written by hand, one per pinned set. A study-document fetch,
-# not yet written, will add study manifests later, so the real-repo checks look
-# for these and do not assume they are the only ones.
-HAND_WRITTEN = {
-    "cdisc_biomedical_concepts",
-    "cdisc_usdm_v4",
-    "crosswalks",
-    "ich_e9r1",
-    "ich_m11_step4",
-    "usdm_examples",
-}
-
 # The one staged file most staged checks use, and its bytes. What the file says
 # does not matter to the reader; only that an entry can be built for it.
 LOCAL = "inputs/set_a/a.txt"
@@ -82,8 +70,9 @@ CONTENT = b"pinned bytes\n"
 
 @pytest.fixture
 def real_manifests():
-    """Reads the real manifests once and gives them back keyed by name."""
-    return {manifest.name: manifest for manifest in manifests()}
+    """Reads every real manifest, the hand-written ones and any study manifests, and
+    gives them back as a list."""
+    return manifests()
 
 
 @pytest.fixture
@@ -148,45 +137,46 @@ def test_repo_root_is_the_folder_holding_pyproject():
     assert (root / "pyproject.toml").is_file()
 
 
-@code("SRC0071")
-@objective("behavior")
-@positive
-def test_every_hand_written_manifest_is_read(real_manifests):
-    """manifests() reads every hand-written manifest."""
-    assert HAND_WRITTEN <= set(real_manifests)
-
-
-@code("SRC0072")
-@objective("conformance")
-def test_every_hand_written_manifest_lands_under_inputs(real_manifests):
-    """Every hand-written manifest says its files land under inputs/."""
-    for name in HAND_WRITTEN:
-        assert real_manifests[name].local_dir.startswith("inputs/")
-
-
-@code("SRC0073")
-@objective("conformance")
-def test_every_entry_carries_the_five_required_fields(real_manifests):
-    """Every entry in the hand-written manifests has a name, a url, a local
-    path under inputs/, a size above zero, and a 64-character sha256."""
-    for name in HAND_WRITTEN:
-        assert real_manifests[name].entries
-        for entry in real_manifests[name].entries:
-            assert entry.name
-            assert entry.url
-            assert entry.local.startswith("inputs/")
-            assert entry.bytes > 0
-            assert len(entry.sha256) == 64
-
-
 @code("SRC0074")
 @objective("behavior")
 @positive
 def test_every_entry_names_the_manifest_it_came_from(real_manifests):
     """Every entry remembers which manifest file it was read from."""
-    for name in HAND_WRITTEN:
-        for entry in real_manifests[name].entries:
-            assert entry.manifest == f"{name}.json"
+    for manifest in real_manifests:
+        for entry in manifest.entries:
+            assert entry.manifest == f"{manifest.name}.json"
+
+
+#######################################################################################
+### The real manifests follow their rules ###
+#
+# Every real manifest, including any study manifest, is held to the rules for
+# manifests: its files land under inputs/, and every entry has the five required
+# fields.
+
+
+@code("SRC0072")
+@objective("conformance")
+def test_every_manifest_lands_under_inputs(real_manifests):
+    """Every real manifest, wherever it sits under manifests/, says its files land
+    under inputs/."""
+    for manifest in real_manifests:
+        assert manifest.local_dir.startswith("inputs/"), manifest.name
+
+
+@code("SRC0073")
+@objective("conformance")
+def test_every_entry_carries_the_five_required_fields(real_manifests):
+    """Every entry in every real manifest has a name, a url, a local path under
+    inputs/, a size above zero, and a 64-character sha256."""
+    for manifest in real_manifests:
+        assert manifest.entries, manifest.name
+        for entry in manifest.entries:
+            assert entry.name
+            assert entry.url
+            assert entry.local.startswith("inputs/")
+            assert entry.bytes > 0
+            assert len(entry.sha256) == 64
 
 
 #######################################################################################

@@ -54,15 +54,33 @@ code = pytest.mark.code
 # objectives validation/README.md defines.
 objective = pytest.mark.objective
 
-# The real pinned model file and the manifest that records it. The checks against
-# them skip when the file is not downloaded, so a fresh clone still runs the rest.
+# The real pinned model file and the manifest that records it. validation/conftest.py
+# skips the checks against them when the file is not downloaded, so a fresh clone
+# still runs the rest, and when it no longer matches its manifest entry.
 PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 MANIFEST_NAME = "cdisc_usdm_v4.json"
 
-needs_pinned_file = pytest.mark.skipif(
-    not (read_manifests.REPO_ROOT / PINNED_LOCAL).exists(),
-    reason="pinned dataStructure.yml not downloaded; run acquire_sources",
-)
+needs_pinned_file = pytest.mark.needs_pinned(PINNED_LOCAL)
+
+
+def pinned_locals() -> list[str]:
+    """List every file the real manifests record, when the checks are collected.
+
+    A manifest that cannot be read gives no files here. The checks of the manifest
+    reader, in validation/sources/test_read_manifests.py, report that problem.
+
+    Returns:
+        The recorded paths, as the manifests write them.
+    """
+    try:
+        return [
+            entry.local
+            for manifest in read_manifests.manifests()
+            for entry in manifest.entries
+        ]
+    except (ManifestError, NotInRepoError):
+        return []
+
 
 # The one staged file every staged check uses, and its bytes.
 LOCAL = "inputs/set_a/file.txt"
@@ -175,6 +193,26 @@ def test_real_file_record_is_the_same_by_string_or_path():
     by_string = verify_pinned(PINNED_LOCAL)
     assert by_string == verify_pinned(PINNED_LOCAL.replace("/", "\\"))
     assert by_string == verify_pinned(read_manifests.REPO_ROOT / PINNED_LOCAL)
+
+
+#######################################################################################
+### Every pinned file is unchanged ###
+#
+# One check per pinned file, so a report names the file that changed. It is the only
+# check that fails for a changed pinned file; every other check that reads one is
+# skipped as blocked by validation/conftest.py.
+
+
+@code("SRC0128")
+@objective("stability")
+@pytest.mark.parametrize("local", pinned_locals())
+def test_pinned_file_is_unchanged(local):
+    """A pinned file on disk has the size and sha256 its manifest entry records, so it
+    is unchanged since it was pinned. A file not downloaded is skipped."""
+    try:
+        verify_pinned(local)
+    except FileNotFoundError:
+        pytest.skip(f"not downloaded: {local}; run acquire_sources")
 
 
 #######################################################################################

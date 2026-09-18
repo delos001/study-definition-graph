@@ -55,11 +55,11 @@ from sdg.usdm import usdm_spec
 FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "usdm_three_classes.yml"
 FIXTURE_CLASSES = ("Condition", "Identifier", "StudyIdentifier")
 
-# The real-file checks need the pinned download. On a clone without inputs/ they
-# skip and say why, rather than fail and hide the logic checks' results.
-needs_pinned_file = pytest.mark.skipif(
-    not usdm_spec.DEFAULT_SPEC.exists(),
-    reason="pinned dataStructure.yml not downloaded; run acquire_sources",
+# The real-file checks read the pinned model file. validation/conftest.py skips them
+# when it is not downloaded, as on a fresh clone, or when it no longer matches its
+# manifest entry, rather than fail and hide the logic checks' results.
+needs_pinned_file = pytest.mark.needs_pinned(
+    "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 )
 
 positive = pytest.mark.positive
@@ -577,40 +577,21 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 @code("USD0027")
 @objective("agreement")
 @needs_pinned_file
-def test_pinned_file_verifies_and_loads():
-    """The pinned dataStructure.yml matches its manifest checksum, and passes both
-    shape checks, on the real thing."""
-    assert usdm_spec.load()
-
-
-@code("USD0028")
-@objective("stability")
-@needs_pinned_file
-def test_pinned_file_has_86_classes_80_concrete():
-    """The pinned model holds 86 classes, 80 concrete and 6 abstract; the 80 is the
-    figure docs/standards_read_record.md states and repo_tools/check_facts.py re-derives."""
-    spec = usdm_spec.load()
-    names = usdm_spec.class_names(spec)
-    abstract = [n for n in names if usdm_spec.is_abstract(spec, n)]
-    assert len(names) == 86
-    assert len(abstract) == 6
-    assert abstract == [
-        "Identifier",
-        "PopulationDefinition",
-        "QuantityRange",
-        "ScheduledInstance",
-        "StudyDesign",
-        "SyntaxTemplate",
-    ]
+def test_pinned_file_is_shaped_the_way_the_loader_expects():
+    """The pinned dataStructure.yml passes the loader's two shape checks, so what
+    src/sdg/usdm/usdm_spec.py expects of USDM v4 matches the real file. The file is
+    read without the checksum step, which the stability check for it covers."""
+    assert usdm_spec.load(verify=False)
 
 
 @code("USD0029")
 @objective("agreement")
 @needs_pinned_file
 def test_pinned_file_types_are_classes_or_five_primitives():
-    """Every attribute type in the pinned model is either a class in the model or
-    one of five primitives (string, boolean, integer, float, date), and exactly
-    four attributes reference more than one type, as targets() documents."""
+    """Every attribute type in the pinned model is a class in the model or one of
+    the five primitives the docstring of targets() names, and exactly four
+    attributes reference more than one type. The check compares with its own copy of
+    the five and the four, not with the docstring itself."""
     spec = usdm_spec.load()
     primitives = set()
     multi = []
