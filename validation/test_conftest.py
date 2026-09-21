@@ -202,6 +202,61 @@ def test_a_skipped_check_is_shown_as_skipped_with_its_reason(passing):
     assert left_out["outcome_reason"] == "not today"
 
 
+# One suite with a parametrized check, which pytest runs once per value.
+PARAMETRIZED_SUITE = '''
+    import pytest
+
+    @pytest.mark.code("XYZ0002")
+    @pytest.mark.category("repository")
+    @pytest.mark.objective("correctness")
+    @pytest.mark.positive
+    @pytest.mark.parametrize("value", ["first", "second"])
+    def test_each_value(value):
+        """Each value is accepted."""
+        assert value
+
+    @pytest.mark.code("XYZ0003")
+    @pytest.mark.category("repository")
+    @pytest.mark.objective("correctness")
+    @pytest.mark.positive
+    def test_plain():
+        """A check with no parameter."""
+    '''
+
+
+@pytest.fixture
+def parametrized(pytester, monkeypatch):
+    """Run a suite with one parametrized check and one plain check, and hand back the
+    report's rows."""
+    result, out = run_suite(pytester, monkeypatch, PARAMETRIZED_SUITE)
+    assert result.ret == 0
+    return the_report(out)
+
+
+@code("TST0019")
+@category("repository")
+@objective("correctness")
+@positive
+def test_a_parametrized_check_gets_one_row_per_value_with_the_value_in_its_own_column(
+    parametrized,
+):
+    """A parametrized check gets one row per value, each carrying the function name
+    alone in name, the same as the inventory's, and pytest's id for the value in
+    parameter."""
+    rows = [r for r in parametrized if r["id"] == "XYZ0002"]
+    assert [r["name"] for r in rows] == ["test_each_value", "test_each_value"]
+    assert [r["parameter"] for r in rows] == ["first", "second"]
+
+
+@code("TST0020")
+@category("repository")
+@objective("correctness")
+@positive
+def test_a_check_without_parameters_has_an_empty_parameter(parametrized):
+    """A check that is not parametrized gets an empty parameter column."""
+    assert row_for(parametrized, "test_plain")["parameter"] == ""
+
+
 @code("TST0002")
 @category("repository")
 @objective("correctness")

@@ -34,12 +34,12 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check. A row holds the check's id, its category, its
-                 objective, its case when it is a correctness check that staged
-                 its own situation, its expected result,
-                 which is its docstring's first paragraph, its own outcome, and the
-                 reason when that is not passed: the assertion message, the step
-                 that broke, or why it was skipped.
+                 one row per check. A row holds the check's id, its name, its
+                 parameter when it has one, its category, its objective, its case
+                 when it is a correctness check that staged its own situation, its
+                 expected result, which is its docstring's first paragraph, its own
+                 outcome, and the reason when that is not passed: the assertion
+                 message, the step that broke, or why it was skipped.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
@@ -593,7 +593,8 @@ def pytest_runtest_makereport(item, call):
         {
             "file": Path(str(item.fspath)),
             "code": _code(item),
-            "name": item.name,
+            "name": item.originalname,
+            "parameter": _parameter(item),
             "category": _category(item),
             "objective": _objective(item),
             "case": _case(item),
@@ -638,6 +639,24 @@ def _code(item) -> str:
     """
     marker = item.get_closest_marker("code")
     return str(marker.args[0]) if marker and marker.args else ""
+
+
+def _parameter(item) -> str:
+    """Read the parameter pytest ran a check with.
+
+    A parametrized check runs once per value, and pytest names each run with the
+    value in brackets after the function name. The report keeps the function name
+    in its own column, the same as the inventory's, and the value here, so a reader
+    can filter on either.
+
+    Args:
+        item: The check.
+
+    Returns:
+        pytest's id for the parameter, or an empty string when the check has none.
+    """
+    callspec = getattr(item, "callspec", None)
+    return str(callspec.id) if callspec is not None else ""
 
 
 def _category(item) -> str:
@@ -794,25 +813,27 @@ def pytest_sessionstart(session):
     _started_at = time.monotonic()
 
 
-# The columns of a report, in the order they are written: what each check proved
-# comes first, then what the run was, then the technical details a reader needs
-# only to reproduce a failure. The check columns carry the same names as
-# validation/validation_inventory.csv, so a row joins to it by id.
+# The columns of a report, in the order they are written: the run's id and
+# verdict, then the inventory's columns in the inventory's own order with the
+# parameter beside the name, then how the check ended, then the details a reader
+# needs only to reproduce a failure. The inventory's columns carry its names, so a
+# row joins to it by id.
 REPORT_COLUMNS = (
     "run_id",
     "run_verdict",
-    "id",
-    "name",
     "category",
     "objective",
     "staged_case",
+    "folder_path",
+    "file_name",
+    "name",
+    "parameter",
+    "id",
+    "target_folder_path",
+    "target_file_name",
     "expected_result",
     "outcome",
     "outcome_reason",
-    "folder_path",
-    "file_name",
-    "target_folder_path",
-    "target_file_name",
     "pytest_exit_status",
     "exit_meaning",
     "started",
@@ -949,6 +970,7 @@ def pytest_sessionfinish(session, exitstatus):
                         **per_file,
                         "id": outcome["code"],
                         "name": outcome["name"],
+                        "parameter": outcome["parameter"],
                         "category": outcome["category"],
                         "objective": outcome["objective"],
                         "staged_case": outcome["case"],
@@ -970,6 +992,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "target_file_name": "",
                 "id": "",
                 "name": "",
+                "parameter": "",
                 "category": "",
                 "objective": "",
                 "staged_case": "",

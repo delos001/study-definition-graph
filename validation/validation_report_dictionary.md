@@ -1,6 +1,8 @@
 # Validation report dictionary
 
-Defines every column of a validation report and every value a coded column may hold. A report is written by `pytest --validation-report` into `reports/`, one CSV file per run named `run_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `conftest.py`; nothing in a report is typed by hand.
+Defines every column of a validation report and every value a coded column may hold.
+
+A report is written by `pytest --validation-report` into `reports/`, one CSV file per run named `run_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `conftest.py`; nothing in a report is typed by hand.
 
 The check columns carry the same names as `validation_inventory.csv`, so a row joins to the inventory by `id`. Their definitions are in `validation_inventory_dictionary.md` and are not repeated here.
 
@@ -16,10 +18,15 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Read by the writer from pytest's exit status.
 - Holds one of the verdicts below.
 
-### `id`, `name`, `category`, `objective`, `staged_case`, `expected_result`
-- Same as in the inventory, defined in `validation_inventory_dictionary.md`.
-- Read by the writer from the check's markers and docstring at run time, not from the inventory.
-- `expected_result` holds `(no docstring)` when the check has none.
+### `category`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
+- Same as in the inventory, in the inventory's order, defined in `validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
+- Read by the writer from the check's markers, docstring and file path at run time, not from the inventory.
+- `expected_result` holds `(no docstring)` when the check has none, and `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
+
+### `parameter`
+- Says which value a parametrized check ran with, since pytest runs such a check once per value and the report has one row per run.
+- Read by the writer from pytest's id for the value.
+- Holds the id, such as a pinned file's path for the fixity check, or nothing when the check has no parameters.
 
 ### `outcome`
 - Says how the check ended.
@@ -30,11 +37,6 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Says why the outcome is not passed.
 - Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
 - Holds one line, or nothing when the check passed.
-
-### `folder_path`, `file_name`, `target_folder_path`, `target_file_name`
-- Same as in the inventory, defined in `validation_inventory_dictionary.md`.
-- Read by the writer from the test file's path, by the same rule the generator uses.
-- `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
 
 ### `pytest_exit_status`
 - Records pytest's exit number for the run.
