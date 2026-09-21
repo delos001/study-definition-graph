@@ -13,8 +13,7 @@ Instructions for running the validation checks are under How to run, at the end 
 
 Support files are the machinery and records the validation checks rely on.
 - `validation_inventory.csv`
-  - Lists every check, one row per check.
-  - Records what each check looks at, and why it exists.
+  - Lists every check, one row per check, records what each check looks at, and why it exists.
   - Written by `python repo_tools/build_inventory.py`.
   - Its columns are defined in `validation_inventory_dictionary.csv`, and the terms it uses under Objectives and Terms the inventory uses below.
   - To change a value, edit its source, which the `source` column of the dictionary names, then run `python repo_tools/build_inventory.py`.
@@ -62,50 +61,15 @@ These are validation files like the ones in the folders. They sit at the top lev
 
 ## Objectives
 
-An objective is why a check exists. It is not what the check looks at, because the same file can be checked for different reasons. How a check is set up, what fixes a failure and who fixes it all follow from its objective. Every check has exactly one.
+An objective is why a check exists.
 
-These objectives are in use.
-
-- **behavior** answers whether the code does what it promises when it runs, and refuses what it should refuse.
-  - The check sets up the situation itself, and it states the exact expected result itself.
-  - A check against real documents, real pipeline output or a reference a person built is not a behavior check, even when it runs the code.
-  - Speed is not part of behavior. It belongs to performance.
-  - A failure is fixed by correcting the code.
-- **stability** answers whether something is unchanged since it was recorded.
-  - The check compares one thing with itself at two points in time, usually through the checksum a manifest records. In digital preservation this is called a fixity check.
-  - Any difference is a problem.
-  - A failure is fixed by restoring the recorded version, or by deciding to record a new one, which is a re-pin.
-- **agreement** answers whether two things that must correspond actually do.
-  - The check compares two different things at the same moment, where one is generated from the other or must match it. An example is `repo_tools/README.md` and the script headers it is generated from.
-  - It does not matter whether the two matched before.
-  - A failure is fixed by regenerating or correcting the side that is out of line.
-- **conformance** answers whether something follows the rule or standard it is held to.
-  - The check compares one thing with a written rule. Examples are the header layout in `.claude/rules/writing_python_files.md` and the fields every manifest entry must have.
-  - A failure is fixed by changing the thing to meet the rule.
-
-These objectives are defined but not in use yet.
-
-- **accuracy** answers how close the pipeline's output is to the expected answer.
-  - The check compares output from real documents with a reference a person built, such as the answer keys in `eval/`.
-  - The result is a score, such as precision and recall per case, judged against a threshold agreed before testing.
-  - The reference itself can be wrong. A miss is investigated first, because the cause may be the prompt, the retrieval or the reference.
-- **performance** answers whether the code is fast enough, or light enough on the machine.
-  - The check measures time or resource use on a realistic input against a threshold.
-- **regression** answers whether the code's output on a fixed input has changed since the last accepted result.
-  - Unlike stability, a change is expected when the code changes.
-  - A change is judged, and it is either fixed or accepted as the new baseline.
-- **environment_readiness** answers whether the setup the project depends on is present and working.
-  - `repo_tools/check_neo4j.py` and `repo_tools/check_api_key.py` answer this today when a person runs them.
-  - A check with this objective would run against the live setup rather than a staged one.
-
-### Behavior cases
+### Behavior cases (needs new name)
 
 Every behavior check is one of two cases.
 
 - **positive** means the check sets up a working situation and expects the code to succeed.
 - **negative** means the check sets up a broken situation and expects the code to refuse it for the right reason, with the right message or exit code.
 
-The situation is anything the check controls, such as the input, the options, the files on disk or the network. A check that asserts something is absent is not negative for that reason alone. For example, checking that a deleted check's row is gone from the inventory is positive, because deleting a check is normal work and the code is expected to succeed.
 
 ## Terms the inventory uses
 
