@@ -66,7 +66,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 ### `selection`
 - Records which checks the command line selected.
 - Read by the writer from pytest's parsed arguments.
-- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters that were given, so a partial run cannot pass for a full one.
+- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--objective`, `--id` and `--group` options that were given, so a partial run cannot pass for a full one.
 
 ### `check_file_sha256`
 - Fingerprints the test file the check came from.

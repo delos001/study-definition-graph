@@ -378,10 +378,12 @@ def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
 @objective("correctness")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
-    """Rows are grouped in the pipeline's order, sources first and the checks for the report writer in validation/conftest.py
-    last, whatever order the files are found in."""
+    """Rows are grouped in the pipeline's order, sources first and the checks for
+    validation's own files, such as validation/conftest.py, last, whatever order the
+    files are found in."""
     inventory = tests_folder(
         {
+            "conftest.py": '"""The record writer."""\n',
             "test_conftest.py": TWO_CHECKS.replace("ABC", "TTT"),
             "repo_tools/test_alpha.py": TWO_CHECKS.replace("ABC", "SSS"),
             "sources/test_beta.py": TWO_CHECKS,
@@ -405,12 +407,34 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
 def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
     tests_folder, capsys
 ):
-    """A test file at the top level of validation/, other than validation/test_conftest.py,
-    targets the file of the same name at the top of src/sdg/."""
+    """A test file at the top level of validation/ targets the file of the same name at
+    the top of src/sdg/ when validation/ itself holds no file of that name."""
     inventory = tests_folder({"test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     first = rows_of(inventory)[0]
     assert first["target_folder_path"] == "src/sdg"
+    assert first["target_file_name"] == "alpha.py"
+
+
+@code("HRS0174")
+@category("repository")
+@objective("correctness")
+@positive
+def test_a_top_level_check_file_targets_the_validation_file_of_the_same_name(
+    tests_folder, capsys
+):
+    """A test file at the top level of validation/ targets the file of the same name in
+    validation/ itself when one is there, which is how the checks for conftest.py and
+    select_checks.py find their targets."""
+    inventory = tests_folder(
+        {
+            "test_alpha.py": TWO_CHECKS,
+            "alpha.py": '"""A file of validation\'s own."""\n',
+        }
+    )
+    assert run(capsys).exit_code == 0
+    first = rows_of(inventory)[0]
+    assert first["target_folder_path"] == "validation"
     assert first["target_file_name"] == "alpha.py"
 
 

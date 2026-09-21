@@ -32,6 +32,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import os
 import textwrap
 from pathlib import Path
 
@@ -41,6 +42,7 @@ CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(
     encoding="utf-8"
 )
 REPO_TOOLS = Path(__file__).resolve().parents[1] / "repo_tools"
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -63,15 +65,17 @@ category = pytest.mark.category
 
 
 def with_repo_tools(monkeypatch) -> None:
-    """Put repo_tools/ on the import path of the throwaway suite's process.
+    """Put repo_tools/ and the repo root on the import path of the throwaway suite's process.
 
-    The copied conftest imports the inventory generator, repo_tools/build_inventory.py, from there. The real run gets
-    that path from pyproject.toml, which the throwaway suite does not read.
+    The copied conftest imports the inventory generator, repo_tools/build_inventory.py,
+    by its bare name and the selection plugin, validation/select_checks.py, by its
+    dotted name. The real run gets both paths from pyproject.toml, which the
+    throwaway suite does not read.
 
     Args:
         monkeypatch: pytest's patcher, which puts the variable back when the check ends.
     """
-    monkeypatch.setenv("PYTHONPATH", str(REPO_TOOLS))
+    monkeypatch.setenv("PYTHONPATH", os.pathsep.join([str(REPO_TOOLS), str(REPO_ROOT)]))
 
 
 def run_suite(pytester, monkeypatch, test_source: str, *extra_args: str):
@@ -90,8 +94,15 @@ def run_suite(pytester, monkeypatch, test_source: str, *extra_args: str):
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite=textwrap.dedent(test_source))
     out = pytester.path / "reports_out"
+    # The real run loads the selection plugin from pyproject.toml, which the
+    # throwaway suite does not read, so it is named here.
     result = pytester.runpytest_subprocess(
-        "--validation-report", "--validation-report-dir", str(out), *extra_args
+        "-p",
+        "validation.select_checks",
+        "--validation-report",
+        "--validation-report-dir",
+        str(out),
+        *extra_args,
     )
     return result, out
 

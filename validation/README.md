@@ -18,6 +18,8 @@ Support files are the machinery and records the validation checks rely on.
   - Its columns, their values and how each is changed are defined in `validation_inventory_dictionary.md`.
 - `validation_inventory_dictionary.md`: Defines every column of the inventory and every value a coded column may hold.
 - `validation_report_dictionary.md`: Defines every column of a validation report and every value a coded column may hold.
+- `select_checks.py`: Adds the `--category`, `--objective`, `--id` and `--group` options to pytest. `pyproject.toml` loads it at startup.
+- `validation_groups.yml`: Names the groups of checks that `pytest --group` can run, each with its purpose and its ids.
 - `exit_codes.csv`: Holds the repo-wide table of exit codes, one row per code.
 - `conftest.py`
   - Holds pytest's shared fixtures and configuration for this folder. pytest looks for a file with exactly this name.
@@ -29,6 +31,7 @@ Support files are the machinery and records the validation checks rely on.
 These are validation files that sit at the top level because the files they validate sit at the top of their own folders.
 - `test_console_output.py`: Validates `src/sdg/console_output.py`.
 - `test_conftest.py`: Validates `conftest.py`.
+- `test_select_checks.py`: Validates `select_checks.py`.
 
 ### Folders
 
@@ -78,11 +81,19 @@ pytest -v
 ```powershell
 pytest validation/sources/<file_name>.py
 pytest -k manifest
+pytest --category sources
+pytest --objective stability --category sources
+pytest --id SRC0128,HRS0018
+pytest --group pinned
 ```
 
-- Name a test file, such as `test_fetch_file.py`, to run only its checks.
-- Use `-k`, pytest's own filter, followed by a word to run only the checks that match it.
-- A check matches when its name or its test file's name contains the word, so `-k manifest` runs every check in `test_read_manifests.py` as well as the checks elsewhere with "manifest" in their names.
+- Name a test file, such as `validation/sources/test_fetch_file.py`, to run only its checks.
+- Use `-k`, pytest's own filter, followed by a word to run only the checks whose name or file name contains it.
+- Use `--category`, `--objective` or `--id`, spelled as the inventory's columns are, to run only the checks whose value matches. Two different options narrow each other. A comma-separated list means any of the values.
+- Use `--group` to run the checks a named group in `validation_groups.yml` lists. A group is for a set that no folder, category or objective can name on its own.
+- A value that names no category, objective, group or collected check stops the run, so a typo cannot pass for a clean run of nothing.
+- Any of these can be combined with a path, and with `--validation-report`. The report's `selection` column records what was asked for.
+
 
 ### Generating a validation report
 

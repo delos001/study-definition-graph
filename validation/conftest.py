@@ -74,6 +74,11 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              fails, so one changed file is reported as one failure, not as a
              failure of every check that reads it.
 
+             The selection options, --category, --objective, --id and --group,
+             are added by validation/select_checks.py, which pyproject.toml loads
+             as a plugin at startup. The report's selection column records what
+             they asked for.
+
              It also enables pytest's own "pytester" helper, which the report-writer's
              tests use to run small throwaway suites.
 
@@ -86,7 +91,9 @@ Inputs:      git (for the commit hash and user name; read-only)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
              validation/reports/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
-             An existing name is never overwritten; it gets a numeric suffix.
+             An existing name is never overwritten; it gets a numeric suffix. A run
+             whose command line pytest refused writes nothing, because it
+             validated nothing.
 
 Usage:       pytest
                  run every test, write nothing
@@ -95,6 +102,9 @@ Usage:       pytest
              pytest --validation-report --validation-report-dir <folder>
                  same, writing to another folder (the report-writer's own
                  tests use this to write into a temporary folder)
+             pytest --category sources --validation-report
+                 run only some checks and write a report of them; the options
+                 are validation/select_checks.py's
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed, 2 interrupted,
              3 internal error, 4 bad command line, 5 no tests collected
@@ -117,6 +127,13 @@ import time
 from pathlib import Path
 
 import pytest
+from validation.select_checks import (
+    SELECTORS,
+    category_of,
+    code_of,
+    objective_of,
+    wanted,
+)
 
 # The rule that says which code file a check file proves lives in the inventory
 # generator, repo_tools/build_inventory.py, which fills the same column of the
@@ -592,11 +609,11 @@ def pytest_runtest_makereport(item, call):
         item.nodeid,
         {
             "file": Path(str(item.fspath)),
-            "code": _code(item),
+            "code": code_of(item),
             "name": item.originalname,
             "parameter": _parameter(item),
-            "category": _category(item),
-            "objective": _objective(item),
+            "category": category_of(item),
+            "objective": objective_of(item),
             "case": _case(item),
             "expected_result": _first_paragraph(item.obj.__doc__),
             "outcome": outcome,
@@ -628,19 +645,6 @@ def pytest_runtest_makereport(item, call):
         row["reason"] = reason.removeprefix("Skipped: ")
 
 
-def _code(item) -> str:
-    """Read a check's permanent id off its code marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The id, or an empty string when the check carries no code marker.
-    """
-    marker = item.get_closest_marker("code")
-    return str(marker.args[0]) if marker and marker.args else ""
-
-
 def _parameter(item) -> str:
     """Read the parameter pytest ran a check with.
 
@@ -657,32 +661,6 @@ def _parameter(item) -> str:
     """
     callspec = getattr(item, "callspec", None)
     return str(callspec.id) if callspec is not None else ""
-
-
-def _category(item) -> str:
-    """Read a check's category off its category marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The category, or an empty string when the check carries no category marker.
-    """
-    marker = item.get_closest_marker("category")
-    return str(marker.args[0]) if marker and marker.args else ""
-
-
-def _objective(item) -> str:
-    """Read a check's objective off its objective marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The objective, or an empty string when the check carries no objective marker.
-    """
-    marker = item.get_closest_marker("objective")
-    return str(marker.args[0]) if marker and marker.args else ""
 
 
 def _case(item) -> str:
@@ -862,7 +840,8 @@ def _selection(config: pytest.Config) -> str:
         config: pytest's configuration for the run.
 
     Returns:
-        The paths and node ids typed, and the -k or -m filters given, joined with
+        The paths and node ids typed, the -k or -m filters given, and the
+        --category, --objective, --id and --group options given, joined with
         spaces, or all when the whole suite was selected.
     """
     kept: list[str] = []
@@ -874,6 +853,10 @@ def _selection(config: pytest.Config) -> str:
     markexpr = config.getoption("markexpr")
     if markexpr:
         kept.append(f"-m {markexpr}")
+    for name in SELECTORS:
+        values = wanted(config, name)
+        if values:
+            kept.append(f"--{name} {','.join(values)}")
     return " ".join(kept) or "all"
 
 
@@ -911,6 +894,11 @@ def pytest_sessionfinish(session, exitstatus):
         exitstatus: pytest's exit number for the run.
     """
     if not session.config.getoption("--validation-report"):
+        return
+    # A refused command line, such as a selection option naming nothing, ran no
+    # check and validated nothing. The refusal is on the terminal, and a report
+    # of it would only be a file to delete.
+    if int(exitstatus) == int(pytest.ExitCode.USAGE_ERROR):
         return
 
     # Everything the report states about the run is gathered once here and

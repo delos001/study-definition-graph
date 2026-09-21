@@ -437,3 +437,15 @@ The layout written into `validation/validation_inventory.csv` earlier today was 
 - The order is the classification, then where the check lives, then what it covers, then its result, then its standing: `category`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`, `version`, `status`, `superseded_by`, `status_reason`.
 
 The validation report's check columns take the same names, so a report row still joins to the inventory by `id`. The dictionary for the inventory is `validation/validation_inventory_dictionary.md`, in the outline shape rather than tables, because a dictionary entry is a sentence and a table row holding a sentence does not read in the raw file.
+
+## Checks are selected in the inventory's own terms, decided 2026-09-21
+
+pytest selects checks by path and by words in names, which cannot say "the sources checks", "the stability checks in these two folders" or "SRC0128 again, now that it is fixed". A validation report of five hundred rows is the wrong answer to a question about three checks. No standard covered the question, so the choice is **unguided**.
+
+Four options select checks by the columns the inventory already has: `--category`, `--objective` and `--id`, spelled as the columns are, and `--group`, which names a set that no folder, category or objective can express on its own. Categories and objectives narrow each other, ids and groups add up, and the report's `selection` column records what was asked for, so a narrowed run cannot pass for a full one. A value that names no category, objective, group or collected check stops the run rather than running nothing, and a refused command line leaves no report, because it validated nothing.
+
+The options live in `validation/select_checks.py`, a pytest plugin that `pyproject.toml` loads at startup by its dotted name, rather than in `validation/conftest.py`. pytest reads the command line before it loads a conftest below the root folder, so an option a conftest adds is unknown at that moment and its value is taken for a path. The dotted name is the one mypy already uses for these files, so mypy's path did not change. The plugin also holds the readers for the code, category and objective markers, which the report writer imports.
+
+Groups are written in `validation/validation_groups.yml`, one entry per group with a sentence saying what it is for and the ids of its checks. Ids rather than rules, so what a group holds is written down and reviewable, and an id no check carries stops the run. Two groups exist: `pinned`, every check that reads a real pinned file, to run after a re-pin, and `hook`, the checks that reproduce what the pre-commit hook enforces, to run when the hook refuses a commit.
+
+A test file at the top level of `validation/` now targets the file of the same name in `validation/` itself when one is there, which covers `conftest.py` and `select_checks.py` with one rule instead of a named exception.
