@@ -42,9 +42,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: why the check exists, one of the
-# objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its target,
+# one of the objectives validation/README.md defines.
 objective = pytest.mark.objective
+# Every check carries a @target line: what kind of thing the check confirms, one
+# of the targets validation/README.md defines.
+target = pytest.mark.target
 
 KEY = "sk-ant-test-key"
 REPLY = "working"
@@ -150,7 +153,8 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 
 
 @code("HRS0068")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_working_key_exits_0(working):
     """A key the API answers gives an exit code of 0."""
@@ -158,7 +162,8 @@ def test_working_key_exits_0(working):
 
 
 @code("HRS0069")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_working_key_reports_the_reply(working):
     """The report names the model that answered and repeats what it replied."""
@@ -167,7 +172,8 @@ def test_working_key_reports_the_reply(working):
 
 
 @code("HRS0070")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_the_key_is_never_printed(working):
     """The key itself is never printed, so it cannot end up in a terminal log."""
@@ -175,7 +181,8 @@ def test_the_key_is_never_printed(working):
 
 
 @code("HRS0071")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_quoted_key_is_read(repo, monkeypatch, capsys):
     """A key written with quotes around it, as a person might paste it, is read
@@ -185,7 +192,8 @@ def test_quoted_key_is_read(repo, monkeypatch, capsys):
 
 
 @code("HRS0072")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     """With the quiet option, nothing at all is printed."""
@@ -194,7 +202,8 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 
 
 @code("HRS0073")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
     """With the quiet option, the exit code still reports the missing key."""
@@ -210,7 +219,8 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 
 
 @code("HRS0074")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
     """With no .env file at all, the run exits 27 and the message says to create it
@@ -222,7 +232,8 @@ def test_missing_env_file_is_refused(repo, capsys):
 
 
 @code("HRS0075")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_empty_key_is_refused(repo, capsys):
     """With a .env whose key line is empty, the run exits 28 and the message says to
@@ -235,7 +246,8 @@ def test_empty_key_is_refused(repo, capsys):
 
 
 @code("HRS0076")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
     """When the API does not recognise the key, the run exits 29 and the message says
@@ -257,7 +269,8 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
 
 
 @code("HRS0148")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_key_without_access_is_reported_as_an_account_problem(
     repo, monkeypatch, capsys
@@ -283,7 +296,8 @@ def test_key_without_access_is_reported_as_an_account_problem(
 
 
 @code("HRS0077")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When the API cannot be reached at all, the run exits 30 and the message says
@@ -298,7 +312,8 @@ def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
 
 
 @code("HRS0139")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_an_error_the_api_answered_with_is_reported_with_its_message(
     repo, monkeypatch, capsys
@@ -324,7 +339,8 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
 
 
 @code("HRS0078")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     """When the sdg package is installed from outside the repo, the run exits 6 before it

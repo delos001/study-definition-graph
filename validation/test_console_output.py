@@ -40,9 +40,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: why the check exists, one of the
-# objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its target,
+# one of the objectives validation/README.md defines.
 objective = pytest.mark.objective
+# Every check carries a @target line: what kind of thing the check confirms, one
+# of the targets validation/README.md defines.
+target = pytest.mark.target
 
 
 #######################################################################################
@@ -53,7 +56,8 @@ objective = pytest.mark.objective
 
 
 @code("SDG0001")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
     """When standard output is Python's real text-file class, use_utf8_output()
@@ -65,7 +69,8 @@ def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
 
 
 @code("SDG0002")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_a_captured_stream_is_left_alone_without_error(monkeypatch):
     """When standard output is not Python's real text-file class, as when another

@@ -48,9 +48,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: why the check exists, one of the
-# objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its target,
+# one of the objectives validation/README.md defines.
 objective = pytest.mark.objective
+# Every check carries a @target line: what kind of thing the check confirms, one
+# of the targets validation/README.md defines.
+target = pytest.mark.target
 
 # The one staged file most checks use, its bytes, and the url its entry carries.
 # The url is the one FakeRepo.entry builds for a file of that name.
@@ -247,7 +250,8 @@ def folder(fake_repo, network, capsys) -> Outcome:
 
 
 @code("SRC0001")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
     """A recorded file not on disk ends up under its final name with the bytes
@@ -257,7 +261,8 @@ def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
 
 
 @code("SRC0002")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
     """After a file is fetched and placed, nothing is left under its .part
@@ -266,7 +271,8 @@ def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
 
 
 @code("SRC0003")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_fetch_is_reported(fetched):
     """The report names the file as fetching and counts it as fetched."""
@@ -275,7 +281,8 @@ def test_fetch_is_reported(fetched):
 
 
 @code("SRC0004")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_present_matching_file_is_not_fetched(present):
     """A file already on disk that matches its entry is not downloaded, and
@@ -284,7 +291,8 @@ def test_present_matching_file_is_not_fetched(present):
 
 
 @code("SRC0005")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_present_matching_file_is_counted_as_present(present):
     """The report counts a matching file as present and fetches nothing."""
@@ -292,7 +300,8 @@ def test_present_matching_file_is_counted_as_present(present):
 
 
 @code("SRC0006")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
     """With the dry-run option, each missing file is named as one the run would
@@ -302,7 +311,8 @@ def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
 
 
 @code("SRC0007")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
     """With the dry-run option, nothing is downloaded and nothing is written."""
@@ -312,7 +322,8 @@ def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
 
 
 @code("SRC0008")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
     """With the dry-run option, the run exits 8 when at least one file would
@@ -321,7 +332,8 @@ def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
 
 
 @code("SRC0009")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys):
     """With the dry-run option, the run exits 0 when every file is present and
@@ -334,7 +346,8 @@ def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys)
 
 
 @code("SRC0010")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_quiet_prints_nothing(fake_repo, network, capsys):
     """With the quiet option, nothing at all is printed, even when a file is
@@ -345,7 +358,8 @@ def test_quiet_prints_nothing(fake_repo, network, capsys):
 
 
 @code("SRC0011")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
     """With the set option naming one manifest, only that manifest's files are
@@ -359,7 +373,8 @@ def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
 
 
 @code("SRC0012")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @positive
 def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
     """With --set, a manifest that was not named is not even read: an
@@ -381,7 +396,8 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 
 
 @code("SRC0013")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_changed_file_is_reported_as_a_mismatch(changed):
     """A file on disk that no longer matches its entry is reported as a
@@ -391,7 +407,8 @@ def test_changed_file_is_reported_as_a_mismatch(changed):
 
 
 @code("SRC0014")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_changed_file_is_left_alone(changed, fake_repo):
     """A changed file is neither replaced nor deleted; its bytes are as they
@@ -400,7 +417,8 @@ def test_changed_file_is_left_alone(changed, fake_repo):
 
 
 @code("SRC0015")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_changed_file_exits_9(changed):
     """A changed file on disk makes the run exit 9, and the summary says a
@@ -410,7 +428,8 @@ def test_changed_file_exits_9(changed):
 
 
 @code("SRC0016")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
     """A download whose bytes do not match the entry is reported as DISCARDED
@@ -422,7 +441,8 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
 
 
 @code("SRC0017")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_wrong_hash_download_exits_12(wrong_hash):
     """A discarded download makes the run exit 12 and is counted as a failed
@@ -432,7 +452,8 @@ def test_wrong_hash_download_exits_12(wrong_hash):
 
 
 @code("SRC0018")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
     """A url that cannot be fetched is reported as FAILED with the cause."""
@@ -441,7 +462,8 @@ def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
 
 
 @code("SRC0019")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_failed_fetch_exits_11(failed_fetch):
     """A failed fetch makes the run exit 11."""
@@ -449,7 +471,8 @@ def test_failed_fetch_exits_11(failed_fetch):
 
 
 @code("SRC0020")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_failure_outranks_disagreement(fake_repo, network, capsys):
     """With one file changed on disk and another that cannot be fetched, both
@@ -471,7 +494,8 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
 
 
 @code("SRC0021")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     """In a dry run too, a file that would need fetching outranks a changed
@@ -492,7 +516,8 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
 
 
 @code("SRC0122")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
     """With one file changed on disk and another whose download does not match
@@ -514,7 +539,8 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
 
 
 @code("SRC0126")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
     """With one file that cannot be fetched and another whose download does not
@@ -536,7 +562,8 @@ def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
 
 
 @code("SRC0123")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
     """With one file changed on disk and a folder where another file should be,
@@ -558,7 +585,8 @@ def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
 
 
 @code("SRC0022")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
     """A recorded file that cannot be opened is reported as CANNOT READ with
@@ -570,7 +598,8 @@ def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
 
 
 @code("SRC0023")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_locked_file_exits_13(locked):
     """A recorded file that cannot be opened makes the run exit 13."""
@@ -578,7 +607,8 @@ def test_locked_file_exits_13(locked):
 
 
 @code("SRC0024")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
     """A folder where a recorded file should be is reported as CANNOT READ, a
@@ -589,7 +619,8 @@ def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
 
 
 @code("SRC0025")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_folder_at_a_recorded_path_exits_13(folder):
     """A folder where a recorded file should be makes the run exit 13."""
@@ -597,7 +628,8 @@ def test_folder_at_a_recorded_path_exits_13(folder):
 
 
 @code("SRC0026")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, capsys):
     """An entry lacking a required field stops the run with exit 3, and the
@@ -611,7 +643,8 @@ def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, caps
 
 
 @code("SRC0027")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys):
     """A manifest that is not valid JSON stops the run with exit 3, and the
@@ -624,7 +657,8 @@ def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys)
 
 
 @code("SRC0028")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
     """With the set option naming a manifest that does not exist, the run exits
@@ -637,7 +671,8 @@ def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
 
 
 @code("SRC0029")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys):
     """The sdg package, when not running from inside its repo, exits 6, and the message
@@ -653,7 +688,8 @@ def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys
 
 
 @code("SRC0030")
-@objective("behavior")
+@target("repository")
+@objective("correctness")
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo, network, capsys):
     """With a wrong package name and an unreadable manifest, the run exits 6

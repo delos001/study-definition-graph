@@ -67,9 +67,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: why the check exists, one of the
-# objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its target,
+# one of the objectives validation/README.md defines.
 objective = pytest.mark.objective
+# Every check carries a @target line: what kind of thing the check confirms, one
+# of the targets validation/README.md defines.
+target = pytest.mark.target
 
 
 #######################################################################################
@@ -125,7 +128,8 @@ def variant(tmp_path):
 
 
 @code("USD0001")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @positive
 def test_lists_every_class_sorted(three):
     """A well-formed file loads, and class_names() gives every class in
@@ -134,7 +138,8 @@ def test_lists_every_class_sorted(three):
 
 
 @code("USD0002")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @positive
 def test_abstract_flag_comes_from_modifier(three):
     """is_abstract() reports USDM's own Modifier, so Identifier, a parent never used
@@ -144,7 +149,8 @@ def test_abstract_flag_comes_from_modifier(three):
 
 
 @code("USD0003")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @positive
 def test_attributes_keep_file_order_and_inheritance(three):
     """attributes() hands back a class's attributes in the order the file lists
@@ -163,7 +169,8 @@ def test_attributes_keep_file_order_and_inheritance(three):
 
 
 @code("USD0004")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @positive
 def test_targets_unwraps_one_and_many(three):
     """targets() turns USDM's '$ref: #/X' wrapping into plain names, for an
@@ -181,7 +188,8 @@ def test_targets_unwraps_one_and_many(three):
 
 
 @code("USD0005")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_unknown_class_raises_keyerror_naming_it(three):
     """Asking for a class that is not in the file raises KeyError carrying that
@@ -201,7 +209,8 @@ def test_unknown_class_raises_keyerror_naming_it(three):
 
 
 @code("USD0006")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_empty_file_is_refused(tmp_path):
     """An empty file is refused as 'empty or not a mapping' instead of being
@@ -213,7 +222,8 @@ def test_empty_file_is_refused(tmp_path):
 
 
 @code("USD0007")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_class_without_modifier_is_named(variant):
     """Deleting Modifier from one class is refused with a message naming that
@@ -226,7 +236,8 @@ def test_class_without_modifier_is_named(variant):
 
 
 @code("USD0008")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_unexpected_modifier_value_is_named(variant):
     """A Modifier other than Concrete or Abstract is refused, quoting the
@@ -237,7 +248,8 @@ def test_unexpected_modifier_value_is_named(variant):
 
 
 @code("USD0009")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_attributes_not_a_mapping_is_named(variant):
     """Turning a class's Attributes into a list is refused with a message naming
@@ -250,7 +262,8 @@ def test_attributes_not_a_mapping_is_named(variant):
 
 
 @code("USD0010")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_attribute_missing_a_key_is_named(variant):
     """Renaming 'Relationship Type' on one attribute is refused with a message
@@ -270,7 +283,8 @@ def test_attribute_missing_a_key_is_named(variant):
 
 
 @code("USD0011")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_attribute_missing_several_keys_lists_them(variant):
     """When more than one key is missing from an attribute, the message lists all
@@ -289,7 +303,8 @@ def test_attribute_missing_several_keys_lists_them(variant):
 
 
 @code("USD0012")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_type_that_is_not_a_reference_list_is_named(variant):
     """A Type holding a plain word instead of a list of '$ref' entries is refused,
@@ -305,7 +320,8 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
 
 
 @code("USD0013")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_empty_type_list_is_refused(variant):
     """An attribute whose Type list is empty is refused with a message naming the
@@ -321,7 +337,8 @@ def test_empty_type_list_is_refused(variant):
 
 
 @code("USD0014")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_inherited_from_without_ref_is_named(variant):
     """An Inherited From entry lacking its '$ref' is refused, naming the
@@ -348,7 +365,8 @@ def test_inherited_from_without_ref_is_named(variant):
 
 
 @code("USD0015")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_missing_file_raises_filenotfound(tmp_path):
     """A path that does not exist raises FileNotFoundError (exit 8 at the command
@@ -359,7 +377,8 @@ def test_missing_file_raises_filenotfound(tmp_path):
 
 
 @code("USD0016")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_unrecorded_file_is_refused_through_load():
     """A file no manifest entry records is refused by load() with the pinned-file
@@ -372,7 +391,8 @@ def test_unrecorded_file_is_refused_through_load():
 
 
 @code("USD0017")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_recording):
     """A file whose recorded sha256 differs is refused by load() with both values
@@ -394,7 +414,8 @@ def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_rec
 
 
 @code("USD0018")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_no_mode_exits_2():
     """Running with no mode flag is a usage error: argparse prints usage and
@@ -405,7 +426,8 @@ def test_cli_no_mode_exits_2():
 
 
 @code("USD0019")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_missing_spec_exits_8(monkeypatch, capsys):
     """When the pinned file is not downloaded, the command exits 8 and tells the
@@ -418,7 +440,8 @@ def test_cli_missing_spec_exits_8(monkeypatch, capsys):
 
 
 @code("USD0020")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
     """When the file is present but no manifest entry records it, the command
@@ -429,7 +452,8 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
 
 
 @code("USD0032")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_fingerprint_mismatch_exits_9(
     manifest_dir, manifest_recording, monkeypatch, capsys
@@ -444,7 +468,8 @@ def test_cli_fingerprint_mismatch_exits_9(
 
 
 @code("USD0033")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
     """When a manifest is not valid JSON, the command exits 3 and names the manifest
@@ -457,7 +482,8 @@ def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
 
 
 @code("USD0021")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @pytest.mark.parametrize(
     "extra", [[], ["--allow-unpinned"]], ids=["verify", "allow-unpinned"]
 )
@@ -480,7 +506,8 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
 
 
 @code("USD0022")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     """When the file passes (or skips) verification but is not shaped like USDM,
@@ -492,7 +519,8 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
 
 
 @code("USD0031")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
     """When the pinned file is on disk but another program has it locked, the command
@@ -509,7 +537,8 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
 
 
 @code("USD0023")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
     """A file whose Type values are not reference lists makes --attributes exit 4
@@ -525,7 +554,8 @@ def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
 
 
 @code("USD0024")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @positive
 def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
     """With the allow-unpinned option, the manifest check is skipped and a file no
@@ -542,7 +572,8 @@ def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
 
 
 @code("USD0025")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @positive
 def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
     """The attributes listing prints each attribute's type, cardinality and
@@ -556,7 +587,8 @@ def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
 
 
 @code("USD0026")
-@objective("behavior")
+@target("conversion")
+@objective("correctness")
 @negative
 def test_cli_unknown_class_exits_5(monkeypatch, capsys):
     """The attributes listing for a class that does not exist exits 5 and points
@@ -575,7 +607,8 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 
 
 @code("USD0027")
-@objective("agreement")
+@target("conversion")
+@objective("correctness")
 @needs_pinned_file
 def test_pinned_file_is_shaped_the_way_the_loader_expects():
     """The pinned dataStructure.yml passes the loader's two shape checks, so what
@@ -585,7 +618,8 @@ def test_pinned_file_is_shaped_the_way_the_loader_expects():
 
 
 @code("USD0029")
-@objective("agreement")
+@target("conversion")
+@objective("correctness")
 @needs_pinned_file
 def test_pinned_file_types_are_classes_or_five_primitives():
     """Every attribute type in the pinned model is a class in the model or one of
@@ -611,7 +645,8 @@ def test_pinned_file_types_are_classes_or_five_primitives():
 
 
 @code("USD0030")
-@objective("agreement")
+@target("conversion")
+@objective("correctness")
 @needs_pinned_file
 def test_fixture_classes_are_identical_to_pinned():
     """Each class in the small fixture file is identical, key for key, to the same

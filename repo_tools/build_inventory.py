@@ -3,10 +3,10 @@ Script:      build_inventory.py
 Description: Generates validation/validation_inventory.csv, the list of every check
              in the test files under validation/, from the checks themselves, so the inventory
              cannot drift from the code it describes. Each check's name, its
-             permanent id (the @code marker), its objective (the @objective
-             marker), whether a behavior check is positive or negative, and its
-             expected result (its docstring's first paragraph) are read from the
-             file. Four columns are kept by hand and carried over from the
+             permanent id (the @code marker), its target (the @target marker),
+             its objective (the @objective marker), whether a correctness check
+             is a positive or a negative case, and its expected result (its
+             docstring's first paragraph) are read from the file. Four columns are kept by hand and carried over from the
              existing inventory by id: status, superseded_by, status_reason and
              version. A new check starts as active at version 1. A check that no
              longer exists drops out, which holds until the first validation run.
@@ -15,9 +15,10 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
              true:
                - it has no @code marker, or an id another check already carries,
                  because the id is what joins a validation report to the inventory;
+               - it has no @target marker, or one that names no target;
                - it has no @objective marker, or one that names no objective;
-               - it is a behavior check without @positive or @negative, or a
-                 check of any other objective that carries one;
+               - it carries @positive or @negative with an objective other than
+                 correctness, since only a correctness check stages a case;
                - its first sentence starts with a character a spreadsheet reads
                  as the start of a formula.
 
@@ -96,6 +97,7 @@ COLUMNS = (
     "target_file_name",
     "validation_check_name",
     "validation_check_id",
+    "validation_target",
     "validation_objective",
     "behavior_case",
     "expected_result",
@@ -109,22 +111,16 @@ COLUMNS = (
 # never works them out.
 HAND_KEPT = ("status", "superseded_by", "status_reason", "version")
 
-# Why a check exists. The first four are in use; the rest are defined in
-# validation/README.md and have no checks yet. validation/conftest.py reads this list
-# too, so the two can never disagree.
-OBJECTIVES = (
-    "behavior",
-    "stability",
-    "agreement",
-    "conformance",
-    "accuracy",
-    "performance",
-    "regression",
-    "environment_readiness",
-)
+# What kind of thing a check confirms. validation/README.md defines each one.
+TARGETS = ("repository", "sources", "conversion", "products")
 
-# The only objective whose checks are positive or negative cases.
-BEHAVIOR = "behavior"
+# What a check confirms about its target. validation/README.md defines each one.
+OBJECTIVES = ("correctness", "completeness", "conformance", "stability", "performance")
+
+# The only objective whose checks may be positive or negative cases. A correctness
+# check that staged its own situation carries one. A correctness check that looked
+# at something real carries neither, and so does a check of any other objective.
+CORRECTNESS = "correctness"
 CASES = ("positive", "negative")
 
 # Where a check stands. validation/README.md says what each one means.
@@ -171,6 +167,7 @@ class Check:
     check_file: str
     check_name: str
     check_id: str
+    target: str
     objective: str
     case: str
     expected_result: str
@@ -251,7 +248,7 @@ def _marker_argument(decorator: ast.expr, name: str) -> str | None:
 
     Args:
         decorator: One decorator of a check.
-        name: The marker's short name, such as code or objective.
+        name: The marker's short name, such as code, target or objective.
 
     Returns:
         The text in the brackets, or None when the decorator is not that marker.
@@ -288,14 +285,17 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
     for node in tree.body:
         if not isinstance(node, ast.FunctionDef) or not node.name.startswith("test_"):
             continue
-        # A check is written as @code("XYZ0001"), @objective("behavior") and, for a
-        # behavior check, @positive or @negative: the short names the test files
-        # give pytest's markers.
-        code = objective = case = ""
-        has_objective = False
+        # A check is written as @code("XYZ0001"), @target("repository"),
+        # @objective("correctness") and, for a correctness check that staged its
+        # situation, @positive or @negative: the short names the test files give
+        # pytest's markers.
+        code = target = objective = case = ""
+        has_target = has_objective = False
         for decorator in node.decorator_list:
             if (found := _marker_argument(decorator, "code")) is not None:
                 code = found
+            elif (found := _marker_argument(decorator, "target")) is not None:
+                target, has_target = found, True
             elif (found := _marker_argument(decorator, "objective")) is not None:
                 objective, has_objective = found, True
             elif isinstance(decorator, ast.Name) and decorator.id in CASES:
@@ -305,6 +305,13 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
 
         if not code:
             problems.append(f"{where} has no @code marker")
+        if not has_target:
+            problems.append(f"{where} has no @target marker")
+        elif target not in TARGETS:
+            problems.append(
+                f"{where} has @target({target!r}), which is not one of "
+                f"{', '.join(TARGETS)}"
+            )
         if not has_objective:
             problems.append(f"{where} has no @objective marker")
         elif objective not in OBJECTIVES:
@@ -312,14 +319,10 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
                 f"{where} has @objective({objective!r}), which is not one of "
                 f"{', '.join(OBJECTIVES)}"
             )
-        elif objective == BEHAVIOR and not case:
-            problems.append(
-                f"{where} is a behavior check with no @positive or @negative marker"
-            )
-        elif objective != BEHAVIOR and case:
+        elif objective != CORRECTNESS and case:
             problems.append(
                 f"{where} has the objective {objective}, so it cannot carry "
-                f"@{case}, which only a behavior check carries"
+                f"@{case}, which only a correctness check carries"
             )
         if expected.startswith(FORMULA_STARTS):
             problems.append(
@@ -332,6 +335,7 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
                 check_file=_name(path),
                 check_name=node.name,
                 check_id=code,
+                target=target,
                 objective=objective,
                 case=case,
                 expected_result=expected,
@@ -422,6 +426,7 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
             "target_file_name": target_file,
             "validation_check_name": check.check_name,
             "validation_check_id": check.check_id,
+            "validation_target": check.target,
             "validation_objective": check.objective,
             "behavior_case": check.case,
             "expected_result": check.expected_result,

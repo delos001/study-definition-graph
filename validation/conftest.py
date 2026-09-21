@@ -34,8 +34,9 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check. A row holds the check's id, its objective, its
-                 behavior case when it is a behavior check, its expected result,
+                 one row per check. A row holds the check's id, its target, its
+                 objective, its case when it is a correctness check that staged
+                 its own situation, its expected result,
                  which is its docstring's first paragraph, its own outcome, and the
                  reason when that is not passed: the assertion message, the step
                  that broke, or why it was skipped.
@@ -54,12 +55,15 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
 
              It registers the markers the tests carry:
                - @code carries the check's permanent id from validation/validation_inventory.csv,
-               - @objective carries why the check exists, one of the objectives
-                 validation/README.md defines,
-               - @positive, on a behavior check, means a working situation where
-                 the code is expected to succeed,
-               - @negative, on a behavior check, means a broken situation where
-                 the code is expected to refuse for the right reason,
+               - @target carries what kind of thing the check confirms, one of
+                 the targets validation/README.md defines,
+               - @objective carries what the check confirms about its target,
+                 one of the objectives validation/README.md defines,
+               - @positive, on a correctness check, means a staged working
+                 situation where the code is expected to succeed,
+               - @negative, on a correctness check, means a staged broken
+                 situation where the code is expected to refuse for the right
+                 reason,
                - @needs_pinned names the real pinned files a check reads.
 
              Before a check marked @needs_pinned runs, each pinned file it names is
@@ -406,8 +410,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Tell pytest about the markers the checks use: code, objective, positive, negative
-    and needs_pinned.
+    """Tell pytest about the markers the checks use: code, target, objective, positive,
+    negative and needs_pinned.
 
     A marker is a label a check carries. pytest warns about a label it has not been told
     about, so each is declared here with a sentence saying what it means.
@@ -417,17 +421,23 @@ def pytest_configure(config):
     """
     config.addinivalue_line(
         "markers",
-        "objective(name): why the check exists, one of the objectives in "
+        "target(name): what kind of thing the check confirms, one of the targets in "
         "validation/README.md",
     )
     config.addinivalue_line(
         "markers",
-        "positive: a behavior check of a working situation, expected to succeed",
+        "objective(name): what the check confirms about its target, one of the "
+        "objectives in validation/README.md",
     )
     config.addinivalue_line(
         "markers",
-        "negative: a behavior check of a broken situation, expected to refuse "
-        "for the right reason",
+        "positive: a correctness check of a staged working situation, expected to "
+        "succeed",
+    )
+    config.addinivalue_line(
+        "markers",
+        "negative: a correctness check of a staged broken situation, expected to "
+        "refuse for the right reason",
     )
     # The code is the check's short, permanent id in validation/validation_inventory.csv:
     # a type prefix and four digits, such as SRC0042, assigned once and never
@@ -583,6 +593,7 @@ def pytest_runtest_makereport(item, call):
             "file": Path(str(item.fspath)),
             "code": _code(item),
             "name": item.name,
+            "target": _target(item),
             "objective": _objective(item),
             "case": _case(item),
             "expected_result": _first_paragraph(item.obj.__doc__),
@@ -628,6 +639,19 @@ def _code(item) -> str:
     return str(marker.args[0]) if marker and marker.args else ""
 
 
+def _target(item) -> str:
+    """Read a check's target off its target marker.
+
+    Args:
+        item: The check.
+
+    Returns:
+        The target, or an empty string when the check carries no target marker.
+    """
+    marker = item.get_closest_marker("target")
+    return str(marker.args[0]) if marker and marker.args else ""
+
+
 def _objective(item) -> str:
     """Read a check's objective off its objective marker.
 
@@ -642,14 +666,15 @@ def _objective(item) -> str:
 
 
 def _case(item) -> str:
-    """Read a behavior check's case off its marker.
+    """Read a correctness check's case off its marker.
 
     Args:
         item: The check.
 
     Returns:
         positive, negative, or an empty string when it carries neither, as a check of
-        any objective other than behavior does.
+        any objective other than correctness does, and as a correctness check that
+        looked at something real rather than staging a situation does.
     """
     if item.get_closest_marker("positive"):
         return "positive"
@@ -777,6 +802,7 @@ REPORT_COLUMNS = (
     "run_verdict",
     "validation_check_id",
     "validation_check_name",
+    "validation_target",
     "validation_objective",
     "behavior_case",
     "expected_result",
@@ -922,6 +948,7 @@ def pytest_sessionfinish(session, exitstatus):
                         **per_file,
                         "validation_check_id": outcome["code"],
                         "validation_check_name": outcome["name"],
+                        "validation_target": outcome["target"],
                         "validation_objective": outcome["objective"],
                         "behavior_case": outcome["case"],
                         "expected_result": outcome["expected_result"],
@@ -942,6 +969,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "target_file_name": "",
                 "validation_check_id": "",
                 "validation_check_name": "",
+                "validation_target": "",
                 "validation_objective": "",
                 "behavior_case": "",
                 "expected_result": "",

@@ -385,3 +385,44 @@ A check that reads a pinned file which no longer matches its manifest is now ski
 Each check has one of five statuses: pending, active, inactive, superseded or retired. Superseded and retired are kept apart on purpose. A superseded check stops because other checks now cover what it guarded. A retired check stops and nothing covers what it guarded, which is a loss of capability, so the inventory must record why that was accepted. The inventory gains `superseded_by` for the ids of the covering checks and `status_reason` for the reason. The reasoning belongs in the inventory rather than here, because this file records how the project was built and the inventory is what a later validation is read against.
 
 A check's version is a whole number. It moves to the next number when a changed check passes its validation, its report is filed and it goes into production. Until the first validation run, every check stays at version 1 and a deleted check's row is removed. After that run, rows are kept whatever their status.
+
+## Every check names its target and its objective, decided 2026-09-21
+
+The objectives set on 2026-09-18 proved too fine to apply without long instructions. Behavior, agreement and accuracy all asked whether a thing produced the right result, and they were kept apart only because the thing differed: staged code, a generated record, a product. Carrying what the check looks at inside the objective is what made the rules grow, and the length of those rules was the sign that the split was at the wrong level. Issue #38 raised this. No standard covered the question, so the choice is **unguided**.
+
+A check now carries two classifications. The target says what kind of thing the check confirms. The objective says what the check confirms about it. Neither is inferred from where a check sits; each is a marker on the check.
+
+There are four targets.
+
+- Repository: the tools, hooks, rules and records that hold the sources, conversions and products to their rules and specifications, so that each behaves as expected. It includes the pinning tools, the pre-commit hook and the validation suite itself.
+- Sources: the materials, data, files, standards and references the project consumes to create and evaluate a product.
+- Conversion: the processes, prompts, and run records that turn the sources into a product, such as reading a document, finding its sections, extracting contents and transforming into USDM structures and loading those into the graph.
+- Products: the deliverables created through source conversions, such as extracted contents, USDM structures with their provenance, mappings, and the graph.
+
+The environment the project runs in, such as the Neo4j server, the conda environment and the API key, is not a target. The project does not make it, and it is confirmed by hand with `repo_tools/check_neo4j.py` and `repo_tools/check_api_key.py` before a run. A fifth target can be added if that ever changes.
+
+The target is the thing the check sets out to confirm. Whatever the check compares it against is the reference, and the reference does not change the target. A check that compares what the USDM loader expects with the pinned model is a conversion check with the pinned file as its reference. A record goes with the thing it describes, so `docs/sources_index.md` is under sources and `repo_tools/README.md` is under repository. The manifests are the one exception: they are the project's control over its own files, the same job the pre-commit hook does for code, so they are repository. Something the conversion made and a later step consumes, such as the located sections that classification reads, is a product, because the sources are what the project takes in rather than what it makes. The answer keys in `eval/` and the local definitions under `local_definitions/` are sources, although the project writes them, because they are references and standards the conversion works from.
+
+There are five objectives.
+
+- Correctness: the thing does, or produces, what it is supposed to, judged against what the right result is.
+- Completeness: the thing includes everything it is supposed to, with nothing missing.
+- Conformance: the thing follows the rule, specification or documentation it is held to.
+- Stability: the thing is unchanged from its own earlier recorded or accepted version.
+- Performance: the thing runs fast enough, or light enough on the machine, on a realistic input.
+
+Behavior, agreement and accuracy all become correctness. Regression becomes stability with a product as its target. Environment readiness goes with the environment. Quality was considered for the first row and rejected, because in the established quality models it names the whole and the other rows are its parts, so a reader could file any check under it.
+
+Positive and negative now say that a correctness check staged its own situation and expects success or a refusal. A correctness check may carry positive, negative or neither, and a check of any other objective carries neither. Neither means the check looked at something real.
+
+Three boundaries were tested and written down so they do not have to be worked out again.
+
+- Completeness against conformance: completeness asks whether everything the source holds was captured, and its reference is the source. Conformance asks whether a thing has the shape a written rule requires, and its reference is the rule. An extracted fact with no provenance is conformance. A fact the document states that no record captures is completeness.
+- Stability against correctness: stability's reference is an earlier copy of the same thing. A check that compares two different things, a record with what it describes or a protocol term with a SAP term, is correctness.
+- A comparison of a product with its answer key gives precision and recall. Precision is correctness and recall is completeness, so that is two checks over one comparison, which a fixture makes once. A failure then says which of the two fell short, which is the prompt-against-retrieval evidence `PLAN.md` asks for.
+
+Applied to the checks that exist, the readers `src/sdg/usdm/usdm_spec.py`, `src/sdg/view/read_pdf.py` and `src/sdg/view/read_xlsx.py` are conversion, because reading a document and pulling content out of it is the first step of one. Every other check is repository, except the pinned-file fixity check, the re-derived figures in the committed documents and the sources map, which are sources. HRS0170 becomes conformance, because it holds a header to the exit-code table. HRS0104 and HRS0079 become completeness, because each asks whether anything is missing. Every staged check becomes correctness with its case kept.
+
+The inventory gains a `validation_target` column before `validation_objective`, and every check gains an `@target` marker beside its `@objective` marker. The generator refuses a check that lacks either, or whose case breaks the rule above.
+
+One follow-up is noted rather than designed: a stability check on a product needs a record of the accepted version to compare against, and nothing records one yet. It belongs to the phase that first declares a product accepted.
