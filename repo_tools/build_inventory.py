@@ -207,7 +207,7 @@ def type_and_target(
     not look inside a folder whose name starts with a dot. A test file in any other
     subfolder tests the file of the same name in that folder under src/sdg/, and a test
     file at the top level tests the file of the same name at the top of src/sdg/. The
-    one file that mirrors nothing is validation/test_validation_report.py, which tests
+    one file that mirrors nothing is validation/test_conftest.py, which tests
     the record writer in validation/conftest.py.
 
     Args:
@@ -221,7 +221,7 @@ def type_and_target(
     relative = check_file.relative_to(validation_dir or VALIDATION_DIR)
     folder = relative.parent.as_posix()
     component = f"{check_file.stem.removeprefix('test_')}.py"
-    if folder == "." and check_file.name == "test_validation_report.py":
+    if folder == "." and check_file.name == "test_conftest.py":
         return "validation", "validation/conftest.py"
     if folder == ".":
         return "sdg", f"src/sdg/{component}"

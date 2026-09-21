@@ -140,7 +140,7 @@ MANIFEST = REPO_ROOT / "manifests" / "cdisc_usdm_v4.json"
 
 # pytest has a helper called pytester that lets a test run a small, separate
 # test suite of its own. It is switched off unless a file asks for it. The
-# report-writer's tests, in validation/test_validation_report.py, use it to run a
+# report-writer's tests, in validation/test_conftest.py, use it to run a
 # throwaway suite and then read the report that comes out.
 pytest_plugins = ["pytester"]
 
@@ -807,7 +807,7 @@ REPORT_COLUMNS = (
     "objective",
     "staged_case",
     "expected_result",
-    "check_outcome",
+    "outcome",
     "outcome_reason",
     "folder_path",
     "file_name",
@@ -953,7 +953,7 @@ def pytest_sessionfinish(session, exitstatus):
                         "objective": outcome["objective"],
                         "staged_case": outcome["case"],
                         "expected_result": outcome["expected_result"],
-                        "check_outcome": outcome["outcome"],
+                        "outcome": outcome["outcome"],
                         "outcome_reason": outcome["reason"],
                     }
                 )
@@ -974,7 +974,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "objective": "",
                 "staged_case": "",
                 "expected_result": "",
-                "check_outcome": "none",
+                "outcome": "none",
                 "outcome_reason": "no check ran: pytest failed before any test ran",
             }
         )

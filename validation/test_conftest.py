@@ -1,5 +1,5 @@
 """
-Script:      test_validation_report.py
+Script:      test_conftest.py
 Description: Checks for validation/conftest.py: the validation-report writer, and
              the gate that skips a check whose pinned files are not downloaded
              or have changed. A report is the proof that the code was
@@ -17,9 +17,9 @@ Inputs:      validation/conftest.py   (read-only; copied into each throwaway sui
 
 Outputs:     Writes nothing to disk outside pytest's temporary folder.
 
-Usage:       pytest validation/test_validation_report.py
+Usage:       pytest validation/test_conftest.py
                  run these checks
-             pytest validation/test_validation_report.py -v
+             pytest validation/test_conftest.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -183,7 +183,7 @@ def test_a_passing_check_gets_a_row_with_its_details(passing):
     assert adds["objective"] == "correctness"
     assert adds["staged_case"] == "positive"
     assert adds["expected_result"] == "Two and two make four."
-    assert adds["check_outcome"] == "passed"
+    assert adds["outcome"] == "passed"
 
 
 @code("TST0008")
@@ -198,7 +198,7 @@ def test_a_skipped_check_is_shown_as_skipped_with_its_reason(passing):
     assert left_out["category"] == ""
     assert left_out["objective"] == ""
     assert left_out["staged_case"] == ""
-    assert left_out["check_outcome"] == "skipped"
+    assert left_out["outcome"] == "skipped"
     assert left_out["outcome_reason"] == "not today"
 
 
@@ -254,9 +254,9 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
     assert {r["run_verdict"] for r in rows} == {"FAIL"}
     assert {r["pytest_exit_status"] for r in rows} == {"1"}
     row = row_for(rows, "test_checks_pass_but_cleanup_fails")
-    assert row["check_outcome"] == "error"
+    assert row["outcome"] == "error"
     assert row["outcome_reason"] == "clean-up failed"
-    assert "passed" not in {r["check_outcome"] for r in rows}
+    assert "passed" not in {r["outcome"] for r in rows}
 
 
 @code("TST0004")
@@ -280,7 +280,7 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
     assert {r["run_verdict"] for r in rows} == {"FAIL"}
     row = row_for(rows, "test_wrong")
     assert row["expected_result"] == "Claims two and two make five."
-    assert row["check_outcome"] == "failed"
+    assert row["outcome"] == "failed"
     assert row["outcome_reason"].startswith("assert")
 
 
@@ -308,7 +308,7 @@ def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
     assert result.ret == 1
     rows = the_report(out)
     assert {r["run_verdict"] for r in rows} == {"FAIL"}
-    assert row_for(rows, "test_never_runs")["check_outcome"] == "error"
+    assert row_for(rows, "test_never_runs")["outcome"] == "error"
 
 
 @code("TST0006")
@@ -326,7 +326,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
     assert len(rows) == 1
     assert rows[0]["run_verdict"] == "FAIL"
     assert rows[0]["exit_meaning"] == "the run was interrupted"
-    assert rows[0]["check_outcome"] == "none"
+    assert rows[0]["outcome"] == "none"
     assert rows[0]["outcome_reason"].startswith("no check ran")
     assert next(out.glob("*.csv")).name.startswith("run_")
 
@@ -527,7 +527,7 @@ def test_a_check_whose_pinned_file_matches_runs(gated):
     """A check whose pinned file is on disk and matches its manifest entry runs, and
     its row says passed."""
     _, rows = gated
-    assert row_for(rows, "test_reads_good")["check_outcome"] == "passed"
+    assert row_for(rows, "test_reads_good")["outcome"] == "passed"
 
 
 @code("TST0016")
@@ -540,7 +540,7 @@ def test_a_check_whose_pinned_file_changed_is_blocked(gated):
     check for that file fails for the change."""
     result, rows = gated
     row = row_for(rows, "test_reads_changed")
-    assert row["check_outcome"] == "skipped"
+    assert row["outcome"] == "skipped"
     assert row["outcome_reason"].startswith(
         "blocked: inputs/set/changed.txt does not match its manifest entry"
     )
@@ -556,7 +556,7 @@ def test_a_check_whose_pinned_file_is_not_downloaded_is_skipped(gated):
     reason names the file and says to run acquire_sources."""
     _, rows = gated
     row = row_for(rows, "test_reads_missing")
-    assert row["check_outcome"] == "skipped"
+    assert row["outcome"] == "skipped"
     assert row["outcome_reason"] == (
         "not downloaded: inputs/set/missing.txt; run acquire_sources"
     )
@@ -583,7 +583,7 @@ def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch)
     result, out = run_suite(pytester, monkeypatch, UNMATCHED_SUITE)
     assert result.ret == 1
     row = row_for(the_report(out), "test_reads_unrecorded")
-    assert row["check_outcome"] == "error"
+    assert row["outcome"] == "error"
     assert row["outcome_reason"] == "set-up failed"
     result.stdout.fnmatch_lines(
         ["*no manifest records a file matching inputs/no_such_folder/*.txt*"]

@@ -1,6 +1,6 @@
 # Validation inventory dictionary
 
-Defines every column of `validation_inventory.csv` and every value a coded column may hold. The inventory is written by `python repo_tools/build_inventory.py`. A value is changed at the source the column names, then the inventory is regenerated. The hand-kept columns are edited in the CSV itself.
+Defines every column of `validation_inventory.csv` and every value a coded column may hold. The inventory is written by `python repo_tools/build_inventory.py`. The generator overwrites every column it reads on each run and carries the typed columns over unchanged. A generated value is changed at its source, then the inventory is regenerated.
 
 Every row is one check. A column about the check itself has a bare name. The two columns about the file the check covers carry the prefix `target_`.
 
@@ -8,72 +8,72 @@ Every row is one check. A column about the check itself has a bare name. The two
 
 ### `category`
 - Says what kind of thing the check confirms.
-- Comes from the `@category` marker.
+- Read by the generator from the `@category` marker.
 - Holds one of the categories below.
 
 ### `objective`
 - Says what the check confirms about its category.
-- Comes from the `@objective` marker.
+- Read by the generator from the `@objective` marker.
 - Holds one of the objectives below.
 
 ### `staged_case`
 - Says whether a correctness check that staged its own situation expects success or refusal.
-- Comes from the `@positive` or `@negative` marker.
+- Read by the generator from the `@positive` or `@negative` marker.
 - Holds one of the cases below, or nothing.
 
 ### `folder_path`
 - Names the folder the test file sits in, from the repo root.
-- Comes from the test file's path.
+- Read by the generator from the test file's path.
 - Holds a folder under `validation/`.
 
 ### `file_name`
 - Names the test file.
-- Comes from the test file's path.
+- Read by the generator from the test file's path.
 - Holds `test_<name>.py`.
 
 ### `name`
 - Names the check's function.
-- Comes from the test file.
+- Read by the generator from the test file.
 - Holds `test_<name>`.
 
 ### `id`
 - Identifies the check permanently. A validation report joins to the inventory on it.
-- Comes from the `@code` marker.
+- Read by the generator from the `@code` marker.
 - Holds three capital letters and four digits, such as `SRC0042`, unique across the inventory.
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
-- Comes from the test file's path, by the rule in `type_and_target()` in `repo_tools/build_inventory.py`.
+- Read by the generator from the test file's path, by the rule in `type_and_target()` in `repo_tools/build_inventory.py`.
 - Holds a folder in the repo.
 
 ### `target_file_name`
 - Names the code file the test file covers.
-- Comes from the test file's name with `test_` removed.
+- Read by the generator from the test file's name with `test_` removed.
 - Holds a file in that folder.
 
 ### `expected_result`
 - States what must be true for the check to pass.
-- Comes from the first paragraph of the check's docstring.
+- Read by the generator from the first paragraph of the check's docstring.
 - Starts with numeric or text character, never with `=`, `+`, `-` or `@`.
 
 ### `version`
 - Numbers the check's version.
-- Is kept by hand.
+- Typed by hand in the CSV.
 - Holds a whole number from 1 up, by the rule under Versions below.
 
 ### `status`
 - Says whether what the check guards is still guarded.
-- Is kept by hand.
+- Typed by hand in the CSV.
 - Holds one of the statuses below.
 
 ### `superseded_by`
 - Names the checks that now cover a superseded check.
-- Is kept by hand.
+- Typed by hand in the CSV.
 - Holds ids of active checks, separated by semicolons, only when the status is superseded.
 
 ### `status_reason`
 - Says why a check is inactive or retired.
-- Is kept by hand.
+- Typed by hand in the CSV.
 - Holds one sentence, only when the status is inactive or retired.
 
 ## Categories
