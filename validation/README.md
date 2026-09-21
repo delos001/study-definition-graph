@@ -76,7 +76,7 @@ pytest -v
 - `pytest` runs every check in every test file under `validation/` and prints the results. It writes nothing.
 - `pytest -v` does the same, with one line per check naming it.
 
-### Running only some checks
+### Running a sub-set of checks
 
 ```powershell
 pytest validation/sources/<file_name>.py
@@ -92,16 +92,19 @@ pytest --group pinned
 - Use `--category`, `--objective` or `--id`, spelled as the inventory's columns are, to run only the checks whose value matches. Two different options narrow each other. A comma-separated list means any of the values.
 - Use `--group` to run the checks a named group in `validation_groups.yml` lists. A group is for a set that no folder, category or objective can name on its own.
 - A value that names no category, objective, group or collected check stops the run, so a typo cannot pass for a clean run of nothing.
-- Any of these can be combined with a path, and with `--validation-report`. The report's `selection` column records what was asked for.
 
 
 ### Generating a validation report
 
 ```powershell
 pytest --validation-report
+pytest --group hook --validation-report
+pytest --category sources --objective stability --validation-report
+pytest validation/sources --id SRC0128 --validation-report
 ```
 
-- Run this only when the code is declared ready. The report is the formal record that the code was validated.
-- It runs the same checks as `pytest`, then writes one CSV file into `reports/`, named for the date and the commit. Commit that file.
-- A run narrowed to some checks can also write a report. The report's `selection` column records what was selected, so a partial run cannot pass for a full one.
+- Add `--validation-report` to any run above, whole or narrowed, and the report covers exactly the checks that run. Nothing else about the run changes.
+- Run it only when the code is declared ready. The report is the formal record that the code was validated.
+- The run writes one CSV file into `reports/`, named for the date and the commit. Commit that file.
+- The report's `selection` column records what was selected, so a partial run cannot pass for a full one.
 - What a report holds is defined in `validation_report_dictionary.md`.
