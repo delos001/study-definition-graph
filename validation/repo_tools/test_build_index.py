@@ -34,12 +34,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # A complete header in this repo's convention: a two-line first paragraph, a
 # second paragraph that must not reach the index, and a Usage whose relative
@@ -121,7 +121,7 @@ def written(folder, capsys):
 
 
 @code("HRS0001")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_writes_the_entry_from_the_header(written):
@@ -132,7 +132,7 @@ def test_writes_the_entry_from_the_header(written):
 
 
 @code("HRS0134")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_second_paragraph_is_left_out(written):
@@ -143,7 +143,7 @@ def test_the_second_paragraph_is_left_out(written):
 
 
 @code("HRS0135")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_index_opens_with_the_title_and_the_notice(written):
@@ -154,7 +154,7 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
 
 
 @code("HRS0136")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_index_ends_with_one_newline(written):
@@ -165,7 +165,7 @@ def test_the_index_ends_with_one_newline(written):
 
 
 @code("HRS0145")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_index_is_written_with_lf_line_endings(folder):
@@ -181,7 +181,7 @@ def test_the_index_is_written_with_lf_line_endings(folder):
 
 
 @code("HRS0137")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_writing_reports_the_file_and_the_count(written):
@@ -193,7 +193,7 @@ def test_writing_reports_the_file_and_the_count(written):
 
 
 @code("HRS0002")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_scripts_are_listed_in_name_order(folder):
@@ -212,7 +212,7 @@ def test_scripts_are_listed_in_name_order(folder):
 
 
 @code("HRS0003")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_check_passes_when_index_is_current(folder, capsys):
@@ -227,7 +227,7 @@ def test_check_passes_when_index_is_current(folder, capsys):
 
 
 @code("HRS0004")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_fails_when_index_is_missing(folder, capsys):
@@ -240,7 +240,7 @@ def test_check_fails_when_index_is_missing(folder, capsys):
 
 
 @code("HRS0132")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_fails_when_index_is_stale(folder, capsys):
@@ -259,7 +259,7 @@ def test_check_fails_when_index_is_stale(folder, capsys):
 
 
 @code("HRS0005")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
@@ -275,7 +275,7 @@ def test_quiet_prints_nothing(folder, capsys):
 
 
 @code("HRS0006")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
@@ -296,7 +296,7 @@ def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
 
 
 @code("HRS0007")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_docstring_exits_17(folder, capsys):
@@ -308,7 +308,7 @@ def test_no_docstring_exits_17(folder, capsys):
 
 
 @code("HRS0008")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
@@ -322,7 +322,7 @@ def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
 
 
 @code("HRS0009")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_scripts_exits_20(folder, capsys):
@@ -337,7 +337,7 @@ def test_no_scripts_exits_20(folder, capsys):
 
 
 @code("HRS0010")
-@target("repository")
+@category("repository")
 @objective("correctness")
 def test_real_index_is_current():
     """repo_tools/README.md matches the headers of the real scripts, which is the

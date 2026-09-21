@@ -47,12 +47,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 
 #######################################################################################
@@ -121,8 +121,8 @@ def row_for(rows: list[dict[str, str]], check_name: str) -> dict[str, str]:
     Returns:
         That check's row.
     """
-    matches = [r for r in rows if r["validation_check_name"] == check_name]
-    assert len(matches) == 1, [r["validation_check_name"] for r in rows]
+    matches = [r for r in rows if r["name"] == check_name]
+    assert len(matches) == 1, [r["name"] for r in rows]
     return matches[0]
 
 
@@ -134,7 +134,7 @@ PASSING_SUITE = '''
     import pytest
 
     @pytest.mark.code("XYZ0001")
-    @pytest.mark.target("repository")
+    @pytest.mark.category("repository")
     @pytest.mark.objective("correctness")
     @pytest.mark.positive
     def test_adds():
@@ -156,7 +156,7 @@ def passing(pytester, monkeypatch):
 
 
 @code("TST0001")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_passing_run_is_recorded_as_pass(passing):
@@ -170,40 +170,40 @@ def test_passing_run_is_recorded_as_pass(passing):
 
 
 @code("TST0007")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_passing_check_gets_a_row_with_its_details(passing):
-    """A check that passed gets one row carrying its id, its target, its objective,
-    its behavior case, its expected result and the outcome passed."""
+    """A check that passed gets one row carrying its id, its category, its objective,
+    its staged case, its expected result and the outcome passed."""
     _, rows = passing
     adds = row_for(rows, "test_adds")
-    assert adds["validation_check_id"] == "XYZ0001"
-    assert adds["validation_target"] == "repository"
-    assert adds["validation_objective"] == "correctness"
-    assert adds["behavior_case"] == "positive"
+    assert adds["id"] == "XYZ0001"
+    assert adds["category"] == "repository"
+    assert adds["objective"] == "correctness"
+    assert adds["staged_case"] == "positive"
     assert adds["expected_result"] == "Two and two make four."
     assert adds["check_outcome"] == "passed"
 
 
 @code("TST0008")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_skipped_check_is_shown_as_skipped_with_its_reason(passing):
     """A check that was skipped gets a row saying skipped, with the skip's reason and,
-    since it carries no markers, an empty target, objective and behavior case."""
+    since it carries no markers, an empty category, objective and staged case."""
     _, rows = passing
     left_out = row_for(rows, "test_left_out")
-    assert left_out["validation_target"] == ""
-    assert left_out["validation_objective"] == ""
-    assert left_out["behavior_case"] == ""
+    assert left_out["category"] == ""
+    assert left_out["objective"] == ""
+    assert left_out["staged_case"] == ""
     assert left_out["check_outcome"] == "skipped"
     assert left_out["outcome_reason"] == "not today"
 
 
 @code("TST0002")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_no_flag_writes_nothing(pytester, monkeypatch):
@@ -226,7 +226,7 @@ def test_no_flag_writes_nothing(pytester, monkeypatch):
 
 
 @code("TST0003")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
@@ -260,7 +260,7 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
 
 
 @code("TST0004")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
@@ -285,7 +285,7 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
 
 
 @code("TST0005")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
@@ -312,7 +312,7 @@ def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
 
 
 @code("TST0006")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch):
@@ -339,7 +339,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
 
 
 @code("TST0009")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
@@ -356,7 +356,7 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
 
 
 @code("TST0010")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 @pytest.mark.parametrize(
@@ -382,7 +382,7 @@ def test_the_selection_column_records_what_was_selected(
 
 
 @code("TST0011")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
@@ -398,7 +398,7 @@ def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
 
 
 @code("TST0013")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passing):
@@ -413,7 +413,7 @@ def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passin
 
 
 @code("TST0014")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
@@ -428,7 +428,7 @@ def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
 
 
 @code("TST0012")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_fixture_sha256s_names_each_fixture_file_with_its_hash(pytester, monkeypatch):
@@ -520,7 +520,7 @@ def gated(pytester, monkeypatch):
 
 
 @code("TST0015")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_check_whose_pinned_file_matches_runs(gated):
@@ -531,7 +531,7 @@ def test_a_check_whose_pinned_file_matches_runs(gated):
 
 
 @code("TST0016")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_check_whose_pinned_file_changed_is_blocked(gated):
@@ -548,7 +548,7 @@ def test_a_check_whose_pinned_file_changed_is_blocked(gated):
 
 
 @code("TST0017")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_check_whose_pinned_file_is_not_downloaded_is_skipped(gated):
@@ -573,7 +573,7 @@ UNMATCHED_SUITE = '''
 
 
 @code("TST0018")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch):

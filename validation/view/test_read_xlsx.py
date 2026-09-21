@@ -42,12 +42,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The rows every staged workbook holds. The empty cell and the cell holding a
 # newline are here because both appear in the real worked-example spreadsheets.
@@ -137,7 +137,7 @@ def run(capsys, *argv):
 
 
 @code("VIW0018")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_name_fragment_finds_the_workbook(inputs, capsys):
@@ -147,7 +147,7 @@ def test_a_name_fragment_finds_the_workbook(inputs, capsys):
 
 
 @code("VIW0019")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_listing_names_every_sheet(inputs, capsys):
@@ -158,7 +158,7 @@ def test_listing_names_every_sheet(inputs, capsys):
 
 
 @code("VIW0050")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
@@ -188,7 +188,7 @@ def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
 
 
 @code("VIW0020")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_sheet_prints_as_a_table(inputs, capsys):
@@ -199,7 +199,7 @@ def test_a_sheet_prints_as_a_table(inputs, capsys):
 
 
 @code("VIW0021")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
@@ -209,7 +209,7 @@ def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
 
 
 @code("VIW0022")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_records_format_prints_one_field_per_line(inputs, capsys):
@@ -222,7 +222,7 @@ def test_records_format_prints_one_field_per_line(inputs, capsys):
 
 
 @code("VIW0023")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_an_empty_cell_prints_as_nothing(inputs, capsys):
@@ -233,7 +233,7 @@ def test_an_empty_cell_prints_as_nothing(inputs, capsys):
 
 
 @code("VIW0024")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
@@ -243,7 +243,7 @@ def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
 
 
 @code("VIW0025")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
@@ -256,7 +256,7 @@ def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
 
 
 @code("VIW0026")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
@@ -268,7 +268,7 @@ def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
 
 
 @code("VIW0027")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_all_searches_every_workbook(inputs, capsys):
@@ -280,7 +280,7 @@ def test_all_searches_every_workbook(inputs, capsys):
 
 
 @code("VIW0028")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
@@ -300,7 +300,7 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 
 
 @code("VIW0029")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @negative
 def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
@@ -312,7 +312,7 @@ def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
 
 
 @code("VIW0030")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @negative
 def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
@@ -324,7 +324,7 @@ def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
 
 
 @code("VIW0031")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @negative
 def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
@@ -337,7 +337,7 @@ def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
 
 
 @code("VIW0032")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @negative
 def test_all_without_find_is_a_usage_mistake(inputs, capsys):
@@ -350,7 +350,7 @@ def test_all_without_find_is_a_usage_mistake(inputs, capsys):
 
 
 @code("VIW0033")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @negative
 def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
@@ -370,7 +370,7 @@ def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
 
 
 @code("VIW0061")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_full_path_finds_the_workbook(inputs, capsys):
@@ -379,7 +379,7 @@ def test_a_full_path_finds_the_workbook(inputs, capsys):
 
 
 @code("VIW0062")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tmp_path):
@@ -392,7 +392,7 @@ def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tm
 
 
 @code("VIW0063")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
@@ -405,7 +405,7 @@ def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
 
 
 @code("VIW0059")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
@@ -421,7 +421,7 @@ def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
 
 
 @code("VIW0060")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
@@ -440,7 +440,7 @@ def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
 
 
 @code("VIW0064")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_search_reports_one_hit_per_row(inputs):
@@ -452,7 +452,7 @@ def test_a_search_reports_one_hit_per_row(inputs):
 
 
 @code("VIW0065")
-@target("conversion")
+@category("conversion")
 @objective("correctness")
 @positive
 def test_a_search_hit_cuts_a_long_cell_short(inputs):

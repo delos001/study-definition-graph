@@ -36,12 +36,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 CONTENT = b"pinned bytes\n"
 RECORDED = "inputs/set_a/good.txt"
@@ -124,7 +124,7 @@ def stray_quiet(repo, capsys) -> Outcome:
 
 
 @code("HRS0032")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_recorded_files_only_exits_0(clean):
@@ -133,7 +133,7 @@ def test_recorded_files_only_exits_0(clean):
 
 
 @code("HRS0033")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_recorded_files_only_prints_nothing(clean):
@@ -142,7 +142,7 @@ def test_recorded_files_only_prints_nothing(clean):
 
 
 @code("HRS0021")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(stray_quiet):
@@ -152,7 +152,7 @@ def test_quiet_prints_nothing(stray_quiet):
 
 
 @code("HRS0034")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_keeps_the_exit_code(stray_quiet):
@@ -161,7 +161,7 @@ def test_quiet_keeps_the_exit_code(stray_quiet):
 
 
 @code("HRS0035")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_own_files_are_not_reported(repo, capsys):
@@ -173,7 +173,7 @@ def test_own_files_are_not_reported(repo, capsys):
 
 
 @code("HRS0036")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_lock_file_is_not_reported(repo, capsys):
@@ -184,7 +184,7 @@ def test_lock_file_is_not_reported(repo, capsys):
 
 
 @code("HRS0037")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
@@ -207,7 +207,7 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 
 
 @code("HRS0038")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unrecorded_file_exits_10(stray):
@@ -216,7 +216,7 @@ def test_unrecorded_file_exits_10(stray):
 
 
 @code("HRS0039")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unrecorded_file_is_listed_by_path(stray):
@@ -225,7 +225,7 @@ def test_unrecorded_file_is_listed_by_path(stray):
 
 
 @code("HRS0040")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
@@ -236,7 +236,7 @@ def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
 
 
 @code("HRS0041")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_part_file_is_reported(repo, capsys):
@@ -249,7 +249,7 @@ def test_part_file_is_reported(repo, capsys):
 
 
 @code("HRS0028")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreadable_manifest_exits_3(repo, capsys):
@@ -262,7 +262,7 @@ def test_unreadable_manifest_exits_3(repo, capsys):
 
 
 @code("HRS0029")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_manifests_exits_3(repo, capsys):
@@ -276,7 +276,7 @@ def test_no_manifests_exits_3(repo, capsys):
 
 
 @code("HRS0030")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):

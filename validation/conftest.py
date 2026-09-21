@@ -34,7 +34,7 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check. A row holds the check's id, its target, its
+                 one row per check. A row holds the check's id, its category, its
                  objective, its case when it is a correctness check that staged
                  its own situation, its expected result,
                  which is its docstring's first paragraph, its own outcome, and the
@@ -55,10 +55,11 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
 
              It registers the markers the tests carry:
                - @code carries the check's permanent id from validation/validation_inventory.csv,
-               - @target carries what kind of thing the check confirms, one of
-                 the targets validation/README.md defines,
-               - @objective carries what the check confirms about its target,
-                 one of the objectives validation/README.md defines,
+               - @category carries what kind of thing the check confirms, one of
+                 the categories validation/validation_inventory_dictionary.md
+                 defines,
+               - @objective carries what the check confirms about its category,
+                 one of the objectives the same dictionary defines,
                - @positive, on a correctness check, means a staged working
                  situation where the code is expected to succeed,
                - @negative, on a correctness check, means a staged broken
@@ -410,8 +411,8 @@ def pytest_addoption(parser):
 
 
 def pytest_configure(config):
-    """Tell pytest about the markers the checks use: code, target, objective, positive,
-    negative and needs_pinned.
+    """Tell pytest about the markers the checks use: code, category, objective,
+    positive, negative and needs_pinned.
 
     A marker is a label a check carries. pytest warns about a label it has not been told
     about, so each is declared here with a sentence saying what it means.
@@ -421,13 +422,13 @@ def pytest_configure(config):
     """
     config.addinivalue_line(
         "markers",
-        "target(name): what kind of thing the check confirms, one of the targets in "
-        "validation/README.md",
+        "category(name): what kind of thing the check confirms, one of the categories "
+        "in validation/validation_inventory_dictionary.md",
     )
     config.addinivalue_line(
         "markers",
-        "objective(name): what the check confirms about its target, one of the "
-        "objectives in validation/README.md",
+        "objective(name): what the check confirms about its category, one of the "
+        "objectives in validation/validation_inventory_dictionary.md",
     )
     config.addinivalue_line(
         "markers",
@@ -593,7 +594,7 @@ def pytest_runtest_makereport(item, call):
             "file": Path(str(item.fspath)),
             "code": _code(item),
             "name": item.name,
-            "target": _target(item),
+            "category": _category(item),
             "objective": _objective(item),
             "case": _case(item),
             "expected_result": _first_paragraph(item.obj.__doc__),
@@ -639,16 +640,16 @@ def _code(item) -> str:
     return str(marker.args[0]) if marker and marker.args else ""
 
 
-def _target(item) -> str:
-    """Read a check's target off its target marker.
+def _category(item) -> str:
+    """Read a check's category off its category marker.
 
     Args:
         item: The check.
 
     Returns:
-        The target, or an empty string when the check carries no target marker.
+        The category, or an empty string when the check carries no category marker.
     """
-    marker = item.get_closest_marker("target")
+    marker = item.get_closest_marker("category")
     return str(marker.args[0]) if marker and marker.args else ""
 
 
@@ -796,20 +797,20 @@ def pytest_sessionstart(session):
 # The columns of a report, in the order they are written: what each check proved
 # comes first, then what the run was, then the technical details a reader needs
 # only to reproduce a failure. The check columns carry the same names as
-# validation/validation_inventory.csv, so a row joins to it by validation_check_id.
+# validation/validation_inventory.csv, so a row joins to it by id.
 REPORT_COLUMNS = (
     "run_id",
     "run_verdict",
-    "validation_check_id",
-    "validation_check_name",
-    "validation_target",
-    "validation_objective",
-    "behavior_case",
+    "id",
+    "name",
+    "category",
+    "objective",
+    "staged_case",
     "expected_result",
     "check_outcome",
     "outcome_reason",
-    "validation_folder_path",
-    "validation_file_name",
+    "folder_path",
+    "file_name",
     "target_folder_path",
     "target_file_name",
     "pytest_exit_status",
@@ -935,8 +936,8 @@ def pytest_sessionfinish(session, exitstatus):
             )
             target_folder, target_file = _target_of(file)
             per_file = {
-                "validation_folder_path": validation_folder,
-                "validation_file_name": validation_file,
+                "folder_path": validation_folder,
+                "file_name": validation_file,
                 "check_file_sha256": _sha256(file),
                 "target_folder_path": target_folder,
                 "target_file_name": target_file,
@@ -946,11 +947,11 @@ def pytest_sessionfinish(session, exitstatus):
                     {
                         **run,
                         **per_file,
-                        "validation_check_id": outcome["code"],
-                        "validation_check_name": outcome["name"],
-                        "validation_target": outcome["target"],
-                        "validation_objective": outcome["objective"],
-                        "behavior_case": outcome["case"],
+                        "id": outcome["code"],
+                        "name": outcome["name"],
+                        "category": outcome["category"],
+                        "objective": outcome["objective"],
+                        "staged_case": outcome["case"],
                         "expected_result": outcome["expected_result"],
                         "check_outcome": outcome["outcome"],
                         "outcome_reason": outcome["reason"],
@@ -962,16 +963,16 @@ def pytest_sessionfinish(session, exitstatus):
         rows.append(
             {
                 **run,
-                "validation_folder_path": "",
-                "validation_file_name": "",
+                "folder_path": "",
+                "file_name": "",
                 "check_file_sha256": "",
                 "target_folder_path": "",
                 "target_file_name": "",
-                "validation_check_id": "",
-                "validation_check_name": "",
-                "validation_target": "",
-                "validation_objective": "",
-                "behavior_case": "",
+                "id": "",
+                "name": "",
+                "category": "",
+                "objective": "",
+                "staged_case": "",
                 "expected_result": "",
                 "check_outcome": "none",
                 "outcome_reason": "no check ran: pytest failed before any test ran",

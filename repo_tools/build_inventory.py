@@ -3,7 +3,7 @@ Script:      build_inventory.py
 Description: Generates validation/validation_inventory.csv, the list of every check
              in the test files under validation/, from the checks themselves, so the inventory
              cannot drift from the code it describes. Each check's name, its
-             permanent id (the @code marker), its target (the @target marker),
+             permanent id (the @code marker), its category (the @category marker),
              its objective (the @objective marker), whether a correctness check
              is a positive or a negative case, and its expected result (its
              docstring's first paragraph) are read from the file. Four columns are kept by hand and carried over from the
@@ -15,7 +15,7 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
              true:
                - it has no @code marker, or an id another check already carries,
                  because the id is what joins a validation report to the inventory;
-               - it has no @target marker, or one that names no target;
+               - it has no @category marker, or one that names no category;
                - it has no @objective marker, or one that names no objective;
                - it carries @positive or @negative with an objective other than
                  correctness, since only a correctness check stages a case;
@@ -87,34 +87,36 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 VALIDATION_DIR = REPO_ROOT / "validation"
 INVENTORY_PATH = VALIDATION_DIR / "validation_inventory.csv"
 
-# The columns, in order. The check columns are shared with the validation report,
-# which joins on validation_check_id. What each column holds is defined in
-# validation/README.md.
+# The columns, in order. The check's own columns are bare; only the two about the
+# covered file carry a prefix. The check columns are shared with the validation
+# report, which joins on id. What each column holds is defined in
+# validation/validation_inventory_dictionary.md.
 COLUMNS = (
-    "validation_folder_path",
-    "validation_file_name",
+    "category",
+    "objective",
+    "staged_case",
+    "folder_path",
+    "file_name",
+    "name",
+    "id",
     "target_folder_path",
     "target_file_name",
-    "validation_check_name",
-    "validation_check_id",
-    "validation_target",
-    "validation_objective",
-    "behavior_case",
     "expected_result",
+    "version",
     "status",
     "superseded_by",
     "status_reason",
-    "version",
 )
 
 # The columns a person keeps by hand. The generator carries them over by id and
 # never works them out.
 HAND_KEPT = ("status", "superseded_by", "status_reason", "version")
 
-# What kind of thing a check confirms. validation/README.md defines each one.
-TARGETS = ("repository", "sources", "conversion", "products")
+# What kind of thing a check confirms. validation/validation_inventory_dictionary.md
+# defines each one.
+CATEGORIES = ("repository", "sources", "conversion", "products")
 
-# What a check confirms about its target. validation/README.md defines each one.
+# What a check confirms about its category. The dictionary defines each one.
 OBJECTIVES = ("correctness", "completeness", "conformance", "stability", "performance")
 
 # The only objective whose checks may be positive or negative cases. A correctness
@@ -167,7 +169,7 @@ class Check:
     check_file: str
     check_name: str
     check_id: str
-    target: str
+    category: str
     objective: str
     case: str
     expected_result: str
@@ -285,17 +287,17 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
     for node in tree.body:
         if not isinstance(node, ast.FunctionDef) or not node.name.startswith("test_"):
             continue
-        # A check is written as @code("XYZ0001"), @target("repository"),
+        # A check is written as @code("XYZ0001"), @category("repository"),
         # @objective("correctness") and, for a correctness check that staged its
         # situation, @positive or @negative: the short names the test files give
         # pytest's markers.
-        code = target = objective = case = ""
-        has_target = has_objective = False
+        code = category = objective = case = ""
+        has_category = has_objective = False
         for decorator in node.decorator_list:
             if (found := _marker_argument(decorator, "code")) is not None:
                 code = found
-            elif (found := _marker_argument(decorator, "target")) is not None:
-                target, has_target = found, True
+            elif (found := _marker_argument(decorator, "category")) is not None:
+                category, has_category = found, True
             elif (found := _marker_argument(decorator, "objective")) is not None:
                 objective, has_objective = found, True
             elif isinstance(decorator, ast.Name) and decorator.id in CASES:
@@ -305,12 +307,12 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
 
         if not code:
             problems.append(f"{where} has no @code marker")
-        if not has_target:
-            problems.append(f"{where} has no @target marker")
-        elif target not in TARGETS:
+        if not has_category:
+            problems.append(f"{where} has no @category marker")
+        elif category not in CATEGORIES:
             problems.append(
-                f"{where} has @target({target!r}), which is not one of "
-                f"{', '.join(TARGETS)}"
+                f"{where} has @category({category!r}), which is not one of "
+                f"{', '.join(CATEGORIES)}"
             )
         if not has_objective:
             problems.append(f"{where} has no @objective marker")
@@ -335,7 +337,7 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
                 check_file=_name(path),
                 check_name=node.name,
                 check_id=code,
-                target=target,
+                category=category,
                 objective=objective,
                 case=case,
                 expected_result=expected,
@@ -390,7 +392,7 @@ def existing_rows() -> dict[str, dict[str, str]]:
     if not INVENTORY_PATH.is_file():
         return {}
     with INVENTORY_PATH.open(encoding="utf-8", newline="") as fh:
-        return {row["validation_check_id"]: row for row in csv.DictReader(fh)}
+        return {row["id"]: row for row in csv.DictReader(fh)}
 
 
 def build_rows() -> tuple[list[dict[str, str]], list[str]]:
@@ -420,15 +422,15 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
         validation_folder, validation_file = split_path(check.check_file)
         target_folder, target_file = split_path(target)
         row = {
-            "validation_folder_path": validation_folder,
-            "validation_file_name": validation_file,
+            "folder_path": validation_folder,
+            "file_name": validation_file,
             "target_folder_path": target_folder,
             "target_file_name": target_file,
-            "validation_check_name": check.check_name,
-            "validation_check_id": check.check_id,
-            "validation_target": check.target,
-            "validation_objective": check.objective,
-            "behavior_case": check.case,
+            "name": check.check_name,
+            "id": check.check_id,
+            "category": check.category,
+            "objective": check.objective,
+            "staged_case": check.case,
             "expected_result": check.expected_result,
         }
         # The hand-kept columns come from the existing row. A new check gets the
@@ -460,10 +462,10 @@ def status_problems(rows: list[dict[str, str]], live_ids: set[str]) -> list[str]
     Returns:
         One line per problem, naming the check and what is wrong.
     """
-    status_of = {row["validation_check_id"]: row["status"] for row in rows}
+    status_of = {row["id"]: row["status"] for row in rows}
     problems: list[str] = []
     for row in rows:
-        check_id, status = row["validation_check_id"], row["status"]
+        check_id, status = row["id"], row["status"]
         successors = [s.strip() for s in row["superseded_by"].split(";") if s.strip()]
 
         if status not in STATUSES:
@@ -595,7 +597,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     rows, problems = build_rows()
-    live = {row["validation_check_id"] for row in rows}
+    live = {row["id"] for row in rows}
     status = status_problems(rows, live)
     for problem in problems + status:
         say(problem)

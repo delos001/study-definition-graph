@@ -42,12 +42,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 TOOLS = ("ruff format", "ruff check", "mypy")
 
@@ -143,7 +143,7 @@ def run_tool(capsys, *argv: str) -> Outcome:
 
 
 @code("HRS0123")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_all_passing_exits_0(stage, capsys):
@@ -152,7 +152,7 @@ def test_all_passing_exits_0(stage, capsys):
 
 
 @code("HRS0124")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_each_tool_gets_a_verdict_line(stage, capsys):
@@ -163,7 +163,7 @@ def test_each_tool_gets_a_verdict_line(stage, capsys):
 
 
 @code("HRS0125")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_tools_run_in_the_set_order(stage, capsys):
@@ -174,7 +174,7 @@ def test_the_tools_run_in_the_set_order(stage, capsys):
 
 
 @code("HRS0126")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_tools_run_from_the_repo_root(stage, capsys):
@@ -185,7 +185,7 @@ def test_the_tools_run_from_the_repo_root(stage, capsys):
 
 
 @code("HRS0127")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_tool_off_the_path_is_run_through_conda(stage, capsys):
@@ -198,7 +198,7 @@ def test_a_tool_off_the_path_is_run_through_conda(stage, capsys):
 
 
 @code("HRS0128")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
@@ -219,7 +219,7 @@ def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
 
 
 @code("HRS0129")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
@@ -234,7 +234,7 @@ def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
 
 
 @code("HRS0130")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_every_tool_still_runs_after_one_fails(stage, capsys):
@@ -246,7 +246,7 @@ def test_every_tool_still_runs_after_one_fails(stage, capsys):
 
 
 @code("HRS0131")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_tool_and_no_conda_exits_22(stage, capsys):

@@ -42,12 +42,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 KEY = "sk-ant-test-key"
 REPLY = "working"
@@ -153,7 +153,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 
 
 @code("HRS0068")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_working_key_exits_0(working):
@@ -162,7 +162,7 @@ def test_working_key_exits_0(working):
 
 
 @code("HRS0069")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_working_key_reports_the_reply(working):
@@ -172,7 +172,7 @@ def test_working_key_reports_the_reply(working):
 
 
 @code("HRS0070")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_key_is_never_printed(working):
@@ -181,7 +181,7 @@ def test_the_key_is_never_printed(working):
 
 
 @code("HRS0071")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quoted_key_is_read(repo, monkeypatch, capsys):
@@ -192,7 +192,7 @@ def test_quoted_key_is_read(repo, monkeypatch, capsys):
 
 
 @code("HRS0072")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
@@ -202,7 +202,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 
 
 @code("HRS0073")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
@@ -219,7 +219,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 
 
 @code("HRS0074")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
@@ -232,7 +232,7 @@ def test_missing_env_file_is_refused(repo, capsys):
 
 
 @code("HRS0075")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_empty_key_is_refused(repo, capsys):
@@ -246,7 +246,7 @@ def test_empty_key_is_refused(repo, capsys):
 
 
 @code("HRS0076")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
@@ -269,7 +269,7 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
 
 
 @code("HRS0148")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_key_without_access_is_reported_as_an_account_problem(
@@ -296,7 +296,7 @@ def test_key_without_access_is_reported_as_an_account_problem(
 
 
 @code("HRS0077")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
@@ -312,7 +312,7 @@ def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
 
 
 @code("HRS0139")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_error_the_api_answered_with_is_reported_with_its_message(
@@ -339,7 +339,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
 
 
 @code("HRS0078")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):

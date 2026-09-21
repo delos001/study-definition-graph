@@ -43,12 +43,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The url every check downloads from. Nothing is at it; the fake server below
 # answers in its place.
@@ -221,7 +221,7 @@ def attempt(server, tmp_path, behavior) -> Failed:
 
 
 @code("SRC0031")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_download_is_written_under_the_part_name(completed):
@@ -232,7 +232,7 @@ def test_download_is_written_under_the_part_name(completed):
 
 
 @code("SRC0032")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_download_holds_the_bytes_the_server_sent(completed):
@@ -241,7 +241,7 @@ def test_download_holds_the_bytes_the_server_sent(completed):
 
 
 @code("SRC0033")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_nothing_appears_under_the_final_name(completed):
@@ -251,7 +251,7 @@ def test_nothing_appears_under_the_final_name(completed):
 
 
 @code("SRC0034")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_missing_folders_are_created(completed):
@@ -261,7 +261,7 @@ def test_missing_folders_are_created(completed):
 
 
 @code("SRC0035")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_leftover_part_file_is_replaced(tmp_path, server):
@@ -278,7 +278,7 @@ def test_leftover_part_file_is_replaced(tmp_path, server):
 
 
 @code("SRC0036")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_request_is_a_get_on_the_given_url(completed):
@@ -288,7 +288,7 @@ def test_request_is_a_get_on_the_given_url(completed):
 
 
 @code("SRC0037")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_request_asks_to_follow_redirects(completed):
@@ -298,7 +298,7 @@ def test_request_asks_to_follow_redirects(completed):
 
 
 @code("SRC0038")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_request_carries_the_module_timeout(completed):
@@ -307,7 +307,7 @@ def test_request_carries_the_module_timeout(completed):
 
 
 @code("SRC0039")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_partial_path_adds_part_to_the_file_name():
@@ -324,7 +324,7 @@ def test_partial_path_adds_part_to_the_file_name():
 
 
 @code("SRC0040")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server):
@@ -338,7 +338,7 @@ def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server)
 
 
 @code("SRC0041")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_error_status_leaves_no_part_file(tmp_path, server):
@@ -350,7 +350,7 @@ def test_error_status_leaves_no_part_file(tmp_path, server):
 
 
 @code("SRC0042")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, server):
@@ -362,7 +362,7 @@ def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, se
 
 
 @code("SRC0043")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreachable_server_leaves_no_part_file(tmp_path, server):
@@ -372,7 +372,7 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
 
 
 @code("SRC0116")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, server):
@@ -386,7 +386,7 @@ def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, serve
 
 
 @code("SRC0117")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
@@ -402,7 +402,7 @@ def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
 
 
 @code("SRC0118")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkeypatch):
@@ -419,7 +419,7 @@ def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkey
 
 
 @code("SRC0044")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
@@ -430,7 +430,7 @@ def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
 
 
 @code("SRC0045")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_broken_transfer_removes_the_half_written_part_file(tmp_path, server):

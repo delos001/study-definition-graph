@@ -44,12 +44,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 URI = "bolt://localhost:7687"
 USER = "neo4j"
@@ -176,7 +176,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 
 
 @code("HRS0105")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_matching_database_exits_0(working):
@@ -185,7 +185,7 @@ def test_matching_database_exits_0(working):
 
 
 @code("HRS0106")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_matching_database_reports_the_version(working):
@@ -195,7 +195,7 @@ def test_matching_database_reports_the_version(working):
 
 
 @code("HRS0107")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_password_is_never_printed(working):
@@ -204,7 +204,7 @@ def test_the_password_is_never_printed(working):
 
 
 @code("HRS0108")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quoted_settings_are_read(repo):
@@ -217,7 +217,7 @@ def test_quoted_settings_are_read(repo):
 
 
 @code("HRS0109")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_pin_is_read_from_the_image_tag(repo):
@@ -227,7 +227,7 @@ def test_the_pin_is_read_from_the_image_tag(repo):
 
 
 @code("HRS0110")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
@@ -237,7 +237,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 
 
 @code("HRS0111")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
@@ -254,7 +254,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 
 
 @code("HRS0112")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
@@ -267,7 +267,7 @@ def test_missing_env_file_is_refused(repo, capsys):
 
 
 @code("HRS0113")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_settings_are_refused_by_name(repo, capsys):
@@ -281,7 +281,7 @@ def test_missing_settings_are_refused_by_name(repo, capsys):
 
 
 @code("HRS0114")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_compose_file_is_refused(repo, capsys):
@@ -295,7 +295,7 @@ def test_missing_compose_file_is_refused(repo, capsys):
 
 
 @code("HRS0115")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_compose_file_without_an_image_is_refused(repo, capsys):
@@ -312,7 +312,7 @@ def test_compose_file_without_an_image_is_refused(repo, capsys):
 
 
 @code("HRS0116")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unpinned_image_tag_is_refused(repo, capsys):
@@ -326,7 +326,7 @@ def test_unpinned_image_tag_is_refused(repo, capsys):
 
 
 @code("HRS0117")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, capsys):
@@ -342,7 +342,7 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
 
 
 @code("HRS0149")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
@@ -358,7 +358,7 @@ def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
 
 
 @code("HRS0150")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsys):
@@ -375,7 +375,7 @@ def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsy
 
 
 @code("HRS0118")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
@@ -392,7 +392,7 @@ def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
 
 
 @code("HRS0119")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys):
@@ -408,7 +408,7 @@ def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys)
 
 
 @code("HRS0120")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys):
@@ -424,7 +424,7 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
 
 
 @code("HRS0121")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):

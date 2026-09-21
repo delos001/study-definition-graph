@@ -42,12 +42,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # One test file with two well-formed staged correctness checks, written the way the
 # real files are.
@@ -58,11 +58,11 @@ positive = pytest.mark.positive
 negative = pytest.mark.negative
 code = pytest.mark.code
 objective = pytest.mark.objective
-target = pytest.mark.target
+category = pytest.mark.category
 
 
 @code("ABC0001")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_first():
@@ -73,7 +73,7 @@ def test_first():
 
 
 @code("ABC0002")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_second():
@@ -87,11 +87,11 @@ import pytest
 
 code = pytest.mark.code
 objective = pytest.mark.objective
-target = pytest.mark.target
+category = pytest.mark.category
 
 
 @code("ABC0003")
-@target("repository")
+@category("repository")
 @objective("completeness")
 def test_third():
     """Nothing is missing from the file."""
@@ -201,7 +201,7 @@ def with_hand_kept(inventory: Path, check_id: str, **values: str) -> None:
     """
     rows = rows_of(inventory)
     for row in rows:
-        if row["validation_check_id"] == check_id:
+        if row["id"] == check_id:
             row.update(values)
     write_rows(inventory, rows)
 
@@ -220,15 +220,15 @@ def removed_row(check_id: str, **values: str) -> dict[str, str]:
     """
     row = {column: "" for column in script.COLUMNS}
     row.update(
-        validation_folder_path="validation/repo_tools",
-        validation_file_name="test_alpha.py",
+        folder_path="validation/repo_tools",
+        file_name="test_alpha.py",
         target_folder_path="repo_tools",
         target_file_name="alpha.py",
-        validation_check_name="test_gone",
-        validation_check_id=check_id,
-        validation_target="repository",
-        validation_objective="correctness",
-        behavior_case="positive",
+        name="test_gone",
+        id=check_id,
+        category="repository",
+        objective="correctness",
+        staged_case="positive",
         expected_result="A thing that is no longer checked.",
         status="active",
         version="1",
@@ -264,36 +264,36 @@ def written(tests_folder, capsys) -> Path:
 
 
 @code("HRS0053")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_row_holds_the_check_as_written(generated):
-    """A row carries the check's name, id, target, objective, case and the first
+    """A row carries the check's name, id, category, objective, case and the first
     paragraph of its docstring as one line, with the second paragraph left out."""
-    first = next(r for r in generated if r["validation_check_name"] == "test_first")
-    assert first["validation_check_id"] == "ABC0001"
-    assert first["validation_target"] == "repository"
-    assert first["validation_objective"] == "correctness"
-    assert first["behavior_case"] == "positive"
+    first = next(r for r in generated if r["name"] == "test_first")
+    assert first["id"] == "ABC0001"
+    assert first["category"] == "repository"
+    assert first["objective"] == "correctness"
+    assert first["staged_case"] == "positive"
     assert first["expected_result"] == "The first thing works."
 
 
 @code("HRS0054")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_row_names_the_check_file_and_the_target(generated):
     """A test file under validation/repo_tools/ targets the script of the same name in
     repo_tools/, and both paths are written as a folder and a file name."""
     first = generated[0]
-    assert first["validation_folder_path"] == "validation/repo_tools"
-    assert first["validation_file_name"] == "test_alpha.py"
+    assert first["folder_path"] == "validation/repo_tools"
+    assert first["file_name"] == "test_alpha.py"
     assert first["target_folder_path"] == "repo_tools"
     assert first["target_file_name"] == "alpha.py"
 
 
 @code("HRS0122")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_hook_check_targets_the_hook(tests_folder, capsys):
@@ -307,38 +307,38 @@ def test_a_hook_check_targets_the_hook(tests_folder, capsys):
 
 
 @code("HRS0154")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_check_outside_correctness_has_no_case(tests_folder, capsys):
     """A check whose objective is not correctness, and which carries no positive or
-    negative marker, gets a row with its objective and an empty behavior case."""
+    negative marker, gets a row with its objective and an empty staged case."""
     inventory = tests_folder({"repo_tools/test_alpha.py": COMPLETENESS_CHECK})
     assert run(capsys).exit_code == 0
     row = rows_of(inventory)[0]
-    assert row["validation_objective"] == "completeness"
-    assert row["behavior_case"] == ""
+    assert row["objective"] == "completeness"
+    assert row["staged_case"] == ""
 
 
 @code("HRS0171")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_correctness_check_that_staged_nothing_has_no_case(tests_folder, capsys):
     """A correctness check with neither @positive nor @negative gets a row with an
-    empty behavior case, because it looked at something real rather than staging a
+    empty staged case, because it looked at something real rather than staging a
     situation."""
     inventory = tests_folder(
         {"repo_tools/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")}
     )
     assert run(capsys).exit_code == 0
-    row = next(r for r in rows_of(inventory) if r["validation_check_id"] == "ABC0002")
-    assert row["validation_objective"] == "correctness"
-    assert row["behavior_case"] == ""
+    row = next(r for r in rows_of(inventory) if r["id"] == "ABC0002")
+    assert row["objective"] == "correctness"
+    assert row["staged_case"] == ""
 
 
 @code("HRS0055")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_new_check_starts_active_at_version_1(generated):
@@ -351,7 +351,7 @@ def test_new_check_starts_active_at_version_1(generated):
 
 
 @code("HRS0056")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
@@ -365,7 +365,7 @@ def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
         version="3",
     )
     assert run(capsys).exit_code == 0
-    second = next(r for r in rows_of(written) if r["validation_check_id"] == "ABC0002")
+    second = next(r for r in rows_of(written) if r["id"] == "ABC0002")
     assert (second["status"], second["status_reason"], second["version"]) == (
         "inactive",
         "Switched off while the fake server is rebuilt.",
@@ -374,7 +374,7 @@ def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
 
 
 @code("HRS0057")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
@@ -388,7 +388,7 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
         }
     )
     assert run(capsys).exit_code == 0
-    assert [r["validation_folder_path"] for r in rows_of(inventory)] == [
+    assert [r["folder_path"] for r in rows_of(inventory)] == [
         "validation/sources",
         "validation/sources",
         "validation/repo_tools",
@@ -399,7 +399,7 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
 
 
 @code("HRS0141")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
@@ -415,7 +415,7 @@ def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
 
 
 @code("HRS0062")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_deleted_check_drops_out(tests_folder, capsys):
@@ -424,11 +424,11 @@ def test_deleted_check_drops_out(tests_folder, capsys):
     assert run(capsys).exit_code == 0
     tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.split('@code("ABC0002")')[0]})
     assert run(capsys).exit_code == 0
-    assert [r["validation_check_id"] for r in rows_of(inventory)] == ["ABC0001"]
+    assert [r["id"] for r in rows_of(inventory)] == ["ABC0001"]
 
 
 @code("HRS0058")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_check_passes_when_inventory_is_current(tests_folder, capsys):
@@ -444,7 +444,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
 
 
 @code("HRS0059")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(tests_folder, capsys):
@@ -464,7 +464,7 @@ def test_quiet_prints_nothing(tests_folder, capsys):
 
 
 @code("HRS0155")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_check_status_passes_a_superseded_check_with_an_active_successor(
@@ -484,7 +484,7 @@ def test_check_status_passes_a_superseded_check_with_an_active_successor(
 
 
 @code("HRS0156")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
@@ -510,7 +510,7 @@ def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
 
 
 @code("HRS0060")
-@target("repository")
+@category("repository")
 @objective("correctness")
 def test_real_inventory_is_current():
     """validation/validation_inventory.csv matches the checks in the real test files,
@@ -528,7 +528,7 @@ def test_real_inventory_is_current():
 
 
 @code("HRS0061")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
@@ -542,7 +542,7 @@ def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
 
 
 @code("HRS0133")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
@@ -561,7 +561,7 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
 
 
 @code("HRS0063")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_without_id_exits_18(tests_folder, capsys):
@@ -579,7 +579,7 @@ def test_check_without_id_exits_18(tests_folder, capsys):
 
 
 @code("HRS0157")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_without_objective_exits_18(tests_folder, capsys):
@@ -588,8 +588,8 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
     inventory = tests_folder(
         {
             "repo_tools/test_alpha.py": TWO_CHECKS.replace(
-                '@target("repository")\n@objective("correctness")\n',
-                '@target("repository")\n',
+                '@category("repository")\n@objective("correctness")\n',
+                '@category("repository")\n',
             )
         }
     )
@@ -600,49 +600,49 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
 
 
 @code("HRS0172")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
-def test_check_without_target_exits_18(tests_folder, capsys):
-    """A check with no @target marker makes the run exit 18, naming the file and
+def test_check_without_category_exits_18(tests_folder, capsys):
+    """A check with no @category marker makes the run exit 18, naming the file and
     the check, and the inventory is not written."""
     inventory = tests_folder(
         {
             "repo_tools/test_alpha.py": TWO_CHECKS.replace(
-                '@code("ABC0002")\n@target("repository")\n', '@code("ABC0002")\n'
+                '@code("ABC0002")\n@category("repository")\n', '@code("ABC0002")\n'
             )
         }
     )
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert not inventory.exists()
-    assert "test_second has no @target marker" in outcome.printed
+    assert "test_second has no @category marker" in outcome.printed
 
 
 @code("HRS0173")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
-def test_a_target_not_in_the_list_exits_18(tests_folder, capsys):
-    """A check whose @target names no defined target makes the run exit 18, and the
-    message quotes the value and lists the targets."""
+def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
+    """A check whose @category names no defined category makes the run exit 18, and the
+    message quotes the value and lists the categories."""
     tests_folder(
         {
             "repo_tools/test_alpha.py": TWO_CHECKS.replace(
-                '@code("ABC0002")\n@target("repository")',
-                '@code("ABC0002")\n@target("machinery")',
+                '@code("ABC0002")\n@category("repository")',
+                '@code("ABC0002")\n@category("machinery")',
             )
         }
     )
     outcome = run(capsys)
     assert outcome.exit_code == 18
-    assert "test_second has @target('machinery'), which is not one of" in (
+    assert "test_second has @category('machinery'), which is not one of" in (
         outcome.printed
     )
 
 
 @code("HRS0158")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
@@ -651,8 +651,8 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
     tests_folder(
         {
             "repo_tools/test_alpha.py": TWO_CHECKS.replace(
-                '@code("ABC0002")\n@target("repository")\n@objective("correctness")',
-                '@code("ABC0002")\n@target("repository")\n@objective("behaviour")',
+                '@code("ABC0002")\n@category("repository")\n@objective("correctness")',
+                '@code("ABC0002")\n@category("repository")\n@objective("behaviour")',
             )
         }
     )
@@ -664,7 +664,7 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
 
 
 @code("HRS0159")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_case_on_a_check_outside_correctness_exits_18(tests_folder, capsys):
@@ -690,7 +690,7 @@ def test_a_case_on_a_check_outside_correctness_exits_18(tests_folder, capsys):
 
 
 @code("HRS0160")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 @pytest.mark.parametrize("start", ["=", "+", "-", "@"])
@@ -717,7 +717,7 @@ def test_a_first_sentence_a_spreadsheet_reads_as_a_formula_exits_18(
 
 
 @code("HRS0065")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_duplicate_id_exits_18(tests_folder, capsys):
@@ -730,7 +730,7 @@ def test_duplicate_id_exits_18(tests_folder, capsys):
 
 
 @code("HRS0066")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unparseable_file_exits_19(tests_folder, capsys):
@@ -743,7 +743,7 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
 
 
 @code("HRS0067")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_test_files_exits_20(tests_folder, capsys):
@@ -762,7 +762,7 @@ def test_no_test_files_exits_20(tests_folder, capsys):
 
 
 @code("HRS0161")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_status_not_in_the_list_exits_45(written, capsys):
@@ -777,7 +777,7 @@ def test_a_status_not_in_the_list_exits_45(written, capsys):
 
 
 @code("HRS0162")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 @pytest.mark.parametrize("status", ["inactive", "retired"])
@@ -795,7 +795,7 @@ def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, stat
 
 
 @code("HRS0163")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_superseded_without_a_successor_exits_45(written, capsys):
@@ -810,7 +810,7 @@ def test_superseded_without_a_successor_exits_45(written, capsys):
 
 
 @code("HRS0164")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
@@ -825,7 +825,7 @@ def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
 
 
 @code("HRS0165")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_successor_that_is_not_active_exits_45(written, capsys):
@@ -842,7 +842,7 @@ def test_a_successor_that_is_not_active_exits_45(written, capsys):
 
 
 @code("HRS0166")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
@@ -855,7 +855,7 @@ def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
 
 
 @code("HRS0167")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
@@ -870,7 +870,7 @@ def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
 
 
 @code("HRS0168")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
@@ -883,7 +883,7 @@ def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
 
 
 @code("HRS0169")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, capsys):
@@ -893,8 +893,8 @@ def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, ca
     tests_folder(
         {
             "repo_tools/test_alpha.py": TWO_CHECKS.replace(
-                '@target("repository")\n@objective("correctness")\n',
-                '@target("repository")\n',
+                '@category("repository")\n@objective("correctness")\n',
+                '@category("repository")\n',
             )
         }
     )

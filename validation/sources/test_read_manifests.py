@@ -51,12 +51,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The one staged file most staged checks use, and its bytes. What the file says
 # does not matter to the reader; only that an entry can be built for it.
@@ -131,7 +131,7 @@ def refused_with(error, *args) -> str:
 
 
 @code("SRC0070")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_repo_root_is_the_folder_holding_pyproject():
@@ -142,7 +142,7 @@ def test_repo_root_is_the_folder_holding_pyproject():
 
 
 @code("SRC0074")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_every_entry_names_the_manifest_it_came_from(real_manifests):
@@ -161,7 +161,7 @@ def test_every_entry_names_the_manifest_it_came_from(real_manifests):
 
 
 @code("SRC0072")
-@target("repository")
+@category("repository")
 @objective("conformance")
 def test_every_manifest_lands_under_inputs(real_manifests):
     """Every real manifest, wherever it sits under manifests/, says its files land
@@ -171,7 +171,7 @@ def test_every_manifest_lands_under_inputs(real_manifests):
 
 
 @code("SRC0073")
-@target("repository")
+@category("repository")
 @objective("conformance")
 def test_every_entry_carries_the_five_required_fields(real_manifests):
     """Every entry in every real manifest has a name, a url, a local path under
@@ -194,7 +194,7 @@ def test_every_entry_carries_the_five_required_fields(real_manifests):
 
 
 @code("SRC0075")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_study_manifest_is_read_with_the_top_level_ones(top_level_and_study_sets):
@@ -204,7 +204,7 @@ def test_study_manifest_is_read_with_the_top_level_ones(top_level_and_study_sets
 
 
 @code("SRC0076")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_study_manifests_are_listed_after_the_top_level_ones(top_level_and_study_sets):
@@ -213,7 +213,7 @@ def test_study_manifests_are_listed_after_the_top_level_ones(top_level_and_study
 
 
 @code("SRC0077")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_manifests_are_listed_in_path_order(three_sets):
@@ -222,7 +222,7 @@ def test_manifests_are_listed_in_path_order(three_sets):
 
 
 @code("SRC0078")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_listing_order_is_the_same_on_every_call(three_sets):
@@ -233,7 +233,7 @@ def test_listing_order_is_the_same_on_every_call(three_sets):
 
 
 @code("SRC0079")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_one_manifest_can_be_read_by_name(three_sets):
@@ -242,7 +242,7 @@ def test_one_manifest_can_be_read_by_name(three_sets):
 
 
 @code("SRC0080")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_name_may_carry_the_json_suffix(three_sets):
@@ -252,7 +252,7 @@ def test_the_name_may_carry_the_json_suffix(three_sets):
 
 
 @code("SRC0081")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_for_finds_a_recorded_file(one_recorded_file):
@@ -264,7 +264,7 @@ def test_entry_for_finds_a_recorded_file(one_recorded_file):
 
 
 @code("SRC0082")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_for_accepts_backslashes(one_recorded_file):
@@ -273,7 +273,7 @@ def test_entry_for_accepts_backslashes(one_recorded_file):
 
 
 @code("SRC0083")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_for_accepts_a_full_path(one_recorded_file):
@@ -282,7 +282,7 @@ def test_entry_for_accepts_a_full_path(one_recorded_file):
 
 
 @code("SRC0084")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_path_is_the_file_on_this_machine(one_recorded_file):
@@ -291,7 +291,7 @@ def test_entry_path_is_the_file_on_this_machine(one_recorded_file):
 
 
 @code("SRC0085")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_repo):
@@ -301,7 +301,7 @@ def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_rep
 
 
 @code("SRC0124")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_named_finds_a_recorded_file_by_its_name(one_recorded_file):
@@ -313,7 +313,7 @@ def test_entry_named_finds_a_recorded_file_by_its_name(one_recorded_file):
 
 
 @code("SRC0125")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_entry_named_gives_none_for_a_name_no_manifest_records(one_recorded_file):
@@ -323,7 +323,7 @@ def test_entry_named_gives_none_for_a_name_no_manifest_records(one_recorded_file
 
 
 @code("SRC0119")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_relative_path_is_read_from_the_repo_root(
@@ -339,7 +339,7 @@ def test_a_relative_path_is_read_from_the_repo_root(
 
 
 @code("SRC0086")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
@@ -358,7 +358,7 @@ def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
 
 
 @code("SRC0087")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
@@ -372,7 +372,7 @@ def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
 
 
 @code("SRC0088")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo):
@@ -386,7 +386,7 @@ def test_repo_check_runs_before_any_manifest_is_read(fake_repo):
 
 
 @code("SRC0089")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_manifests_folder_is_named_with_the_restore_remedy(fake_repo):
@@ -399,7 +399,7 @@ def test_missing_manifests_folder_is_named_with_the_restore_remedy(fake_repo):
 
 
 @code("SRC0090")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_empty_manifests_folder_is_reported_as_none_found(fake_repo):
@@ -411,7 +411,7 @@ def test_empty_manifests_folder_is_reported_as_none_found(fake_repo):
 
 
 @code("SRC0091")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unknown_manifest_name_is_refused_by_name(fake_repo):
@@ -422,7 +422,7 @@ def test_unknown_manifest_name_is_refused_by_name(fake_repo):
 
 
 @code("SRC0092")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
@@ -437,7 +437,7 @@ def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
 
 
 @code("SRC0120")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_manifest_that_is_a_list_is_refused_naming_the_file(fake_repo):
@@ -452,7 +452,7 @@ def test_manifest_that_is_a_list_is_refused_naming_the_file(fake_repo):
 
 
 @code("SRC0121")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_entry_that_is_not_an_object_is_refused_naming_the_file(fake_repo):
@@ -466,7 +466,7 @@ def test_entry_that_is_not_an_object_is_refused_naming_the_file(fake_repo):
 
 
 @code("SRC0093")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_entry_missing_fields_has_every_missing_field_named(fake_repo):
@@ -480,7 +480,7 @@ def test_entry_missing_fields_has_every_missing_field_named(fake_repo):
 
 
 @code("SRC0094")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_size_that_is_not_a_whole_number_is_quoted_as_written(fake_repo):
@@ -494,7 +494,7 @@ def test_size_that_is_not_a_whole_number_is_quoted_as_written(fake_repo):
 
 
 @code("SRC0095")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_sha256_that_is_not_lowercase_hex_is_quoted_as_written(fake_repo):

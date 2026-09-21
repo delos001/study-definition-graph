@@ -426,3 +426,14 @@ Applied to the checks that exist, the readers `src/sdg/usdm/usdm_spec.py`, `src/
 The inventory gains a `validation_target` column before `validation_objective`, and every check gains an `@target` marker beside its `@objective` marker. The generator refuses a check that lacks either, or whose case breaks the rule above.
 
 One follow-up is noted rather than designed: a stability check on a product needs a record of the accepted version to compare against, and nothing records one yet. It belongs to the phase that first declares a product accepted.
+
+## The inventory's columns are bare, and the first classification is called category, decided 2026-09-21
+
+The layout written into `validation/validation_inventory.csv` earlier today was reviewed by hand and changed in four ways before the documents were written. Nothing in the classification itself changed. This is a question of naming and layout, so the choice is **unguided**.
+
+- The first classification is `category`, not `validation_target`, and its marker is `@category`. With the columns `target_folder_path` and `target_file_name` already meaning the code file a test file covers, the word target meant two things in one header.
+- The case column is `staged_case`, not `behavior_case`. Behavior is no longer an objective, and the word staged says what the column records: whether the check staged a working or a broken situation, with an empty cell meaning it staged nothing.
+- Every column about the check itself has a bare name: `category`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `expected_result`, `version`, `status`, `superseded_by`, `status_reason`. Only the two columns about the covered file carry a prefix. A prefix on some of the check's columns and not others reads as two sets of columns, and the file's name already says what a row is.
+- The order is the classification, then where the check lives, then what it covers, then its result, then its standing: `category`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`, `version`, `status`, `superseded_by`, `status_reason`.
+
+The validation report's check columns take the same names, so a report row still joins to the inventory by `id`. The dictionary for the inventory is `validation/validation_inventory_dictionary.md`, in the outline shape rather than tables, because a dictionary entry is a sentence and a table row holding a sentence does not read in the raw file.

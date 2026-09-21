@@ -39,12 +39,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 PINNED = "inputs/standards/example/Example_Guide.pdf"
 CONTENT = b"pinned bytes\n"
@@ -120,7 +120,7 @@ def run(capsys, text, *argv):
 
 
 @code("HRS0094")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_map_naming_every_file_exits_0(repo, capsys):
@@ -130,7 +130,7 @@ def test_a_map_naming_every_file_exits_0(repo, capsys):
 
 
 @code("HRS0095")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_map_naming_every_file_prints_nothing(repo, capsys):
@@ -139,7 +139,7 @@ def test_a_map_naming_every_file_prints_nothing(repo, capsys):
 
 
 @code("HRS0096")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_placeholder_heading_covers_a_group(repo, fake_repo, capsys):
@@ -163,7 +163,7 @@ def test_a_placeholder_heading_covers_a_group(repo, fake_repo, capsys):
 
 
 @code("HRS0097")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_starred_heading_covers_a_subfolder(repo, fake_repo, capsys):
@@ -177,7 +177,7 @@ def test_a_starred_heading_covers_a_subfolder(repo, fake_repo, capsys):
 
 
 @code("HRS0098")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_one_heading_may_name_two_files(repo, fake_repo, capsys):
@@ -203,7 +203,7 @@ def test_one_heading_may_name_two_files(repo, fake_repo, capsys):
 
 
 @code("HRS0099")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
@@ -220,7 +220,7 @@ def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
 
 
 @code("HRS0138")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_placeholder_heading_does_not_reach_outside_its_group(
@@ -251,7 +251,7 @@ def test_a_placeholder_heading_does_not_reach_outside_its_group(
 
 
 @code("HRS0100")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_location_nothing_lives_in_exits_36(repo, capsys):
@@ -264,7 +264,7 @@ def test_a_location_nothing_lives_in_exits_36(repo, capsys):
 
 
 @code("HRS0101")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
@@ -282,7 +282,7 @@ def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
 
 
 @code("HRS0102")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_missing_map_exits_13(repo, capsys):
@@ -294,7 +294,7 @@ def test_a_missing_map_exits_13(repo, capsys):
 
 
 @code("HRS0146")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
@@ -309,7 +309,7 @@ def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
 
 
 @code("HRS0147")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
@@ -335,7 +335,7 @@ def quiet_with_a_forgotten_file(repo, fake_repo, capsys):
 
 
 @code("HRS0103")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
@@ -345,7 +345,7 @@ def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
 
 
 @code("HRS0153")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
@@ -364,7 +364,7 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 
 
 @code("HRS0104")
-@target("sources")
+@category("sources")
 @objective("completeness")
 def test_the_real_map_and_manifests_agree():
     """The repo's own sources map, docs/sources_index.md, names every file its manifests record, and every

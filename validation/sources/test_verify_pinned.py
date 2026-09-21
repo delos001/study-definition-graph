@@ -50,12 +50,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The real pinned model file and the manifest that records it. validation/conftest.py
 # skips the checks against them when the file is not downloaded, so a fresh clone
@@ -151,7 +151,7 @@ def refused_with(error, target=LOCAL) -> str:
 
 
 @code("SRC0096")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @needs_pinned_file
 @positive
@@ -166,7 +166,7 @@ def test_real_file_carries_its_recorded_identity(real_entry):
 
 
 @code("SRC0097")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @needs_pinned_file
 @positive
@@ -179,7 +179,7 @@ def test_real_file_path_is_where_the_manifest_says():
 
 
 @code("SRC0098")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @needs_pinned_file
 @positive
@@ -190,7 +190,7 @@ def test_real_file_content_reads():
 
 
 @code("SRC0099")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @needs_pinned_file
 @positive
@@ -211,7 +211,7 @@ def test_real_file_record_is_the_same_by_string_or_path():
 
 
 @code("SRC0128")
-@target("sources")
+@category("sources")
 @objective("stability")
 @pytest.mark.parametrize("local", pinned_locals())
 def test_pinned_file_is_unchanged(local):
@@ -230,7 +230,7 @@ def test_pinned_file_is_unchanged(local):
 
 
 @code("SRC0100")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_recorded_file_carries_its_identity(recorded_file):
@@ -243,7 +243,7 @@ def test_recorded_file_carries_its_identity(recorded_file):
 
 
 @code("SRC0101")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
@@ -255,7 +255,7 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
 
 
 @code("SRC0102")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_recorded_file_content_reads(recorded_file):
@@ -264,7 +264,7 @@ def test_recorded_file_content_reads(recorded_file):
 
 
 @code("SRC0103")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_staged_record_is_the_same_by_string_or_path(recorded_file):
@@ -283,7 +283,7 @@ def test_staged_record_is_the_same_by_string_or_path(recorded_file):
 
 
 @code("SRC0104")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
@@ -296,7 +296,7 @@ def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
 
 
 @code("SRC0105")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
@@ -311,7 +311,7 @@ def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
 
 
 @code("SRC0127")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_locked_file_passes_the_operating_systems_error_through(
@@ -340,7 +340,7 @@ def test_locked_file_passes_the_operating_systems_error_through(
 
 
 @code("SRC0106")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
@@ -353,7 +353,7 @@ def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
 
 
 @code("SRC0107")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_repo):
@@ -366,7 +366,7 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
 
 
 @code("SRC0108")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
@@ -380,7 +380,7 @@ def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
 
 
 @code("SRC0109")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
@@ -392,7 +392,7 @@ def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
 
 
 @code("SRC0110")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_manifests_is_reported_as_none_found(fake_repo):
@@ -405,7 +405,7 @@ def test_no_manifests_is_reported_as_none_found(fake_repo):
 
 
 @code("SRC0111")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
@@ -419,7 +419,7 @@ def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
 
 
 @code("SRC0112")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_mismatch_shows_both_sha256_values(mismatch_message):
@@ -431,7 +431,7 @@ def test_mismatch_shows_both_sha256_values(mismatch_message):
 
 
 @code("SRC0113")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
@@ -440,7 +440,7 @@ def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
 
 
 @code("SRC0114")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_mismatch_offers_the_three_ways_back(mismatch_message):
@@ -452,7 +452,7 @@ def test_mismatch_offers_the_three_ways_back(mismatch_message):
 
 
 @code("SRC0115")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_size_mismatch_is_reported_as_size_with_both_numbers(fake_repo):

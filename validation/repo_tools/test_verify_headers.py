@@ -37,12 +37,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # A complete header in this repo's convention, with the eight fields in order.
 GOOD_HEADER = '''"""
@@ -141,7 +141,7 @@ def complete(folder, capsys) -> Outcome:
 
 
 @code("HRS0042")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_complete_header_exits_0(complete):
@@ -150,7 +150,7 @@ def test_complete_header_exits_0(complete):
 
 
 @code("HRS0043")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_complete_header_prints_nothing(complete):
@@ -159,7 +159,7 @@ def test_complete_header_prints_nothing(complete):
 
 
 @code("HRS0044")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_init_file_is_skipped(folder, capsys):
@@ -171,7 +171,7 @@ def test_init_file_is_skipped(folder, capsys):
 
 
 @code("HRS0045")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
@@ -192,7 +192,7 @@ def test_quiet_prints_nothing(folder, capsys):
 
 
 @code("HRS0047")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_missing_fields_exit_17(folder, capsys):
@@ -211,7 +211,7 @@ def test_missing_fields_exit_17(folder, capsys):
 
 
 @code("HRS0048")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_fields_out_of_order_exit_17(folder, capsys):
@@ -229,7 +229,7 @@ def test_fields_out_of_order_exit_17(folder, capsys):
 
 
 @code("HRS0049")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_bad_date_exits_17(folder, capsys):
@@ -244,7 +244,7 @@ def test_bad_date_exits_17(folder, capsys):
 
 
 @code("HRS0050")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_no_docstring_exits_17(folder, capsys):
@@ -257,7 +257,7 @@ def test_no_docstring_exits_17(folder, capsys):
 
 
 @code("HRS0051")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unparseable_file_exits_19(folder, capsys):
@@ -270,7 +270,7 @@ def test_unparseable_file_exits_19(folder, capsys):
 
 
 @code("HRS0052")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unparseable_outranks_incomplete(folder, capsys):
@@ -304,7 +304,7 @@ def with_codes(lines: str) -> str:
 
 
 @code("HRS0080")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_wording_from_the_table_passes(folder, capsys):
@@ -314,7 +314,7 @@ def test_wording_from_the_table_passes(folder, capsys):
 
 
 @code("HRS0081")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_bracketed_aside_is_allowed(folder, capsys):
@@ -331,7 +331,7 @@ def test_a_bracketed_aside_is_allowed(folder, capsys):
 
 
 @code("HRS0082")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_wrapped_entry_is_read_as_one(folder, capsys):
@@ -349,7 +349,7 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
 
 
 @code("HRS0151")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
@@ -367,7 +367,7 @@ def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
 
 
 @code("HRS0083")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
@@ -384,7 +384,7 @@ def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
 
 
 @code("HRS0084")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_code_the_table_lacks_exits_33(folder, capsys):
@@ -397,7 +397,7 @@ def test_a_code_the_table_lacks_exits_33(folder, capsys):
 
 
 @code("HRS0085")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_different_wording_exits_33(folder, capsys):
@@ -411,7 +411,7 @@ def test_different_wording_exits_33(folder, capsys):
 
 
 @code("HRS0086")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
@@ -430,7 +430,7 @@ def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
 
 
 @code("HRS0087")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
@@ -444,7 +444,7 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
 
 
 @code("HRS0142")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_table_with_a_code_that_is_not_a_number_exits_13(folder, capsys):
@@ -483,7 +483,7 @@ def with_main(returns: str, codes: str = "0   success") -> str:
 
 
 @code("HRS0088")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_listed_return_passes(folder, capsys):
@@ -493,7 +493,7 @@ def test_a_listed_return_passes(folder, capsys):
 
 
 @code("HRS0089")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_return_of_a_call_is_passed_over(folder, capsys):
@@ -504,7 +504,7 @@ def test_a_return_of_a_call_is_passed_over(folder, capsys):
 
 
 @code("HRS0090")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
@@ -522,7 +522,7 @@ def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
 
 
 @code("HRS0140")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
@@ -539,7 +539,7 @@ def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
 
 
 @code("HRS0091")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_unlisted_return_exits_34(folder, capsys):
@@ -552,7 +552,7 @@ def test_an_unlisted_return_exits_34(folder, capsys):
 
 
 @code("HRS0092")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @pytest.mark.parametrize(
     "choice",
@@ -568,7 +568,7 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
 
 
 @code("HRS0152")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
@@ -588,7 +588,7 @@ def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
 
 
 @code("HRS0093")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
@@ -617,7 +617,7 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
 
 
 @code("HRS0046")
-@target("repository")
+@category("repository")
 @objective("conformance")
 def test_real_headers_follow_the_rule():
     """Every Python file in the real code folders has a header block with the eight
@@ -634,7 +634,7 @@ def test_real_headers_follow_the_rule():
 
 
 @code("HRS0170")
-@target("repository")
+@category("repository")
 @objective("conformance")
 def test_real_exit_codes_agree_with_the_table_and_main():
     """In every Python file in the real code folders, each exit code the header lists
@@ -651,7 +651,7 @@ def test_real_exit_codes_agree_with_the_table_and_main():
 
 
 @code("HRS0079")
-@target("repository")
+@category("repository")
 @objective("completeness")
 def test_all_four_code_folders_are_checked():
     """The checker covers the four folders .claude/rules/writing_python_files.md names,

@@ -41,12 +41,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The bytes most checks write. Short, so a check that changes them can show the
 # change in one line.
@@ -99,7 +99,7 @@ def file_on_disk(tmp_path):
 
 
 @code("SRC0059")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_fingerprint_measures_the_size(file_on_disk):
@@ -108,7 +108,7 @@ def test_fingerprint_measures_the_size(file_on_disk):
 
 
 @code("SRC0060")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_fingerprint_measures_the_sha256(file_on_disk):
@@ -118,7 +118,7 @@ def test_fingerprint_measures_the_sha256(file_on_disk):
 
 
 @code("SRC0061")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_reading_in_pieces_loses_nothing(tmp_path):
@@ -131,7 +131,7 @@ def test_reading_in_pieces_loses_nothing(tmp_path):
 
 
 @code("SRC0062")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_matching_file_compares_as_matched(file_on_disk):
@@ -149,7 +149,7 @@ def test_matching_file_compares_as_matched(file_on_disk):
 
 
 @code("SRC0063")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_size_difference_is_reported_with_both_numbers(file_on_disk):
@@ -161,7 +161,7 @@ def test_size_difference_is_reported_with_both_numbers(file_on_disk):
 
 
 @code("SRC0064")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
@@ -178,7 +178,7 @@ def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
 
 
 @code("SRC0065")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
@@ -198,7 +198,7 @@ def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
 
 
 @code("SRC0066")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_fingerprint_refuses_a_missing_file(tmp_path):
@@ -211,7 +211,7 @@ def test_fingerprint_refuses_a_missing_file(tmp_path):
 
 
 @code("SRC0067")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_compare_refuses_a_missing_file(tmp_path):
@@ -224,7 +224,7 @@ def test_compare_refuses_a_missing_file(tmp_path):
 
 
 @code("SRC0068")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_fingerprint_refuses_a_folder(tmp_path):
@@ -238,7 +238,7 @@ def test_fingerprint_refuses_a_folder(tmp_path):
 
 
 @code("SRC0069")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_compare_refuses_a_folder(tmp_path):

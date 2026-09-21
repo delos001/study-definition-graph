@@ -37,12 +37,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The bytes a staged download holds, and the bytes of a file that is already
 # at the final name when a check needs one there.
@@ -109,7 +109,7 @@ def plain_file(tmp_path) -> Path:
 
 
 @code("SRC0046")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_place_puts_the_file_under_its_final_name(placed):
@@ -119,7 +119,7 @@ def test_place_puts_the_file_under_its_final_name(placed):
 
 
 @code("SRC0047")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_place_hands_back_the_final_path(placed):
@@ -129,7 +129,7 @@ def test_place_hands_back_the_final_path(placed):
 
 
 @code("SRC0048")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_place_removes_the_part_name(placed):
@@ -139,7 +139,7 @@ def test_place_removes_the_part_name(placed):
 
 
 @code("SRC0049")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_discard_deletes_the_part_file(part_file):
@@ -157,7 +157,7 @@ def test_discard_deletes_the_part_file(part_file):
 
 
 @code("SRC0050")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_place_refuses_when_the_final_name_is_taken(blocked):
@@ -170,7 +170,7 @@ def test_place_refuses_when_the_final_name_is_taken(blocked):
 
 
 @code("SRC0051")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_refused_place_leaves_the_existing_file_untouched(blocked):
@@ -181,7 +181,7 @@ def test_refused_place_leaves_the_existing_file_untouched(blocked):
 
 
 @code("SRC0052")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_refused_place_leaves_the_part_file_where_it_was(blocked):
@@ -192,7 +192,7 @@ def test_refused_place_leaves_the_part_file_where_it_was(blocked):
 
 
 @code("SRC0053")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_place_refuses_a_missing_part_file(tmp_path):
@@ -205,7 +205,7 @@ def test_place_refuses_a_missing_part_file(tmp_path):
 
 
 @code("SRC0054")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_place_refuses_a_name_without_the_part_suffix(plain_file):
@@ -216,7 +216,7 @@ def test_place_refuses_a_name_without_the_part_suffix(plain_file):
 
 
 @code("SRC0055")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_place_leaves_a_file_it_refused_untouched(plain_file):
@@ -227,7 +227,7 @@ def test_place_leaves_a_file_it_refused_untouched(plain_file):
 
 
 @code("SRC0056")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_discard_refuses_a_missing_part_file(tmp_path):
@@ -240,7 +240,7 @@ def test_discard_refuses_a_missing_part_file(tmp_path):
 
 
 @code("SRC0057")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
@@ -251,7 +251,7 @@ def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
 
 
 @code("SRC0058")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_discard_leaves_a_file_it_refused_in_place(plain_file):

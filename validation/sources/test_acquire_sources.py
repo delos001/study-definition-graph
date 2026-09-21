@@ -48,12 +48,12 @@ negative = pytest.mark.negative
 # Every check carries a @code line: its short, permanent id in
 # validation/validation_inventory.csv, assigned once and never reused.
 code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its target,
-# one of the objectives validation/README.md defines.
+# Every check carries an @objective line: what the check confirms about its category,
+# one of the objectives validation/validation_inventory_dictionary.md defines.
 objective = pytest.mark.objective
-# Every check carries a @target line: what kind of thing the check confirms, one
-# of the targets validation/README.md defines.
-target = pytest.mark.target
+# Every check carries a @category line: what kind of thing the check confirms, one
+# of the categories validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
 
 # The one staged file most checks use, its bytes, and the url its entry carries.
 # The url is the one FakeRepo.entry builds for a file of that name.
@@ -250,7 +250,7 @@ def folder(fake_repo, network, capsys) -> Outcome:
 
 
 @code("SRC0001")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
@@ -261,7 +261,7 @@ def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
 
 
 @code("SRC0002")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
@@ -271,7 +271,7 @@ def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
 
 
 @code("SRC0003")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_fetch_is_reported(fetched):
@@ -281,7 +281,7 @@ def test_fetch_is_reported(fetched):
 
 
 @code("SRC0004")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_present_matching_file_is_not_fetched(present):
@@ -291,7 +291,7 @@ def test_present_matching_file_is_not_fetched(present):
 
 
 @code("SRC0005")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_present_matching_file_is_counted_as_present(present):
@@ -300,7 +300,7 @@ def test_present_matching_file_is_counted_as_present(present):
 
 
 @code("SRC0006")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
@@ -311,7 +311,7 @@ def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
 
 
 @code("SRC0007")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
@@ -322,7 +322,7 @@ def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
 
 
 @code("SRC0008")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
@@ -332,7 +332,7 @@ def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
 
 
 @code("SRC0009")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys):
@@ -346,7 +346,7 @@ def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys)
 
 
 @code("SRC0010")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_quiet_prints_nothing(fake_repo, network, capsys):
@@ -358,7 +358,7 @@ def test_quiet_prints_nothing(fake_repo, network, capsys):
 
 
 @code("SRC0011")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
@@ -373,7 +373,7 @@ def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
 
 
 @code("SRC0012")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @positive
 def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
@@ -396,7 +396,7 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 
 
 @code("SRC0013")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_changed_file_is_reported_as_a_mismatch(changed):
@@ -407,7 +407,7 @@ def test_changed_file_is_reported_as_a_mismatch(changed):
 
 
 @code("SRC0014")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_changed_file_is_left_alone(changed, fake_repo):
@@ -417,7 +417,7 @@ def test_changed_file_is_left_alone(changed, fake_repo):
 
 
 @code("SRC0015")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_changed_file_exits_9(changed):
@@ -428,7 +428,7 @@ def test_changed_file_exits_9(changed):
 
 
 @code("SRC0016")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
@@ -441,7 +441,7 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
 
 
 @code("SRC0017")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_wrong_hash_download_exits_12(wrong_hash):
@@ -452,7 +452,7 @@ def test_wrong_hash_download_exits_12(wrong_hash):
 
 
 @code("SRC0018")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
@@ -462,7 +462,7 @@ def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
 
 
 @code("SRC0019")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_failed_fetch_exits_11(failed_fetch):
@@ -471,7 +471,7 @@ def test_failed_fetch_exits_11(failed_fetch):
 
 
 @code("SRC0020")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_failure_outranks_disagreement(fake_repo, network, capsys):
@@ -494,7 +494,7 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
 
 
 @code("SRC0021")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
@@ -516,7 +516,7 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
 
 
 @code("SRC0122")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
@@ -539,7 +539,7 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
 
 
 @code("SRC0126")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
@@ -562,7 +562,7 @@ def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
 
 
 @code("SRC0123")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
@@ -585,7 +585,7 @@ def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
 
 
 @code("SRC0022")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
@@ -598,7 +598,7 @@ def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
 
 
 @code("SRC0023")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_locked_file_exits_13(locked):
@@ -607,7 +607,7 @@ def test_locked_file_exits_13(locked):
 
 
 @code("SRC0024")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
@@ -619,7 +619,7 @@ def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
 
 
 @code("SRC0025")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_folder_at_a_recorded_path_exits_13(folder):
@@ -628,7 +628,7 @@ def test_folder_at_a_recorded_path_exits_13(folder):
 
 
 @code("SRC0026")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, capsys):
@@ -643,7 +643,7 @@ def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, caps
 
 
 @code("SRC0027")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys):
@@ -657,7 +657,7 @@ def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys)
 
 
 @code("SRC0028")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
@@ -671,7 +671,7 @@ def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
 
 
 @code("SRC0029")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys):
@@ -688,7 +688,7 @@ def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys
 
 
 @code("SRC0030")
-@target("repository")
+@category("repository")
 @objective("correctness")
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo, network, capsys):
