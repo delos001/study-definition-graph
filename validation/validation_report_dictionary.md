@@ -10,8 +10,8 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 
 ### `run_id`
 - Identifies the run.
-- Read by the writer from the run's date and commit.
-- Holds `<date>_<commit>`, the same as the report's file name without `run_` and `.csv`.
+- Read by the writer from the report's own file name.
+- Holds the file name without `.csv`, such as `run_2026-09-21_1286c8b`, with the numbered suffix a second run on the same day and commit gets, so the id in the rows and the file that holds them can never disagree.
 
 ### `run_verdict`
 - Says whether the run as a whole passed.
@@ -54,7 +54,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Holds a local timestamp with its zone, as `YYYY-MM-DD HH:MM:SS +HHMM`.
 
 ### `commit`
-- Records the commit the checks ran against.
+- Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs.
 - Read by the writer from git.
 - Holds the short hash, or `(unknown)` when git did not answer.
 

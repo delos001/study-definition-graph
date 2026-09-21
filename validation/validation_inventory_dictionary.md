@@ -39,7 +39,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 ### `id`
 - Identifies the check permanently. A validation report joins to the inventory on it.
 - Read by the generator from the `@code` marker.
-- Holds three capital letters and four digits, such as `SRC0042`, unique across the inventory.
+- Holds three capital letters and four digits, such as `SRC0042`, unique across the inventory. The letters are one of the prefixes below.
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
@@ -75,6 +75,18 @@ Every row is one check. A column about the check itself has a bare name. The two
 - Says why a check is inactive or retired.
 - Typed by hand in the CSV.
 - Holds one sentence, only when the status is inactive or retired.
+
+## Id prefixes
+
+The three letters name the folder of the covered file when the check was first filed. They are part of the id and never change, whatever later happens to the check's category, objective or file, because a filed report joins to the inventory on the id. A new check takes its folder's prefix and the next unused number. A new folder takes a new prefix, added here.
+
+- `SRC`: `src/sdg/sources/`
+- `USD`: `src/sdg/usdm/`
+- `VIW`: `src/sdg/view/`
+- `SDG`: the top of `src/sdg/`
+- `HRS`: `repo_tools/`
+- `CCH`: `.claude/hooks/`
+- `TST`: `validation/` itself, such as `conftest.py` and `select_checks.py`
 
 ## Categories
 

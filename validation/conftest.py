@@ -27,8 +27,11 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - What was tested is the target file, the file of checks and its sha256,
                  the fixture files and their sha256s, the code commit, and the pinned
                  USDM data version (the manifest's recorded sha256, and whether the
-                 file was present). The commit is the parent of the commit that adds
-                 the report, since the report is written first.
+                 file was present). The working folder must match that commit
+                 exactly, so a run asked for a report refuses to start when there
+                 are uncommitted changes, before any check runs, and says which
+                 files they are. The commit it would have named would not have
+                 described the code that ran.
                - How is which checks were selected, and, at the far right of each row,
                  the Python and pytest versions and the operating system.
                - When is the local timestamp with its zone, and by whom is the git user
@@ -703,7 +706,7 @@ def _first_paragraph(doc: str | None) -> str:
 ### Writing the report ###
 
 
-def _git(*args: str) -> str:
+def _git(*args: str, cwd: Path = REPO_ROOT) -> str:
     """Run one git command in the repo.
 
     If git is not installed or the command fails, the result is '(unknown)' instead of
@@ -711,16 +714,58 @@ def _git(*args: str) -> str:
 
     Args:
         *args: The git command's arguments.
+        cwd: The folder to run in. pytest's root folder for a real run; the
+            report-writer's own checks pass a temporary repository.
 
     Returns:
         The command's output, trimmed, or '(unknown)'.
     """
     try:
         return subprocess.run(
-            ["git", *args], cwd=REPO_ROOT, capture_output=True, text=True, check=True
+            ["git", *args], cwd=cwd, capture_output=True, text=True, check=True
         ).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
         return "(unknown)"
+
+
+def uncommitted_changes(root: Path, report_dir: Path) -> list[str] | None:
+    """List what git says is changed, staged or untracked under the root.
+
+    The reports folder itself is left out, since the report about to be written, and
+    any earlier one not yet committed, are not changes to the code being checked.
+
+    Args:
+        root: The repository's root folder.
+        report_dir: The folder reports are written to.
+
+    Returns:
+        git's own one-line descriptions of the changes, or None when git did not
+        answer, because it is not installed or the root is not a repository.
+    """
+    try:
+        status = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=all"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout
+    except (OSError, subprocess.CalledProcessError):
+        return None
+    try:
+        reports = report_dir.resolve().relative_to(root.resolve()).as_posix()
+    except ValueError:
+        reports = None
+    changes = []
+    for line in status.splitlines():
+        if not line.strip():
+            continue
+        # A status line is two letters, a space, then the path.
+        path = line[3:]
+        if reports and (path == reports or path.startswith(reports + "/")):
+            continue
+        changes.append(line)
+    return changes
 
 
 def _sha256(path: Path) -> str:
@@ -782,13 +827,35 @@ _started_at = 0.0
 
 
 def pytest_sessionstart(session):
-    """Note the moment the run started.
+    """Note the moment the run started, and refuse a report on uncommitted changes.
+
+    The refusal happens here, before any check is collected, so a dirty working
+    folder costs seconds rather than the whole run. A report names the commit it
+    validated, and a folder with uncommitted changes matches no commit.
 
     Args:
         session: The pytest run.
+
+    Raises:
+        pytest.UsageError: A report was asked for and the working folder has changes
+            that are not committed.
     """
     global _started_at
     _started_at = time.monotonic()
+    if not session.config.getoption("--validation-report"):
+        return
+    report_dir = Path(session.config.getoption("--validation-report-dir"))
+    changes = uncommitted_changes(session.config.rootpath, report_dir)
+    if changes:
+        listed = "\n".join(f"  {change}" for change in changes)
+        raise pytest.UsageError(
+            "No checks were run and no validation report was written, because the "
+            "working folder has changes that are not committed:\n"
+            f"{listed}\n"
+            "A report names the commit it validated, and these changes belong to no "
+            "commit yet. Commit them, or set them aside with git stash, then run the "
+            "report again."
+        )
 
 
 # The columns of a report, in the order they are written: the run's id and
@@ -906,21 +973,27 @@ def pytest_sessionfinish(session, exitstatus):
     now = dt.datetime.now().astimezone()
     started = now - dt.timedelta(seconds=time.monotonic() - _started_at)
     status = int(exitstatus)
-    commit = _git("rev-parse", "--short", "HEAD")
+    root = session.config.rootpath
+    commit = _git("rev-parse", "--short", "HEAD", cwd=root)
     sha256, present = _pinned_data_version()
     fixtures = (
         sorted(p for p in FIXTURE_DIR.glob("*") if p.is_file())
         if FIXTURE_DIR.exists()
         else []
     )
+    # The file is named first, so the id in every row is the file's own name and
+    # the two can never disagree, numbered suffix included.
+    report_dir = Path(session.config.getoption("--validation-report-dir"))
+    report_dir.mkdir(parents=True, exist_ok=True)
+    target = _unique(report_dir / f"run_{now:%Y-%m-%d}_{commit}.csv")
     run = {
-        "run_id": f"{now:%Y-%m-%d}_{commit}",
+        "run_id": target.stem,
         "run_verdict": "PASS" if status == 0 else "FAIL",
         "pytest_exit_status": status,
         "exit_meaning": EXIT_MEANING.get(status, "unknown status"),
         "started": f"{started:%Y-%m-%d %H:%M:%S %z}",
         "commit": commit,
-        "run_by": _git("config", "user.name"),
+        "run_by": _git("config", "user.name", cwd=root),
         "selection": _selection(session.config),
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
@@ -990,9 +1063,6 @@ def pytest_sessionfinish(session, exitstatus):
             }
         )
 
-    report_dir = Path(session.config.getoption("--validation-report-dir"))
-    report_dir.mkdir(parents=True, exist_ok=True)
-    target = _unique(report_dir / f"run_{now:%Y-%m-%d}_{commit}.csv")
     with target.open("w", encoding="utf-8", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=REPORT_COLUMNS, lineterminator="\n")
         writer.writeheader()

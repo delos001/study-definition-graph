@@ -33,6 +33,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import os
+import subprocess
 import textwrap
 from pathlib import Path
 
@@ -421,6 +422,21 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
     assert (out / f"{first.stem}-2.csv").is_file()
 
 
+@code("TST0032")
+@category("repository")
+@objective("correctness")
+@positive
+def test_run_id_is_the_report_file_name(pytester, monkeypatch):
+    """Every row's run_id is the report's file name without .csv, so a second report on
+    the same day and commit carries the numbered id its file has and two runs are
+    never confused."""
+    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    run_suite(pytester, monkeypatch, PASSING_SUITE)
+    for path in out.glob("*.csv"):
+        with path.open(encoding="utf-8", newline="") as fh:
+            assert {r["run_id"] for r in csv.DictReader(fh)} == {path.stem}
+
+
 @code("TST0010")
 @category("repository")
 @objective("correctness")
@@ -654,3 +670,106 @@ def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch)
     result.stdout.fnmatch_lines(
         ["*no manifest records a file matching inputs/no_such_folder/*.txt*"]
     )
+
+
+#######################################################################################
+### The working folder a report is written on ###
+#
+# A report names the commit it validated, so the writer refuses to start when the
+# working folder has uncommitted changes. These checks make the throwaway suite a
+# committed git repository first, then dirty it or not.
+
+
+def committed_repo(pytester, monkeypatch, test_source: str) -> str:
+    """Stage the throwaway suite and commit it as a git repository.
+
+    pytest's own cache, the files pytester writes for itself and Python's bytecode
+    folders are ignored in the repository, so only the suite's own files count as
+    changes. A notes file is committed too, for a check that needs a tracked file it
+    can change without the run helper writing it back.
+
+    Args:
+        pytester: pytest's helper for running a separate suite.
+        monkeypatch: pytest's patcher, for the import path of the separate process.
+        test_source: The source of the one test file.
+
+    Returns:
+        The short hash of the commit.
+    """
+    with_repo_tools(monkeypatch)
+    pytester.makeconftest(CONFTEST_SOURCE)
+    pytester.makepyfile(test_suite=textwrap.dedent(test_source))
+    (pytester.path / ".gitignore").write_text(
+        ".pytest_cache/\n__pycache__/\nrunpytest-*\nstdout\nstderr\n",
+        encoding="utf-8",
+    )
+    (pytester.path / "notes.txt").write_text("kept\n", encoding="utf-8")
+    identity = ["-c", "user.name=Check", "-c", "user.email=check@example.invalid"]
+    for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "staged"]):
+        subprocess.run(
+            ["git", *identity, *args],
+            cwd=pytester.path,
+            check=True,
+            capture_output=True,
+        )
+    return subprocess.run(
+        ["git", "rev-parse", "--short", "HEAD"],
+        cwd=pytester.path,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+
+
+@code("TST0033")
+@category("repository")
+@objective("correctness")
+@negative
+def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(
+    pytester, monkeypatch
+):
+    """With --validation-report and a working folder that has an uncommitted change,
+    the run stops with pytest's usage error, exit 4, before any check runs, the
+    message names the changed file and says to commit or stash, and no report is
+    written."""
+    committed_repo(pytester, monkeypatch, PASSING_SUITE)
+    with (pytester.path / "notes.txt").open("a", encoding="utf-8") as fh:
+        fh.write("an edit that is not committed\n")
+    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "no validation report was written" in printed
+    assert "M notes.txt" in printed
+    assert "Commit them, or set them aside with git stash" in printed
+    assert "test_adds" not in result.stdout.str()
+    assert not out.exists()
+
+
+@code("TST0034")
+@category("repository")
+@objective("correctness")
+@positive
+def test_a_report_on_a_clean_folder_names_its_commit(pytester, monkeypatch):
+    """With --validation-report and a working folder that matches its commit, the run
+    goes ahead and every row's commit column is that commit's short hash."""
+    commit = committed_repo(pytester, monkeypatch, PASSING_SUITE)
+    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    assert result.ret == 0
+    assert {r["commit"] for r in the_report(out)} == {commit}
+
+
+@code("TST0035")
+@category("repository")
+@objective("correctness")
+@positive
+def test_an_earlier_report_not_yet_committed_does_not_count_as_a_change(
+    pytester, monkeypatch
+):
+    """A report already in the reports folder, not yet committed, does not make the
+    working folder dirty, so a second report can be written after the first."""
+    committed_repo(pytester, monkeypatch, PASSING_SUITE)
+    first, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    second, _ = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    assert first.ret == 0
+    assert second.ret == 0
+    assert len(list(out.glob("*.csv"))) == 2

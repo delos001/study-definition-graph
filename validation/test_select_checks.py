@@ -128,7 +128,7 @@ def stage_groups(pytester) -> None:
 # report records what was asked for.
 
 
-@code("SEL0001")
+@code("TST0021")
 @category("repository")
 @objective("correctness")
 @positive
@@ -140,7 +140,7 @@ def test_category_keeps_only_that_category(pytester, monkeypatch):
     assert ids == {"XYZ0011", "XYZ0014"}
 
 
-@code("SEL0002")
+@code("TST0022")
 @category("repository")
 @objective("correctness")
 @positive
@@ -151,7 +151,7 @@ def test_objective_keeps_only_that_objective(pytester, monkeypatch):
     assert ids == {"XYZ0011", "XYZ0013"}
 
 
-@code("SEL0003")
+@code("TST0023")
 @category("repository")
 @objective("correctness")
 @positive
@@ -164,7 +164,7 @@ def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
     assert ids == {"XYZ0011"}
 
 
-@code("SEL0004")
+@code("TST0024")
 @category("repository")
 @objective("correctness")
 @positive
@@ -175,7 +175,7 @@ def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
     assert ids == {"XYZ0012", "XYZ0013"}
 
 
-@code("SEL0005")
+@code("TST0025")
 @category("repository")
 @objective("correctness")
 @positive
@@ -186,7 +186,7 @@ def test_id_keeps_only_those_checks(pytester, monkeypatch):
     assert ids == {"XYZ0012", "XYZ0014"}
 
 
-@code("SEL0006")
+@code("TST0026")
 @category("repository")
 @objective("correctness")
 @positive
@@ -199,7 +199,7 @@ def test_group_runs_the_ids_the_groups_file_lists(pytester, monkeypatch):
     assert ids == {"XYZ0011", "XYZ0013"}
 
 
-@code("SEL0007")
+@code("TST0027")
 @category("repository")
 @objective("correctness")
 @positive
@@ -221,7 +221,7 @@ def test_the_selection_column_records_the_options(pytester, monkeypatch):
 # why, and leaves no report.
 
 
-@code("SEL0008")
+@code("TST0028")
 @category("repository")
 @objective("correctness")
 @negative
@@ -235,7 +235,7 @@ def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("SEL0009")
+@code("TST0029")
 @category("repository")
 @objective("correctness")
 @negative
@@ -248,7 +248,7 @@ def test_an_id_no_collected_check_carries_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("SEL0010")
+@code("TST0030")
 @category("repository")
 @objective("correctness")
 @negative
@@ -263,7 +263,7 @@ def test_a_group_not_in_the_file_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("SEL0011")
+@code("TST0031")
 @category("repository")
 @objective("correctness")
 @negative

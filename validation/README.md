@@ -105,6 +105,7 @@ pytest validation/sources --id SRC0128 --validation-report
 
 - Add `--validation-report` to any run above, whole or narrowed, and the report covers exactly the checks that run. Nothing else about the run changes.
 - Run it only when the code is declared ready. The report is the formal record that the code was validated.
+- The run refuses to start when the working folder has changes that are not committed, and names them. A report names the commit it validated, so commit or stash first.
 - The run writes one CSV file into `reports/`, named for the date and the commit. Commit that file.
 - The report's `selection` column records what was selected, so a partial run cannot pass for a full one.
 - What a report holds is defined in `validation_report_dictionary.md`.
