@@ -13,10 +13,25 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Read by the writer from the report's own file name.
 - Holds the file name without `.csv`, such as `run_2026-09-21_1286c8b`, with the numbered suffix a second run on the same day and commit gets, so the id in the rows and the file that holds them can never disagree.
 
+### `selection`
+- Records which checks the command line selected.
+- Read by the writer from pytest's parsed arguments.
+- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--objective`, `--id` and `--group` options that were given, so a partial run cannot pass for a full one.
+
 ### `run_verdict`
 - Says whether the run as a whole passed.
 - Read by the writer from pytest's exit status.
 - Holds one of the verdicts below.
+
+### `pytest_exit_status`
+- Records pytest's exit number for the run.
+- Read by the writer from pytest.
+- Holds a whole number from 0 to 5.
+
+### `exit_meaning`
+- Says what the exit number means.
+- Read by the writer from the table of exit meanings below.
+- Holds one of the exit meanings below.
 
 ### `category`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
 - Same as in the inventory, in the inventory's order, defined in `validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
@@ -25,7 +40,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 
 ### `parameter`
 - Says which value a parametrized check ran with, since pytest runs such a check once per value and the report has one row per run.
-- Read by the writer from pytest's id for the value.
+- Read by the writer from pytest's id for the value. The full list of a check's values is the `@pytest.mark.parametrize` line above its function in the test file, or, when that line calls a function, whatever the function lists at run time, as the fixity check lists every pinned file.
 - Holds the id, such as a pinned file's path for the fixity check, or nothing when the check has no parameters.
 
 ### `outcome`
@@ -38,23 +53,13 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
 - Holds one line, or nothing when the check passed.
 
-### `pytest_exit_status`
-- Records pytest's exit number for the run.
-- Read by the writer from pytest.
-- Holds a whole number from 0 to 5.
-
-### `exit_meaning`
-- Says what the exit number means.
-- Read by the writer from the table of exit meanings below.
-- Holds one of the exit meanings below.
-
 ### `started`
 - Records when the run began.
 - Read by the writer from the clock at the start of the run.
 - Holds a local timestamp with its zone, as `YYYY-MM-DD HH:MM:SS +HHMM`.
 
 ### `commit`
-- Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs.
+- Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs. It is the one way to get back the exact code that ran, test files included, with `git show <commit>:<path>`.
 - Read by the writer from git.
 - Holds the short hash, or `(unknown)` when git did not answer.
 
@@ -63,20 +68,15 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Read by the writer from git's configured user name.
 - Holds the name, or `(unknown)` when git did not answer.
 
-### `selection`
-- Records which checks the command line selected.
-- Read by the writer from pytest's parsed arguments.
-- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--objective`, `--id` and `--group` options that were given, so a partial run cannot pass for a full one.
-
 ### `check_file_sha256`
-- Fingerprints the test file the check came from.
-- Read by the writer by hashing the file.
-- Holds the sha256 as hex.
+- Fingerprints the test file the check came from, the one `folder_path` and `file_name` name, as it was when the run read it.
+- Read by the writer by hashing the file's bytes.
+- Holds the sha256 as hex. It recognises a version but cannot produce one. Hash the file you hold and compare: a match means you are reading the check that ran, and a difference means the file was edited since the report. To get the version that ran, use `commit`.
 
 ### `fixture_sha256s`
-- Fingerprints every file under `fixtures/`.
-- Read by the writer by hashing each file.
-- Holds `validation/fixtures/<name>=<sha256>` for each file, separated by semicolons.
+- Fingerprints every file under `fixtures/`, the small stand-ins the staged checks read, as they were when the run read them.
+- Read by the writer by hashing each file's bytes.
+- Holds `validation/fixtures/<name>=<sha256>` for each file, separated by semicolons. Each is used the same way as `check_file_sha256`.
 
 ### `pinned_usdm_sha256`
 - Records which version of the pinned USDM model file the run was against.

@@ -449,3 +449,11 @@ The options live in `validation/select_checks.py`, a pytest plugin that `pyproje
 Groups are written in `validation/validation_groups.yml`, one entry per group with a sentence saying what it is for and the ids of its checks. Ids rather than rules, so what a group holds is written down and reviewable, and an id no check carries stops the run. Two groups exist: `pinned`, every check that reads a real pinned file, to run after a re-pin, and `hook`, the checks that reproduce what the pre-commit hook enforces, to run when the hook refuses a commit.
 
 A test file at the top level of `validation/` now targets the file of the same name in `validation/` itself when one is there, which covers `conftest.py` and `select_checks.py` with one rule instead of a named exception.
+
+## A validation report is written only on a clean working folder, decided 2026-09-21
+
+A report names the commit it validated, in its `commit` column and in its file name. When the working folder holds uncommitted changes, the code that ran matches no commit, and the name the report would give is wrong with no sign that it is. No standard covered the question, so the choice is **unguided**.
+
+`validation/conftest.py` therefore refuses a run asked for a report when git reports changed, staged or untracked files, before any check is collected, so the refusal costs seconds rather than the whole run. It names the files and says to commit or stash. The reports folder itself does not count, so an earlier report not yet committed never blocks the next. The working sequence is commit the code, run the report, commit the report, and nothing depends on the report being committed straight away, because the report points at the code commit from its own contents.
+
+Two related choices were made at the same time. `run_id` is the report's file name without `.csv`, numbered suffix included, because two runs on the same day and commit were getting one id. A listing run, `--collect-only`, writes no report, because nothing ran.

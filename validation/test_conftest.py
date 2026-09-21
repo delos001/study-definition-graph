@@ -721,6 +721,19 @@ def committed_repo(pytester, monkeypatch, test_source: str) -> str:
     ).stdout.strip()
 
 
+@code("TST0036")
+@category("repository")
+@objective("correctness")
+@positive
+def test_a_listing_run_writes_no_report(pytester, monkeypatch):
+    """With --collect-only, the run lists the checks it would run and writes no
+    report, because nothing ran."""
+    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE, "--collect-only")
+    assert result.ret == 0
+    assert "test_adds" in result.stdout.str()
+    assert not out.exists()
+
+
 @code("TST0033")
 @category("repository")
 @objective("correctness")

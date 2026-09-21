@@ -96,7 +96,8 @@ Outputs:     Nothing, unless --validation-report is given. Then it writes one fi
              validation/reports/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
              An existing name is never overwritten; it gets a numeric suffix. A run
              whose command line pytest refused writes nothing, because it
-             validated nothing.
+             validated nothing, and neither does a listing run, --collect-only,
+             because it ran nothing.
 
 Usage:       pytest
                  run every test, write nothing
@@ -858,14 +859,17 @@ def pytest_sessionstart(session):
         )
 
 
-# The columns of a report, in the order they are written: the run's id and
-# verdict, then the inventory's columns in the inventory's own order with the
-# parameter beside the name, then how the check ended, then the details a reader
-# needs only to reproduce a failure. The inventory's columns carry its names, so a
-# row joins to it by id.
+# The columns of a report, in the order they are written: which run, what it
+# covered and how it went, then the inventory's columns in the inventory's own
+# order with the parameter beside the name, then how the check ended, then the
+# details a reader needs only to reproduce a failure. The inventory's columns
+# carry its names, so a row joins to it by id.
 REPORT_COLUMNS = (
     "run_id",
+    "selection",
     "run_verdict",
+    "pytest_exit_status",
+    "exit_meaning",
     "category",
     "objective",
     "staged_case",
@@ -879,12 +883,9 @@ REPORT_COLUMNS = (
     "expected_result",
     "outcome",
     "outcome_reason",
-    "pytest_exit_status",
-    "exit_meaning",
     "started",
     "commit",
     "run_by",
-    "selection",
     "check_file_sha256",
     "fixture_sha256s",
     "pinned_usdm_sha256",
@@ -966,6 +967,9 @@ def pytest_sessionfinish(session, exitstatus):
     # check and validated nothing. The refusal is on the terminal, and a report
     # of it would only be a file to delete.
     if int(exitstatus) == int(pytest.ExitCode.USAGE_ERROR):
+        return
+    # A listing run, --collect-only, runs no check, so there is nothing to report.
+    if session.config.getoption("collectonly"):
         return
 
     # Everything the report states about the run is gathered once here and
