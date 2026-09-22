@@ -607,7 +607,7 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 
 
 @code("USD0027")
-@category("processing")
+@category("sources")
 @objective("conformance")
 @needs_pinned_file
 def test_pinned_file_is_shaped_the_way_the_loader_expects():
@@ -618,7 +618,7 @@ def test_pinned_file_is_shaped_the_way_the_loader_expects():
 
 
 @code("USD0029")
-@category("processing")
+@category("sources")
 @objective("conformance")
 @needs_pinned_file
 def test_pinned_file_types_are_classes_or_five_primitives():

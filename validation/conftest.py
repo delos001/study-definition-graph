@@ -154,7 +154,7 @@ from validation.select_checks import (
 # inventory and a report can never disagree. pyproject.toml puts repo_tools/ on
 # pytest's import path, and the generator uses only the standard library, so this
 # import cannot fail because the sdg package is broken.
-from build_inventory import ASPECT_OF, split_path, type_and_target
+from build_inventory import ASPECT_OF, code_folder_and_target, split_path
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 REPO_ROOT = VALIDATION_DIR.parent
@@ -462,13 +462,12 @@ def pytest_configure(config):
     )
     config.addinivalue_line(
         "markers",
-        "positive: a correctness check of a staged working situation, expected to "
-        "succeed",
+        "positive: a check of a staged working situation, expected to succeed",
     )
     config.addinivalue_line(
         "markers",
-        "negative: a correctness check of a staged broken situation, expected to "
-        "refuse for the right reason",
+        "negative: a check of a staged broken situation, expected to refuse for "
+        "the right reason",
     )
     # The code is the check's short, permanent id in validation/validation_inventory.csv:
     # a type prefix and four digits, such as SRC0042, assigned once and never
@@ -695,15 +694,14 @@ def _parameter(item) -> str:
 
 
 def _case(item) -> str:
-    """Read a correctness check's case off its marker.
+    """Read a check's case off its marker.
 
     Args:
         item: The check.
 
     Returns:
-        positive, negative, or an empty string when it carries neither, as a check of
-        any objective other than correctness does, and as a correctness check that
-        looked at something real rather than staging a situation does.
+        positive, negative, or an empty string when it carries neither, as a check
+        that looked at something real rather than staging a situation does.
     """
     if item.get_closest_marker("positive"):
         return "positive"
@@ -988,7 +986,7 @@ def _target_of(test_file: Path) -> tuple[str, str]:
         The target's folder and its file name, the name marked when the file was not
         found at run time.
     """
-    _, path = type_and_target(test_file, VALIDATION_DIR)
+    _, path = code_folder_and_target(test_file, VALIDATION_DIR)
     folder, name = split_path(path)
     # The mirrored file is named even when it is not there, so the gap shows.
     if not (REPO_ROOT / path).exists():

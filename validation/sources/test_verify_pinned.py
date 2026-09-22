@@ -8,12 +8,12 @@ Description: Automated checks for src/sdg/sources/verify_pinned.py, the workflow
 
              Most checks stage a small pretend repo in a temporary folder
              through the fake_repo fixture in conftest.py, so the real
-             manifests/ and inputs/ are never written. The checks against the
-             real pinned USDM model file skip when it has not been downloaded.
+             manifests/ and inputs/ are never written. The one check that reads
+             the real repo is the stability check, which runs once per recorded
+             file and skips a file that has not been downloaded.
 
-Inputs:      manifests/cdisc_usdm_v4.json                         (read-only)
-             inputs/standards/cdisc/usdm_v4/dataStructure.yml    (read-only;
-                                                                  skips if absent)
+Inputs:      manifests/*.json    (read-only; every recorded file's entry)
+             inputs/**           (read-only; measured, and skipped when absent)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
@@ -31,7 +31,6 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import hashlib
-import json
 
 import pytest
 
@@ -56,14 +55,6 @@ objective = pytest.mark.objective
 # Every check carries a @category line: what kind of thing the check confirms, one
 # of the categories validation/validation_inventory_dictionary.md defines.
 category = pytest.mark.category
-
-# The real pinned model file and the manifest that records it. validation/conftest.py
-# skips the checks against them when the file is not downloaded, so a fresh clone
-# still runs the rest, and when it no longer matches its manifest entry.
-PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
-MANIFEST_NAME = "cdisc_usdm_v4.json"
-
-needs_pinned_file = pytest.mark.needs_pinned(PINNED_LOCAL)
 
 
 def pinned_locals() -> list[str]:
@@ -96,15 +87,6 @@ SHA256 = hashlib.sha256(CONTENT).hexdigest()
 #
 # Each fixture stages one situation. Each check then asserts one thing about
 # what verify_pinned() handed back or how it refused.
-
-
-@pytest.fixture
-def real_entry() -> dict:
-    """Reads the real manifest entry for the pinned model file."""
-    manifest = json.loads(
-        (read_manifests.MANIFEST_DIR / MANIFEST_NAME).read_text(encoding="utf-8")
-    )
-    return next(e for e in manifest["files"] if e["local"] == PINNED_LOCAL)
 
 
 @pytest.fixture
@@ -144,65 +126,6 @@ def refused_with(error, target=LOCAL) -> str:
 
 
 #######################################################################################
-### Positive checks against the real pinned model file ###
-#
-# The real model file verifies against its real manifest. These checks skip
-# when the file is not downloaded.
-
-
-@code("SRC0096")
-@category("repository")
-@objective("correctness")
-@needs_pinned_file
-@positive
-def test_real_file_carries_its_recorded_identity(real_entry):
-    """The pinned model file comes back with the sha256, url and manifest name
-    its manifest entry records."""
-    got = verify_pinned(PINNED_LOCAL)
-    assert isinstance(got, PinnedFile)
-    assert got.sha256 == real_entry["sha256"]
-    assert got.url == real_entry["url"]
-    assert got.manifest == MANIFEST_NAME
-
-
-@code("SRC0097")
-@category("repository")
-@objective("correctness")
-@needs_pinned_file
-@positive
-def test_real_file_path_is_where_the_manifest_says():
-    """The pinned model file's path is the repo root plus the local path its
-    entry records."""
-    got = verify_pinned(PINNED_LOCAL)
-    assert got.local == PINNED_LOCAL
-    assert got.path == read_manifests.REPO_ROOT / PINNED_LOCAL
-
-
-@code("SRC0098")
-@category("repository")
-@objective("correctness")
-@needs_pinned_file
-@positive
-def test_real_file_content_reads():
-    """read_text() on the pinned model file gives its text, which opens with
-    the first class in the model."""
-    assert verify_pinned(PINNED_LOCAL).read_text().startswith("Abbreviation:")
-
-
-@code("SRC0099")
-@category("repository")
-@objective("conformance")
-@needs_pinned_file
-@positive
-def test_real_file_record_is_the_same_by_string_or_path():
-    """The repo-relative string a manifest writes, the same string with
-    backslashes, and a full Path all give the same record."""
-    by_string = verify_pinned(PINNED_LOCAL)
-    assert by_string == verify_pinned(PINNED_LOCAL.replace("/", "\\"))
-    assert by_string == verify_pinned(read_manifests.REPO_ROOT / PINNED_LOCAL)
-
-
-#######################################################################################
 ### Every pinned file is unchanged ###
 #
 # One check per pinned file, so a report names the file that changed. It is the only
@@ -237,6 +160,7 @@ def test_recorded_file_carries_its_identity(recorded_file):
     """A file whose entry is correct comes back with the sha256, url and
     manifest name its entry records."""
     got = verify_pinned(LOCAL)
+    assert isinstance(got, PinnedFile)
     assert got.sha256 == SHA256
     assert got.url == "https://example.invalid/file.txt"
     assert got.manifest == "set_a.json"
@@ -268,9 +192,11 @@ def test_recorded_file_content_reads(recorded_file):
 @objective("conformance")
 @positive
 def test_staged_record_is_the_same_by_string_or_path(recorded_file):
-    """A repo-relative string and a full Path to the same staged file give the
-    same record."""
-    assert verify_pinned(LOCAL) == verify_pinned(recorded_file)
+    """The repo-relative string a manifest writes, the same string with
+    backslashes, and a full Path all give the same record."""
+    by_string = verify_pinned(LOCAL)
+    assert by_string == verify_pinned(LOCAL.replace("/", "\\"))
+    assert by_string == verify_pinned(recorded_file)
 
 
 #######################################################################################

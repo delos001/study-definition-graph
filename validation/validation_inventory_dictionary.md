@@ -48,7 +48,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
-- Read by the generator from the test file's path, by the rule in `type_and_target()` in `repo_tools/build_inventory.py`.
+- Read by the generator from the test file's path, by the rule in `code_folder_and_target()` in `repo_tools/build_inventory.py`.
 - Holds a folder in the repo.
 
 ### `target_file_name`
@@ -144,7 +144,7 @@ Correctness and conformance are the pair that gets confused, because in ordinary
 
 The question decides, not the material the check reads. HRS0046 reads a file's header fields and asks whether they follow the rule that defines a header, so it is conformance. A check reading the same fields to ask whether a count stated elsewhere matches the number actually present would be correctness.
 
-Six of these objectives carry no checks yet. They are written down because the questions they name will be asked once there is extraction, a graph and a running pipeline, and because working out where such a check belongs is easier to do once than to redo each time.
+Several of these objectives carry no checks yet. They are written down because the questions they name will be asked once there is extraction, a graph and a running pipeline, and because working out where such a check belongs is easier to do once than to redo each time.
 
 ## Cases
 

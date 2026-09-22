@@ -4,9 +4,9 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
              in the test files under validation/, from the checks themselves, so the inventory
              cannot drift from the code it describes. Each check's name, its
              permanent id (the @code marker), its category (the @category marker),
-             its objective (the @objective marker), whether a correctness check
-             is a positive or a negative case, and its expected result (its
-             docstring's first paragraph) are read from the file. Four columns are kept by hand and carried over from the
+             its objective (the @objective marker), whether a check that staged its
+             own situation staged a working case or a broken one, and its expected
+             result (its docstring's first paragraph) are read from the file. Four columns are kept by hand and carried over from the
              existing inventory by id: status, superseded_by, status_reason and
              version. A new check starts as active at version 1. A check that no
              longer exists drops out, which holds until the first validation run.
@@ -186,11 +186,11 @@ NEEDS_REASON = ("inactive", "retired")
 # strips it before the sentence is looked at.
 FORMULA_STARTS = ("=", "+", "-", "@")
 
-# Rows are grouped by the folder the test file sits in, in the order the pipeline
+# Rows are ordered by the code folder the test file mirrors, in the order the pipeline
 # runs, then the top-level files of the sdg package, then the tools and hooks, with
 # the checks for validation's own files last. Within a folder, files are in name order and
 # checks in file order.
-TYPE_ORDER = (
+CODE_FOLDER_ORDER = (
     "sources",
     "usdm",
     "view",
@@ -242,10 +242,10 @@ def first_paragraph(doc: str | None) -> str:
     return " ".join(doc.strip().split("\n\n")[0].split())
 
 
-def type_and_target(
+def code_folder_and_target(
     check_file: Path, validation_dir: Path | None = None
 ) -> tuple[str, str]:
-    """Work out a test file's group and the code file it proves.
+    """Work out the code folder a test file mirrors and the code file it proves.
 
     This is the one place the rule is written. validation/conftest.py uses it too, to
     fill the same columns of a validation report, so the inventory and the report can
@@ -266,7 +266,7 @@ def type_and_target(
             the repo's own.
 
     Returns:
-        The group name and the target's repo-relative path.
+        The code folder's name and the target's repo-relative path.
     """
     relative = check_file.relative_to(validation_dir or VALIDATION_DIR)
     folder = relative.parent.as_posix()
@@ -338,9 +338,9 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
         if not isinstance(node, ast.FunctionDef) or not node.name.startswith("test_"):
             continue
         # A check is written as @code("XYZ0001"), @category("repository"),
-        # @objective("correctness") and, for a correctness check that staged its
-        # situation, @positive or @negative: the short names the test files give
-        # pytest's markers.
+        # @objective("correctness") and, for a check that staged its own situation,
+        # @positive or @negative: the short names the test files give pytest's
+        # markers.
         code = category = objective = case = ""
         has_category = has_objective = False
         for decorator in node.decorator_list:
@@ -407,7 +407,7 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[str]]:
     """Read every check in every test file under the validation folder.
 
     Returns:
-        Each check with its group and target, and the problems found. An empty
+        Each check with its code folder and target, and the problems found. An empty
         validation folder is one problem.
     """
     files = sorted(VALIDATION_DIR.rglob("test_*.py"))
@@ -416,10 +416,10 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[str]]:
     found: list[tuple[str, str, Check]] = []
     problems: list[str] = []
     for path in files:
-        group, target = type_and_target(path)
+        code_folder, target = code_folder_and_target(path)
         checks, file_problems = checks_in(path)
         problems.extend(file_problems)
-        found.extend((group, target, check) for check in checks)
+        found.extend((code_folder, target, check) for check in checks)
     return found, problems
 
 
@@ -461,8 +461,8 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
             seen[check.check_id] = check.check_name
 
     previous = existing_rows()
-    grouped: list[tuple[str, dict[str, str]]] = []
-    for group, target, check in found:
+    ordered: list[tuple[str, dict[str, str]]] = []
+    for code_folder, target, check in found:
         old = previous.get(check.check_id, {})
         validation_folder, validation_file = split_path(check.check_file)
         target_folder, target_file = split_path(target)
@@ -487,14 +487,16 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
         row["superseded_by"] = old.get("superseded_by", "")
         row["status_reason"] = old.get("status_reason", "")
         row["version"] = old.get("version", NEW_VERSION)
-        grouped.append((group, row))
-    # Groups in pipeline order; a group not in the list, a new folder, goes last.
-    grouped.sort(
+        ordered.append((code_folder, row))
+    # Code folders in pipeline order; a folder not in the list, a new one, goes last.
+    ordered.sort(
         key=lambda pair: (
-            TYPE_ORDER.index(pair[0]) if pair[0] in TYPE_ORDER else len(TYPE_ORDER)
+            CODE_FOLDER_ORDER.index(pair[0])
+            if pair[0] in CODE_FOLDER_ORDER
+            else len(CODE_FOLDER_ORDER)
         )
     )
-    rows = [row for _, row in grouped]
+    rows = [row for _, row in ordered]
     problems.extend(id_problems(rows))
     return rows, problems
 

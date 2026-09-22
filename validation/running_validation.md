@@ -1,8 +1,6 @@
 # Running validation
 
-**This document is a draft.** It was written on 2026-09-22 while the validation suite was being audited, and it is finalised once that audit is done. Two things settle at that point: the name of this file, and whether the How to run validation section of [README.md](README.md) is cut down to a pointer at this document, which is the only way to stop the two saying different things.
-
-This document says how to choose which checks run and how to file a validation report. What each column of the check table and of a report means is not here; that is in [validation_inventory_dictionary.md](validation_inventory_dictionary.md) and [validation_report_dictionary.md](validation_report_dictionary.md). How to write a check is in `.claude/rules/writing_python_files.md`.
+This document says how to choose which checks run and how to file a validation report. What each column of the inventory and of a report means is not here; that is in [validation_inventory_dictionary.md](validation_inventory_dictionary.md) and [validation_report_dictionary.md](validation_report_dictionary.md). How to write a check is in `.claude/rules/writing_python_files.md`.
 
 Run every command from the repo root, in the `sdg` environment.
 

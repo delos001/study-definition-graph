@@ -24,7 +24,7 @@ The Schedule of Activities is built last, because it depends on every stage abov
 
 See [PLAN.md](PLAN.md) for the phases, what each produces, and how each is verified.
 
-A validation system is included in this workflow. Validation of process outputs is critical, but input stability and script behavior are also important to show accuracy and consistency and to withstand audit scrutiny. See [validation/README.md](validation/README.md) for the automated checks and how validation reports are written.
+A validation system is included in this workflow. Validation of process outputs is critical, but input stability and script behavior are also important to show accuracy and consistency and to withstand audit scrutiny. See [validation/README.md](validation/README.md) for what the folder holds, and [validation/running_validation.md](validation/running_validation.md) for how the checks are run and how a validation report is filed.
 
 ## Status
 
@@ -198,7 +198,7 @@ study-definition-graph/
   repo_tools/              # tools that keep this repo in order
   validation/              # checks that prove the code works
     claude_hooks/          #   validation for the hooks in .claude/hooks/
-    fixtures/              #   throwaway repos used during a validation run
+    fixtures/              #   small stand-ins for the pinned files, read by staged checks
     reports/               #   results of a full validation run, archived
     repo_tools/            #   validation for the tools in repo_tools/
     sources/               #   validation for src/sdg/sources/
