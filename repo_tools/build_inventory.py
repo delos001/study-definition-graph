@@ -15,6 +15,11 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
              true:
                - it has no @code marker, or an id another check already carries,
                  because the id is what joins a validation report to the inventory;
+               - its id is not three capital letters and four digits, or those
+                 letters are not one of the registered prefixes. Whether a prefix
+                 still names the folder of the file its check covers is not
+                 checked, because a check that moves keeps the id it was filed
+                 under;
                - it has no @category marker, or one that names no category;
                - it has no @objective marker, or one that names no objective;
                - it carries @positive or @negative with an objective other than
@@ -57,8 +62,8 @@ Exit codes:  0   success (the inventory was written, or a check found it in orde
              2   invalid command line, the argument parser's own
              16  the validation inventory is stale or missing (--check and
                  --check-status only)
-             18  a check's markers or first sentence are missing or wrong, or its
-                 id is a duplicate
+             18  a check's markers, id or first sentence are missing or wrong, or
+                 its id is a duplicate
              19  a Python file could not be parsed
              20  no files found to work on
              45  a hand-kept column of the validation inventory breaks its rules
@@ -76,6 +81,7 @@ import argparse
 import ast
 import csv
 import io
+import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -124,6 +130,25 @@ OBJECTIVES = ("correctness", "completeness", "conformance", "stability", "perfor
 # at something real carries neither, and so does a check of any other objective.
 CORRECTNESS = "correctness"
 CASES = ("positive", "negative")
+
+# The three letters a check's id may start with, and the folder each one names. A
+# check takes its folder's prefix when it is first filed, and the id never changes
+# afterwards, so a check that later moves keeps a prefix its folder no longer
+# matches. That is why only the letters themselves are checked, not whether they
+# still fit. A new folder needs a new prefix added here.
+# validation/validation_inventory_dictionary.md describes them for a reader.
+ID_PREFIXES = {
+    "SRC": "src/sdg/sources",
+    "USD": "src/sdg/usdm",
+    "VIW": "src/sdg/view",
+    "SDG": "src/sdg",
+    "HRS": "repo_tools",
+    "CCH": ".claude/hooks",
+    "TST": "validation",
+}
+
+# An id is three capital letters and four digits, such as SRC0042.
+ID_SHAPE = re.compile(r"[A-Z]{3}[0-9]{4}")
 
 # Where a check stands. validation/README.md says what each one means.
 STATUSES = ("pending", "active", "inactive", "superseded", "retired")
@@ -446,7 +471,45 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
             TYPE_ORDER.index(pair[0]) if pair[0] in TYPE_ORDER else len(TYPE_ORDER)
         )
     )
-    return [row for _, row in grouped], problems
+    rows = [row for _, row in grouped]
+    problems.extend(id_problems(rows))
+    return rows, problems
+
+
+def id_problems(rows: list[dict[str, str]]) -> list[str]:
+    """Check every id for its shape and for carrying a registered prefix.
+
+    Whether a prefix still names the folder of the file its check covers is not
+    checked. A prefix is chosen when a check is first filed and the id never
+    changes, so a check that later moves keeps one its folder no longer matches,
+    and the generator cannot tell that apart from a wrong choice without a record
+    of when each check was filed.
+
+    Args:
+        rows: The rows about to be written.
+
+    Returns:
+        One problem per rule an id breaks, or nothing when every id is in order.
+    """
+    problems: list[str] = []
+    for row in rows:
+        check_id = row["id"]
+        where = f"{row['folder_path']}/{row['file_name']}: {row['name']}"
+        # A missing marker is already reported where the check was read, so it is
+        # not reported a second time here.
+        if not check_id:
+            continue
+        if not ID_SHAPE.fullmatch(check_id):
+            problems.append(
+                f"{where} has the id {check_id!r}, which is not three capital "
+                "letters and four digits, such as SRC0042"
+            )
+        elif check_id[:3] not in ID_PREFIXES:
+            problems.append(
+                f"{where} has the id {check_id}, and {check_id[:3]} is not one of "
+                f"the prefixes {', '.join(ID_PREFIXES)}"
+            )
+    return problems
 
 
 def status_problems(rows: list[dict[str, str]], live_ids: set[str]) -> list[str]:

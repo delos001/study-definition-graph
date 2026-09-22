@@ -39,7 +39,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 ### `id`
 - Identifies the check permanently. A validation report joins to the inventory on it.
 - Read by the generator from the `@code` marker.
-- Holds three capital letters and four digits, such as `SRC0042`, unique across the inventory. The letters are one of the prefixes below.
+- Holds three capital letters and four digits, such as `SRC0042`, unique across the inventory. The letters are one of the prefixes below. The generator refuses an id that breaks any of those three rules.
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
@@ -78,7 +78,9 @@ Every row is one check. A column about the check itself has a bare name. The two
 
 ## Id prefixes
 
-The three letters name the folder of the covered file when the check was first filed. They are part of the id and never change, whatever later happens to the check's category, objective or file, because a filed report joins to the inventory on the id. A new check takes its folder's prefix and the next unused number. A new folder takes a new prefix, added here.
+The three letters name the folder of the covered file when the check was first filed. They are part of the id and never change, whatever later happens to the check's category, objective or file, because a filed report joins to the inventory on the id. A new check takes its folder's prefix and the next unused number. A new folder takes a new prefix, added to `ID_PREFIXES` in `repo_tools/build_inventory.py` and to the list below.
+
+Choosing the prefix that fits the folder is done by hand and stays that way. The generator confirms that the letters are one of the prefixes below, and no more than that. It cannot confirm that a prefix still fits, because a check that moves keeps the id it was filed under, and nothing records when each check was filed, so a prefix that no longer fits cannot be told from one that was wrong to begin with.
 
 - `SRC`: `src/sdg/sources/`
 - `USD`: `src/sdg/usdm/`
