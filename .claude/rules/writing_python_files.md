@@ -83,7 +83,7 @@ def fetch(entry: Entry, destination: Path) -> Path:
     """
 ```
 
-A check's docstring is one plain paragraph and nothing else. It says what must be true for the check to pass. The paragraph is copied into the `expected_result` column of `validation/validation_inventory.csv`, so it has to stand on its own. It starts with a word, never with `=`, `+`, `-` or `@`, because a spreadsheet reads a cell that starts with one of those as a formula, and `repo_tools/build_inventory.py` refuses it.
+A check's docstring opens with one paragraph saying what must be true for the check to pass. `repo_tools/build_inventory.py` copies that paragraph, and only that paragraph, into the `expected_result` column of `validation/validation_inventory.csv`, so it has to stand on its own. Anything the opening paragraph needs, put in it. A further paragraph is welcome where the check needs one, usually to say how the situation was staged, and it stays in the file rather than going into the table. It starts with a word, never with `=`, `+`, `-` or `@`, because a spreadsheet reads a cell that starts with one of those as a formula, and `repo_tools/build_inventory.py` refuses it.
 
 ## Comments
 
