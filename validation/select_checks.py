@@ -11,9 +11,13 @@ Description: A pytest plugin that selects checks in the inventory's own terms.
              deselected before the run, so they neither run nor appear in a
              validation report.
 
-             A value that names no category, objective, group or collected check
-             stops the run with pytest's usage error rather than running nothing,
-             so a typo cannot pass for a clean run.
+             A run that would validate nothing stops with pytest's usage error
+             rather than running nothing, so an empty run cannot pass for a clean
+             one. That covers a value naming no category, objective, group or
+             collected check, and it covers options that each name something real
+             but leave no check between them. The refusal for the second case
+             reports how many checks each option matched on its own, which names
+             the option that is the odd one out.
 
              It is a plugin rather than part of conftest.py because pytest reads
              the command line before it loads a conftest below the root folder.
@@ -93,6 +97,19 @@ def code_of(item: pytest.Item) -> str:
         The id, or an empty string when the check carries no code marker.
     """
     return _marker_value(item, "code")
+
+
+def check_key(item: pytest.Item) -> str:
+    """Name one check, so that a check pytest runs once per value still counts once.
+
+    Args:
+        item: The check.
+
+    Returns:
+        The check's permanent id, or its node id without the value in brackets when
+        it carries no code marker.
+    """
+    return code_of(item) or item.nodeid.split("[")[0]
 
 
 def category_of(item: pytest.Item) -> str:
@@ -191,13 +208,17 @@ def pytest_collection_modifyitems(
 ) -> None:
     """Keep only the checks the selection options ask for.
 
-    Runs after pytest has collected every check the paths allow. A value that names
-    nothing is an error rather than an empty run, so a typo cannot pass for a clean
-    report of nothing.
+    Runs after pytest has collected every check the paths allow. A selection that
+    would leave no check to run is an error rather than an empty run, so nothing
+    that validated nothing can pass for a clean report.
 
     Args:
         config: pytest's configuration for the run.
         items: The collected checks, trimmed in place.
+
+    Raises:
+        pytest.UsageError: A value names no category, objective, group or collected
+            check, or the options together leave no check to run.
     """
     categories = wanted(config, "category")
     objectives = wanted(config, "objective")
@@ -205,6 +226,11 @@ def pytest_collection_modifyitems(
     names = wanted(config, "group")
     if not (categories or objectives or ids or names):
         return
+    # Which options supplied the ids, kept before --group expands into them, so the
+    # refusal below names the option the reader typed rather than its expansion.
+    id_label = " and ".join(
+        label for label, used in (("--id", ids), ("--group", names)) if used
+    )
 
     for value in categories:
         if value not in CATEGORIES:
@@ -232,15 +258,46 @@ def pytest_collection_modifyitems(
             f"no collected check carries the id {', '.join(missing)}"
         )
 
+    # The filters, one per option that narrows the run, each holding the option's
+    # name, the values it was given and the function that reads that value off a
+    # check. A new selection option is one more entry here, and the filtering and
+    # the refusal below need no change for it.
+    filters = (
+        ("--category", categories, category_of),
+        ("--objective", objectives, objective_of),
+        (id_label, ids, code_of),
+    )
+    # Which checks each option matched on its own. When the combination matches
+    # nothing, these are what name the option that is the odd one out. They hold
+    # ids rather than runs, so a check that runs once per value counts once and the
+    # numbers read against validation/validation_inventory.csv.
+    alone: dict[str, set[str]] = {
+        label: set() for label, values, _ in filters if values
+    }
+
     kept: list[pytest.Item] = []
     dropped: list[pytest.Item] = []
     for item in items:
-        keep = (
-            (not categories or category_of(item) in categories)
-            and (not objectives or objective_of(item) in objectives)
-            and (not ids or code_of(item) in ids)
+        hits = [
+            (label, not values or reader(item) in values)
+            for label, values, reader in filters
+        ]
+        for label, hit in hits:
+            if hit and label in alone:
+                alone[label].add(check_key(item))
+        (kept if all(hit for _, hit in hits) else dropped).append(item)
+
+    # Every value named something real, yet nothing survived the combination. That
+    # is the same empty run the refusals above exist to prevent, reached by another
+    # route, so it is refused the same way rather than reported as a clean result.
+    if not kept:
+        counts = ", ".join(
+            f"{label} matched {len(found)}" for label, found in alone.items()
         )
-        (kept if keep else dropped).append(item)
+        raise pytest.UsageError(
+            f"no check matches every option given: {counts}, in combination 0. Drop or widen the option that matched fewest."
+        )
+
     if dropped:
         config.hook.pytest_deselected(items=dropped)
         items[:] = kept

@@ -274,3 +274,37 @@ def test_group_without_the_groups_file_stops_the_run(pytester, monkeypatch):
     assert ret == 4
     assert "--group needs validation/validation_groups.yml" in printed
     assert ids == set()
+
+
+@code("TST0037")
+@category("repository")
+@objective("correctness")
+@negative
+def test_a_defined_value_matching_no_check_stops_the_run(pytester, monkeypatch):
+    """A --category that is a defined category but that no collected check carries
+    stops the run with exit 4 rather than running nothing, and the message says the
+    option matched no check and what to do about it."""
+    ret, ids, _, printed = selected(pytester, monkeypatch, "--category", "products")
+    assert ret == 4
+    assert "no check matches every option given: --category matched 0" in printed
+    assert "Drop or widen the option that matched fewest." in printed
+    assert ids == set()
+
+
+@code("TST0038")
+@category("repository")
+@objective("correctness")
+@negative
+def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch):
+    """Two options that each match a check, but no one check, stop the run with exit
+    4 rather than running nothing, and the message gives each option's own count and
+    what to do, so the reader can see which one is the odd one out."""
+    ret, ids, _, printed = selected(
+        pytester, monkeypatch, "--category", "sources", "--id", "XYZ0011"
+    )
+    assert ret == 4
+    assert (
+        "no check matches every option given: --category matched 1, --id matched 1, in combination 0. Drop or widen the option that matched fewest."
+        in printed
+    )
+    assert ids == set()

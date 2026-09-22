@@ -52,9 +52,10 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - a file that fails to load,
                - an internal error.
              Therefore the report can never say PASS when the terminal said otherwise.
-             The rows are the detail; the exit status is the verdict. When pytest
-             fails before any test ran, a report is still written, with one row
-             saying that no check ran.
+             The rows are the detail; the exit status is the verdict. When no check
+             ran at all, a report is still written, with one row saying so. Why no
+             check ran is in that row's exit_meaning, because the exit status is
+             all the writer knows about the cause.
 
              It registers the markers the tests carry:
                - @code carries the check's permanent id from validation/validation_inventory.csv,
@@ -1045,8 +1046,9 @@ def pytest_sessionfinish(session, exitstatus):
                     }
                 )
     else:
-        # No outcome was collected, so pytest failed before any check ran. One
-        # row is written saying so, so a broken run still leaves a report.
+        # No outcome was collected, so no check ran. The row says only that. Why
+        # no check ran is already in the exit_meaning column, which is right for
+        # every exit number, and the writer cannot know more than the number.
         rows.append(
             {
                 **run,
@@ -1063,7 +1065,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "staged_case": "",
                 "expected_result": "",
                 "outcome": "none",
-                "outcome_reason": "no check ran: pytest failed before any test ran",
+                "outcome_reason": "no check ran",
             }
         )
 

@@ -92,7 +92,9 @@ pytest --collect-only -q --id SRC0128
 - Use `-k`, pytest's own filter, followed by a word to run only the checks whose name or file name contains it.
 - Use `--category`, `--objective` or `--id`, spelled as the inventory's columns are, to run only the checks whose value matches. Two different options narrow each other. A comma-separated list means any of the values.
 - Use `--group` to run the checks a named group in `validation_groups.yml` lists. A group is for a set that no folder, category or objective can name on its own.
-- A value that names no category, objective, group or collected check stops the run, so a typo cannot pass for a clean run of nothing.
+- The run stops when a selection would leave no check to run, so a run that validated nothing cannot pass for a clean one.
+  - A value that names no category, objective, group or collected check stops the run.
+  - Options that each name something real, but that no one check satisfies together, also stop the run. The message gives how many checks each option matched on its own, so the option that does not belong is visible.
 - Add `--collect-only -q` to any selection to list the checks it would run, one line each, without running them.
 - A few checks are written to run once for each value in a list, such as the fixity check, which runs once per pinned file. Nothing is typed for this. pytest runs every value on its own, and the report gets one row per value with the value in its `parameter` column. Most checks have no such list, run once, and leave that column empty.
 - To run one value only, copy its line from the `--collect-only` listing, which shows the value in brackets, and give it as the path argument.
