@@ -130,7 +130,7 @@ def stage_groups(pytester) -> None:
 
 @code("TST0021")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_category_keeps_only_that_category(pytester, monkeypatch):
     """With --category, only the checks carrying that category run, and the others get
@@ -142,7 +142,7 @@ def test_category_keeps_only_that_category(pytester, monkeypatch):
 
 @code("TST0022")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_objective_keeps_only_that_objective(pytester, monkeypatch):
     """With --objective, only the checks carrying that objective run."""
@@ -153,7 +153,7 @@ def test_objective_keeps_only_that_objective(pytester, monkeypatch):
 
 @code("TST0023")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
     """With both --category and --objective, only the checks matching both run."""
@@ -166,7 +166,7 @@ def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
 
 @code("TST0024")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
     """A comma-separated list on one option keeps the checks matching any value in it."""
@@ -177,7 +177,7 @@ def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
 
 @code("TST0025")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_id_keeps_only_those_checks(pytester, monkeypatch):
     """With --id, only the checks carrying those ids run."""
@@ -188,7 +188,7 @@ def test_id_keeps_only_those_checks(pytester, monkeypatch):
 
 @code("TST0026")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_group_runs_the_ids_the_groups_file_lists(pytester, monkeypatch):
     """With --group, the checks whose ids the named group lists in
@@ -201,7 +201,7 @@ def test_group_runs_the_ids_the_groups_file_lists(pytester, monkeypatch):
 
 @code("TST0027")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_the_selection_column_records_the_options(pytester, monkeypatch):
     """The report's selection column records the selection options as given, so a
@@ -223,7 +223,7 @@ def test_the_selection_column_records_the_options(pytester, monkeypatch):
 
 @code("TST0028")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
     """A --category value that is not a defined category stops the run with pytest's
@@ -237,7 +237,7 @@ def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
 
 @code("TST0029")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_id_no_collected_check_carries_stops_the_run(pytester, monkeypatch):
     """An --id that no collected check carries stops the run with exit 4 rather than
@@ -250,7 +250,7 @@ def test_an_id_no_collected_check_carries_stops_the_run(pytester, monkeypatch):
 
 @code("TST0030")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_group_not_in_the_file_stops_the_run(pytester, monkeypatch):
     """A --group name that validation/validation_groups.yml does not define stops the
@@ -265,7 +265,7 @@ def test_a_group_not_in_the_file_stops_the_run(pytester, monkeypatch):
 
 @code("TST0031")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_group_without_the_groups_file_stops_the_run(pytester, monkeypatch):
     """A --group when validation/validation_groups.yml is missing stops the run with
@@ -278,7 +278,7 @@ def test_group_without_the_groups_file_stops_the_run(pytester, monkeypatch):
 
 @code("TST0037")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_defined_value_matching_no_check_stops_the_run(pytester, monkeypatch):
     """A --category that is a defined category but that no collected check carries
@@ -293,7 +293,7 @@ def test_a_defined_value_matching_no_check_stops_the_run(pytester, monkeypatch):
 
 @code("TST0038")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch):
     """Two options that each match a check, but no one check, stop the run with exit
@@ -312,7 +312,7 @@ def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch)
 
 @code("TST0043")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_aspect_keeps_only_the_checks_of_that_aspect(pytester, monkeypatch):
     """With --aspect, only the checks whose objective belongs to that aspect of
@@ -324,7 +324,7 @@ def test_aspect_keeps_only_the_checks_of_that_aspect(pytester, monkeypatch):
 
 @code("TST0044")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_aspect_and_category_narrow_each_other(pytester, monkeypatch):
     """With both --aspect and --category, only the checks matching both run, so a run
@@ -338,7 +338,7 @@ def test_aspect_and_category_narrow_each_other(pytester, monkeypatch):
 
 @code("TST0045")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_aspect_not_in_the_list_stops_the_run(pytester, monkeypatch):
     """An --aspect value that is not a defined aspect of quality stops the run with

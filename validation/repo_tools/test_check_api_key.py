@@ -154,7 +154,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 
 @code("HRS0068")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_working_key_exits_0(working):
     """A key the API answers gives an exit code of 0."""
@@ -163,7 +163,7 @@ def test_working_key_exits_0(working):
 
 @code("HRS0069")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_working_key_reports_the_reply(working):
     """The report names the model that answered and repeats what it replied."""
@@ -173,7 +173,7 @@ def test_working_key_reports_the_reply(working):
 
 @code("HRS0070")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_the_key_is_never_printed(working):
     """The key itself is never printed, so it cannot end up in a terminal log."""
@@ -182,7 +182,7 @@ def test_the_key_is_never_printed(working):
 
 @code("HRS0071")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quoted_key_is_read(repo, monkeypatch, capsys):
     """A key written with quotes around it, as a person might paste it, is read
@@ -193,7 +193,7 @@ def test_quoted_key_is_read(repo, monkeypatch, capsys):
 
 @code("HRS0072")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     """With the quiet option, nothing at all is printed."""
@@ -203,7 +203,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 
 @code("HRS0073")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
     """With the quiet option, the exit code still reports the missing key."""
@@ -220,7 +220,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 
 @code("HRS0074")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
     """With no .env file at all, the run exits 27 and the message says to create it
@@ -233,7 +233,7 @@ def test_missing_env_file_is_refused(repo, capsys):
 
 @code("HRS0075")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_empty_key_is_refused(repo, capsys):
     """With a .env whose key line is empty, the run exits 28 and the message says to
@@ -247,7 +247,7 @@ def test_empty_key_is_refused(repo, capsys):
 
 @code("HRS0076")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
     """When the API does not recognise the key, the run exits 29 and the message says
@@ -270,7 +270,7 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
 
 @code("HRS0148")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_key_without_access_is_reported_as_an_account_problem(
     repo, monkeypatch, capsys
@@ -297,7 +297,7 @@ def test_key_without_access_is_reported_as_an_account_problem(
 
 @code("HRS0077")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When the API cannot be reached at all, the run exits 30 and the message says
@@ -313,7 +313,7 @@ def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
 
 @code("HRS0139")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_error_the_api_answered_with_is_reported_with_its_message(
     repo, monkeypatch, capsys
@@ -340,7 +340,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
 
 @code("HRS0078")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     """When the sdg package is installed from outside the repo, the run exits 6 before it
@@ -355,3 +355,107 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     outcome = run(capsys)
     assert outcome.exit_code == 6
     assert "not running from inside its repo" in outcome.printed
+
+
+#######################################################################################
+### Checks on the call to the API itself ###
+#
+# Every check above replaces call_api(), so the client work inside it is never
+# exercised. These checks stand in for the Anthropic client instead, one level lower,
+# so what the tool sends and what it makes of the reply are proven without the network.
+
+
+@dataclass(frozen=True)
+class FakeBlock:
+    """One block of a reply, of the shape the client hands back."""
+
+    type: str
+    text: str
+
+
+class FakeMessages:
+    """The messages part of the client, recording what it was asked to send."""
+
+    def __init__(self, blocks, sent):
+        self.blocks = blocks
+        self.sent = sent
+
+    def create(self, **kwargs):
+        """Record the request, then answer with the staged blocks."""
+        self.sent.update(kwargs)
+        return type("FakeResponse", (), {"content": self.blocks})()
+
+
+def stand_in_for_the_client(monkeypatch, blocks) -> dict:
+    """Replace the Anthropic client with one that records what it was asked to send.
+
+    Args:
+        monkeypatch: pytest's patcher.
+        blocks: The blocks the staged reply is made of.
+
+    Returns:
+        The key the client was built with and the request it was given, filled in when
+            the call is made.
+    """
+    sent: dict = {}
+
+    def build(api_key):
+        """Stand in for anthropic.Anthropic and record the key it was built with."""
+        sent["api_key"] = api_key
+        return type("FakeClient", (), {"messages": FakeMessages(blocks, sent)})()
+
+    monkeypatch.setattr(anthropic, "Anthropic", build)
+    return sent
+
+
+@code("HRS0184")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_request_carries_the_key_the_pinned_model_and_the_prompt(monkeypatch):
+    """The call authenticates with the key it was given and sends the pinned model
+    identifier, the prompt and the token ceiling the tool sets, so the answer proves
+    that key against that model rather than against whatever is newest."""
+    sent = stand_in_for_the_client(monkeypatch, [FakeBlock("text", REPLY)])
+    script.call_api(KEY)
+    assert sent["api_key"] == KEY
+    assert sent["model"] == script.MODEL
+    assert sent["max_tokens"] == script.MAX_TOKENS
+    assert sent["messages"] == [{"role": "user", "content": script.PROMPT}]
+
+
+@code("HRS0185")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_reply_is_the_text_with_surrounding_spaces_removed(monkeypatch):
+    """The reply handed back is the text of the first text block, with surrounding
+    spaces and newlines removed, so the word the tool prints is the word the model
+    sent and nothing around it."""
+    stand_in_for_the_client(monkeypatch, [FakeBlock("text", f"  {REPLY}\n")])
+    assert script.call_api(KEY) == REPLY
+
+
+@code("HRS0186")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_block_that_is_not_text_is_passed_over(monkeypatch):
+    """A reply whose first block is not text gives back the first text block after it,
+    because a reply may carry blocks of other kinds before the words."""
+    stand_in_for_the_client(
+        monkeypatch, [FakeBlock("thinking", "aside"), FakeBlock("text", REPLY)]
+    )
+    assert script.call_api(KEY) == REPLY
+
+
+@code("HRS0187")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_reply_with_no_text_gives_an_empty_answer(monkeypatch):
+    """A reply carrying no text block at all gives back an empty string rather than
+    raising, so the tool reports an unusable answer through its own message instead of
+    stopping with a Python error."""
+    stand_in_for_the_client(monkeypatch, [FakeBlock("thinking", "aside")])
+    assert script.call_api(KEY) == ""

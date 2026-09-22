@@ -101,7 +101,7 @@ def fact(tmp_path, monkeypatch):
 
 @code("HRS0011")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_matching_figure_exits_0(fact, capsys):
     """A document stating the measured number passes: exit 0, and --verbose
@@ -115,7 +115,7 @@ def test_matching_figure_exits_0(fact, capsys):
 
 @code("HRS0012")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_drifted_figure_exits_14(fact, capsys):
     """A document stating a different number is reported DRIFTED with the
@@ -129,7 +129,7 @@ def test_drifted_figure_exits_14(fact, capsys):
 
 @code("HRS0013")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_every_occurrence_is_checked(fact, capsys):
     """When the same figure appears twice and one copy is stale, the stale one
@@ -141,7 +141,7 @@ def test_every_occurrence_is_checked(fact, capsys):
 
 @code("HRS0014")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_unasserted_fact_is_reported_but_passes(fact, capsys):
     """A fact no document states is reported NOT ASSERTED with its measured
@@ -156,7 +156,7 @@ def test_unasserted_fact_is_reported_but_passes(fact, capsys):
 
 @code("HRS0015")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_number_written_as_a_word_is_read(fact):
     """A small count written as a word ("three") matches the measured 3, so
@@ -169,7 +169,7 @@ def test_number_written_as_a_word_is_read(fact):
 
 @code("HRS0143")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_date_is_compared_as_text(fact):
     """A measurement that produces a date rather than a count passes when the
@@ -185,7 +185,7 @@ def test_a_date_is_compared_as_text(fact):
 
 @code("HRS0144")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_drifted_date_exits_14(fact, capsys):
     """A document naming a different date from the measured one is reported
@@ -206,7 +206,7 @@ def test_a_drifted_date_exits_14(fact, capsys):
 
 @code("HRS0016")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @pytest.mark.parametrize(
     "raised, code, word",
     [
@@ -259,7 +259,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
 
 @code("HRS0017")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsys):
     """When the sdg package could not be imported, the run exits 7 with the

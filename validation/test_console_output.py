@@ -57,7 +57,7 @@ category = pytest.mark.category
 
 @code("SDG0001")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
     """When standard output is Python's real text-file class, use_utf8_output()
@@ -70,7 +70,7 @@ def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
 
 @code("SDG0002")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_captured_stream_is_left_alone_without_error(monkeypatch):
     """When standard output is not Python's real text-file class, as when another

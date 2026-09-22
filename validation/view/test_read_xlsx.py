@@ -138,7 +138,7 @@ def run(capsys, *argv):
 
 @code("VIW0018")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_name_fragment_finds_the_workbook(inputs, capsys):
     """A fragment of a filename finds the one workbook it matches, so a nested path
@@ -148,7 +148,7 @@ def test_a_name_fragment_finds_the_workbook(inputs, capsys):
 
 @code("VIW0019")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_listing_names_every_sheet(inputs, capsys):
     """Naming a workbook without a sheet lists every sheet it holds."""
@@ -159,7 +159,7 @@ def test_listing_names_every_sheet(inputs, capsys):
 
 @code("VIW0050")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
     """A workbook whose sheet file carries no dimension record, which some writers
@@ -189,7 +189,7 @@ def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
 
 @code("VIW0020")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_sheet_prints_as_a_table(inputs, capsys):
     """A named sheet prints as a table holding the cells it was written with."""
@@ -200,7 +200,7 @@ def test_a_sheet_prints_as_a_table(inputs, capsys):
 
 @code("VIW0021")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
     """A sheet name is matched whatever its case, so mainTimeline answers to
@@ -210,7 +210,7 @@ def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
 
 @code("VIW0022")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_records_format_prints_one_field_per_line(inputs, capsys):
     """In records format each field is on its own line, which is what makes a sheet
@@ -223,7 +223,7 @@ def test_records_format_prints_one_field_per_line(inputs, capsys):
 
 @code("VIW0023")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_an_empty_cell_prints_as_nothing(inputs, capsys):
     """An empty cell prints as blank rather than as the word None, which would fill a
@@ -234,7 +234,7 @@ def test_an_empty_cell_prints_as_nothing(inputs, capsys):
 
 @code("VIW0024")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
     """A cell holding a newline is printed on one line, so the row stays aligned."""
@@ -244,7 +244,7 @@ def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
 
 @code("VIW0025")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
     """Searching one workbook reports each cell that contains the term by its sheet
@@ -257,7 +257,7 @@ def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
 
 @code("VIW0026")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
     """A search that matches nothing says so and exits 0, because finding nothing is
@@ -269,7 +269,7 @@ def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
 
 @code("VIW0027")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_all_searches_every_workbook(inputs, capsys):
     """With --all the search covers every workbook under the inputs folder, not just
@@ -281,7 +281,7 @@ def test_all_searches_every_workbook(inputs, capsys):
 
 @code("VIW0028")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
     """A ~$ lock file that Excel leaves beside an open workbook is left out of
@@ -301,7 +301,7 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 
 @code("VIW0029")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
     """Naming a sheet the workbook does not hold exits 25 and says to run without
@@ -313,7 +313,7 @@ def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
 
 @code("VIW0030")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
     """A name matching no workbook exits 26 and repeats the name that was looked
@@ -325,7 +325,7 @@ def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
 
 @code("VIW0031")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
     """A fragment matching more than one workbook exits 26 and lists what it matched,
@@ -338,7 +338,7 @@ def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
 
 @code("VIW0032")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_all_without_find_is_a_usage_mistake(inputs, capsys):
     """Asking for --all without --find exits 2, the argument parser's own code, because
@@ -351,7 +351,7 @@ def test_all_without_find_is_a_usage_mistake(inputs, capsys):
 
 @code("VIW0033")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
     """Running with no workbook named exits 2 and lists the workbooks a person can
@@ -371,7 +371,7 @@ def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
 
 @code("VIW0061")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_full_path_finds_the_workbook(inputs, capsys):
     """A workbook named by its full path is opened."""
@@ -380,7 +380,7 @@ def test_a_full_path_finds_the_workbook(inputs, capsys):
 
 @code("VIW0062")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tmp_path):
     """A workbook named by its path from the repo root is opened, whichever folder the
@@ -393,7 +393,7 @@ def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tm
 
 @code("VIW0063")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
     """A filename typed in the wrong case finds the workbook."""
@@ -406,7 +406,7 @@ def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
 
 @code("VIW0059")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
     """In table format a cell longer than the width limit is cut short and ends with
@@ -422,7 +422,7 @@ def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
 
 @code("VIW0060")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
     """In records format a row's empty field is left out rather than printed as a
@@ -441,7 +441,7 @@ def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
 
 @code("VIW0064")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_search_reports_one_hit_per_row(inputs):
     """A row in which the term appears in two cells is reported once, since one line
@@ -453,7 +453,7 @@ def test_a_search_reports_one_hit_per_row(inputs):
 
 @code("VIW0065")
 @category("processing")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_search_hit_cuts_a_long_cell_short(inputs):
     """A hit in a cell longer than 120 characters shows the first 120 characters and
@@ -463,3 +463,98 @@ def test_a_search_hit_cuts_a_long_cell_short(inputs):
     write_workbook(path, {"notes": [["Note"], [long_cell]]})
     (hit,) = read_xlsx.search_workbook(path, "hit")
     assert hit.endswith(long_cell[:120] + "...")
+
+
+#######################################################################################
+### Checks on a sheet whose column names are not on its first row ###
+#
+# Some pinned sheets carry a title or a legend above their column names. --header-row
+# says which row holds them, counted the way the sheet counts its own rows.
+
+
+@code("VIW0071")
+@category("processing")
+@objective("functionality")
+@positive
+def test_header_row_makes_the_named_row_the_column_names(inputs, capsys):
+    """With --header-row the named row supplies the column names and the lines above
+    it are left out, so a sheet carrying a title prints as a table of its real data."""
+    write_workbook(
+        inputs / "standards" / "Prefaced.xlsx",
+        {"terms": [["Codelist Name: <Attribute>"], ["*a legend"], *ROWS]},
+    )
+    printed = run(capsys, "Prefaced", "--sheet", "terms", "--header-row", "3").printed
+    assert "Codelist Name" not in printed
+    assert "a legend" not in printed
+    assert printed.index("Visit") < printed.index("Screening")
+
+
+@code("VIW0072")
+@category("processing")
+@objective("functionality")
+@positive
+def test_header_row_counts_the_sheets_own_rows_including_blank_ones(inputs, capsys):
+    """Rows are counted the way the sheet counts them, so a blank row above the column
+    names still takes a number. That is the number a search reports and the number a
+    spreadsheet program shows, and it is not the row's position once empty rows have
+    been dropped."""
+    write_workbook(
+        inputs / "standards" / "Gapped.xlsx",
+        {"terms": [["A title"], [None], *ROWS]},
+    )
+    printed = run(capsys, "Gapped", "--sheet", "terms", "--header-row", "3").printed
+    assert "A title" not in printed
+    assert "Visit" in printed
+
+
+@code("VIW0073")
+@category("processing")
+@objective("functionality")
+@positive
+def test_the_heading_says_which_row_the_reading_started_at(inputs, capsys):
+    """The heading line names the row the reading started at, so a printed table
+    carries the number that produced it and can be run again."""
+    write_workbook(
+        inputs / "standards" / "Prefaced.xlsx", {"terms": [["A title"], *ROWS]}
+    )
+    printed = run(capsys, "Prefaced", "--sheet", "terms", "--header-row", "2").printed
+    assert "from row 2" in printed
+
+
+@code("VIW0074")
+@category("processing")
+@objective("functionality")
+@positive
+def test_without_the_option_the_first_row_is_the_column_names(inputs, capsys):
+    """Left out, --header-row reads from the first row and the heading says nothing
+    about a starting row, so the ordinary sheet is unaffected by the option."""
+    printed = run(capsys, "Example_Terms", "--sheet", "terms").printed
+    assert "from row" not in printed
+    assert "Visit" in printed
+
+
+@code("VIW0075")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_header_row_past_the_end_of_the_sheet_is_refused(inputs, capsys):
+    """A row number beyond the sheet's last row is refused with its own exit code and
+    a message naming the sheet and the number, rather than printing an empty table
+    that would read as an empty sheet."""
+    outcome = run(capsys, "Example_Terms", "--sheet", "terms", "--header-row", "99")
+    assert outcome.exit_code == 46
+    assert "no rows at or below row 99" in outcome.printed
+    assert "terms" in outcome.printed
+
+
+@code("VIW0076")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_header_row_below_one_is_refused_as_a_usage_mistake(inputs, capsys):
+    """A row number below 1 names no row, so the argument parser refuses it and the
+    message says the number is the sheet's own and starts at 1."""
+    with pytest.raises(SystemExit) as raised:
+        run(capsys, "Example_Terms", "--sheet", "terms", "--header-row", "0")
+    assert raised.value.code == 2
+    assert "starts at 1" in capsys.readouterr().err

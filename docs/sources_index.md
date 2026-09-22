@@ -43,7 +43,7 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 | Question | How to Read |
 | --- | --- |
-| Which values are legal for a coded field? | `read_xlsx USDM_CT --sheet "DDF valid value sets"` |
+| Which values are legal for a coded field? | `read_xlsx USDM_CT --sheet "DDF valid value sets" --header-row 6`. The sheet carries a title and a legend above its column names, and `--header-row` says which row holds them. |
 
 ### Document: USDM_CORE_Rules.xlsx
 - purpose: The conformance rules a USDM document is checked against. Covers v3.0 and v4.0 together; column F marks the rules that apply to v4.0.
@@ -176,7 +176,7 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 
 | Question | How to Read |
 | --- | --- |
-| Where does a registry field land in USDM? | `read_xlsx ct-gov_mapping` to list the sheets, then `--sheet <topic>`. |
+| Where does a registry field land in USDM? | `read_xlsx ct-gov_mapping` to list the sheets, then `--sheet <topic> --header-row 2`. Row 1 of every sheet is a banner saying which columns come from the registry and which from USDM, and row 2 holds the column names. |
 
 ### Document: m11_mapping.xlsx
 - purpose: Maps the ICH M11 protocol template's elements onto USDM.
@@ -184,7 +184,7 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 
 | Question | How to Read |
 | --- | --- |
-| Where does an M11 element land in USDM? | `read_xlsx m11_mapping --sheet Mapping` |
+| Where does an M11 element land in USDM? | `read_xlsx m11_mapping --sheet Mapping --header-row 2`. Row 1 is a banner saying which columns come from M11 and which from USDM, and row 2 holds the column names. |
 
 ---
 

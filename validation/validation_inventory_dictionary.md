@@ -122,7 +122,7 @@ A check asks one question. Which question it asks is its objective, and which as
 
 ### Under `conformance`
 
-- `conformance`: does the thing follow the rule or specification it is held to? A rule may be written, published or programmed. Structure, format, layout, required fields and prescribed behaviour are all conformance.
+- `conformance`: does the thing have the shape, format or structure a rule prescribes? A rule may be written, published or programmed. Structure, format, layout, required fields and allowed values are all conformance. Whether a piece of code does what it was built to do is a different question, asked by `functionality` below.
 
 ### Under `integrity`
 
@@ -133,6 +133,7 @@ A check asks one question. Which question it asks is its objective, and which as
 
 ### Under `operation`
 
+- `functionality`: does the thing do what it was built to do? This is the question asked of a script, a workflow or a step: it was given a situation, and it did what its own description says it does. A tool that enforces a rule is asked this question about its own behaviour, so a check staging a file with a field missing and confirming the tool refuses it is functionality. Running that same tool over the real repository, to confirm every real file has the shape the rule prescribes, is conformance, because there the thing being confirmed is the files.
 - `performance`: does the thing run fast enough, or light enough on the machine, on a realistic input?
 - `reliability`: does the thing keep working, and recover when something fails?
 - `security`: is the thing protected against access, use or disclosure it should not allow?

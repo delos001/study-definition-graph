@@ -177,7 +177,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 
 @code("HRS0105")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_matching_database_exits_0(working):
     """A database that answers with the pinned version gives an exit code of 0."""
@@ -186,7 +186,7 @@ def test_matching_database_exits_0(working):
 
 @code("HRS0106")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_matching_database_reports_the_version(working):
     """The report names the address it reached and the version that answered."""
@@ -196,7 +196,7 @@ def test_matching_database_reports_the_version(working):
 
 @code("HRS0107")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_the_password_is_never_printed(working):
     """The password itself is never printed, so it cannot end up in a terminal log."""
@@ -205,7 +205,7 @@ def test_the_password_is_never_printed(working):
 
 @code("HRS0108")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quoted_settings_are_read(repo):
     """Settings written with quotes around them, as a person might paste them, are
@@ -218,7 +218,7 @@ def test_quoted_settings_are_read(repo):
 
 @code("HRS0109")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_the_pin_is_read_from_the_image_tag(repo):
     """The version and edition are read from the image tag in docker-compose.yml."""
@@ -228,7 +228,7 @@ def test_the_pin_is_read_from_the_image_tag(repo):
 
 @code("HRS0110")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     """With the quiet option, nothing at all is printed."""
@@ -238,7 +238,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 
 @code("HRS0111")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
     """With the quiet option, the exit code still reports the missing settings."""
@@ -255,7 +255,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 
 @code("HRS0112")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
     """With no .env file at all, the run exits 27 and the message says to create it
@@ -268,7 +268,7 @@ def test_missing_env_file_is_refused(repo, capsys):
 
 @code("HRS0113")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_missing_settings_are_refused_by_name(repo, capsys):
     """With a .env holding only one of the Neo4j lines, the run exits 37 and the
@@ -282,7 +282,7 @@ def test_missing_settings_are_refused_by_name(repo, capsys):
 
 @code("HRS0114")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_missing_compose_file_is_refused(repo, capsys):
     """With no docker-compose.yml, the run exits 13 and the message says to restore
@@ -296,7 +296,7 @@ def test_missing_compose_file_is_refused(repo, capsys):
 
 @code("HRS0115")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_compose_file_without_an_image_is_refused(repo, capsys):
     """With a docker-compose.yml that names no image for the neo4j service, the run
@@ -313,7 +313,7 @@ def test_compose_file_without_an_image_is_refused(repo, capsys):
 
 @code("HRS0116")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_unpinned_image_tag_is_refused(repo, capsys):
     """With an image written without a version, the run exits 13 and the message
@@ -327,7 +327,7 @@ def test_unpinned_image_tag_is_refused(repo, capsys):
 
 @code("HRS0117")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When nothing answers at the address, the run exits 38 and the message says to
@@ -343,7 +343,7 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
 
 @code("HRS0149")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When the driver fails with its general error rather than the service-unavailable
@@ -359,7 +359,7 @@ def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
 
 @code("HRS0150")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsys):
     """When the driver refuses the address before trying to connect, the run exits 44
@@ -376,7 +376,7 @@ def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsy
 
 @code("HRS0118")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
     """When the database refuses the user or password, the run exits 39 and the
@@ -393,7 +393,7 @@ def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
 
 @code("HRS0119")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys):
     """When the database answers with a version other than the pin, the run exits 40
@@ -409,7 +409,7 @@ def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys)
 
 @code("HRS0120")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys):
     """When the database is the pinned version number but another edition, the run
@@ -425,7 +425,7 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
 
 @code("HRS0121")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     """When the sdg package is installed from outside the repo, the run exits 6 before it
@@ -440,3 +440,142 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     outcome = run(capsys)
     assert outcome.exit_code == 6
     assert "not running from inside its repo" in outcome.printed
+
+
+#######################################################################################
+### Checks on the call to the database itself ###
+#
+# Every check above replaces ask_database(), so the driver work inside it is never
+# exercised. These checks stand in for the neo4j driver instead, one level lower, so
+# what the tool asks the driver to do is proven without Docker.
+
+
+class FakeResult:
+    """One answer from the driver, holding the rows a query came back with."""
+
+    def __init__(self, records):
+        self.records = records
+
+
+class FakeDriver:
+    """A neo4j driver that records what it was asked to do.
+
+    It stands in for the real driver so that the order of the calls, the settings
+    handed to it, and the closing of the connection can all be asserted without a
+    database.
+    """
+
+    def __init__(self, records=None, fail_on_query=None):
+        self.calls: list[str] = []
+        self.records = records or [
+            {
+                "name": script.KERNEL_COMPONENT,
+                "versions": ["5.26.29"],
+                "edition": "community",
+            }
+        ]
+        self.fail_on_query = fail_on_query
+
+    def verify_connectivity(self) -> None:
+        """Record that connectivity was verified."""
+        self.calls.append("verify")
+
+    def execute_query(self, query: str) -> FakeResult:
+        """Record the query, then answer with the staged rows or raise."""
+        self.calls.append("query")
+        if self.fail_on_query is not None:
+            raise self.fail_on_query
+        return FakeResult(self.records)
+
+    def close(self) -> None:
+        """Record that the connection was closed."""
+        self.calls.append("close")
+
+
+def stand_in_for_the_driver(monkeypatch, driver: FakeDriver) -> dict:
+    """Replace the neo4j driver with one that records what it was asked to do.
+
+    Args:
+        monkeypatch: pytest's patcher.
+        driver: The fake driver every call gives back.
+
+    Returns:
+        The arguments the driver was built with, filled in when it is asked for.
+    """
+    built: dict = {}
+
+    def build(uri, auth, connection_timeout):
+        """Stand in for neo4j.GraphDatabase.driver and record its arguments."""
+        built.update(uri=uri, auth=auth, connection_timeout=connection_timeout)
+        return driver
+
+    monkeypatch.setattr(neo4j.GraphDatabase, "driver", build)
+    return built
+
+
+SETTINGS = script.Settings(uri=URI, user=USER, password=PASSWORD)
+
+
+@code("HRS0180")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_driver_is_built_from_the_settings_and_the_timeout(monkeypatch):
+    """The driver is built with the address, user and password read from .env, and
+    with the connection timeout the tool sets, so a database that is off gives up
+    rather than hanging."""
+    built = stand_in_for_the_driver(monkeypatch, FakeDriver())
+    script.ask_database(SETTINGS)
+    assert built["uri"] == URI
+    assert built["auth"] == (USER, PASSWORD)
+    assert built["connection_timeout"] == script.CONNECT_TIMEOUT_SECONDS
+
+
+@code("HRS0181")
+@category("repository")
+@objective("functionality")
+@positive
+def test_connectivity_is_verified_before_the_query_is_sent(monkeypatch):
+    """Connectivity is verified before the query is sent, so nothing answering fails
+    at once instead of being retried for seconds with a warning on each attempt."""
+    driver = FakeDriver()
+    stand_in_for_the_driver(monkeypatch, driver)
+    script.ask_database(SETTINGS)
+    assert driver.calls == ["verify", "query", "close"]
+
+
+@code("HRS0182")
+@category("repository")
+@objective("functionality")
+@negative
+def test_the_connection_is_closed_even_when_the_query_fails(monkeypatch):
+    """A query that raises still leaves the connection closed, and the error reaches
+    the caller unchanged so main() can turn it into the right exit code."""
+    failure = neo4j.exceptions.ServiceUnavailable("nothing answered")
+    driver = FakeDriver(fail_on_query=failure)
+    stand_in_for_the_driver(monkeypatch, driver)
+    with pytest.raises(neo4j.exceptions.ServiceUnavailable):
+        script.ask_database(SETTINGS)
+    assert driver.calls == ["verify", "query", "close"]
+
+
+@code("HRS0183")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_version_is_taken_from_the_kernel_row(monkeypatch):
+    """The version and edition come from the row naming the database kernel, not from
+    another component's row, because the query answers with one row per component and
+    the others carry versions of their own."""
+    driver = FakeDriver(
+        records=[
+            {"name": "browser", "versions": ["1.2.3"], "edition": "other"},
+            {
+                "name": script.KERNEL_COMPONENT,
+                "versions": ["5.26.29"],
+                "edition": "community",
+            },
+        ]
+    )
+    stand_in_for_the_driver(monkeypatch, driver)
+    assert script.ask_database(SETTINGS) == PINNED

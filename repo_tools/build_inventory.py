@@ -130,6 +130,7 @@ OBJECTIVES_BY_ASPECT = {
     "conformance": ("conformance",),
     "integrity": ("correctness", "completeness", "stability", "consistency"),
     "operation": (
+        "functionality",
         "performance",
         "reliability",
         "security",

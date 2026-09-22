@@ -45,3 +45,4 @@ code,cause
 43,the Claude API refused the key access to what was asked
 44,the Neo4j address in .env is not a valid address
 45,a hand-kept column of the validation inventory breaks its rules
+46,the named header row is past the end of the sheet

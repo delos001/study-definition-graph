@@ -12,6 +12,12 @@ Description: Reads a sheet out of any Excel workbook under inputs/, the folder
              at that width, so --format records prints one field per line
              instead.
 
+             Some sheets carry a few lines of title or legend above their real
+             header, so the first row read is not the column names. --header-row
+             says which row holds them, counted as the sheet itself counts rows,
+             blank rows included, which is the number --find reports and the
+             number Excel shows.
+
 Inputs:      Any .xlsx under inputs/. Opened read-only; nothing is written back.
 Outputs:     It prints plain text to standard output and writes nothing to disk.
 
@@ -21,6 +27,9 @@ Usage:       read_xlsx <workbook>
                  print one sheet as an aligned table
              read_xlsx <workbook> --sheet study --format records
                  print one sheet one field per line, for wide sheets
+             read_xlsx <workbook> --sheet "DDF valid value sets" --header-row 6
+                 print one sheet whose column names are on row 6, leaving the
+                 title and legend above them out
              read_xlsx <workbook> --find "Screening"
                  search every sheet for a term
              read_xlsx --all --find "epoch"
@@ -32,6 +41,7 @@ Exit codes:  0   success
                  --all without --find, and no workbook named)
              25  the named sheet does not exist in the workbook
              26  no workbook under inputs/ matches the name given
+             46  the named header row is past the end of the sheet
              The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -161,21 +171,27 @@ def count_text(value: int | None) -> str:
     return "" if value is None else str(value)
 
 
-def read_rows(worksheet: Worksheet) -> list[list[str]]:
+def read_rows(worksheet: Worksheet, header_row: int = 1) -> list[list[str]]:
     """Read a worksheet into rows of strings, dropping fully empty rows.
 
     Trailing empty rows are common in these workbooks because openpyxl reports max_row
     from the sheet dimensions, which often overshoot the real data. Dropping them keeps
     the output honest about how much content there is.
 
+    Reading starts at header_row and everything above it is left out, which is how a
+    sheet carrying a title or a legend above its column names is read. The skipping
+    happens here, before empty rows are dropped, so header_row means the row the sheet
+    itself calls that number rather than a position in the result.
+
     Args:
         worksheet: The open worksheet.
+        header_row: The sheet's own number for the row holding the column names.
 
     Returns:
-        One list of cell strings per non-empty row.
+        One list of cell strings per non-empty row at or below header_row.
     """
     rows = []
-    for raw_row in worksheet.iter_rows(values_only=True):
+    for raw_row in worksheet.iter_rows(min_row=header_row, values_only=True):
         cells = [cell_text(value) for value in raw_row]
         if any(cells):
             rows.append(cells)
@@ -342,7 +358,20 @@ def main(argv: list[str] | None = None) -> int:
         default="table",
         help="table (default) or records, one field per line, for wide sheets",
     )
+    parser.add_argument(
+        "--header-row",
+        type=int,
+        default=1,
+        metavar="N",
+        help="the sheet's own number for the row holding the column names, for a "
+        "sheet with a title or legend above them (default: 1)",
+    )
     args = parser.parse_args(argv)
+
+    # A sheet numbers its rows from 1, so anything lower names no row. It is a usage
+    # mistake, reported the way the parser reports one.
+    if args.header_row < 1:
+        parser.error("--header-row is the sheet's own row number, so it starts at 1")
 
     # This mode searches every workbook. It is handled before a workbook is resolved because
     # --all makes the positional workbook argument meaningless.
@@ -411,11 +440,24 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 25
 
-        rows = read_rows(workbook[actual])
+        rows = read_rows(workbook[actual], args.header_row)
+
+        # Nothing at or below the named row means the person named a row past the end,
+        # which is a different thing from an empty sheet and gets its own refusal so
+        # the number can be corrected rather than the sheet doubted.
+        if args.header_row > 1 and not rows:
+            print(
+                f"Sheet {actual!r} in {workbook_path.name} has no rows at or below "
+                f"row {args.header_row}. Run without --header-row to see the sheet.",
+                file=sys.stderr,
+            )
+            return 46
+
         width = max((len(row) for row in rows), default=0)
-        print(
-            f"### {workbook_path.name} | sheet {actual} | {len(rows)} rows x {width} cols\n"
-        )
+        heading = f"### {workbook_path.name} | sheet {actual}"
+        if args.header_row > 1:
+            heading += f" | from row {args.header_row}"
+        print(f"{heading} | {len(rows)} rows x {width} cols\n")
 
         if args.format == "records":
             print_records(rows)

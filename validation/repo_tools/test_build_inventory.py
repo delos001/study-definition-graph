@@ -269,7 +269,7 @@ def written(tests_folder, capsys) -> Path:
 
 @code("HRS0053")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_row_holds_the_check_as_written(generated):
     """A row carries the check's name, id, category, objective, case and the first
@@ -284,7 +284,7 @@ def test_row_holds_the_check_as_written(generated):
 
 @code("HRS0054")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_row_names_the_check_file_and_the_target(generated):
     """A test file under validation/repo_tools/ targets the script of the same name in
@@ -298,7 +298,7 @@ def test_row_names_the_check_file_and_the_target(generated):
 
 @code("HRS0122")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_hook_check_targets_the_hook(tests_folder, capsys):
     """A test file under validation/claude_hooks/ targets the hook of the same name in
@@ -312,7 +312,7 @@ def test_a_hook_check_targets_the_hook(tests_folder, capsys):
 
 @code("HRS0154")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_check_that_staged_nothing_has_an_empty_case(tests_folder, capsys):
     """A check carrying no positive or negative marker gets a row with its objective
@@ -326,7 +326,7 @@ def test_a_check_that_staged_nothing_has_an_empty_case(tests_folder, capsys):
 
 @code("HRS0171")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_check_with_neither_marker_has_no_case(tests_folder, capsys):
     """A check with neither @positive nor @negative gets a row with an empty staged
@@ -342,7 +342,7 @@ def test_a_check_with_neither_marker_has_no_case(tests_folder, capsys):
 
 @code("HRS0055")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_new_check_starts_active_at_version_1(generated):
     """A check with no existing row starts active at version 1, with superseded_by and
@@ -355,7 +355,7 @@ def test_new_check_starts_active_at_version_1(generated):
 
 @code("HRS0056")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
     """When the inventory already has a row for a check's id, its status,
@@ -378,7 +378,7 @@ def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
 
 @code("HRS0057")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_groups_follow_the_pipeline_order(tests_folder, capsys):
     """Rows are grouped in the pipeline's order, sources first and the checks for
@@ -407,7 +407,7 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
 
 @code("HRS0141")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
     tests_folder, capsys
@@ -423,7 +423,7 @@ def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
 
 @code("HRS0174")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_top_level_check_file_targets_the_validation_file_of_the_same_name(
     tests_folder, capsys
@@ -445,7 +445,7 @@ def test_a_top_level_check_file_targets_the_validation_file_of_the_same_name(
 
 @code("HRS0062")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_deleted_check_drops_out(tests_folder, capsys):
     """A row whose check no longer exists in any test file is not written again."""
@@ -458,7 +458,7 @@ def test_deleted_check_drops_out(tests_folder, capsys):
 
 @code("HRS0058")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_check_passes_when_inventory_is_current(tests_folder, capsys):
     """With the check option, the run exits 0 and writes nothing when the inventory
@@ -474,7 +474,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
 
 @code("HRS0059")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_quiet_prints_nothing(tests_folder, capsys):
     """With the quiet option, nothing is printed; the exit code is the whole
@@ -494,7 +494,7 @@ def test_quiet_prints_nothing(tests_folder, capsys):
 
 @code("HRS0155")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_check_status_passes_a_superseded_check_with_an_active_successor(
     written, capsys
@@ -514,7 +514,7 @@ def test_check_status_passes_a_superseded_check_with_an_active_successor(
 
 @code("HRS0156")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
     """With the check-status option, a removed check marked retired, whose
@@ -558,7 +558,7 @@ def test_real_inventory_is_current():
 
 @code("HRS0061")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
     """With the check option and no inventory on disk, the run exits 16, names the
@@ -572,7 +572,7 @@ def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
 
 @code("HRS0133")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     """With the check option and an inventory that no longer matches the checks, the
@@ -591,7 +591,7 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
 
 @code("HRS0063")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_check_without_id_exits_18(tests_folder, capsys):
     """A check with no @code marker makes the run exit 18, naming the file and the
@@ -609,7 +609,7 @@ def test_check_without_id_exits_18(tests_folder, capsys):
 
 @code("HRS0157")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_check_without_objective_exits_18(tests_folder, capsys):
     """A check with no @objective marker makes the run exit 18, naming the file and
@@ -630,7 +630,7 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
 
 @code("HRS0172")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_check_without_category_exits_18(tests_folder, capsys):
     """A check with no @category marker makes the run exit 18, naming the file and
@@ -650,7 +650,7 @@ def test_check_without_category_exits_18(tests_folder, capsys):
 
 @code("HRS0173")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
     """A check whose @category names no defined category makes the run exit 18, and the
@@ -672,7 +672,7 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
 
 @code("HRS0158")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
     """A check whose @objective names no defined objective makes the run exit 18, and
@@ -694,7 +694,7 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
 
 @code("HRS0178")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
     """A check whose objective is not correctness may carry @positive or @negative,
@@ -719,7 +719,7 @@ def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
 
 @code("HRS0160")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 @pytest.mark.parametrize("start", ["=", "+", "-", "@"])
 def test_a_first_sentence_starting_with_a_refused_character_exits_18(
@@ -746,7 +746,7 @@ def test_a_first_sentence_starting_with_a_refused_character_exits_18(
 
 @code("HRS0179")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @positive
 def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, capsys):
     """A check whose docstring opens with a tab or a newline is accepted, and its row
@@ -767,7 +767,7 @@ def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, caps
 
 @code("HRS0065")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_duplicate_id_exits_18(tests_folder, capsys):
     """Two checks carrying the same id make the run exit 18, and the message names
@@ -780,7 +780,7 @@ def test_duplicate_id_exits_18(tests_folder, capsys):
 
 @code("HRS0175")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_id_of_the_wrong_shape_exits_18(tests_folder, capsys):
     """An id that is not three capital letters and four digits makes the run exit 18,
@@ -796,7 +796,7 @@ def test_an_id_of_the_wrong_shape_exits_18(tests_folder, capsys):
 
 @code("HRS0176")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_an_unregistered_id_prefix_exits_18(tests_folder, capsys):
     """An id whose three letters are not one of the registered prefixes makes the run
@@ -813,7 +813,7 @@ def test_an_unregistered_id_prefix_exits_18(tests_folder, capsys):
 
 @code("HRS0066")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_unparseable_file_exits_19(tests_folder, capsys):
     """A test file that is not valid Python makes the run exit 19, and the message
@@ -826,7 +826,7 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
 
 @code("HRS0067")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_no_test_files_exits_20(tests_folder, capsys):
     """A validation folder with no test files makes the run exit 20."""
@@ -845,7 +845,7 @@ def test_no_test_files_exits_20(tests_folder, capsys):
 
 @code("HRS0161")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_status_not_in_the_list_exits_45(written, capsys):
     """A row whose status is not one of the five makes the run exit 45, quoting the
@@ -860,7 +860,7 @@ def test_a_status_not_in_the_list_exits_45(written, capsys):
 
 @code("HRS0162")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 @pytest.mark.parametrize("status", ["inactive", "retired"])
 def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, status):
@@ -878,7 +878,7 @@ def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, stat
 
 @code("HRS0163")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_superseded_without_a_successor_exits_45(written, capsys):
     """A removed check marked superseded with superseded_by empty makes the
@@ -893,7 +893,7 @@ def test_superseded_without_a_successor_exits_45(written, capsys):
 
 @code("HRS0164")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
     """A row that names checks in superseded_by while its status is not superseded
@@ -908,7 +908,7 @@ def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
 
 @code("HRS0177")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
     """A row carrying a status_reason while its status is neither inactive nor retired
@@ -924,7 +924,7 @@ def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
 
 @code("HRS0165")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_successor_that_is_not_active_exits_45(written, capsys):
     """A superseded row whose superseded_by names a check that is not active in the
@@ -941,7 +941,7 @@ def test_a_successor_that_is_not_active_exits_45(written, capsys):
 
 @code("HRS0166")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
     """A row whose version is not a whole number from 1 up, such as 1.1, makes the
@@ -954,7 +954,7 @@ def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
 
 @code("HRS0167")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
     """A row marked retired whose check is still in the test files makes the run exit
@@ -969,7 +969,7 @@ def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
 
 @code("HRS0168")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
     """With the check-status option and no inventory on disk, the run exits 16 and
@@ -982,7 +982,7 @@ def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
 
 @code("HRS0169")
 @category("repository")
-@objective("conformance")
+@objective("functionality")
 @negative
 def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, capsys):
     """When one check has no @objective marker and another row has a status not in
