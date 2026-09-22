@@ -102,14 +102,12 @@ The category is the thing the check confirms. Whatever the check compares it aga
 ## Objectives
 
 - `correctness`: the thing does, or produces, what it is supposed to, judged against what the right result is.
-- `completeness`: the thing includes everything it is supposed to, with nothing missing.
+- `completeness`: nothing that should have carried across is missing, judged against whatever held it: a document an extraction read, an answer key an output is scored against, a set of records another file accounts for. Where a written rule lists what must be present, that is conformance instead.
 - `conformance`: the thing follows the rule, specification or documentation it is held to.
 - `stability`: the thing is unchanged from its own earlier recorded or accepted version.
 - `performance`: the thing runs fast enough, or light enough on the machine, on a realistic input.
 
-Completeness is judged against the source. Conformance is judged against a written rule.
-
-Stability compares a thing with its own earlier copy. A comparison of two different things is correctness.
+Correctness and completeness both compare two different things, and the difference is what they compare. Correctness asks whether the two say the same, as when `repo_tools/README.md` is held against the script headers it was generated from. Completeness asks whether everything in one is accounted for in the other, as when `docs/sources_index.md` is held against the manifests to find a recorded file that no heading covers.
 
 ## Cases
 

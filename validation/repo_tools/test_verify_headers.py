@@ -652,7 +652,7 @@ def test_real_exit_codes_agree_with_the_table_and_main():
 
 @code("HRS0079")
 @category("repository")
-@objective("completeness")
+@objective("conformance")
 def test_all_four_code_folders_are_checked():
     """The checker covers the four folders .claude/rules/writing_python_files.md names,
     so a file added under any of them is held to the header block like any other. The

@@ -645,7 +645,7 @@ def test_pinned_file_types_are_classes_or_five_primitives():
 
 
 @code("USD0030")
-@category("processing")
+@category("repository")
 @objective("correctness")
 @needs_pinned_file
 def test_fixture_classes_are_identical_to_pinned():

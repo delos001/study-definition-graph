@@ -367,6 +367,8 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 @category("sources")
 @objective("completeness")
 def test_the_real_map_and_manifests_agree():
-    """The repo's own sources map, docs/sources_index.md, names every file its manifests record, and every
-    location it names holds recorded files."""
+    """Nothing is absent from either side of the repo's own sources map,
+    docs/sources_index.md: no file a manifest records is left without a heading that
+    covers it, and no location the map names is one that no manifest records a file
+    in. Either way something that should be accounted for is not."""
     assert script.main(["--quiet"]) == 0
