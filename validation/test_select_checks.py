@@ -6,7 +6,7 @@ Description: Checks for validation/select_checks.py, the plugin that selects che
              and id, in a separate pytest process with the real conftest.py and
              the real plugin, and reads the report to see which checks ran. A
              deselected check neither runs nor gets a report row, so the report's
-             ids say what was kept. The refusals are checked by exit code, by
+             ids say what was kept. The refusals are confirmed by exit code, by
              message and by the absence of a report.
 
 Inputs:      validation/conftest.py and validation/select_checks.py (read-only;

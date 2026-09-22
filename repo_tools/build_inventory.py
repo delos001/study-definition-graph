@@ -26,7 +26,7 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
                  as the start of a formula. Leading whitespace is not refused,
                  because it is stripped before the sentence is looked at.
 
-             The hand-kept columns are checked too. A status must be one of the
+             The hand-kept columns are confirmed too. A status must be one of the
              five, superseded_by must name the active checks that took over
              exactly when the status is superseded, status_reason must say why
              when the status is inactive or retired, a version must be a whole
@@ -157,8 +157,8 @@ CASES = ("positive", "negative")
 # The three letters a check's id may start with, and the folder each one names. A
 # check takes its folder's prefix when it is first filed, and the id never changes
 # afterwards, so a check that later moves keeps a prefix its folder no longer
-# matches. That is why only the letters themselves are checked, not whether they
-# still fit. A new folder needs a new prefix added here.
+# matches. That is why the generator confirms only the letters themselves, not
+# whether they still fit. A new folder needs a new prefix added here.
 # validation/validation_inventory_dictionary.md describes them for a reader.
 ID_PREFIXES = {
     "SRC": "src/sdg/sources",

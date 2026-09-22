@@ -163,7 +163,7 @@ FIXTURE_DIR = VALIDATION_DIR / "fixtures"
 # These two lines name the pinned model file and the manifest that records it.
 # They are written here as literals rather than imported from the loader, src/sdg/usdm/usdm_spec.py, so
 # the test setup does not depend on a module the tests themselves are meant to
-# prove. The loader's test, once rewritten, is where the two are checked against
+# prove. The loader's test, once rewritten, is where the two are confirmed against
 # each other.
 PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 MANIFEST = REPO_ROOT / "manifests" / "cdisc_usdm_v4.json"
@@ -760,7 +760,7 @@ def uncommitted_changes(root: Path, report_dir: Path) -> list[str] | None:
     """List what git says is changed, staged or untracked under the root.
 
     The reports folder itself is left out, since the report about to be written, and
-    any earlier one not yet committed, are not changes to the code being checked.
+    any earlier one not yet committed, are not changes to the code being validated.
 
     Args:
         root: The repository's root folder.
