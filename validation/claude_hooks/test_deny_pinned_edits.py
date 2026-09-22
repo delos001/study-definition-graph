@@ -228,7 +228,7 @@ def test_the_project_dir_outranks_the_message_cwd(
 @code("CCH0008")
 @category("repository")
 @objective("functionality")
-@positive
+@negative
 def test_the_message_cwd_is_used_when_the_variable_is_absent(
     tmp_path, monkeypatch, capsys
 ):
@@ -341,6 +341,7 @@ def test_a_hand_written_manifest_is_refused(repo, monkeypatch, capsys):
     assert outcome.denied
     assert "hand-written manifest" in outcome.reason
     assert "DECISIONS.md" in outcome.reason
+    assert "made by a person" in outcome.reason
 
 
 @code("CCH0015")

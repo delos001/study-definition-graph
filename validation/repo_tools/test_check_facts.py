@@ -281,7 +281,7 @@ def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsy
 
 
 @code("HRS0018")
-@category("sources")
+@category("repository")
 @objective("correctness")
 @needs_pinned_file
 def test_real_documents_match_real_corpus():

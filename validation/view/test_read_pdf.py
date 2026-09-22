@@ -929,3 +929,179 @@ def test_a_search_hit_names_the_section_it_falls_in(readable, capsys):
     """A search hit on a document with bookmarks names the section its page falls
     in."""
     assert "2 Second Section" in read(capsys, "--find", "beta").printed
+
+
+#######################################################################################
+### Staging a section whose heading is not on its page ###
+#
+# A bookmark says where a section starts, and the reader cuts that page at the
+# section's own heading. When the heading is not in the page's text, the whole page is
+# shown, which may open mid-section or run past its end. This document bookmarks two
+# sections on one page whose text carries neither heading, so both cuts fail.
+
+
+def build_headingless_pdf(path):
+    """Write a one-page PDF bookmarking two sections on a page that shows neither
+    heading.
+
+    Args:
+        path: Where the document is written. Parent folders are created.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text((72, 72), "alpha content\nbeta content")
+    document.set_toc([[1, "1 First Section", 1], [1, "2 Second Section", 1]])
+    document.save(str(path))
+    document.close()
+
+
+@pytest.fixture
+def headingless(fake_repo, write_list, monkeypatch):
+    """Stage the guide as a document whose bookmarked headings are not in its text.
+
+    Returns:
+        The fake repo, with the command pointed at a list naming both documents.
+    """
+    build_headingless_pdf(fake_repo.root / GUIDE)
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    return fake_repo
+
+
+@code("VIW0077")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_section_whose_own_heading_is_missing_warns_that_it_may_open_mid_section(
+    headingless, capsys
+):
+    """When a section's own heading is not on the page its bookmark points at, the
+    page is shown whole and a warning names the section and the page and says the
+    extract may open mid-section, so a reader is never handed a silently wrong
+    start."""
+    outcome = read(capsys, "1")
+    assert outcome.exit_code == 0
+    assert "could not locate the heading for 1 on page 1" in outcome.printed
+    assert "may open mid-section" in outcome.printed
+
+
+@code("VIW0078")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_next_sections_missing_heading_warns_that_it_may_run_past_the_section(
+    headingless, capsys
+):
+    """When the next section's heading is not on the page a section ends on, the page
+    is shown whole and a warning names that section and the page and says the extract
+    may run past its end."""
+    outcome = read(capsys, "1")
+    assert outcome.exit_code == 0
+    assert "could not locate the heading for 2 on page 1" in outcome.printed
+    assert "may run past this section" in outcome.printed
+
+
+@code("VIW0079")
+@category("processing")
+@objective("functionality")
+@negative
+def test_the_warning_is_kept_out_of_the_extracted_text(headingless, capsys):
+    """A warning goes to standard error and never into the extracted text, so it
+    cannot be read as a line of the document."""
+    read_pdf.main(["1"])
+    captured = capsys.readouterr()
+    assert "could not locate the heading" in captured.err
+    assert "could not locate the heading" not in captured.out
+
+
+#######################################################################################
+### Checks on what a page loses and what a search shows ###
+
+
+@code("VIW0080")
+@category("processing")
+@objective("functionality")
+@positive
+def test_an_extracted_page_carries_the_note_about_what_it_lost(
+    fake_repo, write_list, monkeypatch, capsys
+):
+    """A page holding a picture carries the NOT SHOWN note inside its own block, so
+    the gap sits beside the text it belongs to rather than at the end of the run."""
+    path = fake_repo.root / GUIDE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text((72, 72), "1 First Section\nalpha content")
+    picture = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 4, 4))
+    picture.set_rect(picture.irect, (255, 0, 0))
+    page.insert_image(fitz.Rect(72, 100, 172, 200), pixmap=picture)
+    document.save(str(path))
+    document.close()
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    printed = read(capsys, "--pages", "1").printed
+    assert printed.index("alpha content") < printed.index("NOT SHOWN IN TEXT")
+
+
+@code("VIW0081")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_page_whose_tables_cannot_be_read_still_extracts(
+    readable, monkeypatch, capsys
+):
+    """When the table finder raises on a page, the page's text is still extracted and
+    the note counts no tables, because a picture or table that cannot be counted must
+    not stop a person reading the page.
+
+    The failure is staged by replacing the table finder, since a PDF that reliably
+    breaks it cannot be built by hand."""
+
+    def refuse(self):
+        """Stand in for the table finder by failing the way a broken page does."""
+        raise RuntimeError("the table finder gave up")
+
+    monkeypatch.setattr(fitz.Page, "find_tables", refuse)
+    outcome = read(capsys, "--pages", "1")
+    assert outcome.exit_code == 0
+    assert "alpha content" in outcome.printed
+    assert "table(s)" not in outcome.printed
+
+
+@code("VIW0082")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_search_that_matches_nothing_says_so_and_exits_0(readable, capsys):
+    """A search that matches no page says so and exits 0, because finding nothing is
+    an answer rather than a failure."""
+    outcome = read(capsys, "--find", "nothing matches this")
+    assert outcome.exit_code == 0
+    assert "No pages contain" in outcome.printed
+
+
+@code("VIW0083")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_search_hit_cuts_a_long_line_short(
+    fake_repo, write_list, monkeypatch, capsys
+):
+    """A hit on a line longer than 110 characters shows the first 110 and an ellipsis,
+    so one wide page line does not fill the search output."""
+    path = fake_repo.root / PLAIN
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text((20, 72), "needle " + "y" * 200, fontsize=6)
+    document.save(str(path))
+    document.close()
+    build_pdf(fake_repo.root / GUIDE, with_bookmarks=True)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    printed = read(capsys, "--doc", "plain", "--find", "needle").printed
+    assert "..." in printed
+    assert "y" * 150 not in printed

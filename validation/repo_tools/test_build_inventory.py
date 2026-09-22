@@ -668,6 +668,7 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
     assert "test_second has @category('machinery'), which is not one of" in (
         outcome.printed
     )
+    assert ", ".join(script.CATEGORIES) in outcome.printed
 
 
 @code("HRS0158")
@@ -690,6 +691,7 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
     assert "test_second has @objective('behaviour'), which is not one of" in (
         outcome.printed
     )
+    assert ", ".join(script.OBJECTIVES) in outcome.printed
 
 
 @code("HRS0178")
@@ -809,6 +811,7 @@ def test_an_unregistered_id_prefix_exits_18(tests_folder, capsys):
         "validation/repo_tools/test_alpha.py: test_first has the id ZZZ9001, and ZZZ "
         "is not one of the prefixes" in outcome.printed
     )
+    assert ", ".join(script.ID_PREFIXES) in outcome.printed
 
 
 @code("HRS0066")
@@ -965,6 +968,7 @@ def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
     outcome = run(capsys)
     assert outcome.exit_code == 45
     assert "HRS9002 is retired but is still in the test files" in outcome.printed
+    assert "remove the check or change its status" in outcome.printed
 
 
 @code("HRS0168")

@@ -23,3 +23,4 @@ dependencies:
       - python-dotenv      # reads .env once the pipeline calls the model; used from Phase 2
       - pyyaml             # reads the lookup document list in src/sdg/view/, and the prompt files later
       - pytest
+      - pytest-cov         # measures which lines the checks reach, for the coverage gaps in validation/

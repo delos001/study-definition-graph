@@ -774,7 +774,10 @@ def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch)
     assert row["outcome"] == "error"
     assert row["outcome_reason"] == "set-up failed"
     result.stdout.fnmatch_lines(
-        ["*no manifest records a file matching inputs/no_such_folder/*.txt*"]
+        [
+            "*no manifest records a file matching inputs/no_such_folder/*.txt*",
+            "*correct the @needs_pinned marker*",
+        ]
     )
 
 

@@ -28,6 +28,11 @@ Inputs:      src/sdg/view/lookup_documents.yml   (read-only, the list of documen
              Section numbers and page ranges come from each PDF's own bookmarks.
 
 Outputs:     It prints plain text to standard output and writes nothing to disk.
+             When a section's own heading or the next one's cannot be found on the
+             page the bookmark points at, the page is shown whole and a line saying
+             so goes to standard error, so the reader knows the extract may open
+             mid-section or run past its end. It goes to standard error rather than
+             into the text, where it could be read as document content.
 
 Usage:       read_pdf --docs
                  list the registered documents and whether each is downloaded,
@@ -415,7 +420,7 @@ def extract_pages(
     patterns: tuple[re.Pattern, ...],
     label: str,
     section: dict | None = None,
-) -> str:
+) -> tuple[str, list[str]]:
     """Extract the text of pages start to end inclusive, one labelled block per page.
 
     Each block names the document and the page, so any claim sourced from this output
@@ -437,7 +442,9 @@ def extract_pages(
             nothing is trimmed.
 
     Returns:
-        The extracted text, one block per page.
+        The extracted text, one block per page, and a warning for each page whose
+        heading could not be found. The caller prints the warnings, because they
+        describe the extract rather than belonging inside it.
     """
     blocks = []
     warnings: list[str] = []
@@ -485,7 +492,7 @@ def extract_pages(
 
         blocks.append(block)
 
-    return "\n\n".join(blocks)
+    return "\n\n".join(blocks), warnings
 
 
 def page_range(text: str, page_count: int) -> tuple[int, int]:
@@ -782,17 +789,20 @@ def main(argv: list[str] | None = None) -> int:
         section_for_trim = found
 
     print(f"### {document.label} | {label} | pages {start_page}-{end_page}\n")
-    print(
-        extract_pages(
-            doc,
-            start_page,
-            end_page,
-            args.raw,
-            document.boilerplate,
-            document.label,
-            section_for_trim,
-        )
+    text, warnings = extract_pages(
+        doc,
+        start_page,
+        end_page,
+        args.raw,
+        document.boilerplate,
+        document.label,
+        section_for_trim,
     )
+    print(text)
+    # The warnings go to standard error so a reader piping the text to a file still
+    # sees them, and so they can never be mistaken for document content.
+    for warning in warnings:
+        print(warning, file=sys.stderr)
     return 0
 
 

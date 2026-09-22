@@ -364,7 +364,7 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 
 
 @code("HRS0104")
-@category("sources")
+@category("repository")
 @objective("completeness")
 def test_the_real_map_and_manifests_agree():
     """Nothing is absent from either side of the repo's own sources map,
