@@ -189,7 +189,7 @@ def passing(pytester, monkeypatch):
 
 @code("TST0001")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_passing_run_is_recorded_as_pass(passing):
     """A suite whose tests all pass gets a report saying PASS, with pytest's exit
@@ -203,7 +203,7 @@ def test_passing_run_is_recorded_as_pass(passing):
 
 @code("TST0007")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_passing_check_gets_a_row_with_its_details(passing):
     """A check that passed gets one row carrying its id, its category, its objective,
@@ -220,7 +220,7 @@ def test_a_passing_check_gets_a_row_with_its_details(passing):
 
 @code("TST0008")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_skipped_check_is_shown_as_skipped_with_its_reason(passing):
     """A check that was skipped gets a row saying skipped, with the skip's reason and,
@@ -267,7 +267,7 @@ def parametrized(pytester, monkeypatch):
 
 @code("TST0019")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_parametrized_check_gets_one_row_per_value_with_the_value_in_its_own_column(
     parametrized,
@@ -282,7 +282,7 @@ def test_a_parametrized_check_gets_one_row_per_value_with_the_value_in_its_own_c
 
 @code("TST0020")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_check_without_parameters_has_an_empty_parameter(parametrized):
     """A check that is not parametrized gets an empty parameter column."""
@@ -291,7 +291,7 @@ def test_a_check_without_parameters_has_an_empty_parameter(parametrized):
 
 @code("TST0002")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_no_flag_writes_nothing(pytester, monkeypatch):
     """Without --validation-report, a run writes no report at all, so development
@@ -314,7 +314,7 @@ def test_no_flag_writes_nothing(pytester, monkeypatch):
 
 @code("TST0003")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
     """A test whose own checks pass but whose clean-up step raises an error is a failed
@@ -348,7 +348,7 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
 
 @code("TST0039")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_failure_is_kept_when_the_clean_up_breaks_too(pytester, monkeypatch):
     """A test that fails its own assertion and then breaks in its clean-up keeps both
@@ -381,7 +381,7 @@ def test_a_failure_is_kept_when_the_clean_up_breaks_too(pytester, monkeypatch):
 
 @code("TST0004")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
     """A test whose checks fail gives a FAIL report with that row marked failed and
@@ -406,7 +406,7 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
 
 @code("TST0005")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
     """A test whose set-up step raises an error never runs; the report says FAIL and the
@@ -433,7 +433,7 @@ def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
 
 @code("TST0006")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch):
     """When a test file cannot even be loaded (a syntax error), no test runs and
@@ -460,7 +460,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
 
 @code("TST0009")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
     pytester, monkeypatch
@@ -477,7 +477,7 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
 
 @code("TST0032")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_run_id_is_the_report_file_name(pytester, monkeypatch):
     """Every row's run_id is the report's file name without .csv, so a second report on
@@ -492,7 +492,7 @@ def test_run_id_is_the_report_file_name(pytester, monkeypatch):
 
 @code("TST0010")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 @pytest.mark.parametrize(
     ("extra_args", "expected"),
@@ -519,7 +519,7 @@ def test_the_selection_column_records_what_was_selected(
 
 @code("TST0040")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_the_counts_match_when_every_check_ran(pytester, monkeypatch):
     """On a whole run, checks_collected and checks_reported are equal and both count
@@ -533,7 +533,7 @@ def test_the_counts_match_when_every_check_ran(pytester, monkeypatch):
 
 @code("TST0041")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_dropped_check_is_counted_but_not_reported(pytester, monkeypatch):
     """A check dropped from the run before it started still counts in
@@ -553,7 +553,7 @@ def test_a_dropped_check_is_counted_but_not_reported(pytester, monkeypatch):
 
 @code("TST0042")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(
     pytester, monkeypatch
@@ -571,7 +571,7 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(
 
 @code("TST0011")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
     """The run_by column carries the user name git is configured with, so a report
@@ -587,7 +587,7 @@ def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
 
 @code("TST0013")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passing):
     """The target_folder_path and target_file_name columns name the code file the
@@ -602,7 +602,7 @@ def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passin
 
 @code("TST0014")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
     """The check_file_sha256 column is the sha256 of the check file's bytes as they
@@ -617,7 +617,7 @@ def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
 
 @code("TST0012")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_fixture_sha256s_names_each_fixture_file_with_its_hash(pytester, monkeypatch):
     """The fixture_sha256s column names each file in the fixtures folder beside
@@ -709,7 +709,7 @@ def gated(pytester, monkeypatch):
 
 @code("TST0015")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_check_whose_pinned_file_matches_runs(gated):
     """A check whose pinned file is on disk and matches its manifest entry runs, and
@@ -720,7 +720,7 @@ def test_a_check_whose_pinned_file_matches_runs(gated):
 
 @code("TST0016")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_check_whose_pinned_file_changed_is_blocked(gated):
     """A check whose pinned file no longer matches its manifest entry is skipped as
@@ -737,7 +737,7 @@ def test_a_check_whose_pinned_file_changed_is_blocked(gated):
 
 @code("TST0017")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_check_whose_pinned_file_is_not_downloaded_is_skipped(gated):
     """A check whose pinned file is recorded but not on disk is skipped, and the
@@ -762,7 +762,7 @@ UNMATCHED_SUITE = '''
 
 @code("TST0018")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch):
     """A check whose @needs_pinned names files no manifest records is a mistake in the
@@ -829,7 +829,7 @@ def committed_repo(pytester, monkeypatch, test_source: str) -> str:
 
 @code("TST0036")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_listing_run_writes_no_report(pytester, monkeypatch):
     """With --collect-only, the run lists the checks it would run and writes no
@@ -842,7 +842,7 @@ def test_a_listing_run_writes_no_report(pytester, monkeypatch):
 
 @code("TST0033")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(
     pytester, monkeypatch
@@ -866,7 +866,7 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(
 
 @code("TST0034")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_report_on_a_clean_folder_names_its_commit(pytester, monkeypatch):
     """With --validation-report and a working folder that matches its commit, the run
@@ -879,7 +879,7 @@ def test_a_report_on_a_clean_folder_names_its_commit(pytester, monkeypatch):
 
 @code("TST0035")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_an_earlier_report_not_yet_committed_does_not_count_as_a_change(
     pytester, monkeypatch

@@ -144,7 +144,7 @@ def run_tool(capsys, *argv: str) -> Outcome:
 
 @code("HRS0123")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_all_passing_exits_0(stage, capsys):
     """When every tool passes, the run exits 0."""
@@ -153,7 +153,7 @@ def test_all_passing_exits_0(stage, capsys):
 
 @code("HRS0124")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_each_tool_gets_a_verdict_line(stage, capsys):
     """Every tool gets its own line saying it passed."""
@@ -164,7 +164,7 @@ def test_each_tool_gets_a_verdict_line(stage, capsys):
 
 @code("HRS0125")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_the_tools_run_in_the_set_order(stage, capsys):
     """The three tools run in the order ruff format, ruff check, mypy, so the
@@ -175,7 +175,7 @@ def test_the_tools_run_in_the_set_order(stage, capsys):
 
 @code("HRS0126")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_the_tools_run_from_the_repo_root(stage, capsys):
     """Every tool runs from the repo root, so pyproject.toml is found whichever folder
@@ -186,7 +186,7 @@ def test_the_tools_run_from_the_repo_root(stage, capsys):
 
 @code("HRS0127")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_a_tool_off_the_path_is_run_through_conda(stage, capsys):
     """When ruff and mypy are not on the path but conda is, each runs through conda
@@ -199,7 +199,7 @@ def test_a_tool_off_the_path_is_run_through_conda(stage, capsys):
 
 @code("HRS0128")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @positive
 def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
     """With the quiet option, the line announcing each tool is left out but the
@@ -220,7 +220,7 @@ def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
 
 @code("HRS0129")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
     """When one tool reports a problem, the run exits 21 and that tool's verdict line
@@ -235,7 +235,7 @@ def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
 
 @code("HRS0130")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_every_tool_still_runs_after_one_fails(stage, capsys):
     """When the first tool fails, the other two still run, so one run shows everything
@@ -247,7 +247,7 @@ def test_every_tool_still_runs_after_one_fails(stage, capsys):
 
 @code("HRS0131")
 @category("repository")
-@objective("correctness")
+@objective("conformance")
 @negative
 def test_no_tool_and_no_conda_exits_22(stage, capsys):
     """When neither the tool nor conda is on the path, the run exits 22, names the

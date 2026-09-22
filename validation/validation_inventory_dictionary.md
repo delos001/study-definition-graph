@@ -17,7 +17,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 - Holds one of the objectives below.
 
 ### `staged_case`
-- Says whether a correctness check that staged its own situation expects success or refusal.
+- Says whether a check that staged its own situation expects success or refusal.
 - Read by the generator from the `@positive` or `@negative` marker.
 - Holds one of the cases below, or nothing.
 
@@ -101,21 +101,25 @@ The category is the thing the check confirms. Whatever the check compares it aga
 
 ## Objectives
 
-- `correctness`: the thing does, or produces, what it is supposed to, judged against what the right result is.
-- `completeness`: nothing that should have carried across is missing, judged against whatever held it: a document an extraction read, an answer key an output is scored against, a set of records another file accounts for. Where a written rule lists what must be present, that is conformance instead.
-- `conformance`: the thing follows the rule, specification or documentation it is held to.
-- `stability`: the thing is unchanged from its own earlier recorded or accepted version.
-- `performance`: the thing runs fast enough, or light enough on the machine, on a realistic input.
+A check asks one question. Which question it asks is its objective.
 
-Correctness and completeness both compare two different things, and the difference is what they compare. Correctness asks whether the two say the same, as when `repo_tools/README.md` is held against the script headers it was generated from. Completeness asks whether everything in one is accounted for in the other, as when `docs/sources_index.md` is held against the manifests to find a recorded file that no heading covers.
+- `correctness`: does the value match the known true value, or fall within the known true range? The true value or range is held outside the thing under test, such as a file's own bytes, a manifest entry, the headers a document was generated from, an answer key, or what is known to be plausible for the measurement.
+- `completeness`: is anything that should be there missing? Judged against whatever held it, such as a document an extraction read, the records another file accounts for, or an answer key an output is scored against.
+- `conformance`: does the thing follow the rule or specification it is held to? A rule may be written, published or programmed. Structure, format, layout, required fields and prescribed behaviour are all conformance.
+- `stability`: has the thing changed from its own earlier recorded or accepted version?
+- `performance`: does the thing run fast enough, or light enough on the machine, on a realistic input?
+
+Correctness and conformance are the pair that gets confused, because in ordinary speech a thing that follows a rule is often called correct. One test separates them. Can the expected answer change without any rule changing? If it can, something outside holds the true value and the question is correctness: a file's sha256 changes when the file changes, and a blood pressure is implausible whatever any specification says. If it cannot, the rule is the only authority and the question is conformance: a header has eight fields in order only because the rule says eight and that order.
+
+The question decides, not the material the check reads. HRS0046 reads a file's header fields and asks whether they follow the rule that defines a header, so it is conformance. A check reading the same fields to ask whether a count stated elsewhere matches the number actually present would be correctness.
 
 ## Cases
 
-Only a correctness check carries a case.
+The case says how a check was set up, which is a separate thing from the question it asks, so a check of any objective may carry one.
 
 - `positive`: the check staged a working situation and expects the code to succeed.
 - `negative`: the check staged a broken situation and expects the code to refuse it for the right reason.
-- empty: the check looked at something real rather than staging a situation, or its objective is not correctness.
+- empty: the check looked at something real rather than staging a situation.
 
 ## Statuses
 

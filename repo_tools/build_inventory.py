@@ -22,8 +22,6 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
                  under;
                - it has no @category marker, or one that names no category;
                - it has no @objective marker, or one that names no objective;
-               - it carries @positive or @negative with an objective other than
-                 correctness, since only a correctness check stages a case;
                - its first sentence starts with a character a spreadsheet reads
                  as the start of a formula.
 
@@ -125,10 +123,10 @@ CATEGORIES = ("repository", "sources", "processing", "products")
 # What a check confirms about its category. The dictionary defines each one.
 OBJECTIVES = ("correctness", "completeness", "conformance", "stability", "performance")
 
-# The only objective whose checks may be positive or negative cases. A correctness
-# check that staged its own situation carries one. A correctness check that looked
-# at something real carries neither, and so does a check of any other objective.
-CORRECTNESS = "correctness"
+# A check that staged its own situation carries one of these, saying whether the
+# situation was a working one or a broken one. A check that looked at something real
+# carries neither. The case says how the check was set up, which is a separate thing
+# from the question it asks, so any objective may carry one.
 CASES = ("positive", "negative")
 
 # The three letters a check's id may start with, and the folder each one names. A
@@ -345,11 +343,6 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
             problems.append(
                 f"{where} has @objective({objective!r}), which is not one of "
                 f"{', '.join(OBJECTIVES)}"
-            )
-        elif objective != CORRECTNESS and case:
-            problems.append(
-                f"{where} has the objective {objective}, so it cannot carry "
-                f"@{case}, which only a correctness check carries"
             )
         if expected.startswith(FORMULA_STARTS):
             problems.append(
