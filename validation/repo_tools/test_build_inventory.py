@@ -886,6 +886,22 @@ def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
     )
 
 
+@code("HRS0177")
+@category("repository")
+@objective("correctness")
+@negative
+def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
+    """A row carrying a status_reason while its status is neither inactive nor retired
+    makes the run exit 45, because a sentence saying why a check is switched off does
+    not belong on one that is running."""
+    with_hand_kept(
+        written, "HRS9002", status_reason="Switched off while the API moved."
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 45
+    assert "HRS9002 has a status_reason but is active" in outcome.printed
+
+
 @code("HRS0165")
 @category("repository")
 @objective("correctness")

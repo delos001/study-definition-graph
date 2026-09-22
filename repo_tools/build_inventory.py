@@ -555,6 +555,11 @@ def status_problems(rows: list[dict[str, str]], live_ids: set[str]) -> list[str]
             problems.append(
                 f"{check_id} is {status} but status_reason does not say why"
             )
+        if status not in NEEDS_REASON and row["status_reason"].strip():
+            problems.append(
+                f"{check_id} has a status_reason but is {status}, and only "
+                f"{' and '.join(NEEDS_REASON)} say why they are off"
+            )
         if not row["version"].isdigit() or int(row["version"]) < 1:
             problems.append(
                 f"{check_id} has version {row['version']!r}, which is not a whole "
