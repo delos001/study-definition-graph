@@ -18,12 +18,12 @@ Support files are the machinery and records the validation checks rely on.
   - Its columns, their values and how each is changed are defined in `validation_inventory_dictionary.md`.
 - `validation_inventory_dictionary.md`: Defines every column of the inventory and every value a coded column may hold.
 - `validation_report_dictionary.md`: Defines every column of a validation report and every value a coded column may hold.
-- `select_checks.py`: Adds the `--category`, `--objective`, `--id` and `--group` options to pytest. `pyproject.toml` loads it at startup.
+- `select_checks.py`: Adds the `--category`, `--aspect`, `--objective`, `--id` and `--group` options to pytest. `pyproject.toml` loads it at startup.
 - `validation_groups.yml`: Names the groups of checks that `pytest --group` can run, each with its purpose and its ids.
 - `exit_codes.csv`: Holds the repo-wide table of exit codes, one row per code.
 - `conftest.py`
   - Holds pytest's shared fixtures and configuration for this folder. pytest looks for a file with exactly this name.
-  - Registers the markers the checks carry, `@code`, `@category`, `@objective`, `@positive`, `@negative` and `@needs_pinned`, and skips a check whose pinned file is not downloaded or no longer matches its manifest entry.
+  - Registers the markers the checks carry, `@code`, `@category`, `@objective`, `@positive`, `@negative` and `@needs_pinned`, and skips a check whose pinned file is not downloaded or no longer matches its manifest entry. A check carries no aspect marker; the aspect is looked up from the objective.
   - Writes the validation report when pytest is run with `--validation-report`.
 
 ### Top level validation files
@@ -82,7 +82,9 @@ pytest -v
 pytest validation/sources/<file_name>.py
 pytest -k manifest
 pytest --category sources
+pytest --aspect integrity
 pytest --objective stability --category sources
+pytest --aspect conformance --category processing
 pytest --id SRC0128,HRS0018
 pytest --group pinned
 pytest --collect-only -q --id SRC0128
@@ -90,7 +92,7 @@ pytest --collect-only -q --id SRC0128
 
 - Name a test file, such as `validation/sources/test_fetch_file.py`, to run only its checks.
 - Use `-k`, pytest's own filter, followed by a word to run only the checks whose name or file name contains it.
-- Use `--category`, `--objective` or `--id`, spelled as the inventory's columns are, to run only the checks whose value matches. Two different options narrow each other. A comma-separated list means any of the values.
+- Use `--category`, `--aspect`, `--objective` or `--id` to run only the checks whose value matches. Each is spelled as the column it selects on, except `--aspect`, whose column is `quality_aspect`. Any two of them narrow each other, so a run can be aimed at one aspect of one kind of thing. A comma-separated list means any of the values.
 - Use `--group` to run the checks a named group in `validation_groups.yml` lists. A group is for a set that no folder, category or objective can name on its own.
 - The run stops when a selection would leave no check to run, so a run that validated nothing cannot pass for a clean one.
   - A value that names no category, objective, group or collected check stops the run.

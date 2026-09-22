@@ -97,6 +97,7 @@ INVENTORY_PATH = VALIDATION_DIR / "validation_inventory.csv"
 # validation/validation_inventory_dictionary.md.
 COLUMNS = (
     "category",
+    "quality_aspect",
     "objective",
     "staged_case",
     "folder_path",
@@ -120,8 +121,31 @@ HAND_KEPT = ("status", "superseded_by", "status_reason", "version")
 # defines each one.
 CATEGORIES = ("repository", "sources", "processing", "products")
 
-# What a check confirms about its category. The dictionary defines each one.
-OBJECTIVES = ("correctness", "completeness", "conformance", "stability", "performance")
+# The objectives each aspect of quality holds. A check carries only its objective,
+# and the generator looks the aspect up here, so an objective can never be filed
+# under an aspect it does not belong to. Adding an objective means adding it here,
+# which is what keeps the two in step. The dictionary defines every one of them.
+OBJECTIVES_BY_ASPECT = {
+    "conformance": ("conformance",),
+    "integrity": ("correctness", "completeness", "stability", "consistency"),
+    "operation": (
+        "performance",
+        "reliability",
+        "security",
+        "compatibility",
+        "maintainability",
+        "portability",
+    ),
+}
+
+# Every objective, and the aspect each one belongs to. Both are worked out from the
+# table above rather than typed a second time, so neither can drift from it.
+ASPECT_OF = {
+    objective: aspect
+    for aspect, objectives in OBJECTIVES_BY_ASPECT.items()
+    for objective in objectives
+}
+OBJECTIVES = tuple(ASPECT_OF)
 
 # A check that staged its own situation carries one of these, saying whether the
 # situation was a working one or a broken one. A check that looked at something real
@@ -447,6 +471,9 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
             "name": check.check_name,
             "id": check.check_id,
             "category": check.category,
+            # Worked out from the objective rather than marked on the check, so the
+            # two can never disagree and nobody has to keep them in step by hand.
+            "quality_aspect": ASPECT_OF.get(check.objective, ""),
             "objective": check.objective,
             "staged_case": check.case,
             "expected_result": check.expected_result,

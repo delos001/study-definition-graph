@@ -2,14 +2,16 @@
 Script:      select_checks.py
 Description: A pytest plugin that selects checks in the inventory's own terms.
              pytest's own selection is by path and by words in names. This adds
-             four options, --category, --objective, --id and --group, spelled as
-             the columns of validation/validation_inventory.csv are. Each keeps
-             only the checks whose marker matches, and --group keeps the checks a
-             named group in validation/validation_groups.yml lists. Categories
-             and objectives narrow each other, ids and groups add up, and a check
-             is kept only when it matches every option given. The rest are
-             deselected before the run, so they neither run nor appear in a
-             validation report.
+             five options, --category, --aspect, --objective, --id and --group.
+             Each is spelled as the column it selects on, except --aspect, whose
+             column is quality_aspect, because a dash or an underscore inside a
+             flag reads badly on a command line. Each keeps only the checks whose
+             value matches, and --group keeps the checks a named group in
+             validation/validation_groups.yml lists. Categories, aspects and
+             objectives narrow each other, ids and groups add up, and a check is
+             kept only when it matches every option given. The rest are deselected
+             before the run, so they neither run nor appear in a validation
+             report.
 
              A run that would validate nothing stops with pytest's usage error
              rather than running nothing, so an empty run cannot pass for a clean
@@ -26,7 +28,10 @@ Description: A pytest plugin that selects checks in the inventory's own terms.
              -p validation.select_checks, so the options are known from the start.
 
              It also holds the readers for the code, category and objective
-             markers, which conftest.py uses when it writes the report.
+             markers, which conftest.py uses when it writes the report, and the
+             lookup from an objective to its aspect of quality. The aspect is not
+             a marker, so --aspect reads the objective and looks it up, which is
+             how the inventory's quality_aspect column is filled too.
 
 Inputs:      validation/validation_groups.yml (read-only; only with --group)
 
@@ -34,8 +39,12 @@ Outputs:     Nothing on disk.
 
 Usage:       pytest --category sources
                  run only the checks with that category
+             pytest --aspect integrity
+                 run only the checks asking an integrity question
              pytest --category sources --objective stability
                  run only the checks with that category and that objective
+             pytest --aspect conformance --category processing
+                 any options may be combined; each narrows the rest
              pytest --id SRC0128,HRS0018
                  run only the checks with those ids; a comma-separated list, or
                  a repeated option, means any of them
@@ -43,7 +52,8 @@ Usage:       pytest --category sources
                  run the checks the named group lists
 
 Exit codes:  pytest's own: 4 bad command line, when a value names no category,
-             objective, group or collected check
+             aspect, objective, group or collected check, or when the options
+             together leave no check to run
 
 Date:        2026-09-21
 Owner:       Jason Delosh
@@ -56,7 +66,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from build_inventory import CATEGORIES, OBJECTIVES
+from build_inventory import ASPECT_OF, CATEGORIES, OBJECTIVES, OBJECTIVES_BY_ASPECT
 
 #######################################################################################
 ### Settings ###
@@ -66,7 +76,7 @@ from build_inventory import CATEGORIES, OBJECTIVES
 GROUPS_RELATIVE = Path("validation") / "validation_groups.yml"
 
 # The options, in the order the report's selection column records them.
-SELECTORS = ("category", "objective", "id", "group")
+SELECTORS = ("category", "aspect", "objective", "id", "group")
 
 
 #######################################################################################
@@ -124,6 +134,23 @@ def category_of(item: pytest.Item) -> str:
     return _marker_value(item, "category")
 
 
+def aspect_of(item: pytest.Item) -> str:
+    """Say which aspect of quality a check's objective belongs to.
+
+    The aspect is not a marker. It is looked up from the objective, the same way the
+    inventory's quality_aspect column is filled, so a check cannot be selected under
+    an aspect its objective does not belong to.
+
+    Args:
+        item: The check.
+
+    Returns:
+        The aspect, or an empty string when the check carries no objective the table
+        knows.
+    """
+    return ASPECT_OF.get(objective_of(item), "")
+
+
 def objective_of(item: pytest.Item) -> str:
     """Read a check's objective off its objective marker.
 
@@ -151,6 +178,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     """
     for name, meaning in (
         ("category", "run only the checks with this category"),
+        ("aspect", "run only the checks with this aspect of quality"),
         ("objective", "run only the checks with this objective"),
         ("id", "run only the check with this id"),
         ("group", "run only the checks the named group lists"),
@@ -221,10 +249,11 @@ def pytest_collection_modifyitems(
             check, or the options together leave no check to run.
     """
     categories = wanted(config, "category")
+    aspects = wanted(config, "aspect")
     objectives = wanted(config, "objective")
     ids = wanted(config, "id")
     names = wanted(config, "group")
-    if not (categories or objectives or ids or names):
+    if not (categories or aspects or objectives or ids or names):
         return
     # Which options supplied the ids, kept before --group expands into them, so the
     # refusal below names the option the reader typed rather than its expansion.
@@ -236,6 +265,11 @@ def pytest_collection_modifyitems(
         if value not in CATEGORIES:
             raise pytest.UsageError(
                 f"--category {value}: not one of {', '.join(CATEGORIES)}"
+            )
+    for value in aspects:
+        if value not in OBJECTIVES_BY_ASPECT:
+            raise pytest.UsageError(
+                f"--aspect {value}: not one of {', '.join(OBJECTIVES_BY_ASPECT)}"
             )
     for value in objectives:
         if value not in OBJECTIVES:
@@ -264,6 +298,7 @@ def pytest_collection_modifyitems(
     # the refusal below need no change for it.
     filters = (
         ("--category", categories, category_of),
+        ("--aspect", aspects, aspect_of),
         ("--objective", objectives, objective_of),
         (id_label, ids, code_of),
     )

@@ -11,10 +11,15 @@ Every row is one check. A column about the check itself has a bare name. The two
 - Read by the generator from the `@category` marker.
 - Holds one of the categories below.
 
+### `quality_aspect`
+- Says which aspect of quality the check is concerned with.
+- Worked out by the generator from the objective, never marked on a check, so an objective can never sit under an aspect it does not belong to.
+- Holds one of the aspects below.
+
 ### `objective`
-- Says what the check confirms about its category.
+- Says which question the check asks about its category.
 - Read by the generator from the `@objective` marker.
-- Holds one of the objectives below.
+- Holds one of the objectives below, grouped there under the aspect each belongs to.
 
 ### `staged_case`
 - Says whether a check that staged its own situation expects success or refusal.
@@ -99,19 +104,47 @@ The category is the thing the check confirms. Whatever the check compares it aga
 - `processing`: the pipeline's own work, every stage of it, from reading a source in through to the finished graph. It covers the processes, the prompts and the run records, and it does not ask whether a given stage changes anything: reading a document is processing, and so are finding its sections, extracting its contents, transforming those into USDM structures and loading them into the graph. A stage the pipeline gains later is processing too.
 - `products`: the deliverables the processing creates, such as extracted contents, USDM structures with their provenance, mappings, and the graph.
 
+## Aspects of quality
+
+Three aspects divide the questions a check can ask. Every objective belongs to exactly one, and the generator fills `quality_aspect` by looking it up, so nobody files an objective under the wrong aspect.
+
+- `conformance`: whether the thing follows the rules it is held to.
+- `integrity`: whether what the thing holds is sound, meaning right, whole, unchanged and in the right order.
+- `operation`: how the thing runs, rather than what it holds.
+
+Conformance comes before the other two when a thing is assessed. A thing that does not have the shape its rules require is not in a state where asking whether its values are right tells anyone much, so a correctness result on something that failed its conformance checks is not worth reading.
+
+The three are not ISO/IEC 25010's quality characteristics, although several objectives under `operation` take their names and their sense from it. The grouping is the project's own.
+
 ## Objectives
 
-A check asks one question. Which question it asks is its objective.
+A check asks one question. Which question it asks is its objective, and which aspect that objective belongs to is its `quality_aspect`.
+
+### Under `conformance`
+
+- `conformance`: does the thing follow the rule or specification it is held to? A rule may be written, published or programmed. Structure, format, layout, required fields and prescribed behaviour are all conformance.
+
+### Under `integrity`
 
 - `correctness`: does the value match the known true value, or fall within the known true range? The true value or range is held outside the thing under test, such as a file's own bytes, a manifest entry, the headers a document was generated from, an answer key, or what is known to be plausible for the measurement.
 - `completeness`: is anything that should be there missing? Judged against whatever held it, such as a document an extraction read, the records another file accounts for, or an answer key an output is scored against.
-- `conformance`: does the thing follow the rule or specification it is held to? A rule may be written, published or programmed. Structure, format, layout, required fields and prescribed behaviour are all conformance.
 - `stability`: has the thing changed from its own earlier recorded or accepted version?
+- `consistency`: does the record prove the correct sequence of events? This is the sense the United States Food and Drug Administration uses in its data integrity guidance, where consistency means the order of events is demonstrable. It is not the sense the data-management literature gives the word, where consistency means the same fact agreeing across two systems. A check comparing two places is correctness.
+
+### Under `operation`
+
 - `performance`: does the thing run fast enough, or light enough on the machine, on a realistic input?
+- `reliability`: does the thing keep working, and recover when something fails?
+- `security`: is the thing protected against access, use or disclosure it should not allow?
+- `compatibility`: does the thing work alongside the other things it has to work with?
+- `maintainability`: can the thing be changed safely and without disproportionate effort?
+- `portability`: does the thing run somewhere else without being rewritten?
 
 Correctness and conformance are the pair that gets confused, because in ordinary speech a thing that follows a rule is often called correct. One test separates them. Can the expected answer change without any rule changing? If it can, something outside holds the true value and the question is correctness: a file's sha256 changes when the file changes, and a blood pressure is implausible whatever any specification says. If it cannot, the rule is the only authority and the question is conformance: a header has eight fields in order only because the rule says eight and that order.
 
 The question decides, not the material the check reads. HRS0046 reads a file's header fields and asks whether they follow the rule that defines a header, so it is conformance. A check reading the same fields to ask whether a count stated elsewhere matches the number actually present would be correctness.
+
+Six of these objectives carry no checks yet. They are written down because the questions they name will be asked once there is extraction, a graph and a running pipeline, and because working out where such a check belongs is easier to do once than to redo each time.
 
 ## Cases
 

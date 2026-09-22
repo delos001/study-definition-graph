@@ -308,3 +308,42 @@ def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch)
         in printed
     )
     assert ids == set()
+
+
+@code("TST0043")
+@category("repository")
+@objective("conformance")
+@positive
+def test_aspect_keeps_only_the_checks_of_that_aspect(pytester, monkeypatch):
+    """With --aspect, only the checks whose objective belongs to that aspect of
+    quality run, although no check carries the aspect itself."""
+    ret, ids, _, _ = selected(pytester, monkeypatch, "--aspect", "conformance")
+    assert ret == 0
+    assert ids == {"XYZ0014"}
+
+
+@code("TST0044")
+@category("repository")
+@objective("conformance")
+@positive
+def test_aspect_and_category_narrow_each_other(pytester, monkeypatch):
+    """With both --aspect and --category, only the checks matching both run, so a run
+    can be aimed at one aspect of one kind of thing."""
+    ret, ids, _, _ = selected(
+        pytester, monkeypatch, "--aspect", "integrity", "--category", "repository"
+    )
+    assert ret == 0
+    assert ids == {"XYZ0011"}
+
+
+@code("TST0045")
+@category("repository")
+@objective("conformance")
+@negative
+def test_an_aspect_not_in_the_list_stops_the_run(pytester, monkeypatch):
+    """An --aspect value that is not a defined aspect of quality stops the run with
+    pytest's usage error, exit 4, and the message names the value and the aspects."""
+    ret, ids, _, printed = selected(pytester, monkeypatch, "--aspect", "quality")
+    assert ret == 4
+    assert "--aspect quality: not one of conformance, integrity, operation" in printed
+    assert ids == set()

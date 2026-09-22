@@ -16,7 +16,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 ### `selection`
 - Records which checks the command line selected.
 - Read by the writer from pytest's parsed arguments.
-- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--objective`, `--id` and `--group` options that were given. It records what was asked for, which is what a reader needs to run the same thing again. Whether the run then covered everything it set out to is `checks_collected` against `checks_reported`.
+- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--aspect`, `--objective`, `--id` and `--group` options that were given. It records what was asked for, which is what a reader needs to run the same thing again. Whether the run then covered everything it set out to is `checks_collected` against `checks_reported`.
 
 ### `checks_collected`
 - Says how many checks the run set out to cover.
@@ -43,9 +43,9 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Read by the writer from the table of exit meanings below.
 - Holds one of the exit meanings below.
 
-### `category`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
+### `category`, `quality_aspect`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
 - Same as in the inventory, in the inventory's order, defined in `validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
-- Read by the writer from the check's markers, docstring and file path at run time, not from the inventory.
+- Read by the writer from the check's markers, docstring and file path at run time, not from the inventory. `quality_aspect` is looked up from the objective, the way the inventory fills it.
 - `expected_result` holds `(no docstring)` when the check has none, and `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
 
 ### `parameter`

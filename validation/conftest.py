@@ -44,8 +44,8 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
                  one row per check. A row holds the check's id, its name, its
-                 parameter when it has one, its category, its objective, its case
-                 when it is a correctness check that staged its own situation, its
+                 parameter when it has one, its category, its aspect of quality,
+                 its objective, its case when it staged its own situation, its
                  expected result, which is its docstring's first paragraph, its own
                  outcome, and the reason when that is not passed: the assertion
                  message, the step that broke, or why it was skipped. A check that
@@ -70,13 +70,13 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                - @category carries what kind of thing the check confirms, one of
                  the categories validation/validation_inventory_dictionary.md
                  defines,
-               - @objective carries what the check confirms about its category,
-                 one of the objectives the same dictionary defines,
-               - @positive, on a correctness check, means a staged working
-                 situation where the code is expected to succeed,
-               - @negative, on a correctness check, means a staged broken
-                 situation where the code is expected to refuse for the right
-                 reason,
+               - @objective carries the question the check asks, one of the
+                 objectives the same dictionary defines. The aspect of quality
+                 the report records is looked up from it rather than marked,
+               - @positive means a staged working situation where the code is
+                 expected to succeed,
+               - @negative means a staged broken situation where the code is
+                 expected to refuse for the right reason,
                - @needs_pinned names the real pinned files a check reads.
 
              Before a check marked @needs_pinned runs, each pinned file it names is
@@ -154,7 +154,7 @@ from validation.select_checks import (
 # inventory and a report can never disagree. pyproject.toml puts repo_tools/ on
 # pytest's import path, and the generator uses only the standard library, so this
 # import cannot fail because the sdg package is broken.
-from build_inventory import split_path, type_and_target
+from build_inventory import ASPECT_OF, split_path, type_and_target
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 REPO_ROOT = VALIDATION_DIR.parent
@@ -917,6 +917,7 @@ REPORT_COLUMNS = (
     "pytest_exit_status",
     "exit_meaning",
     "category",
+    "quality_aspect",
     "objective",
     "staged_case",
     "folder_path",
@@ -1089,6 +1090,7 @@ def pytest_sessionfinish(session, exitstatus):
                         "name": outcome["name"],
                         "parameter": outcome["parameter"],
                         "category": outcome["category"],
+                        "quality_aspect": ASPECT_OF.get(outcome["objective"], ""),
                         "objective": outcome["objective"],
                         "staged_case": outcome["case"],
                         "expected_result": outcome["expected_result"],
@@ -1112,6 +1114,7 @@ def pytest_sessionfinish(session, exitstatus):
                 "name": "",
                 "parameter": "",
                 "category": "",
+                "quality_aspect": "",
                 "objective": "",
                 "staged_case": "",
                 "expected_result": "",
