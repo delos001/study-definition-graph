@@ -42,7 +42,9 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                  when it is a correctness check that staged its own situation, its
                  expected result, which is its docstring's first paragraph, its own
                  outcome, and the reason when that is not passed: the assertion
-                 message, the step that broke, or why it was skipped.
+                 message, the step that broke, or why it was skipped. A check that
+                 goes wrong twice, failing and then breaking in its clean-up,
+                 keeps both reasons in the order the steps ran.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
@@ -574,7 +576,9 @@ def pytest_runtest_setup(item):
 # this the call step), and clean-up. It reports on each step separately. One
 # row per test is kept here, and a later step may make the row worse but never
 # better: a test whose checks passed but whose clean-up failed ends up as an
-# error, which is also what pytest prints on the terminal. Nothing here decides
+# error, which is also what pytest prints on the terminal. The reason is added to
+# rather than replaced, so a test that fails and then breaks in its clean-up keeps
+# both reasons instead of the second hiding the first. Nothing here decides
 # whether the run passed. That verdict comes from pytest's own exit number, in
 # pytest_sessionfinish below.
 
@@ -630,14 +634,14 @@ def pytest_runtest_makereport(item, call):
     if outcome == "error" or row["outcome"] in ("passed", ""):
         row["outcome"] = outcome
     if outcome == "error":
-        row["reason"] = (
-            "clean-up failed" if report.when == "teardown" else "set-up failed"
+        _add_reason(
+            row, "clean-up failed" if report.when == "teardown" else "set-up failed"
         )
     if outcome == "failed":
         # pytest keeps the one-line message of the failure, usually the
         # assertion, on the report; that is what a reader needs first.
         crash = getattr(report.longrepr, "reprcrash", None)
-        row["reason"] = crash.message.splitlines()[0] if crash else "failed"
+        _add_reason(row, crash.message.splitlines()[0] if crash else "failed")
     if outcome == "skipped":
         # For a skip, pytest stores the reason as the third item of a tuple of
         # file, line and reason. The reason is what a reader needs, usually
@@ -647,7 +651,23 @@ def pytest_runtest_makereport(item, call):
             if isinstance(report.longrepr, tuple)
             else str(report.longrepr)
         )
-        row["reason"] = reason.removeprefix("Skipped: ")
+        _add_reason(row, reason.removeprefix("Skipped: "))
+
+
+def _add_reason(row: dict, reason: str) -> None:
+    """Add one step's reason to a check's row, keeping what earlier steps said.
+
+    A check can go wrong twice, failing its own assertion and then breaking in its
+    clean-up. Replacing the reason would drop the assertion message and leave the
+    row reading as though only the clean-up broke, which is the row getting better
+    rather than worse.
+
+    Args:
+        row: The check's row.
+        reason: What this step has to say.
+    """
+    if reason and reason not in row["reason"].split("; "):
+        row["reason"] = f"{row['reason']}; {reason}" if row["reason"] else reason
 
 
 def _parameter(item) -> str:

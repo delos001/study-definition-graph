@@ -51,7 +51,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 ### `outcome_reason`
 - Says why the outcome is not passed.
 - Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
-- Holds one line, or nothing when the check passed. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `exit_meaning` already carries it.
+- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `exit_meaning` already carries it.
 
 ### `started`
 - Records when the run began.
@@ -106,7 +106,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - `error`: the check's set-up or clean-up broke, whatever the check itself did.
 - `none`: no check ran at all. The report then has this one row, and `exit_meaning` says why nothing ran.
 
-A later step never makes a row better. A check whose assertions held but whose clean-up broke is `error`.
+A later step never makes a row better. A check whose assertions held but whose clean-up broke is `error`. A check that failed and then broke in its clean-up is `error` too, and `outcome_reason` keeps the failure alongside the clean-up, so the later step cannot hide the earlier one.
 
 ## Exit meanings
 

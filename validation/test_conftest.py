@@ -326,6 +326,39 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
     assert "passed" not in {r["outcome"] for r in rows}
 
 
+@code("TST0039")
+@category("repository")
+@objective("correctness")
+@negative
+def test_a_failure_is_kept_when_the_clean_up_breaks_too(pytester, monkeypatch):
+    """A test that fails its own assertion and then breaks in its clean-up keeps both
+    reasons in its row, the assertion message first and the clean-up second, so the
+    later step cannot hide the failure."""
+    result, out = run_suite(
+        pytester,
+        monkeypatch,
+        '''
+        import pytest
+
+        @pytest.fixture
+        def cleanup_breaks():
+            yield
+            raise RuntimeError("clean-up broke")
+
+        def test_fails_and_then_cleanup_fails(cleanup_breaks):
+            """Fails, then its clean-up fails."""
+            assert 1 == 2, "the number was not two"
+        ''',
+    )
+    assert result.ret == 1
+    row = row_for(the_report(out), "test_fails_and_then_cleanup_fails")
+    assert row["outcome"] == "error"
+    assert (
+        row["outcome_reason"]
+        == "AssertionError: the number was not two; clean-up failed"
+    )
+
+
 @code("TST0004")
 @category("repository")
 @objective("correctness")
