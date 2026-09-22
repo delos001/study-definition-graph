@@ -16,7 +16,17 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 ### `selection`
 - Records which checks the command line selected.
 - Read by the writer from pytest's parsed arguments.
-- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--objective`, `--id` and `--group` options that were given, so a partial run cannot pass for a full one.
+- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--objective`, `--id` and `--group` options that were given. It records what was asked for, which is what a reader needs to run the same thing again. Whether the run then covered everything it set out to is `checks_collected` against `checks_reported`.
+
+### `checks_collected`
+- Says how many checks the run set out to cover.
+- Read by the writer from the checks pytest was left holding, plus every check dropped before the run, which pytest reports through a hook it fires for each one.
+- Holds a whole number. It is counted from what happened rather than from the options that were typed, because an option the writer knows nothing about narrows a run just the same. A file kept out of collection altogether, as `--ignore` does, is never seen by the run, so it cannot be counted here and `selection` is what records it.
+
+### `checks_reported`
+- Says how many checks the report holds a row for.
+- Read by the writer from the outcomes it collected.
+- Holds a whole number. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so a run that covered part of the suite cannot read as one that covered all of it. It is 0 on the row written when no check ran.
 
 ### `run_verdict`
 - Says whether the run as a whole passed.

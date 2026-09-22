@@ -32,8 +32,14 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
                  are uncommitted changes, before any check runs, and says which
                  files they are. The commit it would have named would not have
                  described the code that ran.
-               - How is which checks were selected, and, at the far right of each row,
-                 the Python and pytest versions and the operating system.
+               - How is which checks were selected, how many the run set out to
+                 cover and how many it reports on, and, at the far right of each
+                 row, the Python and pytest versions and the operating system. The
+                 two counts differ when checks were dropped or the run stopped
+                 early, so a partial run cannot read as a whole one. They are
+                 counted from what happened rather than from the options typed,
+                 because an option this file does not know about narrows a run
+                 just the same.
                - When is the local timestamp with its zone, and by whom is the git user
                  name.
                - The outcome is the run's verdict, from pytest's own exit status, and
@@ -847,6 +853,23 @@ def _unique(path: Path) -> Path:
 # The moment the run started, so the report can say when the run began.
 _started_at = 0.0
 
+# How many checks were dropped before the run, counted from pytest's own hook rather
+# than from the options that did the dropping. pytest fires that hook for every
+# deselection whatever caused it, including its own --deselect, its -k and -m
+# filters, and the options validation/select_checks.py adds, so the count stays
+# right without this file knowing which options exist.
+_deselected = 0
+
+
+def pytest_deselected(items):
+    """Count checks dropped from the run before it started.
+
+    Args:
+        items: The checks being dropped.
+    """
+    global _deselected
+    _deselected += len(items)
+
 
 def pytest_sessionstart(session):
     """Note the moment the run started, and refuse a report on uncommitted changes.
@@ -888,6 +911,8 @@ def pytest_sessionstart(session):
 REPORT_COLUMNS = (
     "run_id",
     "selection",
+    "checks_collected",
+    "checks_reported",
     "run_verdict",
     "pytest_exit_status",
     "exit_meaning",
@@ -1020,6 +1045,12 @@ def pytest_sessionfinish(session, exitstatus):
         "commit": commit,
         "run_by": _git("config", "user.name", cwd=root),
         "selection": _selection(session.config),
+        # What the run set out to cover, against what it ended up reporting on. The
+        # two differ when checks were dropped or the run stopped early, so a run
+        # that covered part of the suite cannot read as one that covered all of it,
+        # whatever narrowed it.
+        "checks_collected": len(session.items) + _deselected,
+        "checks_reported": len(_outcomes),
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
         "platform": platform.platform(),

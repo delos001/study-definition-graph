@@ -158,6 +158,26 @@ PASSING_SUITE = '''
         """Never runs."""
     '''
 
+# A suite whose first check fails, so a run given -x stops before the second one.
+STOPS_EARLY_SUITE = '''
+    import pytest
+
+    @pytest.mark.code("XYZ0021")
+    @pytest.mark.category("repository")
+    @pytest.mark.objective("correctness")
+    @pytest.mark.positive
+    def test_breaks():
+        """Fails on purpose."""
+        assert False, "broken on purpose"
+
+    @pytest.mark.code("XYZ0022")
+    @pytest.mark.category("repository")
+    @pytest.mark.objective("correctness")
+    @pytest.mark.positive
+    def test_never_reached():
+        """Would pass if the run got as far as it."""
+    '''
+
 
 @pytest.fixture
 def passing(pytester, monkeypatch):
@@ -484,16 +504,69 @@ def test_run_id_is_the_report_file_name(pytester, monkeypatch):
         (("-m", "positive"), "-m positive"),
         (("--tb", "short"), "all"),
         (("-p", "no:cacheprovider"), "all"),
-        (("--deselect", "test_suite.py::test_left_out"), "all"),
     ],
 )
 def test_the_selection_column_records_what_was_selected(
     pytester, monkeypatch, extra_args, expected
 ):
     """The selection column records the paths and the -k or -m filters the command
-    line gave, or all when the whole suite ran."""
+    line gave, or all when nothing narrowed the run. An option that changes how the
+    run is reported rather than which checks it runs, such as --tb, leaves it at
+    all."""
     _, out = run_suite(pytester, monkeypatch, PASSING_SUITE, *extra_args)
     assert {r["selection"] for r in the_report(out)} == {expected}
+
+
+@code("TST0040")
+@category("repository")
+@objective("correctness")
+@positive
+def test_the_counts_match_when_every_check_ran(pytester, monkeypatch):
+    """On a whole run, checks_collected and checks_reported are equal and both count
+    every check, so a reader can see at a glance that nothing was left out."""
+    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    rows = the_report(out)
+    assert {r["checks_collected"] for r in rows} == {"2"}
+    assert {r["checks_reported"] for r in rows} == {"2"}
+    assert len(rows) == 2
+
+
+@code("TST0041")
+@category("repository")
+@objective("correctness")
+@positive
+def test_a_dropped_check_is_counted_but_not_reported(pytester, monkeypatch):
+    """A check dropped from the run before it started still counts in
+    checks_collected, so a narrowed run shows a gap between the two counts rather
+    than reading as a whole one."""
+    _, out = run_suite(
+        pytester,
+        monkeypatch,
+        PASSING_SUITE,
+        "--deselect",
+        "test_suite.py::test_left_out",
+    )
+    rows = the_report(out)
+    assert {r["checks_collected"] for r in rows} == {"2"}
+    assert {r["checks_reported"] for r in rows} == {"1"}
+
+
+@code("TST0042")
+@category("repository")
+@objective("correctness")
+@negative
+def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(
+    pytester, monkeypatch
+):
+    """A run told to stop at the first failure never reaches the checks after it, and
+    checks_reported is lower than checks_collected, so a run cut short cannot read as
+    one that covered the whole suite."""
+    result, out = run_suite(pytester, monkeypatch, STOPS_EARLY_SUITE, "-x")
+    assert result.ret == 1
+    rows = the_report(out)
+    assert {r["checks_collected"] for r in rows} == {"2"}
+    assert {r["checks_reported"] for r in rows} == {"1"}
+    assert {r["selection"] for r in rows} == {"all"}
 
 
 @code("TST0011")
