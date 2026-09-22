@@ -120,7 +120,7 @@ HAND_KEPT = ("status", "superseded_by", "status_reason", "version")
 
 # What kind of thing a check confirms. validation/validation_inventory_dictionary.md
 # defines each one.
-CATEGORIES = ("repository", "sources", "conversion", "products")
+CATEGORIES = ("repository", "sources", "processing", "products")
 
 # What a check confirms about its category. The dictionary defines each one.
 OBJECTIVES = ("correctness", "completeness", "conformance", "stability", "performance")

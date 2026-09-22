@@ -94,10 +94,10 @@ Choosing the prefix that fits the folder is done by hand and stays that way. The
 
 The category is the thing the check confirms. Whatever the check compares it against is the reference, and the reference does not change the category.
 
-- `repository`: the tools, hooks, rules and records that hold the sources, conversions and products to their rules and specifications, so that each behaves as expected. It includes the pinning tools, the pre-commit hook and the validation suite itself.
+- `repository`: the tools, hooks, rules and records that hold the sources, the processing and the products to their rules and specifications, so that each behaves as expected. It includes the pinning tools, the pre-commit hook and the validation suite itself.
 - `sources`: the materials, data, files, standards and references the project consumes to create and evaluate a product.
-- `conversion`: the processes, prompts, and run records that turn the sources into a product, such as reading a document, finding its sections, extracting contents and transforming into USDM structures and loading those into the graph.
-- `products`: the deliverables created through source conversions, such as extracted contents, USDM structures with their provenance, mappings, and the graph.
+- `processing`: the pipeline's own work, every stage of it, from reading a source in through to the finished graph. It covers the processes, the prompts and the run records, and it does not ask whether a given stage changes anything: reading a document is processing, and so are finding its sections, extracting its contents, transforming those into USDM structures and loading them into the graph. A stage the pipeline gains later is processing too.
+- `products`: the deliverables the processing creates, such as extracted contents, USDM structures with their provenance, mappings, and the graph.
 
 ## Objectives
 

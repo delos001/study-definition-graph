@@ -62,7 +62,7 @@ SELECTION_SUITE = '''
         """Two."""
 
     @pytest.mark.code("XYZ0013")
-    @pytest.mark.category("conversion")
+    @pytest.mark.category("processing")
     @pytest.mark.objective("correctness")
     @pytest.mark.positive
     def test_three():
@@ -170,7 +170,7 @@ def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
 @positive
 def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
     """A comma-separated list on one option keeps the checks matching any value in it."""
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--category", "sources,conversion")
+    ret, ids, _, _ = selected(pytester, monkeypatch, "--category", "sources,processing")
     assert ret == 0
     assert ids == {"XYZ0012", "XYZ0013"}
 
@@ -231,7 +231,7 @@ def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
     report is written."""
     ret, ids, _, printed = selected(pytester, monkeypatch, "--category", "machinery")
     assert ret == 4
-    assert "--category machinery: not one of repository, sources, conversion" in printed
+    assert "--category machinery: not one of repository, sources, processing" in printed
     assert ids == set()
 
 
