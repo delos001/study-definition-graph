@@ -722,12 +722,12 @@ def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
 @objective("conformance")
 @negative
 @pytest.mark.parametrize("start", ["=", "+", "-", "@"])
-def test_a_first_sentence_a_spreadsheet_reads_as_a_formula_exits_18(
+def test_a_first_sentence_starting_with_a_refused_character_exits_18(
     tests_folder, capsys, start
 ):
     """A check whose first sentence starts with a character a spreadsheet reads as a
     formula makes the run exit 18, and the message names the character and says to
-    start with a word."""
+    start with a letter or a digit."""
     inventory = tests_folder(
         {
             "repo_tools/test_alpha.py": TWO_CHECKS.replace(
@@ -741,7 +741,28 @@ def test_a_first_sentence_a_spreadsheet_reads_as_a_formula_exits_18(
     assert f"test_second has a first sentence starting with {start!r}" in (
         outcome.printed
     )
-    assert "start it with a word" in outcome.printed
+    assert "start it with a letter or a digit" in outcome.printed
+
+
+@code("HRS0179")
+@category("repository")
+@objective("conformance")
+@positive
+def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, capsys):
+    """A check whose docstring opens with a tab or a newline is accepted, and its row
+    holds the sentence with that whitespace gone, because the generator strips a
+    docstring before it looks at the sentence. No entry in FORMULA_STARTS is needed
+    for whitespace, and one would never fire."""
+    inventory = tests_folder(
+        {
+            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+                '"""The wrong thing', '"""\t\nThe wrong thing'
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+    row = next(r for r in rows_of(inventory) if r["id"] == "HRS9002")
+    assert row["expected_result"] == "The wrong thing is refused."
 
 
 @code("HRS0065")

@@ -59,7 +59,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 ### `expected_result`
 - States what must be true for the check to pass.
 - Read by the generator from the first paragraph of the check's docstring.
-- Starts with numeric or text character, never with `=`, `+`, `-` or `@`.
+- Starts with a letter or a digit, never with `=`, `+`, `-` or `@`, which `repo_tools/build_inventory.py` refuses because a spreadsheet reads a cell opening with one of them as a formula. Whitespace at the front of a docstring is not refused, because the generator strips it before it looks at the sentence.
 
 ### `version`
 - Numbers the check's version.

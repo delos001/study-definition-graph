@@ -23,7 +23,8 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
                - it has no @category marker, or one that names no category;
                - it has no @objective marker, or one that names no objective;
                - its first sentence starts with a character a spreadsheet reads
-                 as the start of a formula.
+                 as the start of a formula. Leading whitespace is not refused,
+                 because it is stripped before the sentence is looked at.
 
              The hand-kept columns are checked too. A status must be one of the
              five, superseded_by must name the active checks that took over
@@ -179,9 +180,11 @@ STATUSES = ("pending", "active", "inactive", "superseded", "retired")
 # unguarded.
 NEEDS_REASON = ("inactive", "retired")
 
-# A spreadsheet reads a cell that starts with one of these as a formula, and shows
-# or mangles it rather than the sentence.
-FORMULA_STARTS = ("=", "+", "-", "@", "\t", "\r")
+# The characters a check's first sentence may not start with. A spreadsheet reads a
+# cell opening with one of these as a formula, and shows or mangles it rather than
+# the sentence. Leading whitespace needs no entry here, because first_paragraph()
+# strips it before the sentence is looked at.
+FORMULA_STARTS = ("=", "+", "-", "@")
 
 # Rows are grouped by the folder the test file sits in, in the order the pipeline
 # runs, then the top-level files of the sdg package, then the tools and hooks, with
@@ -370,8 +373,8 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
             )
         if expected.startswith(FORMULA_STARTS):
             problems.append(
-                f"{where} has a first sentence starting with {expected[0]!r}, which a "
-                "spreadsheet reads as a formula; start it with a word"
+                f"{where} has a first sentence starting with {expected[0]!r}; start "
+                "it with a letter or a digit"
             )
 
         checks.append(
