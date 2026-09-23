@@ -1,3 +1,1 @@
-"""The sdgtools package runs tools used to maintain and update the repo.
-See README.md.
-"""
+"""The sdgtools package holds the repo tools, the commands that keep this repo in order and confirm its setup works."""
