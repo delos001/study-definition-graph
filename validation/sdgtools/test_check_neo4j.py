@@ -1,6 +1,6 @@
 """
 Script:      test_check_neo4j.py
-Description: Checks for repo_tools/check_neo4j.py, the hand-run tool that
+Description: Checks for src/sdgtools/check_neo4j.py, the hand-run tool that
              confirms the Neo4j database is running, accepts the login in .env,
              and is the version pinned in docker-compose.yml. Each check writes
              a .env and a docker-compose.yml into pytest's own temporary folder,
@@ -18,9 +18,9 @@ Inputs:      Nothing real. The .env and docker-compose.yml files are written to
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/repo_tools/test_check_neo4j.py
+Usage:       pytest validation/sdgtools/test_check_neo4j.py
                  run these checks
-             pytest validation/repo_tools/test_check_neo4j.py -v
+             pytest validation/sdgtools/test_check_neo4j.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -37,7 +37,7 @@ from pathlib import Path
 import neo4j
 import pytest
 
-import check_neo4j as script
+from sdgtools import check_neo4j as script
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

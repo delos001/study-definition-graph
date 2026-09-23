@@ -15,7 +15,7 @@ Inputs:      Nothing real. The .env files are written to pytest's own temporary
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest src/sdgtools/check_api_key.py
+Usage:       pytest validation/sdgtools/test_check_api_key.py
                  run these checks
              pytest validation/sdgtools/test_check_api_key.py -v
                  one line per check with its result

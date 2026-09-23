@@ -27,9 +27,9 @@ Outputs:     Nothing on disk. Prints whether the database answers and matches
              its pin, and what to do when it does not. The password is never
              printed.
 
-Usage:       python repo_tools/check_neo4j.py
+Usage:       check_neo4j
                  ask the database its version and report whether it matches
-             python repo_tools/check_neo4j.py --quiet
+             check_neo4j --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success (the database answers and is the pinned version)
