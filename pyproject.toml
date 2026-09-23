@@ -14,6 +14,7 @@ acquire_sources = "sdg.sources.acquire_sources:main"
 read_pdf = "sdg.view.read_pdf:main"
 read_xlsx = "sdg.view.read_xlsx:main"
 usdm_spec = "sdg.usdm.usdm_spec:main"
+check_api_key = "sdgtools.check_api_key:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

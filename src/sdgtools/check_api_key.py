@@ -19,9 +19,9 @@ Inputs:      .env at the repo root   (read-only)
 Outputs:     Nothing on disk. Prints whether the key works, and what to do when
              it does not. The key itself is never printed.
 
-Usage:       python repo_tools/check_api_key.py
+Usage:       check_api_key.py
                  send one message and report whether the key works
-             python repo_tools/check_api_key.py --quiet
+             check_api_key.py --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success (the key works)

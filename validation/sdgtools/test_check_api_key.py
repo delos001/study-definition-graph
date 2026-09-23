@@ -1,6 +1,6 @@
 """
 Script:      test_check_api_key.py
-Description: Checks for repo_tools/check_api_key.py, the hand-run tool that
+Description: Checks for src/sdgtools/check_api_key.py, the hand-run tool that
              confirms the Anthropic key in .env reaches the Claude API. Each
              check writes a .env file into pytest's own temporary folder, points
              the tool's repo root at it, stands in for the one function that
@@ -15,9 +15,9 @@ Inputs:      Nothing real. The .env files are written to pytest's own temporary
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/repo_tools/test_check_api_key.py
+Usage:       pytest src/sdgtools/check_api_key.py
                  run these checks
-             pytest validation/repo_tools/test_check_api_key.py -v
+             pytest validation/sdgtools/test_check_api_key.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -35,7 +35,7 @@ import anthropic
 import httpx
 import pytest
 
-import check_api_key as script
+from sdgtools import check_api_key as script
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

@@ -37,17 +37,6 @@ python repo_tools/build_inventory.py --quiet
     print nothing; use the exit code
 ```
 
-## check_api_key.py
-
-Confirms the Anthropic API key in .env reaches the Claude API, so a key that was never pasted, or was pasted wrongly, is found at setup rather than part way through a pipeline run.
-
-```
-python repo_tools/check_api_key.py
-    send one message and report whether the key works
-python repo_tools/check_api_key.py --quiet
-    print nothing; use the exit code
-```
-
 ## check_facts.py
 
 Recomputes every figure asserted in the project's markdown, a count or a date, and compares it against what the documents actually say.
