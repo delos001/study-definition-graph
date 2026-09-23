@@ -531,3 +531,29 @@ One boundary separates the two, and the tools that enforce a rule are what make 
 Applied to the checks that exist, 449 are functionality and 7 are conformance. The seven confirm something real: every manifest lands under `inputs/` and every entry carries its five fields, the pinned `dataStructure.yml` has the shape the loader expects and its attribute types are classes or the five primitives, every real header follows the rule and its exit codes agree with `validation/exit_codes.csv`, and the folders `repo_tools/verify_headers.py` covers are the four the rule names. Conformance is expected to grow when extraction produces USDM output, because that output is held to a published standard.
 
 The definition of conformance in `validation/validation_inventory_dictionary.md` is rewritten to ask whether a thing has the shape, format or structure a rule prescribes, with allowed values in place of prescribed behaviour, and it points at functionality for the other question. The sentence quoted at the top of this entry stays where it is, because this log records what was decided when.
+
+## A validation report covers one aspect of quality, and a run that holds several runs them in order, decided 2026-09-23
+
+Issue #43 found that a validation report records the version of one downloaded file, the USDM model file, and says nothing about any other. Working through it showed that the fault is wider than the missing versions. The report writer still treats every check in a run as one pool. It writes one verdict for the whole run and stamps the same details on every row, whether the check used them or not. The USDM model file's fingerprint is written on the row of every functionality check, and on 2026-09-23 no functionality check read a downloaded file. The five checks that did were two conformance checks and three integrity checks. Checks under different aspects ask different questions and need different details recorded, so one report shape cannot serve all of them. No standard covered the question, so the choice is **unguided**.
+
+The rules apply when a report is written, because that is where the reports differ.
+
+- A report covers one aspect of quality. A run that writes a report must name its aspect with `--aspect`. The options `--category`, `--objective`, `--id` and `--group` narrow the run within that aspect.
+- Naming the aspect is the least a person needs to understand about what they are validating. Naming an objective or a specific check id is welcome and not required, so a run of all integrity checks and a run of only the correctness checks are both valid.
+- The aspect is required rather than worked out from the checks that ran. Because the aspect selects the checks, every check in the report belongs to it, and a run with no aspect named is refused before any check runs.
+- No group mixes aspects. The `pinned` and `hook` groups in `validation/validation_groups.yml` each held checks from two aspects, and each is split into one group per aspect.
+- A mixed group may be allowed later if a case arises that cannot reasonably be split. Each aspect in that group would still get its own report. Nothing is built for that case until one exists.
+
+A run that writes no report is not held to these rules, with one exception. When it holds checks from more than one aspect, it runs them in order.
+
+- The order is operation, then conformance, then integrity.
+- Each stage runs in full, so every failure in it is shown.
+- When a stage has a failure, every check in the later stages is skipped, with a reason naming the stage that failed. A failure is a check that failed or a check whose set-up or clean-up broke. A skipped check is not a failure.
+- The reason is that a finding about the output of a script that does not work cannot be told apart from the script's own fault. Letting the later stages run would report their failures as findings when the cause could be upstream.
+- This order fits most cases, and it is used here only. It is not a general rule of the suite.
+
+The aspect is the anchor, rather than the objective or the category, because it is the only one of the three with an order between its values. Conformance findings are suspect when the code does not work, and integrity findings are suspect when the shape is wrong. Objectives within an aspect have no such order. The objectives are also too fine to anchor on: there are eleven, and six have no checks yet.
+
+One question is left open. Integrity reports may need a finer split once real integrity checks exist to judge it against. The arguments go both ways. A stability check needs the current and earlier versions of whatever it confirms, and a correctness check does not. An integrity check on a downloaded file needs that file's version recorded, and one on a project file needs the project file's version. The split is decided when there are examples.
+
+For issue #43 this means the columns `pinned_usdm_sha256` and `pinned_usdm_present` are replaced by whatever each aspect's report records, designed one aspect at a time, starting with operation.
