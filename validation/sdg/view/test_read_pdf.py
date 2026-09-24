@@ -16,9 +16,9 @@ Inputs:      Nothing real. The list of documents, the manifests and the files ar
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/view/test_read_pdf.py
+Usage:       pytest validation/sdg/view/test_read_pdf.py
                  run these checks
-             pytest validation/view/test_read_pdf.py -v
+             pytest validation/sdg/view/test_read_pdf.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

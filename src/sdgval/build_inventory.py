@@ -187,16 +187,17 @@ NEEDS_REASON = ("inactive", "retired")
 # strips it before the sentence is looked at.
 FORMULA_STARTS = ("=", "+", "-", "@")
 
-# Rows are ordered by the code folder the test file mirrors, in the order the pipeline
-# runs, then the top-level files of the sdg package, then the tools and hooks, with
-# the checks for validation's own files last. Within a folder, files are in name order and
-# checks in file order.
+# Rows are ordered by the code folder the test file mirrors: the pipeline's folders in
+# the order the pipeline runs, then the top of the sdg package, then the repo tools,
+# the validation package and the hooks, with the checks for validation's own files
+# last. Within a folder, files are in name order and checks in file order.
 CODE_FOLDER_ORDER = (
-    "sources",
-    "usdm",
-    "view",
+    "sdg/sources",
+    "sdg/usdm",
+    "sdg/view",
     "sdg",
-    "repo_tools",
+    "sdgtools",
+    "sdgval",
     "claude_hooks",
     "validation",
 )
@@ -252,14 +253,14 @@ def code_folder_and_target(
     fill the same columns of a validation report, so the inventory and the report can
     never disagree about what a check file proves.
 
-    validation/ mirrors the code. A test file in validation/repo_tools/ tests the script of the
-    same name in repo_tools/. A test file in validation/claude_hooks/ tests the hook of the
-    same name in .claude/hooks/, which cannot be mirrored by name because pytest does
-    not look inside a folder whose name starts with a dot. A test file in any other
-    subfolder tests the file of the same name in that folder under src/sdg/. A test
-    file at the top level tests the file of the same name in validation/ itself when
-    one is there, as the checks for conftest.py and select_checks.py do, and
-    otherwise the file of the same name at the top of src/sdg/.
+    validation/ mirrors src/, one folder per installed package. A test file at
+    validation/<package>/<path> tests the file of the same name at
+    src/<package>/<path>, so validation/sdg/sources/test_fetch_file.py tests
+    src/sdg/sources/fetch_file.py. Two places are exceptions. A test file in
+    validation/claude_hooks/ tests the hook of the same name in .claude/hooks/, which
+    cannot be mirrored by name because pytest does not look inside a folder whose name
+    starts with a dot. A test file at the top level of validation/ tests the file of
+    the same name in validation/ itself, as the checks for conftest.py do.
 
     Args:
         check_file: The test file's path.
@@ -272,15 +273,11 @@ def code_folder_and_target(
     relative = check_file.relative_to(validation_dir or VALIDATION_DIR)
     folder = relative.parent.as_posix()
     component = f"{check_file.stem.removeprefix('test_')}.py"
-    if folder == "." and (check_file.parent / component).is_file():
-        return "validation", f"validation/{component}"
     if folder == ".":
-        return "sdg", f"src/sdg/{component}"
-    if folder == "repo_tools":
-        return "repo_tools", f"repo_tools/{component}"
+        return "validation", f"validation/{component}"
     if folder == "claude_hooks":
         return "claude_hooks", f".claude/hooks/{component}"
-    return folder, f"src/sdg/{folder}/{component}"
+    return folder, f"src/{folder}/{component}"
 
 
 def split_path(path: str) -> tuple[str, str]:

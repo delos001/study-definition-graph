@@ -17,9 +17,9 @@ Inputs:      manifests/*.json    (read-only; every recorded file's entry)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sources/test_verify_pinned.py
+Usage:       pytest validation/sdg/sources/test_verify_pinned.py
                  run these checks
-             pytest validation/sources/test_verify_pinned.py -v
+             pytest validation/sdg/sources/test_verify_pinned.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -61,7 +61,7 @@ def pinned_locals() -> list[str]:
     """List every file the real manifests record, when the checks are collected.
 
     A manifest that cannot be read gives no files here. The checks of the manifest
-    reader, in validation/sources/test_read_manifests.py, report that problem.
+    reader, in validation/sdg/sources/test_read_manifests.py, report that problem.
 
     Returns:
         The recorded paths, as the manifests write them.

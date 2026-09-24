@@ -15,9 +15,9 @@ Inputs:      Nothing real.
 
 Outputs:     Writes nothing to disk.
 
-Usage:       pytest validation/test_console_output.py
+Usage:       pytest validation/sdg/test_console_output.py
                  run these checks
-             pytest validation/test_console_output.py -v
+             pytest validation/sdg/test_console_output.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

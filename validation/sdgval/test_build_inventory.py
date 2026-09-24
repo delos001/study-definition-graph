@@ -224,9 +224,9 @@ def removed_row(check_id: str, **values: str) -> dict[str, str]:
     """
     row = {column: "" for column in script.COLUMNS}
     row.update(
-        folder_path="validation/repo_tools",
+        folder_path="validation/sdgtools",
         file_name="test_alpha.py",
-        target_folder_path="repo_tools",
+        target_folder_path="src/sdgtools",
         target_file_name="alpha.py",
         name="test_gone",
         id=check_id,
@@ -243,9 +243,9 @@ def removed_row(check_id: str, **values: str) -> dict[str, str]:
 
 @pytest.fixture
 def generated(tests_folder, capsys) -> list[dict[str, str]]:
-    """Stage one test file under validation/repo_tools/ with two checks, run the script, and
+    """Stage one test file under validation/sdgtools/ with two checks, run the script, and
     read the inventory it wrote."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     return rows_of(inventory)
 
@@ -254,7 +254,7 @@ def generated(tests_folder, capsys) -> list[dict[str, str]]:
 def written(tests_folder, capsys) -> Path:
     """Stage one test file with two checks, run the script, and hand back the inventory
     it wrote, for a check that then changes the hand-kept columns."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     return inventory
 
@@ -287,12 +287,12 @@ def test_row_holds_the_check_as_written(generated):
 @objective("functionality")
 @positive
 def test_row_names_the_check_file_and_the_target(generated):
-    """A test file under validation/repo_tools/ targets the script of the same name in
-    repo_tools/, and both paths are written as a folder and a file name."""
+    """A test file under validation/sdgtools/ targets the script of the same name in
+    src/sdgtools/, and both paths are written as a folder and a file name."""
     first = generated[0]
-    assert first["folder_path"] == "validation/repo_tools"
+    assert first["folder_path"] == "validation/sdgtools"
     assert first["file_name"] == "test_alpha.py"
-    assert first["target_folder_path"] == "repo_tools"
+    assert first["target_folder_path"] == "src/sdgtools"
     assert first["target_file_name"] == "alpha.py"
 
 
@@ -317,7 +317,7 @@ def test_a_hook_check_targets_the_hook(tests_folder, capsys):
 def test_a_check_that_staged_nothing_has_an_empty_case(tests_folder, capsys):
     """A check carrying no positive or negative marker gets a row with its objective
     and an empty staged case, whatever that objective is."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": COMPLETENESS_CHECK})
+    inventory = tests_folder({"sdgtools/test_alpha.py": COMPLETENESS_CHECK})
     assert run(capsys).exit_code == 0
     row = rows_of(inventory)[0]
     assert row["objective"] == "completeness"
@@ -332,7 +332,7 @@ def test_a_check_with_neither_marker_has_no_case(tests_folder, capsys):
     """A check with neither @positive nor @negative gets a row with an empty staged
     case, because it looked at something real rather than staging a situation."""
     inventory = tests_folder(
-        {"repo_tools/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")}
+        {"sdgtools/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")}
     )
     assert run(capsys).exit_code == 0
     row = next(r for r in rows_of(inventory) if r["id"] == "HRS9002")
@@ -390,16 +390,16 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
             # One file per group, each carrying the prefix its folder really uses,
             # so that the three files hold six ids between them and none repeats.
             "test_conftest.py": TWO_CHECKS.replace("HRS9", "TST9"),
-            "repo_tools/test_alpha.py": TWO_CHECKS,
-            "sources/test_beta.py": TWO_CHECKS.replace("HRS9", "SRC9"),
+            "sdgtools/test_alpha.py": TWO_CHECKS,
+            "sdg/sources/test_beta.py": TWO_CHECKS.replace("HRS9", "SRC9"),
         }
     )
     assert run(capsys).exit_code == 0
     assert [r["folder_path"] for r in rows_of(inventory)] == [
-        "validation/sources",
-        "validation/sources",
-        "validation/repo_tools",
-        "validation/repo_tools",
+        "validation/sdg/sources",
+        "validation/sdg/sources",
+        "validation/sdgtools",
+        "validation/sdgtools",
         "validation",
         "validation",
     ]
@@ -409,15 +409,15 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @positive
-def test_a_top_level_check_file_targets_the_package_file_of_the_same_name(
+def test_a_check_file_in_a_package_subfolder_targets_that_subfolder_under_src(
     tests_folder, capsys
 ):
-    """A test file at the top level of validation/ targets the file of the same name at
-    the top of src/sdg/ when validation/ itself holds no file of that name."""
-    inventory = tests_folder({"test_alpha.py": TWO_CHECKS})
+    """A test file at validation/<package>/<folder>/ targets the file of the same name at
+    src/<package>/<folder>/, so the pipeline's checks mirror src/sdg/ one level down."""
+    inventory = tests_folder({"sdg/sources/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     first = rows_of(inventory)[0]
-    assert first["target_folder_path"] == "src/sdg"
+    assert first["target_folder_path"] == "src/sdg/sources"
     assert first["target_file_name"] == "alpha.py"
 
 
@@ -429,8 +429,7 @@ def test_a_top_level_check_file_targets_the_validation_file_of_the_same_name(
     tests_folder, capsys
 ):
     """A test file at the top level of validation/ targets the file of the same name in
-    validation/ itself when one is there, which is how the checks for conftest.py and
-    select_checks.py find their targets."""
+    validation/ itself, which is how the checks for conftest.py find their target."""
     inventory = tests_folder(
         {
             "test_alpha.py": TWO_CHECKS,
@@ -449,9 +448,9 @@ def test_a_top_level_check_file_targets_the_validation_file_of_the_same_name(
 @positive
 def test_deleted_check_drops_out(tests_folder, capsys):
     """A row whose check no longer exists in any test file is not written again."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.split('@code("HRS9002")')[0]})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.split('@code("HRS9002")')[0]})
     assert run(capsys).exit_code == 0
     assert [r["id"] for r in rows_of(inventory)] == ["HRS9001"]
 
@@ -463,7 +462,7 @@ def test_deleted_check_drops_out(tests_folder, capsys):
 def test_check_passes_when_inventory_is_current(tests_folder, capsys):
     """With the check option, the run exits 0 and writes nothing when the inventory
     on disk equals what would be generated."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     before = inventory.stat().st_mtime_ns
     outcome = run(capsys, "--check")
@@ -479,7 +478,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
 def test_quiet_prints_nothing(tests_folder, capsys):
     """With the quiet option, nothing is printed; the exit code is the whole
     report."""
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--quiet")
     assert outcome.exit_code == 0
     assert outcome.printed == ""
@@ -563,7 +562,7 @@ def test_real_inventory_is_current():
 def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
     """With the check option and no inventory on disk, the run exits 16, names the
     command to run, and writes nothing."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
     assert not inventory.exists()
@@ -577,11 +576,11 @@ def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
 def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     """With the check option and an inventory that no longer matches the checks, the
     run exits 16, names the command to run, and leaves the stale inventory as it was."""
-    inventory = tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
     stale = inventory.read_text(encoding="utf-8")
     tests_folder(
-        {"repo_tools/test_alpha.py": TWO_CHECKS.replace("first thing", "other thing")}
+        {"sdgtools/test_alpha.py": TWO_CHECKS.replace("first thing", "other thing")}
     )
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
@@ -597,12 +596,12 @@ def test_check_without_id_exits_18(tests_folder, capsys):
     """A check with no @code marker makes the run exit 18, naming the file and the
     check, and the inventory is not written."""
     inventory = tests_folder(
-        {"repo_tools/test_alpha.py": TWO_CHECKS.replace('@code("HRS9002")\n', "")}
+        {"sdgtools/test_alpha.py": TWO_CHECKS.replace('@code("HRS9002")\n', "")}
     )
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert not inventory.exists()
-    assert "validation/repo_tools/test_alpha.py: test_second has no @code marker" in (
+    assert "validation/sdgtools/test_alpha.py: test_second has no @code marker" in (
         outcome.printed
     )
 
@@ -616,7 +615,7 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
     the check, and the inventory is not written."""
     inventory = tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '@category("repository")\n@objective("conformance")\n',
                 '@category("repository")\n',
             )
@@ -637,7 +636,7 @@ def test_check_without_category_exits_18(tests_folder, capsys):
     the check, and the inventory is not written."""
     inventory = tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '@code("HRS9002")\n@category("repository")\n', '@code("HRS9002")\n'
             )
         }
@@ -657,7 +656,7 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
     message quotes the value and lists the categories."""
     tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '@code("HRS9002")\n@category("repository")',
                 '@code("HRS9002")\n@category("machinery")',
             )
@@ -680,7 +679,7 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
     the message quotes the value and lists the objectives."""
     tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '@code("HRS9002")\n@category("repository")\n@objective("conformance")',
                 '@code("HRS9002")\n@category("repository")\n@objective("behaviour")',
             )
@@ -704,7 +703,7 @@ def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
     rather than what question the check asks."""
     inventory = tests_folder(
         {
-            "repo_tools/test_alpha.py": COMPLETENESS_CHECK.replace(
+            "sdgtools/test_alpha.py": COMPLETENESS_CHECK.replace(
                 '@objective("completeness")\n',
                 '@objective("completeness")\n@positive\n',
             ).replace(
@@ -732,7 +731,7 @@ def test_a_first_sentence_starting_with_a_refused_character_exits_18(
     start with a letter or a digit."""
     inventory = tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '"""The wrong thing', f'"""{start}The wrong thing'
             )
         }
@@ -757,7 +756,7 @@ def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, caps
     for whitespace, and one would never fire."""
     inventory = tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '"""The wrong thing', '"""\t\nThe wrong thing'
             )
         }
@@ -774,7 +773,7 @@ def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, caps
 def test_duplicate_id_exits_18(tests_folder, capsys):
     """Two checks carrying the same id make the run exit 18, and the message names
     both checks."""
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.replace("HRS9002", "HRS9001")})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("HRS9002", "HRS9001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert "HRS9001 is carried by both test_first and test_second" in outcome.printed
@@ -787,11 +786,11 @@ def test_duplicate_id_exits_18(tests_folder, capsys):
 def test_an_id_of_the_wrong_shape_exits_18(tests_folder, capsys):
     """An id that is not three capital letters and four digits makes the run exit 18,
     and the message names the check and says what an id looks like."""
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.replace("HRS9001", "hrs9001")})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("HRS9001", "hrs9001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert (
-        "validation/repo_tools/test_alpha.py: test_first has the id 'hrs9001', which "
+        "validation/sdgtools/test_alpha.py: test_first has the id 'hrs9001', which "
         "is not three capital letters and four digits" in outcome.printed
     )
 
@@ -804,11 +803,11 @@ def test_an_unregistered_id_prefix_exits_18(tests_folder, capsys):
     """An id whose three letters are not one of the registered prefixes makes the run
     exit 18, and the message names the prefix and lists the ones that are
     registered."""
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS.replace("HRS9001", "ZZZ9001")})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("HRS9001", "ZZZ9001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert (
-        "validation/repo_tools/test_alpha.py: test_first has the id ZZZ9001, and ZZZ "
+        "validation/sdgtools/test_alpha.py: test_first has the id ZZZ9001, and ZZZ "
         "is not one of the prefixes" in outcome.printed
     )
     assert ", ".join(script.ID_PREFIXES) in outcome.printed
@@ -821,10 +820,10 @@ def test_an_unregistered_id_prefix_exits_18(tests_folder, capsys):
 def test_unparseable_file_exits_19(tests_folder, capsys):
     """A test file that is not valid Python makes the run exit 19, and the message
     names it."""
-    tests_folder({"repo_tools/test_alpha.py": "def broken(:\n"})
+    tests_folder({"sdgtools/test_alpha.py": "def broken(:\n"})
     outcome = run(capsys)
     assert outcome.exit_code == 19
-    assert "validation/repo_tools/test_alpha.py: cannot parse" in outcome.printed
+    assert "validation/sdgtools/test_alpha.py: cannot parse" in outcome.printed
 
 
 @code("HRS0067")
@@ -978,7 +977,7 @@ def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
 def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
     """With the check-status option and no inventory on disk, the run exits 16 and
     names the command that writes one."""
-    tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 16
     assert "is missing. Run: build_inventory" in outcome.printed
@@ -994,7 +993,7 @@ def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, ca
     with_hand_kept(written, "HRS9001", status="archived")
     tests_folder(
         {
-            "repo_tools/test_alpha.py": TWO_CHECKS.replace(
+            "sdgtools/test_alpha.py": TWO_CHECKS.replace(
                 '@category("repository")\n@objective("conformance")\n',
                 '@category("repository")\n',
             )

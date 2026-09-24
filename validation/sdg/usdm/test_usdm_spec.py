@@ -30,9 +30,9 @@ Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              conftest.py writes validation/reports/ records when asked.
 
-Usage:       pytest validation/usdm/test_usdm_spec.py
+Usage:       pytest validation/sdg/usdm/test_usdm_spec.py
                  run these checks
-             pytest validation/usdm/test_usdm_spec.py -v
+             pytest validation/sdg/usdm/test_usdm_spec.py -v
                  one line per check with its result
              pytest --validation-report
                  also write the validation record (see conftest.py)
@@ -52,7 +52,7 @@ import yaml
 
 from sdg.usdm import usdm_spec
 
-FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "usdm_three_classes.yml"
+FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "usdm_three_classes.yml"
 FIXTURE_CLASSES = ("Condition", "Identifier", "StudyIdentifier")
 
 # The real-file checks read the pinned model file. validation/conftest.py skips them
@@ -359,7 +359,7 @@ def test_inherited_from_without_ref_is_named(variant):
 ### Refusing a file that cannot be trusted (exits 9 and 10) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
-# validation/sources/test_verify_pinned.py. These prove the module is wired to it: a
+# validation/sdg/sources/test_verify_pinned.py. These prove the module is wired to it: a
 # file no manifest records, and a file
 # whose fingerprint differs, are refused through load() with the same messages.
 

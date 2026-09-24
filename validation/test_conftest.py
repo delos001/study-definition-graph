@@ -594,7 +594,7 @@ def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passin
     a gap rather than as a target."""
     _, rows = passing
     row = row_for(rows, "test_adds")
-    assert row["target_folder_path"] == "src/sdg"
+    assert row["target_folder_path"] == "validation"
     assert row["target_file_name"] == "suite.py (not found at run time)"
 
 

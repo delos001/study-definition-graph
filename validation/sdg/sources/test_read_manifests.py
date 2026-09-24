@@ -16,9 +16,9 @@ Inputs:      manifests/*.json   (read-only; the checks against the real repo)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sources/test_read_manifests.py
+Usage:       pytest validation/sdg/sources/test_read_manifests.py
                  run these checks
-             pytest validation/sources/test_read_manifests.py -v
+             pytest validation/sdg/sources/test_read_manifests.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

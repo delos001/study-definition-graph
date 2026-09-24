@@ -15,9 +15,9 @@ Inputs:      none from the repo
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sources/test_fetch_file.py
+Usage:       pytest validation/sdg/sources/test_fetch_file.py
                  run these checks
-             pytest validation/sources/test_fetch_file.py -v
+             pytest validation/sdg/sources/test_fetch_file.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

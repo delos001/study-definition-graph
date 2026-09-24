@@ -14,9 +14,9 @@ Inputs:      Nothing real. Every workbook is written to pytest's own temporary
 
 Outputs:     Writes nothing to disk outside pytest's own folder.
 
-Usage:       pytest validation/view/test_read_xlsx.py
+Usage:       pytest validation/sdg/view/test_read_xlsx.py
                  run these checks
-             pytest validation/view/test_read_xlsx.py -v
+             pytest validation/sdg/view/test_read_xlsx.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

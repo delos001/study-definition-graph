@@ -486,7 +486,7 @@ def pytest_configure(config):
 # runs, every file that matches is looked at, and the check is skipped with the
 # reason when one is not downloaded or no longer matches its manifest entry. A
 # skipped check is recorded as skipped in a report, with that reason. The stability
-# check for each pinned file, in validation/sources/test_verify_pinned.py, is the only
+# check for each pinned file, in validation/sdg/sources/test_verify_pinned.py, is the only
 # check that fails for a changed file, so the change is reported once. A marker that
 # names a file no manifest records is a mistake in the check, so that check errors
 # rather than skips, and the run fails.
