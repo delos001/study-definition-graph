@@ -1,20 +1,20 @@
 """
 Script:      test_build_index.py
-Description: Automated checks for repo_tools/build_index.py, which generates
-             repo_tools/README.md from each script's header block and, under
+Description: Automated checks for src/sdgtools/build_index.py, which generates
+             src/sdgtools/README.md from each script's header block and, under
              --check, is the pre-commit hook that blocks a commit whose index
              is stale. Each check writes one or two small scripts to a
              temporary folder, points the generator at it, and asserts what it
              writes or which exit code it returns. One check runs --check on
-             the real repo_tools/ folder, the same check the pre-commit hook, .githooks/pre-commit, runs.
+             the real src/sdgtools/ folder, the same check the pre-commit hook, .githooks/pre-commit, runs.
 
-Inputs:      repo_tools/*.py and repo_tools/README.md  (read-only; the one real-folder check)
+Inputs:      src/sdgtools/*.py and src/sdgtools/README.md  (read-only; the one real-folder check)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/repo_tools/test_build_index.py
+Usage:       pytest validation/sdgtools/test_build_index.py
                  run these checks
-             pytest validation/repo_tools/test_build_index.py -v
+             pytest validation/sdgtools/test_build_index.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import pytest
 
-import build_index as bi
+from sdgtools import build_index as bi
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -125,7 +125,7 @@ def written(folder, capsys):
 @objective("functionality")
 @positive
 def test_writes_the_entry_from_the_header(written):
-    """repo_tools/README.md holds each script's name, the first paragraph of its Description
+    """src/sdgtools/README.md holds each script's name, the first paragraph of its Description
     joined to one line, and its Usage block with the relative indentation kept."""
     _, text, _ = written
     assert EXPECTED_ENTRY in text
@@ -136,7 +136,7 @@ def test_writes_the_entry_from_the_header(written):
 @objective("functionality")
 @positive
 def test_the_second_paragraph_is_left_out(written):
-    """Only the first paragraph of a Description reaches repo_tools/README.md; the rest stays in
+    """Only the first paragraph of a Description reaches src/sdgtools/README.md; the rest stays in
     the header."""
     _, text, _ = written
     assert "second paragraph" not in text
@@ -147,10 +147,10 @@ def test_the_second_paragraph_is_left_out(written):
 @objective("functionality")
 @positive
 def test_the_index_opens_with_the_title_and_the_notice(written):
-    """repo_tools/README.md opens with its title and the notice saying it is generated, so
+    """src/sdgtools/README.md opens with its title and the notice saying it is generated, so
     nobody edits it by hand."""
     _, text, _ = written
-    assert text.startswith("# repo_tools/\n\n" + bi.GENERATED_NOTICE)
+    assert text.startswith("# src/sdgtools/\n\n" + bi.GENERATED_NOTICE)
 
 
 @code("HRS0136")
@@ -158,7 +158,7 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
 @objective("functionality")
 @positive
 def test_the_index_ends_with_one_newline(written):
-    """repo_tools/README.md ends with exactly one newline, so a regenerated file compares equal
+    """src/sdgtools/README.md ends with exactly one newline, so a regenerated file compares equal
     to itself and --check does not fail on whitespace."""
     _, text, _ = written
     assert text.endswith("```\n") and not text.endswith("\n\n")
@@ -169,7 +169,7 @@ def test_the_index_ends_with_one_newline(written):
 @objective("functionality")
 @positive
 def test_the_index_is_written_with_lf_line_endings(folder):
-    """repo_tools/README.md is written with a bare line feed (LF) ending each line
+    """src/sdgtools/README.md is written with a bare line feed (LF) ending each line
     whatever machine regenerates it, so the file does not flip endings between one
     run and the next.
 
@@ -185,11 +185,11 @@ def test_the_index_is_written_with_lf_line_endings(folder):
 @objective("functionality")
 @positive
 def test_writing_reports_the_file_and_the_count(written):
-    """A run that writes repo_tools/README.md exits 0 and says which file it wrote and how many
+    """A run that writes src/sdgtools/README.md exits 0 and says which file it wrote and how many
     scripts it holds."""
     exit_code, _, printed = written
     assert exit_code == 0
-    assert "repo_tools/README.md written, 1 script(s)" in printed
+    assert "src/sdgtools/README.md written, 1 script(s)" in printed
 
 
 @code("HRS0002")
@@ -198,7 +198,7 @@ def test_writing_reports_the_file_and_the_count(written):
 @positive
 def test_scripts_are_listed_in_name_order(folder):
     """Two scripts appear in alphabetical order whatever order they were
-    written, so repo_tools/README.md is stable between runs."""
+    written, so src/sdgtools/README.md is stable between runs."""
     scripts = folder(
         {"zeta.py": GOOD_HEADER.replace("alpha", "zeta"), "alpha.py": GOOD_HEADER}
     )
@@ -216,7 +216,7 @@ def test_scripts_are_listed_in_name_order(folder):
 @objective("functionality")
 @positive
 def test_check_passes_when_index_is_current(folder, capsys):
-    """With the check option, the run exits 0 and writes nothing when repo_tools/README.md
+    """With the check option, the run exits 0 and writes nothing when src/sdgtools/README.md
     on disk equals what would be generated."""
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main([]) == 0
@@ -236,7 +236,7 @@ def test_check_fails_when_index_is_missing(folder, capsys):
     scripts = folder({"alpha.py": GOOD_HEADER})
     assert bi.main(["--check"]) == 15
     assert not (scripts / "README.md").exists()
-    assert "stale. Run: python repo_tools/build_index.py" in capsys.readouterr().out
+    assert "stale. Run: build_index" in capsys.readouterr().out
 
 
 @code("HRS0132")
@@ -255,7 +255,7 @@ def test_check_fails_when_index_is_stale(folder, capsys):
     capsys.readouterr()
     assert bi.main(["--check"]) == 15
     assert (scripts / "README.md").read_text(encoding="utf-8") == stale
-    assert "stale. Run: python repo_tools/build_index.py" in capsys.readouterr().out
+    assert "stale. Run: build_index" in capsys.readouterr().out
 
 
 @code("HRS0005")
@@ -280,7 +280,7 @@ def test_quiet_prints_nothing(folder, capsys):
 @negative
 def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
     """A header missing required fields exits 17, naming the script and every
-    missing field, and repo_tools/README.md is not written."""
+    missing field, and src/sdgtools/README.md is not written."""
     scripts = folder(
         {
             "alpha.py": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace(
@@ -333,13 +333,13 @@ def test_no_scripts_exits_20(folder, capsys):
 
 
 #######################################################################################
-### The real repo_tools/ folder ###
+### The real src/sdgtools/ folder ###
 
 
 @code("HRS0010")
 @category("repository")
 @objective("correctness")
 def test_real_index_is_current():
-    """repo_tools/README.md matches the headers of the real scripts, which is the
+    """src/sdgtools/README.md matches the headers of the real scripts, which is the
     check the pre-commit hook runs."""
     assert bi.main(["--check", "--quiet"]) == 0

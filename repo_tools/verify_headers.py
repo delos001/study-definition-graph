@@ -69,10 +69,9 @@ import re
 import sys
 from pathlib import Path
 
-# The parser and the field list live in build_index.py, which sits in this same
-# folder. Python puts a running script's own folder first on its search path,
-# so the plain import resolves without the sdg package being installed.
-from build_index import FIELD_RE, REQUIRED_FIELDS, parse_header
+# The parser and the field list live in build_index.py, in the sdgtools package,
+# so the two tools read a header the same way.
+from sdgtools.build_index import FIELD_RE, REQUIRED_FIELDS, parse_header
 
 #######################################################################################
 ### Settings ###

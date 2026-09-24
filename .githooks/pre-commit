@@ -14,12 +14,11 @@
 
 set -e
 
-# repo_tools/README.md is generated from each script's header block. A commit that
-# edits a header without regenerating ships an index that disagrees with the
+# src/sdgtools/README.md is generated from each repo tool's header block. A commit
+# that edits a header without regenerating ships an index that disagrees with the
 # scripts it describes, which is the exact drift the generator exists to stop.
-# It uses only the standard library, so plain `python` is enough.
-python repo_tools/build_index.py --check || {
-  echo "pre-commit: run 'python repo_tools/build_index.py' and stage repo_tools/README.md"
+build_index --check || {
+  echo "pre-commit: run 'build_index' and stage src/sdgtools/README.md"
   exit 1
 }
 

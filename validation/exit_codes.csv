@@ -14,7 +14,7 @@ code,cause
 12,a downloaded file does not match its manifest entry
 13,a file on disk cannot be read
 14,a stated figure has drifted from the pinned files
-15,repo_tools/README.md is stale or missing
+15,src/sdgtools/README.md is stale or missing
 16,the validation inventory is stale or missing
 17,"a header block is missing, incomplete, out of order, or has a bad Date"
 18,"a check's markers, id or first sentence are missing or wrong, or its id is a duplicate"
