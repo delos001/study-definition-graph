@@ -166,7 +166,7 @@ CASES = ("positive", "negative")
 # unique key: where a check lives and what it covers are columns of their own, so
 # the id says nothing about either and never has to change when they do. Every check
 # in validation/ is in suite A. A separate suite of checks, if one is ever needed,
-# is added here as SB. validation/validation_inventory_dictionary.md describes them
+# is added here as SB. validation/README.md describes them
 # for a reader.
 SUITES = {
     "SA": "suite A, every check under validation/",
@@ -175,7 +175,7 @@ SUITES = {
 # An id is S, the suite's letter and five digits, such as SA00042.
 ID_SHAPE = re.compile(r"S[A-Z][0-9]{5}")
 
-# Where a check stands. validation/README.md says what each one means.
+# Where a check stands. validation/validation_inventory_dictionary.md says what each one means.
 STATUSES = ("pending", "active", "inactive", "superseded", "retired")
 
 # The statuses that need a reason written down, because each leaves something
