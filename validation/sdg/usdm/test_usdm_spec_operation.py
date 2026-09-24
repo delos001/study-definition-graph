@@ -350,9 +350,9 @@ def test_inherited_from_without_ref_is_named(variant):
 ### Refusing a file that cannot be trusted (exits 9 and 10) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
-# validation/sdg/sources/test_verify_pinned.py. These prove the module is wired to it: a
-# file no manifest records, and a file
-# whose fingerprint differs, are refused through load() with the same messages.
+# validation/sdg/sources/test_verify_pinned_operation.py. These prove the module is
+# wired to it: a file no manifest records, and a file whose fingerprint differs, are
+# refused through load() with the same messages.
 
 
 @code("SA00138")

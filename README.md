@@ -41,7 +41,7 @@ The build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 | --- | --- |
 | Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
 | Every map and inventory the project keeps | [docs/README.md](docs/README.md) |
-| What each repo tool does, and how to run it | [repo_tools/README.md](repo_tools/README.md) |
+| What each repo tool does, and how to run it | [src/sdgtools/README.md](src/sdgtools/README.md) |
 | Which fields the project adds to USDM, and why | [local_definitions/README.md](local_definitions/README.md) |
 | Which codes identify clients, therapeutic areas and document types | [registries/README.md](registries/README.md) |
 
@@ -88,9 +88,9 @@ docker compose up -d
 #    Leave CDISC_API_KEY blank because it is optional and a non-member key grants nothing.
 Copy-Item .env.example .env
 
-# 8. Verify the key reaches the Claude API. Running the script below sends one small
+# 8. Verify the key reaches the Claude API. Running the command below sends one small
 #    message via the API. It needs a working network and costs a fraction of a cent.
-python repo_tools/check_api_key.py
+check_api_key
 
 # 9. Acquire pinned sources. Everything under inputs/ is gitignored, so a fresh clone
 #    has none of it. Every pinned file is recorded in manifests/ with its URL and sha256.
@@ -123,12 +123,12 @@ Each command should exit 0:
 acquire_sources --dry-run
 
 # Confirms nothing exists in inputs/ that a manifest does not record.
-python repo_tools/find_unrecorded_files.py
+find_unrecorded_files
 
 # Recomputes every figure the project's documents state, such as a class count, from
 # the pinned files under inputs/, and reports any figure that no longer agrees. The
 # documents it reads are listed in the script.
-python repo_tools/check_facts.py
+check_facts
 
 # Confirms the pinned USDM model file inputs/standards/cdisc/usdm_v4/dataStructure.yml
 # loads and has the correct shape. It prints the class names it found, and on any
@@ -137,7 +137,7 @@ usdm_spec --list-classes
 
 # Confirms the Neo4j database is running, accepts the login in .env, and is the version
 # pinned in docker-compose.yml. Needs Docker running with the container up (step 6).
-python repo_tools/check_neo4j.py
+check_neo4j
 
 # Runs the automated checks in validation/; validation/README.md explains them.
 pytest
@@ -186,7 +186,7 @@ study-definition-graph/
     processed/             #   finished pipeline output
   eval/                    # expected results the pipeline is scored against
   prompts/                 # prompts sent to the model (e.g. classification and extraction)
-  src/                     # Python source
+  src/                     # Python source, one installed package per job
     sdg/                   #   pipeline package, one folder per group of work
       classify/            #     decide a document's type and what each section is about
       extract/             #     turn classified content into USDM structures
@@ -195,13 +195,14 @@ study-definition-graph/
       sources/             #     fetch the pinned files and check them
       usdm/                #     read the USDM standard
       view/                #     print part of a pinned document or workbook
-  repo_tools/              # tools that keep this repo in order
-  validation/              # checks that prove the code works
+    sdgtools/              #   repo tools, the commands that keep this repo in order
+    sdgval/                #   validation package, the plugins that run the checks
+  validation/              # checks that prove the code works, mirroring src/
     claude_hooks/          #   validation for the hooks in .claude/hooks/
     fixtures/              #   small stand-ins for the pinned files, read by staged checks
     reports/               #   results of a full validation run, archived
-    repo_tools/            #   validation for the tools in repo_tools/
-    sources/               #   validation for src/sdg/sources/
-    usdm/                  #   validation for src/sdg/usdm/
-    view/                  #   validation for src/sdg/view/
+    sdg/                   #   validation for src/sdg/, one folder per group of work
+    sdgtools/              #   validation for src/sdgtools/
+    sdgval/                #   validation for src/sdgval/
+    shared/                #   code the checks share, one file per job
 ```

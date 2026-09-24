@@ -78,8 +78,8 @@ Three things govern it.
 | --- | --- |
 | Everything | `pytest` |
 | Everything, with each check named | `pytest -v` |
-| One file's checks | `pytest validation/sources/test_fetch_file.py` |
-| One folder's checks | `pytest validation/repo_tools` |
+| One file's checks | `pytest validation/sdg/sources/test_fetch_file_operation.py` |
+| One folder's checks | `pytest validation/sdgtools` |
 | Every check whose name mentions manifests | `pytest -k manifest` |
 | Every check on the repository's own machinery | `pytest --category repository` |
 | Every check asking an integrity question | `pytest --aspect integrity` |

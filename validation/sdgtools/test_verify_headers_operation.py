@@ -8,8 +8,8 @@ Description: Checks for src/sdgtools/verify_headers.py, the hand-run script the
              line the header promises. One check runs the script over the four
              real code folders, the same run the pre-commit hook, .githooks/pre-commit, makes.
 
-Inputs:      src/sdg/**/*.py, repo_tools/*.py, validation/**/*.py and
-             .claude/hooks/*.py  (read-only; the one real-folder check)
+Inputs:      src/**/*.py, validation/**/*.py and .claude/hooks/*.py  (read-only;
+             the one real-folder check)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 

@@ -39,7 +39,7 @@ No pipeline work; the point is to stand up the tools and pin the sources, and to
   - USDM v4.0 artifacts pinned to `inputs/standards/cdisc/usdm_v4/` with the commit recorded,
   - loader that lists USDM classes and their fields from the pinned spec.
 - **Verification:**
-  - `python repo_tools/check_neo4j.py` exits 0, proving the database answers, accepts the login and is the pinned version,
+  - `check_neo4j` exits 0, proving the database answers, accepts the login and is the pinned version,
   - `usdm_spec --list-classes` prints class names read from the pinned file.
 
 ### Phase 1: Acquire documents and locate their content

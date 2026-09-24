@@ -94,8 +94,8 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 
 - Never read a pinned PDF whole, because they can be very long. Take a section, a page range, or a search term.
 - `acquire_sources` fetches what is missing and checks what is present against its manifest entry.
-- `python repo_tools/find_unrecorded_files.py` lists files under `inputs/` that no manifest records.
-- Any count written into a document must be recomputable. Add a measurement for it to `repo_tools/check_facts.py`, which re-derives every stated figure from the pinned files. Run `repo_tools/check_facts.py` after adding or changing a pinned file.
+- `find_unrecorded_files` lists files under `inputs/` that no manifest records.
+- Any count written into a document must be recomputable. Add a measurement for it to `src/sdgtools/check_facts.py`, which re-derives every stated figure from the pinned files. Run `check_facts` after adding or changing a pinned file.
 
 ## Pipeline
 
@@ -106,4 +106,4 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 
 ## Python files
 
-Code is split by who runs it: `src/sdg/` is the pipeline, `repo_tools/` is hand-run repo maintenance tools, `validation/` contains automated checks, and `.claude/hooks/` holds the hooks that run around Claude Code's own tool calls. Every Python file follows the rule in `.claude/rules/writing_python_files.md`. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.
+Code is split into installed packages by job: `src/sdg/` is the pipeline, `src/sdgtools/` holds the repo tools, run as commands by a person or the pre-commit hook, and `src/sdgval/` is the validation package that runs the checks. `validation/` holds the checks themselves, and `.claude/hooks/` holds the hooks that run around Claude Code's own tool calls. Every Python file follows the rule in `.claude/rules/writing_python_files.md`. Read that rule before creating or changing any Python file. It loads on its own when a file under those folders is opened, but a new file matches no path until it exists, so read it deliberately before writing one.

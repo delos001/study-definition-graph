@@ -1,6 +1,6 @@
 # Validation inventory dictionary
 
-Defines every column of `validation_inventory.csv` and every value a coded column may hold. The inventory is written by `python repo_tools/build_inventory.py`. The generator overwrites every column it reads on each run and carries the typed columns over unchanged. A generated value is changed at its source, then the inventory is regenerated.
+Defines every column of `validation_inventory.csv` and every value a coded column may hold. The inventory is written by the `build_inventory` command. The generator overwrites every column it reads on each run and carries the typed columns over unchanged. A generated value is changed at its source, then the inventory is regenerated.
 
 Every row is one check. A column about the check itself has a bare name. The two columns about the file the check covers carry the prefix `target_`.
 
@@ -48,7 +48,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
-- Read by the generator from the test file's path, by the rule in `code_folder_and_target()` in `repo_tools/build_inventory.py`.
+- Read by the generator from the test file's path, by the rule in `code_folder_and_target()` in `src/sdgval/build_inventory.py`.
 - Holds a folder in the repo.
 
 ### `target_file_name`
@@ -59,7 +59,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 ### `expected_result`
 - States what must be true for the check to pass.
 - Read by the generator from the first paragraph of the check's docstring.
-- Starts with a letter or a digit, never with `=`, `+`, `-` or `@`, which `repo_tools/build_inventory.py` refuses because a spreadsheet reads a cell opening with one of them as a formula. Whitespace at the front of a docstring is not refused, because the generator strips it before it looks at the sentence.
+- Starts with a letter or a digit, never with `=`, `+`, `-` or `@`, which `src/sdgval/build_inventory.py` refuses because a spreadsheet reads a cell opening with one of them as a formula. Whitespace at the front of a docstring is not refused, because the generator strips it before it looks at the sentence.
 
 ### `version`
 - Numbers the check's version.

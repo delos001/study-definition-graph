@@ -49,7 +49,8 @@ def pinned_locals() -> list[str]:
     """List every file the real manifests record, when the checks are collected.
 
     A manifest that cannot be read gives no files here. The checks of the manifest
-    reader, in validation/sdg/sources/test_read_manifests.py, report that problem.
+    reader, in validation/sdg/sources/test_read_manifests_operation.py, report that
+    problem.
 
     Returns:
         The recorded paths, as the manifests write them.

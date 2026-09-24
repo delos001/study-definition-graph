@@ -49,7 +49,7 @@ from pathlib import Path
 #######################################################################################
 ### What counts as pinned ###
 
-# The one folder that holds pinned files. repo_tools/find_unrecorded_files.py
+# The one folder that holds pinned files. src/sdgtools/find_unrecorded_files.py
 # walks the same folder; the two agree because there is only one name.
 PINNED_FOLDER = "inputs"
 

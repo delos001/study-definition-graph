@@ -6,9 +6,7 @@ A git hook runs when git does something and it runs for anyone who commits from 
 
 It is enabled once per clone with `git config core.hooksPath .githooks`, which the setup section of the root `README.md` includes. Claude Code hooks, which run around Claude's own tool calls, are a different thing and live in `.claude/`.
 
-- The header, index and inventory checks, `repo_tools/verify_headers.py`, `repo_tools/build_index.py` and `repo_tools/build_inventory.py`, use only the standard library, so they run from any terminal.
-
-- The ruff and mypy check, `repo_tools/check_python_files.py`, needs the `sdg` environment. It finds the tools on the path when that environment is active and runs them through `conda run` when it is not, which is slower but needs no set-up.
+Each check is a repo tool, an installed command of the `sdg` environment. When that environment is active, the command is on the path and runs directly. When it is not, the hook runs it through `conda run -n sdg`, which is slower but needs no set-up, so a commit works from any terminal.
 
 ## Hooks in use
 
@@ -18,9 +16,9 @@ It is enabled once per clone with `git config core.hooksPath .githooks`, which t
 
 | Check inside `pre-commit` | What it does |
 | --- | --- |
-| `python repo_tools/build_index.py --check` | Refuses the commit if `repo_tools/README.md` is out of date with the header blocks it is generated from. |
-| `python repo_tools/verify_headers.py` | Refuses the commit if any Python file under `src/sdg/`, `repo_tools/`, `validation/` or `.claude/hooks/` <br> - lacks the full header block, <br> - has its fields out of order, <br> - has a Date that is not a plain calendar date, or <br> - lists exit codes that disagree with `validation/exit_codes.csv` or with its own `main()`. |
-| `python repo_tools/build_inventory.py --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the check files under `validation/` it is generated from. |
-| `python repo_tools/check_python_files.py --quiet` | Refuses the commit if any Python file fails `ruff format --check`, `ruff check` or `mypy`, all configured in `pyproject.toml`. Each tool prints its own report, so the refusal names the file and the line. |
+| `build_index --check` | Refuses the commit if `src/sdgtools/README.md` is out of date with the header blocks it is generated from. |
+| `verify_headers` | Refuses the commit if any Python file under `src/`, `validation/` or `.claude/hooks/` <br> - lacks the full header block, <br> - has its fields out of order, <br> - has a Date that is not a plain calendar date, or <br> - lists exit codes that disagree with `validation/exit_codes.csv` or with its own `main()`. |
+| `build_inventory --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the check files under `validation/` it is generated from. |
+| `check_python_files --quiet` | Refuses the commit if any Python file fails `ruff format --check`, `ruff check` or `mypy`, all configured in `pyproject.toml`. Each tool prints its own report, so the refusal names the file and the line. |
 
-To add a check, put it in `repo_tools/` with a header block, call it from `pre-commit`, and add a row here.
+To add a check, put it in `src/sdgtools/` with a header block, install it as a command in `pyproject.toml`, call it from `pre-commit` through `run_tool`, and add a row here.
