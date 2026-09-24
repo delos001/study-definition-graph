@@ -614,3 +614,21 @@ Moving the report writer out of `validation/conftest.py` required deciding how i
 - The machinery finds `validation/` from pytest's root folder, the way `select_checks.py` already finds the groups file, because it no longer sits beside it. Counting up from its own file was rejected, because a staged suite in a temporary folder would then find the real repo rather than its own. The report's checks stage a small `validation/` folder of their own for that reason.
 - A test file holds checks of one aspect only, and its name ends with that aspect, as in `test_build_index_operation.py` and `test_build_index_integrity.py`. Every test file carries the suffix, including those of operation, so no location has a default aspect. The rule that works out which file a test covers strips the suffix, reading the aspect names from the vocabulary rather than a list of its own. The generator refuses a test file with no aspect suffix, or a check whose aspect does not match it. The `test_` prefix stays, because it is what pytest collects by default and dropping it would need a pattern per aspect in `pyproject.toml`, a second list of aspect names.
 - Putting the aspect in a top folder, as `validation/integrity/`, was considered and rejected. It would scatter one script's checks across three trees, and `--aspect` already selects by aspect. A test file's path is not a permanent key, since a report records the path as it was at run time and joins to the inventory on the id, so renaming an aspect later costs file renames and the three header lines in each, not history. Documents give examples from files that are not split, to keep that cost down.
+
+## Code the checks share lives in validation/shared, one file per job, decided 2026-09-24
+
+Splitting test files by aspect separated some checks from setup they shared with the checks that stayed behind. In six of the eleven files that split, the checks that moved used constants, small classes or fixtures defined in the file they left. The setup had to move somewhere both halves could reach. pytest's documentation says a fixture shared between test files belongs in a `conftest.py`, so that part is **guided**. Where the plain shared code lives is **unguided**.
+
+- Plain shared code lives in `validation/shared/`, one file per job, each named for what it does: `staged_manifests.py`, `staged_downloads.py`, `fake_server.py` and `usdm_model.py`. A check imports what it uses, and is otherwise unchanged.
+- Shared fixtures live in `validation/conftest.py`, which reaches every check, and import from `validation/shared/`. pytest finds a fixture only in a conftest, a plugin or the test file that uses it, so a fixture cannot live in `validation/shared/`.
+- A new file in `validation/shared/` appears when a new kind of setup does, not when a new script does, because the files are organised by what the code does rather than by which checks use it.
+- The folder is `shared/` rather than `staging/`, because not everything checks share stages a made-up situation. `real_manifests` reads the repo's real manifests.
+- Grouping by job showed that two fixtures were the same one under two names, staging one recorded file in a fake repo. They became one fixture, `recorded_file`.
+
+Three other arrangements were weighed and rejected.
+
+- Copying the shared code into both halves would leave two copies to drift apart.
+- One fixture per script in a conftest per folder was built for one file and rejected on reading. Every use of a shared name gained a prefix, as `fingerprint_file_staging.CONTENT`, which would have meant 189 rewrites, and three names clashed within one folder.
+- One helper file per script under test would organise shared code by who uses it, so the count would grow with every script.
+
+A test file named without its aspect, or holding a check of another aspect, is refused by `src/sdgval/build_inventory.py` with exit code 47. It is a cause of its own, rather than part of 18, because its fix is to rename the file or move the check, not to correct a label.
