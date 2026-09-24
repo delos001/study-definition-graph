@@ -1,5 +1,5 @@
 """
-Script:      test_fetch_file.py
+Script:      test_fetch_file_operation.py
 Description: Automated checks for src/sdg/sources/fetch_file.py, the step that
              downloads one file from one url to a temporary .part name. Each
              check proves one promise from that module's header: one fact about
@@ -15,9 +15,9 @@ Inputs:      none from the repo
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_fetch_file.py
+Usage:       pytest validation/sdg/sources/test_fetch_file_operation.py
                  run these checks
-             pytest validation/sdg/sources/test_fetch_file.py -v
+             pytest validation/sdg/sources/test_fetch_file_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -28,12 +28,12 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
-import contextlib
 from dataclasses import dataclass
 from pathlib import Path
 
 import httpx
 import pytest
+from validation.shared.fake_server import CHUNKS, URL, FakeResponse
 
 from sdg.sources import fetch_file
 from sdg.sources.fetch_file import FetchError, fetch, partial_path
@@ -50,14 +50,6 @@ objective = pytest.mark.objective
 # of the categories validation/validation_inventory_dictionary.md defines.
 category = pytest.mark.category
 
-# The url every check downloads from. Nothing is at it; the fake server below
-# answers in its place.
-URL = "https://example.invalid/file.pdf"
-
-# The bytes the fake server sends, in two pieces, so a check can see that the
-# pieces are joined in order and that a break between them is handled.
-CHUNKS = (b"first part, ", b"second part\n")
-
 
 #######################################################################################
 ### The fake server ###
@@ -68,47 +60,6 @@ CHUNKS = (b"first part, ", b"second part\n")
 # for that call. Each check tells it how to behave: serve these chunks, answer
 # with an error, or break after so many chunks. It also records what fetch()
 # asked for, so a check can look at the request.
-
-
-class FakeResponse:
-    """Stands in for the response that httpx.stream yields."""
-
-    def __init__(self, chunks, status_error=None, break_after=None):
-        """Keep the chunks to serve, the status error to raise if any, and the chunk index
-        at which to break if any.
-
-        Args:
-            chunks: The pieces of the body, served one at a time.
-            status_error: The error to raise for an error status, or None for a good
-                status.
-            break_after: The number of chunks to serve before the connection breaks, or
-                None to serve them all.
-        """
-        self.chunks = chunks
-        self.status_error = status_error
-        self.break_after = break_after
-
-    def raise_for_status(self):
-        """Raise the staged status error, if there is one, the way httpx does when a server
-        answers with an error status.
-        """
-        if self.status_error is not None:
-            raise self.status_error
-
-    def iter_bytes(self):
-        """Hand out the chunks one at a time, and break part way through when the check
-        staged that.
-
-        Yields:
-            The body, one chunk at a time.
-
-        Raises:
-            httpx.ReadError: The staged break point was reached.
-        """
-        for index, chunk in enumerate(self.chunks):
-            if self.break_after is not None and index == self.break_after:
-                raise httpx.ReadError("connection reset by peer")
-            yield chunk
 
 
 def error_status() -> httpx.HTTPStatusError:
@@ -124,42 +75,6 @@ def error_status() -> httpx.HTTPStatusError:
     )
 
 
-@pytest.fixture
-def server(monkeypatch):
-    """Gives a check a function for staging the fake server.
-
-    Calling the function with a FakeResponse serves that response. Calling it
-    with an exception makes the connection itself fail, before any response
-    arrives. The function replaces httpx.stream for the length of the check and
-    gives back a record that is filled in with the method, url and settings
-    fetch() used when the call happens."""
-    record = {}
-
-    def stage(behavior):
-        """Install a fake httpx.stream that behaves as given.
-
-        Args:
-            behavior: A FakeResponse to serve, or an error to raise when the connection
-                is opened.
-
-        Returns:
-            The record of what fetch() asked for, filled in when it runs.
-        """
-
-        @contextlib.contextmanager
-        def fake_stream(method, url, **settings):
-            """Record the request, then fail the connection or yield the staged response."""
-            record.update(method=method, url=url, **settings)
-            if isinstance(behavior, Exception):
-                raise behavior
-            yield behavior
-
-        monkeypatch.setattr(fetch_file.httpx, "stream", fake_stream)
-        return record
-
-    return stage
-
-
 #######################################################################################
 ### Shared staging ###
 #
@@ -169,30 +84,11 @@ def server(monkeypatch):
 
 
 @dataclass(frozen=True)
-class Completed:
-    """What one completed call to fetch() left behind."""
-
-    partial: Path  # the path fetch() handed back
-    destination: Path  # the final name fetch() was given
-    request: dict  # what fetch() asked the HTTP library for
-
-
-@dataclass(frozen=True)
 class Failed:
     """What one failed call to fetch() left behind."""
 
     message: str  # the FetchError's message
     destination: Path  # the final name fetch() was given
-
-
-@pytest.fixture
-def completed(tmp_path, server) -> Completed:
-    """Runs one download that the fake server completes, to a destination
-    several folders deep that does not exist yet."""
-    request = server(FakeResponse(CHUNKS))
-    destination = tmp_path / "inputs" / "standards" / "cdisc" / "file.pdf"
-    partial = fetch(URL, destination)
-    return Completed(partial, destination, request)
 
 
 def attempt(server, tmp_path, behavior) -> Failed:
@@ -229,15 +125,6 @@ def test_download_is_written_under_the_part_name(completed):
     handed back."""
     assert completed.partial == completed.destination.with_name("file.pdf.part")
     assert completed.partial.is_file()
-
-
-@code("SA00035")
-@category("repository")
-@objective("correctness")
-@positive
-def test_download_holds_the_bytes_the_server_sent(completed):
-    """The .part file holds exactly the bytes the server sent, in order."""
-    assert completed.partial.read_bytes() == b"".join(CHUNKS)
 
 
 @code("SA00036")

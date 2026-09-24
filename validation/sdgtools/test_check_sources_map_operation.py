@@ -1,5 +1,5 @@
 """
-Script:      test_check_sources_map.py
+Script:      test_check_sources_map_operation.py
 Description: Checks for src/sdgtools/check_sources_map.py, the hand-run tool that
              compares docs/sources_index.md with the manifests. Each check stages
              a throwaway repo holding one recorded file and a map written one way,
@@ -15,9 +15,9 @@ Inputs:      Nothing real. The map and the manifests are written to pytest's own
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdgtools/test_check_sources_map.py
+Usage:       pytest validation/sdgtools/test_check_sources_map_operation.py
                  run these checks
-             pytest validation/sdgtools/test_check_sources_map.py -v
+             pytest validation/sdgtools/test_check_sources_map_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -361,14 +361,3 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 # and manifests, which is the run that keeps the two in step. It reads real files
 # deliberately, the way the header checker's real-folders check does, because a staged
 # map cannot prove the real one is right.
-
-
-@code("SA00330")
-@category("repository")
-@objective("completeness")
-def test_the_real_map_and_manifests_agree():
-    """Nothing is absent from either side of the repo's own sources map,
-    docs/sources_index.md: no file a manifest records is left without a heading that
-    covers it, and no location the map names is one that no manifest records a file
-    in. Either way something that should be accounted for is not."""
-    assert script.main(["--quiet"]) == 0

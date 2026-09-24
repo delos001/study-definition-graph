@@ -1,5 +1,5 @@
 """
-Script:      test_read_manifests.py
+Script:      test_read_manifests_operation.py
 Description: Automated checks for src/sdg/sources/read_manifests.py, the step that
              reads the manifests and hands back what they say. Each check proves
              one promise from that module's header or docstrings: one fact about
@@ -16,9 +16,9 @@ Inputs:      manifests/*.json   (read-only; the checks against the real repo)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_read_manifests.py
+Usage:       pytest validation/sdg/sources/test_read_manifests_operation.py
                  run these checks
-             pytest validation/sdg/sources/test_read_manifests.py -v
+             pytest validation/sdg/sources/test_read_manifests_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -33,6 +33,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from validation.shared.staged_manifests import CONTENT, LOCAL
 
 from sdg.sources import read_manifests
 from sdg.sources.read_manifests import (
@@ -58,33 +59,12 @@ objective = pytest.mark.objective
 # of the categories validation/validation_inventory_dictionary.md defines.
 category = pytest.mark.category
 
-# The one staged file most staged checks use, and its bytes. What the file says
-# does not matter to the reader; only that an entry can be built for it.
-LOCAL = "inputs/set_a/a.txt"
-CONTENT = b"pinned bytes\n"
-
 
 #######################################################################################
 ### Shared staging ###
 #
 # Each fixture stages one situation that several checks look at from different
 # angles. Each check then asserts one thing about it.
-
-
-@pytest.fixture
-def real_manifests():
-    """Reads every real manifest, the hand-written ones and any study manifests, and
-    gives them back as a list."""
-    return manifests()
-
-
-@pytest.fixture
-def one_recorded_file(fake_repo):
-    """Stages one file in the fake repo with a correct entry for it, and gives
-    back the file's full path."""
-    path = fake_repo.file(LOCAL, CONTENT)
-    fake_repo.manifest("set_a", [fake_repo.entry(LOCAL)])
-    return path
 
 
 @pytest.fixture
@@ -160,32 +140,6 @@ def test_every_entry_names_the_manifest_it_came_from(real_manifests):
 # fields.
 
 
-@code("SA00078")
-@category("repository")
-@objective("conformance")
-def test_every_manifest_lands_under_inputs(real_manifests):
-    """Every real manifest, wherever it sits under manifests/, says its files land
-    under inputs/."""
-    for manifest in real_manifests:
-        assert manifest.local_dir.startswith("inputs/"), manifest.name
-
-
-@code("SA00079")
-@category("repository")
-@objective("conformance")
-def test_every_entry_carries_the_five_required_fields(real_manifests):
-    """Every entry in every real manifest has a name, a url, a local path under
-    inputs/, a size above zero, and a 64-character sha256."""
-    for manifest in real_manifests:
-        assert manifest.entries, manifest.name
-        for entry in manifest.entries:
-            assert entry.name
-            assert entry.url
-            assert entry.local.startswith("inputs/")
-            assert entry.bytes > 0
-            assert len(entry.sha256) == 64
-
-
 #######################################################################################
 ### Positive checks against a staged repo ###
 #
@@ -255,7 +209,7 @@ def test_the_name_may_carry_the_json_suffix(three_sets):
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_for_finds_a_recorded_file(one_recorded_file):
+def test_entry_for_finds_a_recorded_file(recorded_file):
     """entry_for() gives back the entry that records a file, given the
     repo-relative path a manifest writes."""
     found = entry_for(LOCAL)
@@ -267,34 +221,34 @@ def test_entry_for_finds_a_recorded_file(one_recorded_file):
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_for_accepts_backslashes(one_recorded_file):
+def test_entry_for_accepts_backslashes(recorded_file):
     """A repo-relative path written with backslashes finds the same entry."""
-    assert entry_for("inputs\\set_a\\a.txt") == entry_for(LOCAL)
+    assert entry_for("inputs\\set_a\\file.txt") == entry_for(LOCAL)
 
 
 @code("SA00088")
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_for_accepts_a_full_path(one_recorded_file):
+def test_entry_for_accepts_a_full_path(recorded_file):
     """A full Path to the file finds the same entry."""
-    assert entry_for(one_recorded_file) == entry_for(LOCAL)
+    assert entry_for(recorded_file) == entry_for(LOCAL)
 
 
 @code("SA00089")
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_path_is_the_file_on_this_machine(one_recorded_file):
+def test_entry_path_is_the_file_on_this_machine(recorded_file):
     """An entry's path is the full path of its file on this machine."""
-    assert entry_for(LOCAL).path == one_recorded_file
+    assert entry_for(LOCAL).path == recorded_file
 
 
 @code("SA00090")
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_repo):
+def test_entry_for_gives_none_for_an_unrecorded_file(recorded_file, fake_repo):
     """A file that no manifest records gives None, not an error."""
     fake_repo.file("inputs/set_a/stray.txt", CONTENT)
     assert entry_for("inputs/set_a/stray.txt") is None
@@ -304,10 +258,10 @@ def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_rep
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_named_finds_a_recorded_file_by_its_name(one_recorded_file):
+def test_entry_named_finds_a_recorded_file_by_its_name(recorded_file):
     """entry_named() gives back the entry whose file name is the one asked for, so
     a caller holding only the name never writes the path down a second time."""
-    found = entry_named("a.txt")
+    found = entry_named("file.txt")
     assert isinstance(found, Entry)
     assert found.local == LOCAL
 
@@ -316,7 +270,7 @@ def test_entry_named_finds_a_recorded_file_by_its_name(one_recorded_file):
 @category("repository")
 @objective("functionality")
 @positive
-def test_entry_named_gives_none_for_a_name_no_manifest_records(one_recorded_file):
+def test_entry_named_gives_none_for_a_name_no_manifest_records(recorded_file):
     """A file name that no manifest records gives None from entry_named(), not an
     error."""
     assert entry_named("nobody_recorded_this.txt") is None
@@ -327,7 +281,7 @@ def test_entry_named_gives_none_for_a_name_no_manifest_records(one_recorded_file
 @objective("functionality")
 @positive
 def test_a_relative_path_is_read_from_the_repo_root(
-    one_recorded_file, monkeypatch, tmp_path
+    recorded_file, monkeypatch, tmp_path
 ):
     """A relative Path finds the same entry as the repo-relative string, whichever folder
     the program was started from, so a command run from elsewhere never reports a
@@ -475,7 +429,7 @@ def test_entry_missing_fields_has_every_missing_field_named(fake_repo):
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, url=None, sha256=None)])
     message = refused_with(ManifestError)
-    assert message.startswith("set_a.json: entry a.txt lacks url, sha256")
+    assert message.startswith("set_a.json: entry file.txt lacks url, sha256")
     assert "repair that entry in manifests/set_a.json" in message
 
 

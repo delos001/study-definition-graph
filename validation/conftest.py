@@ -8,8 +8,17 @@ Description: Supplies the setups the test_*.py files under validation/ share. py
                - manifest_dir points the manifest reader,
                  src/sdg/sources/read_manifests.py, at a temporary folder,
                - manifest_recording writes one manifest entry for one file,
+               - file_on_disk writes the staged pinned bytes to one file,
+               - part_file writes one staged download under its .part name, and
+                 placed moves it into place,
                - fake_repo builds a throwaway repo with pyproject.toml, manifests/
                  and inputs/,
+               - server installs the fake download server from
+                 validation/shared/fake_server.py, and completed runs one download
+                 it completes,
+               - recorded_file stages one file in the fake repo with a correct
+                 entry for it,
+               - real_manifests reads every real manifest,
                - staged_suite runs a throwaway suite of checks in a separate pytest
                  process and reads back the report it writes, for the checks of
                  the validation package's own plugins.
@@ -25,7 +34,8 @@ Description: Supplies the setups the test_*.py files under validation/ share. py
              point in pyproject.toml: the labels, the selection options, the skip
              rules and the report.
 
-Inputs:      Nothing real. Every fixture writes to pytest's own temporary folder.
+Inputs:      manifests/*.json (read-only; real_manifests only). Every other fixture
+             writes to pytest's own temporary folder.
 
 Outputs:     Nothing outside pytest's own temporary folder.
 
@@ -40,6 +50,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import contextlib
 import csv
 import hashlib
 import json
@@ -48,6 +59,10 @@ import textwrap
 from pathlib import Path
 
 import pytest
+from validation.shared.fake_server import CHUNKS, URL, Completed, FakeResponse
+from validation.shared.staged_downloads import CONTENT as DOWNLOADED
+from validation.shared.staged_downloads import Staged
+from validation.shared.staged_manifests import CONTENT, LOCAL
 
 # pytest has a helper called pytester that lets a test run a small, separate
 # test suite of its own. It is switched off unless a file asks for it. The
@@ -103,6 +118,36 @@ def manifest_dir(tmp_path, monkeypatch):
 
 
 @pytest.fixture
+def file_on_disk(tmp_path):
+    """Writes the staged pinned bytes, CONTENT from validation/shared/staged_manifests.py,
+    to a file in a temporary folder and gives back its path."""
+    path = tmp_path / "file.txt"
+    path.write_bytes(CONTENT)
+    return path
+
+
+@pytest.fixture
+def part_file(tmp_path) -> Staged:
+    """Writes one .part file, holding the bytes of
+    validation/shared/staged_downloads.py, with nothing at its final name."""
+    from sdg.sources.fetch_file import partial_path
+
+    final = tmp_path / "file.pdf"
+    partial = partial_path(final)
+    partial.write_bytes(DOWNLOADED)
+    return Staged(partial, final)
+
+
+@pytest.fixture
+def placed(part_file) -> tuple[Path, Staged]:
+    """Places the staged .part file and gives back what place() handed back,
+    with the staging."""
+    from sdg.sources.finalize_file import place
+
+    return place(part_file.partial), part_file
+
+
+@pytest.fixture
 def manifest_recording():
     """Give a check a function for writing one manifest entry with one chosen fault.
 
@@ -145,6 +190,56 @@ def manifest_recording():
         return json.dumps({"files": [entry]})
 
     return make
+
+
+@pytest.fixture
+def server(monkeypatch):
+    """Gives a check a function for staging the fake server.
+
+    Calling the function with a FakeResponse serves that response. Calling it
+    with an exception makes the connection itself fail, before any response
+    arrives. The function replaces httpx.stream for the length of the check and
+    gives back a record that is filled in with the method, url and settings
+    fetch() used when the call happens."""
+    from sdg.sources import fetch_file
+
+    record = {}
+
+    def stage(behavior):
+        """Install a fake httpx.stream that behaves as given.
+
+        Args:
+            behavior: A FakeResponse to serve, or an error to raise when the connection
+                is opened.
+
+        Returns:
+            The record of what fetch() asked for, filled in when it runs.
+        """
+
+        @contextlib.contextmanager
+        def fake_stream(method, url, **settings):
+            """Record the request, then fail the connection or yield the staged response."""
+            record.update(method=method, url=url, **settings)
+            if isinstance(behavior, Exception):
+                raise behavior
+            yield behavior
+
+        monkeypatch.setattr(fetch_file.httpx, "stream", fake_stream)
+        return record
+
+    return stage
+
+
+@pytest.fixture
+def completed(tmp_path, server) -> Completed:
+    """Runs one download that the fake server completes, to a destination
+    several folders deep that does not exist yet."""
+    from sdg.sources.fetch_file import fetch
+
+    request = server(FakeResponse(CHUNKS))
+    destination = tmp_path / "inputs" / "standards" / "cdisc" / "file.pdf"
+    partial = fetch(URL, destination)
+    return Completed(partial, destination, request)
 
 
 class FakeRepo:
@@ -279,6 +374,25 @@ def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
         repo.root / "manifests" / "study_documents",
     )
     return repo
+
+
+@pytest.fixture
+def recorded_file(fake_repo):
+    """Stages one file in the fake repo, at LOCAL from
+    validation/shared/staged_manifests.py, with a correct entry for it, and gives back
+    the file's full path."""
+    path = fake_repo.file(LOCAL, CONTENT)
+    fake_repo.manifest("set_a", [fake_repo.entry(LOCAL)])
+    return path
+
+
+@pytest.fixture
+def real_manifests():
+    """Reads every real manifest, the hand-written ones and any study manifests, and
+    gives them back as a list."""
+    from sdg.sources.read_manifests import manifests
+
+    return manifests()
 
 
 class StagedSuite:

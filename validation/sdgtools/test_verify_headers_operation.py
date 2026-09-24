@@ -1,5 +1,5 @@
 """
-Script:      test_verify_headers.py
+Script:      test_verify_headers_operation.py
 Description: Checks for src/sdgtools/verify_headers.py, the hand-run script the
              pre-commit hook runs to refuse a commit whose Python files lack
              the full header block. Each check writes one or two small files to
@@ -13,9 +13,9 @@ Inputs:      src/sdg/**/*.py, repo_tools/*.py, validation/**/*.py and
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/sdgtools/test_verify_headers.py
+Usage:       pytest validation/sdgtools/test_verify_headers_operation.py
                  run these checks
-             pytest validation/sdgtools/test_verify_headers.py -v
+             pytest validation/sdgtools/test_verify_headers_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -614,51 +614,3 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
 # These read the real code folders. The header block is held to its rule, the exit
 # codes a header lists are held to the table and to main(), and the checker is held to
 # the folders the rule names.
-
-
-@code("SA00373")
-@category("repository")
-@objective("conformance")
-def test_real_headers_follow_the_rule():
-    """Every Python file in the real code folders has a header block with the eight
-    fields in order and a valid Date, as .claude/rules/writing_python_files.md
-    requires."""
-    table = script.exit_code_table()
-    problems = {
-        path.relative_to(script.REPO_ROOT).as_posix(): script.problems_in(path, table)[
-            0
-        ]
-        for path in script.files_to_check()
-    }
-    assert {name: found for name, found in problems.items() if found} == {}
-
-
-@code("SA00374")
-@category("repository")
-@objective("conformance")
-def test_real_exit_codes_agree_with_the_table_and_main():
-    """In every Python file in the real code folders, each exit code the header lists
-    opens with the wording validation/exit_codes.csv gives it, and each code main()
-    returns as a plain number is listed."""
-    table = script.exit_code_table()
-    problems = {
-        path.relative_to(script.REPO_ROOT).as_posix(): script.problems_in(path, table)[
-            1
-        ]
-        for path in script.files_to_check()
-    }
-    assert {name: found for name, found in problems.items() if found} == {}
-
-
-@code("SA00375")
-@category("repository")
-@objective("conformance")
-def test_all_four_code_folders_are_checked():
-    """The checker covers the four folders .claude/rules/writing_python_files.md names,
-    so a file added under any of them is held to the header block like any other. The
-    check compares with its own copy of the four, not with the rule file itself."""
-    covered = {
-        folder.relative_to(script.REPO_ROOT).as_posix()
-        for folder in script.CHECKED_FOLDERS
-    }
-    assert covered == {"src/sdg", "repo_tools", "validation", ".claude/hooks"}

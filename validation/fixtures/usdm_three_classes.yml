@@ -6,7 +6,7 @@
 # Why these three: Identifier is abstract, StudyIdentifier is its concrete child
 # with inherited attributes, and Condition holds the five-way reference
 # (appliesToIds). Together they exercise every shape the loader reads, in a file
-# small enough to read whole. test_usdm_spec.py proves each class is identical to
+# small enough to read whole. test_usdm_spec_integrity.py proves each class is identical to
 # the pinned one, so this is a sample, not a stand-in. Do not edit the classes.
 Condition:
   NCI C-Code: C25457

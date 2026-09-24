@@ -1,5 +1,5 @@
 """
-Script:      test_check_api_key.py
+Script:      test_check_api_key_operation.py
 Description: Checks for src/sdgtools/check_api_key.py, the hand-run tool that
              confirms the Anthropic key in .env reaches the Claude API. Each
              check writes a .env file into pytest's own temporary folder, points
@@ -15,9 +15,9 @@ Inputs:      Nothing real. The .env files are written to pytest's own temporary
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdgtools/test_check_api_key.py
+Usage:       pytest validation/sdgtools/test_check_api_key_operation.py
                  run these checks
-             pytest validation/sdgtools/test_check_api_key.py -v
+             pytest validation/sdgtools/test_check_api_key_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

@@ -1,5 +1,5 @@
 """
-Script:      test_usdm_spec.py
+Script:      test_usdm_spec_operation.py
 Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              the pinned USDM model. Each check sets up a situation, runs the
              loader, and compares what happened to what the loader's own
@@ -30,9 +30,9 @@ Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              conftest.py writes validation/reports/ records when asked.
 
-Usage:       pytest validation/sdg/usdm/test_usdm_spec.py
+Usage:       pytest validation/sdg/usdm/test_usdm_spec_operation.py
                  run these checks
-             pytest validation/sdg/usdm/test_usdm_spec.py -v
+             pytest validation/sdg/usdm/test_usdm_spec_operation.py -v
                  one line per check with its result
              pytest --validation-report
                  also write the validation record (see conftest.py)
@@ -49,18 +49,9 @@ from pathlib import Path
 
 import pytest
 import yaml
+from validation.shared.usdm_model import FIXTURE, FIXTURE_CLASSES
 
 from sdg.usdm import usdm_spec
-
-FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "usdm_three_classes.yml"
-FIXTURE_CLASSES = ("Condition", "Identifier", "StudyIdentifier")
-
-# The real-file checks read the pinned model file. src/sdgval/skip_rules.py skips them
-# when it is not downloaded, as on a fresh clone, or when it no longer matches its
-# manifest entry, rather than fail and hide the logic checks' results.
-needs_pinned_file = pytest.mark.needs_pinned(
-    "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
-)
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -604,55 +595,3 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 # These prove the assumptions the logic checks rely on hold for the actual
 # standard, and that the fixture is a faithful sample of it. They are the only
 # checks that need inputs/ downloaded.
-
-
-@code("SA00153")
-@category("sources")
-@objective("conformance")
-@needs_pinned_file
-def test_pinned_file_is_shaped_the_way_the_loader_expects():
-    """The pinned dataStructure.yml passes the loader's two shape checks, so what
-    src/sdg/usdm/usdm_spec.py expects of USDM v4 matches the real file. The file is
-    read without the checksum step, which the stability check for it covers."""
-    assert usdm_spec.load(verify=False)
-
-
-@code("SA00154")
-@category("sources")
-@objective("conformance")
-@needs_pinned_file
-def test_pinned_file_types_are_classes_or_five_primitives():
-    """Every attribute type in the pinned model is a class in the model or one of
-    the five primitives the docstring of targets() names, and exactly four
-    attributes reference more than one type. The check compares with its own copy of
-    the five and the four, not with the docstring itself."""
-    spec = usdm_spec.load()
-    primitives = set()
-    multi = []
-    for cname, body in spec.items():
-        for aname, attr in body["Attributes"].items():
-            refs = usdm_spec.targets(attr)
-            if len(refs) > 1:
-                multi.append(f"{cname}.{aname}")
-            primitives.update(r for r in refs if r not in spec)
-    assert primitives == {"string", "boolean", "integer", "float", "date"}
-    assert sorted(multi) == [
-        "Condition.appliesToIds",
-        "Condition.contextIds",
-        "ProductOrganizationRole.appliesToIds",
-        "StudyRole.appliesToIds",
-    ]
-
-
-@code("SA00155")
-@category("repository")
-@objective("correctness")
-@needs_pinned_file
-def test_fixture_classes_are_identical_to_pinned():
-    """Each class in the small fixture file is identical, key for key, to the same
-    class in the pinned model, so the checks that ran on the fixture ran on real
-    USDM shapes and not on an approximation of them."""
-    pinned = usdm_spec.load()
-    sample = usdm_spec.load(FIXTURE, verify=False)
-    for name in FIXTURE_CLASSES:
-        assert sample[name] == pinned[name], name

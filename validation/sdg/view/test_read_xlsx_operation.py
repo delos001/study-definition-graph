@@ -1,5 +1,5 @@
 """
-Script:      test_read_xlsx.py
+Script:      test_read_xlsx_operation.py
 Description: Checks for src/sdg/view/read_xlsx.py, the command that prints a sheet
              out of a pinned workbook. They cover how a workbook is found from
              what a person types, how a sheet is rendered in each format, and
@@ -14,9 +14,9 @@ Inputs:      Nothing real. Every workbook is written to pytest's own temporary
 
 Outputs:     Writes nothing to disk outside pytest's own folder.
 
-Usage:       pytest validation/sdg/view/test_read_xlsx.py
+Usage:       pytest validation/sdg/view/test_read_xlsx_operation.py
                  run these checks
-             pytest validation/sdg/view/test_read_xlsx.py -v
+             pytest validation/sdg/view/test_read_xlsx_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

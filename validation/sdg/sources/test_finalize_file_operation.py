@@ -1,5 +1,5 @@
 """
-Script:      test_finalize_file.py
+Script:      test_finalize_file_operation.py
 Description: Automated checks for src/sdg/sources/finalize_file.py, the step
              that brings a finished download to its final name, or deletes a
              download that did not match. Each check proves one promise from
@@ -11,9 +11,9 @@ Inputs:      none from the repo
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_finalize_file.py
+Usage:       pytest validation/sdg/sources/test_finalize_file_operation.py
                  run these checks
-             pytest validation/sdg/sources/test_finalize_file.py -v
+             pytest validation/sdg/sources/test_finalize_file_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -24,10 +24,10 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
+from validation.shared.staged_downloads import CONTENT, Staged
 
 from sdg.sources.fetch_file import partial_path
 from sdg.sources.finalize_file import discard, place
@@ -44,9 +44,6 @@ objective = pytest.mark.objective
 # of the categories validation/validation_inventory_dictionary.md defines.
 category = pytest.mark.category
 
-# The bytes a staged download holds, and the bytes of a file that is already
-# at the final name when a check needs one there.
-CONTENT = b"downloaded bytes\n"
 EXISTING = b"the pinned file that is already here\n"
 
 
@@ -55,30 +52,6 @@ EXISTING = b"the pinned file that is already here\n"
 #
 # Each fixture stages one situation. Each check then asserts one thing about
 # what place() or discard() did with it.
-
-
-@dataclass(frozen=True)
-class Staged:
-    """One download staged under its .part name, and the final name it is for."""
-
-    partial: Path
-    final: Path
-
-
-@pytest.fixture
-def part_file(tmp_path) -> Staged:
-    """Writes one .part file with nothing at its final name."""
-    final = tmp_path / "file.pdf"
-    partial = partial_path(final)
-    partial.write_bytes(CONTENT)
-    return Staged(partial, final)
-
-
-@pytest.fixture
-def placed(part_file) -> tuple[Path, Staged]:
-    """Places the staged .part file and gives back what place() handed back,
-    with the staging."""
-    return place(part_file.partial), part_file
 
 
 @pytest.fixture
@@ -106,16 +79,6 @@ def plain_file(tmp_path) -> Path:
 ### Positive checks ###
 #
 # A .part file is placed under its final name, or deleted, as asked.
-
-
-@code("SA00052")
-@category("repository")
-@objective("correctness")
-@positive
-def test_place_puts_the_file_under_its_final_name(placed):
-    """After place(), the bytes are at the final name."""
-    _, staged = placed
-    assert staged.final.read_bytes() == CONTENT
 
 
 @code("SA00053")

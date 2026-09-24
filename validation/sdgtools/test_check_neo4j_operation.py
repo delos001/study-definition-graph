@@ -1,5 +1,5 @@
 """
-Script:      test_check_neo4j.py
+Script:      test_check_neo4j_operation.py
 Description: Checks for src/sdgtools/check_neo4j.py, the hand-run tool that
              confirms the Neo4j database is running, accepts the login in .env,
              and is the version pinned in docker-compose.yml. Each check writes
@@ -18,9 +18,9 @@ Inputs:      Nothing real. The .env and docker-compose.yml files are written to
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdgtools/test_check_neo4j.py
+Usage:       pytest validation/sdgtools/test_check_neo4j_operation.py
                  run these checks
-             pytest validation/sdgtools/test_check_neo4j.py -v
+             pytest validation/sdgtools/test_check_neo4j_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

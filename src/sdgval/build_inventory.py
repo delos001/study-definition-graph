@@ -63,10 +63,13 @@ Exit codes:  0   success (the inventory was written, or a check found it in orde
                  --check-status only)
              18  a check's markers, id or first sentence are missing or wrong, or
                  its id is a duplicate
+             47  a test file's name has no aspect of quality or holds a check of
+                 another aspect
              19  a Python file could not be parsed
              20  no files found to work on
              45  a hand-kept column of the validation inventory breaks its rules
-             19 outranks 20, 20 outranks 18, and 18 outranks 45. Every problem is
+             19 outranks 20, 20 outranks 18, 18 outranks 47, and 47 outranks 45.
+             Every problem is
              still named. The numbers are the repo-wide table in
              validation/exit_codes.csv.
 
@@ -148,6 +151,10 @@ ASPECT_OF = {
     for objective in objectives
 }
 OBJECTIVES = tuple(ASPECT_OF)
+
+# The aspects, in the order the vocabulary lists them. A test file's name ends with
+# one of them, so the names come from the vocabulary rather than a list of their own.
+ASPECTS = tuple(OBJECTIVES_BY_ASPECT)
 
 # A check that staged its own situation carries one of these, saying whether the
 # situation was a working one or a broken one. A check that looked at something real
@@ -249,12 +256,16 @@ def code_folder_and_target(
 
     validation/ mirrors src/, one folder per installed package. A test file at
     validation/<package>/<path> tests the file of the same name at
-    src/<package>/<path>, so validation/sdg/sources/test_fetch_file.py tests
-    src/sdg/sources/fetch_file.py. Two places are exceptions. A test file in
+    src/<package>/<path>, so validation/sdg/sources/test_fetch_file_operation.py
+    tests src/sdg/sources/fetch_file.py. Two places are exceptions. A test file in
     validation/claude_hooks/ tests the hook of the same name in .claude/hooks/, which
     cannot be mirrored by name because pytest does not look inside a folder whose name
     starts with a dot. A test file at the top level of validation/ tests the file of
     the same name in validation/ itself, as the checks for conftest.py do.
+
+    A test file's name ends with the aspect of quality its checks belong to, as in
+    test_build_index_operation.py, and the aspect is left out of the name of the
+    file it tests. A name with no aspect is kept whole, and read_checks() reports it.
 
     Args:
         check_file: The test file's path.
@@ -266,7 +277,11 @@ def code_folder_and_target(
     """
     relative = check_file.relative_to(validation_dir or VALIDATION_DIR)
     folder = relative.parent.as_posix()
-    component = f"{check_file.stem.removeprefix('test_')}.py"
+    name = check_file.stem.removeprefix("test_")
+    aspect = aspect_of_file(check_file)
+    if aspect:
+        name = name.removesuffix(f"_{aspect}")
+    component = f"{name}.py"
     if folder == ".":
         return "validation", f"validation/{component}"
     if folder == "claude_hooks":
@@ -411,8 +426,74 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[str]]:
         code_folder, target = code_folder_and_target(path)
         checks, file_problems = checks_in(path)
         problems.extend(file_problems)
+        problems.extend(aspect_problems(path, checks))
         found.extend((code_folder, target, check) for check in checks)
     return found, problems
+
+
+def aspect_of_file(check_file: Path) -> str | None:
+    """Read the aspect of quality a test file's name ends with.
+
+    Args:
+        check_file: The test file's path.
+
+    Returns:
+        The aspect, or None when the name ends with none of them.
+    """
+    stem = check_file.stem
+    for aspect in ASPECTS:
+        if stem.endswith(f"_{aspect}"):
+            return aspect
+    return None
+
+
+def aspect_problems(check_file: Path, checks: list[Check]) -> list[str]:
+    """Hold a test file to one aspect of quality, the one its name ends with.
+
+    A test file holds checks of one aspect only, so a run and a report of one aspect
+    never have to split a file. The file's name says which, and a check's objective
+    says which aspect it belongs to, so the two must agree.
+
+    Args:
+        check_file: The test file's path.
+        checks: The checks read from it.
+
+    Returns:
+        One problem when the name ends with no aspect, or one per check whose
+        objective belongs to another aspect, or nothing when the file is in order.
+    """
+    name = _name(check_file)
+    aspect = aspect_of_file(check_file)
+    if aspect is None:
+        return [
+            f"{name} has no aspect in its name; it must end with one of "
+            + ", ".join(f"_{a}" for a in ASPECTS)
+        ]
+    problems = []
+    for check in checks:
+        belongs = ASPECT_OF.get(check.objective)
+        # An objective the vocabulary does not know is already reported where the
+        # check was read, so it is not reported a second time here.
+        if belongs and belongs != aspect:
+            problems.append(
+                f"{name}: {check.check_name} has the objective {check.objective}, "
+                f"which belongs to {belongs}, in a file named for {aspect}"
+            )
+    return problems
+
+
+def _is_aspect_problem(problem: str) -> bool:
+    """Say whether a problem is one aspect_problems() reported.
+
+    Args:
+        problem: One reported problem.
+
+    Returns:
+        True for a missing aspect or a check of another aspect.
+    """
+    return (
+        " has no aspect in its name;" in problem or " in a file named for " in problem
+    )
 
 
 #######################################################################################
@@ -691,8 +772,10 @@ def main(argv: list[str] | None = None) -> int:
             return 19
         if any(p.startswith("no test files") for p in problems):
             return 20
-        if problems:
+        if any(not _is_aspect_problem(p) for p in problems):
             return 18
+        if problems:
+            return 47
         return 45
 
     text = render(rows)

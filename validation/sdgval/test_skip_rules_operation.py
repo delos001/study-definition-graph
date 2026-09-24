@@ -1,5 +1,5 @@
 """
-Script:      test_skip_rules.py
+Script:      test_skip_rules_operation.py
 Description: Checks for src/sdgval/skip_rules.py, the plugin that skips a check
              whose pinned files are not downloaded or have changed, and fails the
              set-up of a check whose label names a file no manifest records.
@@ -15,9 +15,9 @@ Inputs:      Nothing real. Each staged suite and its small repo are written to
 
 Outputs:     Writes nothing to disk outside pytest's temporary folder.
 
-Usage:       pytest validation/sdgval/test_skip_rules.py
+Usage:       pytest validation/sdgval/test_skip_rules_operation.py
                  run these checks
-             pytest validation/sdgval/test_skip_rules.py -v
+             pytest validation/sdgval/test_skip_rules_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

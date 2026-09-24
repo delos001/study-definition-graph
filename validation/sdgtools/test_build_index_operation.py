@@ -1,5 +1,5 @@
 """
-Script:      test_build_index.py
+Script:      test_build_index_operation.py
 Description: Automated checks for src/sdgtools/build_index.py, which generates
              src/sdgtools/README.md from each script's header block and, under
              --check, is the pre-commit hook that blocks a commit whose index
@@ -12,9 +12,9 @@ Inputs:      src/sdgtools/*.py and src/sdgtools/README.md  (read-only; the one r
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/sdgtools/test_build_index.py
+Usage:       pytest validation/sdgtools/test_build_index_operation.py
                  run these checks
-             pytest validation/sdgtools/test_build_index.py -v
+             pytest validation/sdgtools/test_build_index_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -334,12 +334,3 @@ def test_no_scripts_exits_20(folder, capsys):
 
 #######################################################################################
 ### The real src/sdgtools/ folder ###
-
-
-@code("SA00256")
-@category("repository")
-@objective("correctness")
-def test_real_index_is_current():
-    """src/sdgtools/README.md matches the headers of the real scripts, which is the
-    check the pre-commit hook runs."""
-    assert bi.main(["--check", "--quiet"]) == 0

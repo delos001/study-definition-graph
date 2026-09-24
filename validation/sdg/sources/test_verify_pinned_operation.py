@@ -1,5 +1,5 @@
 """
-Script:      test_verify_pinned.py
+Script:      test_verify_pinned_operation.py
 Description: Automated checks for src/sdg/sources/verify_pinned.py, the workflow
              that proves a pinned file is the recorded one and hands it back
              with its identity. Each check proves one promise from that module's
@@ -17,9 +17,9 @@ Inputs:      manifests/*.json    (read-only; every recorded file's entry)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_verify_pinned.py
+Usage:       pytest validation/sdg/sources/test_verify_pinned_operation.py
                  run these checks
-             pytest validation/sdg/sources/test_verify_pinned.py -v
+             pytest validation/sdg/sources/test_verify_pinned_operation.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -33,14 +33,13 @@ from __future__ import annotations
 import hashlib
 
 import pytest
+from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 from sdg.sources import (
     IntegrityError,
     ManifestError,
     NotInRepoError,
-    PinnedFile,
     UnrecordedFileError,
-    read_manifests,
     verify_pinned,
 )
 
@@ -57,45 +56,11 @@ objective = pytest.mark.objective
 category = pytest.mark.category
 
 
-def pinned_locals() -> list[str]:
-    """List every file the real manifests record, when the checks are collected.
-
-    A manifest that cannot be read gives no files here. The checks of the manifest
-    reader, in validation/sdg/sources/test_read_manifests.py, report that problem.
-
-    Returns:
-        The recorded paths, as the manifests write them.
-    """
-    try:
-        return [
-            entry.local
-            for manifest in read_manifests.manifests()
-            for entry in manifest.entries
-        ]
-    except (ManifestError, NotInRepoError):
-        return []
-
-
-# The one staged file every staged check uses, and its bytes.
-LOCAL = "inputs/set_a/file.txt"
-CONTENT = b"pinned bytes\n"
-SHA256 = hashlib.sha256(CONTENT).hexdigest()
-
-
 #######################################################################################
 ### Shared staging ###
 #
 # Each fixture stages one situation. Each check then asserts one thing about
 # what verify_pinned() handed back or how it refused.
-
-
-@pytest.fixture
-def recorded_file(fake_repo):
-    """Stages one file in the fake repo with a correct entry for it, and gives
-    back the file's full path."""
-    path = fake_repo.file(LOCAL, CONTENT)
-    fake_repo.manifest("set_a", [fake_repo.entry(LOCAL)])
-    return path
 
 
 @pytest.fixture
@@ -133,58 +98,10 @@ def refused_with(error, target=LOCAL) -> str:
 # skipped as blocked by src/sdgval/skip_rules.py.
 
 
-@code("SA00106")
-@category("sources")
-@objective("stability")
-@pytest.mark.parametrize("local", pinned_locals())
-def test_pinned_file_is_unchanged(local):
-    """A pinned file on disk has the size and sha256 its manifest entry records, so it
-    is unchanged since it was pinned. A file not downloaded is skipped."""
-    try:
-        verify_pinned(local)
-    except FileNotFoundError:
-        pytest.skip(f"not downloaded: {local}; run acquire_sources")
-
-
 #######################################################################################
 ### Positive checks against a staged repo ###
 #
 # A recorded file that matches its entry comes back with its identity and reads.
-
-
-@code("SA00107")
-@category("repository")
-@objective("correctness")
-@positive
-def test_recorded_file_carries_its_identity(recorded_file):
-    """A file whose entry is correct comes back with the sha256, url and
-    manifest name its entry records."""
-    got = verify_pinned(LOCAL)
-    assert isinstance(got, PinnedFile)
-    assert got.sha256 == SHA256
-    assert got.url == "https://example.invalid/file.txt"
-    assert got.manifest == "set_a.json"
-
-
-@code("SA00108")
-@category("repository")
-@objective("correctness")
-@positive
-def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
-    """A verified file's path is the full path of the file on this machine, and
-    its local path is the one the manifest writes."""
-    got = verify_pinned(LOCAL)
-    assert got.local == LOCAL
-    assert got.path == recorded_file
-
-
-@code("SA00109")
-@category("repository")
-@objective("correctness")
-@positive
-def test_recorded_file_content_reads(recorded_file):
-    """read_text() on a verified file gives its content."""
-    assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
 
 
 @code("SA00110")

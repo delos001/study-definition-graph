@@ -46,3 +46,4 @@ code,cause
 44,the Neo4j address in .env is not a valid address
 45,a hand-kept column of the validation inventory breaks its rules
 46,the named header row is past the end of the sheet
+47,a test file's name has no aspect of quality or holds a check of another aspect
