@@ -11,8 +11,8 @@ Description: Runs the three tool checks every Python file must pass, in order:
              terminal where that environment is not active, each is run through
              conda instead, which is slower but needs no set-up.
 
-Inputs:      pyproject.toml and every Python file under src/, repo_tools/,
-             validation/ and .claude/hooks/   (read-only)
+Inputs:      pyproject.toml and every Python file under src/, validation/ and
+             .claude/hooks/   (read-only)
 
 Outputs:     Nothing on disk. Prints each tool's report, then one line per tool
              saying whether it passed.

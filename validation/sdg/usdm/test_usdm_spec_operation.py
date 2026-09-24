@@ -49,9 +49,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from validation.shared.usdm_model import FIXTURE, FIXTURE_CLASSES
 
 from sdg.usdm import usdm_spec
+from validation.shared.usdm_model import FIXTURE, FIXTURE_CLASSES
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

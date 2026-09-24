@@ -33,7 +33,6 @@ from __future__ import annotations
 import hashlib
 
 import pytest
-from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 from sdg.sources import (
     IntegrityError,
@@ -42,6 +41,7 @@ from sdg.sources import (
     UnrecordedFileError,
     verify_pinned,
 )
+from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

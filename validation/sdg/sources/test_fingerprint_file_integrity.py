@@ -28,10 +28,10 @@ from __future__ import annotations
 import hashlib
 
 import pytest
-from validation.shared.staged_manifests import CONTENT
 
 from sdg.sources import fingerprint_file
 from sdg.sources.fingerprint_file import fingerprint
+from validation.shared.staged_manifests import CONTENT
 
 positive = pytest.mark.positive
 # Every check carries a @code line: its short, permanent id in

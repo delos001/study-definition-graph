@@ -22,9 +22,9 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import pytest
-from validation.shared.usdm_model import needs_pinned_file
 
 from sdg.usdm import usdm_spec
+from validation.shared.usdm_model import needs_pinned_file
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

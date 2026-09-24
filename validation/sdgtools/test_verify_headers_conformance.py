@@ -79,12 +79,12 @@ def test_real_exit_codes_agree_with_the_table_and_main():
 @code("SA00375")
 @category("repository")
 @objective("conformance")
-def test_all_four_code_folders_are_checked():
-    """The checker covers the four folders .claude/rules/writing_python_files.md names,
+def test_every_code_folder_is_checked():
+    """The checker covers the three folders .claude/rules/writing_python_files.md names,
     so a file added under any of them is held to the header block like any other. The
-    check compares with its own copy of the four, not with the rule file itself."""
+    check compares with its own copy of the three, not with the rule file itself."""
     covered = {
         folder.relative_to(script.REPO_ROOT).as_posix()
         for folder in script.CHECKED_FOLDERS
     }
-    assert covered == {"src/sdg", "repo_tools", "validation", ".claude/hooks"}
+    assert covered == {"src", "validation", ".claude/hooks"}

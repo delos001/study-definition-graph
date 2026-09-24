@@ -1,18 +1,18 @@
 ---
 paths:
   - "src/**/*.py"
-  - "repo_tools/**/*.py"
   - "validation/**/*.py"
   - ".claude/hooks/**/*.py"
 ---
 
 # Writing a Python file
 
-This rule covers every Python file the project writes. There are four kinds:
+This rule covers every Python file the project writes. There are five kinds:
 
-- the package under `src/sdg/`, which holds the pipeline's workflows and steps, the code other code imports;
-- the repo tools under `repo_tools/`, which keep the repository's own files in order and are run by a person or by the pre-commit hook, `.githooks/pre-commit`;
-- the checks under `validation/`, which validate the package, the scripts, the hooks and the repo's own files;
+- the pipeline, the package under `src/sdg/`, which holds the pipeline's workflows and steps;
+- the repo tools, the package under `src/sdgtools/`, which keep the repository's own files in order and are run as commands by a person or by the pre-commit hook, `.githooks/pre-commit`;
+- the validation package under `src/sdgval/`, the plugins that select the checks, skip them, and write their reports;
+- the checks under `validation/`, which validate the three packages, the hooks and the repo's own files, with the code they share in `validation/shared/`;
 - the Claude Code hooks under `.claude/hooks/`, which run around Claude's own tool calls in a session and hold it to the repo's rules.
 
 Where a standard convention exists, the project follows it. The conventions in use are PEP 8 for layout and names, the Google layout for docstrings, ruff for formatting and linting, mypy for type checking, and pytest for checks. The project departs from a convention only where this rule says so, and says why.

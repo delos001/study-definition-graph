@@ -6,27 +6,38 @@
 # of the root README.md runs after the clone. It is committed rather than left in
 # .git/hooks, so a fresh clone gets it.
 #
-# The first three checks use only the standard library, so they run from any
-# terminal. The fourth needs ruff and mypy from the sdg conda environment; its
-# script finds them on the path when that environment is active and runs them
-# through conda when it is not. repo_tools/check_facts.py (reads every pinned file)
-# and acquire_sources (hashes every pinned file) stay manual runs; see the root README.md.
+# Each step runs one repo tool, an installed command of the sdg conda environment.
+# When that environment is active the command is on the path and runs directly.
+# When it is not, the step runs it through conda instead, which is slower but needs
+# no set-up, so a commit works from any terminal. check_facts (reads every pinned
+# file) and acquire_sources (hashes every pinned file) stay manual runs; see the
+# root README.md.
 
 set -e
+
+# Run one repo tool with its arguments: directly when the sdg environment is active,
+# through conda run when it is not.
+run_tool() {
+  if command -v "$1" >/dev/null 2>&1; then
+    "$@"
+  else
+    conda run -n sdg "$@"
+  fi
+}
 
 # src/sdgtools/README.md is generated from each repo tool's header block. A commit
 # that edits a header without regenerating ships an index that disagrees with the
 # scripts it describes, which is the exact drift the generator exists to stop.
-build_index --check || {
+run_tool build_index --check || {
   echo "pre-commit: run 'build_index' and stage src/sdgtools/README.md"
   exit 1
 }
 
-# Every Python file under src/sdg/, repo_tools/, validation/ and .claude/hooks/
-# opens with the header block .claude/rules/writing_python_files.md requires, and its exit codes agree
+# Every Python file under src/, validation/ and .claude/hooks/ opens with the header
+# block .claude/rules/writing_python_files.md requires, and its exit codes agree
 # with validation/exit_codes.csv. A file that falls short is refused here so the
 # rule holds whoever made the edit.
-verify_headers || {
+run_tool verify_headers || {
   echo "pre-commit: fix the header blocks named above, then commit again"
   exit 1
 }
@@ -34,7 +45,7 @@ verify_headers || {
 # validation/validation_inventory.csv is generated from the checks in the test files.
 # A commit that changes a check without regenerating the inventory ships a list
 # that disagrees with the checks it describes.
-build_inventory --check || {
+run_tool build_inventory --check || {
   echo "pre-commit: run 'build_inventory' and stage validation/validation_inventory.csv"
   exit 1
 }
@@ -42,7 +53,7 @@ build_inventory --check || {
 # Every Python file passes ruff format, ruff check and mypy, as configured in
 # pyproject.toml. Each tool prints its own report, so a refused commit names
 # the file and the line.
-check_python_files --quiet || {
+run_tool check_python_files --quiet || {
   echo "pre-commit: fix what ruff or mypy reported above, then commit again"
   exit 1
 }

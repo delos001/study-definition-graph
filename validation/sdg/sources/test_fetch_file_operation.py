@@ -33,10 +33,10 @@ from pathlib import Path
 
 import httpx
 import pytest
-from validation.shared.fake_server import CHUNKS, URL, FakeResponse
 
 from sdg.sources import fetch_file
 from sdg.sources.fetch_file import FetchError, fetch, partial_path
+from validation.shared.fake_server import CHUNKS, URL, FakeResponse
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

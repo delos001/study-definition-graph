@@ -12,6 +12,7 @@ dependencies:
   - pymupdf        # PDF text extraction with layout and bounding boxes
   - pandas         # tables from the pinned workbooks, and scoring against eval/
   - openpyxl       # reads the pinned workbooks: the controlled terminology (CT), the CDISC Open Rules Engine (CORE) conformance rules, the crosswalks, the worked examples
+  - grimp          # maps which project file imports which, for the order between scripts' checks
   - pip
 
   - pip:

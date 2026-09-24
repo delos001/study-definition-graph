@@ -33,7 +33,6 @@ import shutil
 from pathlib import Path
 
 import pytest
-from validation.shared.staged_manifests import CONTENT, LOCAL
 
 from sdg.sources import read_manifests
 from sdg.sources.read_manifests import (
@@ -46,6 +45,7 @@ from sdg.sources.read_manifests import (
     manifests,
     require_repo,
 )
+from validation.shared.staged_manifests import CONTENT, LOCAL
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

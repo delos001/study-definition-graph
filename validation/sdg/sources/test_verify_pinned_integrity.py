@@ -22,7 +22,6 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import pytest
-from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 from sdg.sources import (
     ManifestError,
@@ -31,6 +30,7 @@ from sdg.sources import (
     read_manifests,
     verify_pinned,
 )
+from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

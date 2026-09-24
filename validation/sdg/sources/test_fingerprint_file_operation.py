@@ -30,10 +30,10 @@ from __future__ import annotations
 import hashlib
 
 import pytest
-from validation.shared.staged_manifests import CONTENT, entry_for_bytes
 
 from sdg.sources import fingerprint_file
 from sdg.sources.fingerprint_file import Comparison, compare, fingerprint
+from validation.shared.staged_manifests import CONTENT, entry_for_bytes
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

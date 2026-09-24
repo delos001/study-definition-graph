@@ -45,20 +45,20 @@ where = ["src"]
 "sdg.view" = ["*.yml"]
 
 [tool.pytest.ini_options]
-# validation/repo_tools/ imports the repo tools by name (import build_index), and
-# validation/claude_hooks/ imports the Claude Code hooks the same way, so both folders
-# go on the import path. They are declared here once, not in each test file.
-# The repo root is on the path too, so one test file can import another's shared
-# staging by its dotted name, the same name mypy knows it by.
-pythonpath = ["repo_tools", ".claude/hooks", "."]
+# validation/claude_hooks/ imports the Claude Code hooks by name, because a folder
+# whose name starts with a dot cannot be a package, so .claude/hooks/ goes on the
+# import path. The repo root is on the path too, so a check imports the code the
+# checks share by its dotted name, as validation.shared.<file>, the same name mypy
+# knows it by.
+pythonpath = [".claude/hooks", "."]
 testpaths = ["validation"]
 
 [tool.ruff]
-# Line length matches ruff's default formatter width. The four folders listed are the
-# ones .claude/rules/writing_python_files.md covers.
+# Line length matches ruff's default formatter width. The three folders listed are
+# the ones .claude/rules/writing_python_files.md covers.
 line-length = 88
 target-version = "py312"
-src = ["src", "repo_tools", "validation", ".claude/hooks"]
+src = ["src", "validation", ".claude/hooks"]
 
 [tool.ruff.lint]
 # E and W are PEP 8 style, F is pyflakes (unused names, undefined names), I is
@@ -70,16 +70,17 @@ select = ["E", "W", "F", "I", "B", "UP"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["sdg"]
+# The project's own code, so its imports are grouped after the third-party ones.
+known-first-party = ["sdg", "sdgtools", "sdgval", "validation"]
 
 [tool.mypy]
 # Every function must carry hints, as .claude/rules/writing_python_files.md requires. The
 # packages below ship no type stubs, so their imports are allowed untyped.
 python_version = "3.12"
 files = ["src", "validation", ".claude/hooks"]
-# validation/repo_tools/ and validation/claude_hooks/ import the repo tools and the
-# hooks by bare name, as pytest does.
-mypy_path = ["src", "repo_tools", ".claude/hooks", "."]
+# validation/claude_hooks/ imports the hooks by bare name, as pytest does, and the
+# checks import validation.shared.<file> from the repo root.
+mypy_path = ["src", ".claude/hooks", "."]
 # With explicit package bases every test file is named validation.<folder>.<file>, so
 # one override pattern below covers the whole folder, present and future.
 explicit_package_bases = true

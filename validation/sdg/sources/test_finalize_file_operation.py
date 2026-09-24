@@ -27,10 +27,10 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from validation.shared.staged_downloads import CONTENT, Staged
 
 from sdg.sources.fetch_file import partial_path
 from sdg.sources.finalize_file import discard, place
+from validation.shared.staged_downloads import CONTENT, Staged
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

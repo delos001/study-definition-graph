@@ -59,6 +59,7 @@ import textwrap
 from pathlib import Path
 
 import pytest
+
 from validation.shared.fake_server import CHUNKS, URL, Completed, FakeResponse
 from validation.shared.staged_downloads import CONTENT as DOWNLOADED
 from validation.shared.staged_downloads import Staged
