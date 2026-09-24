@@ -1,6 +1,6 @@
 """
 Script:      test_check_python_files.py
-Description: Checks for repo_tools/check_python_files.py, the tool the pre-commit
+Description: Checks for src/sdgtools/check_python_files.py, the tool the pre-commit
              hook runs to hold every Python file to ruff format, ruff check and
              mypy. Each check stands in for the two things the tool reaches
              outside itself, the search for a tool on the path and the running
@@ -17,9 +17,9 @@ Inputs:      Nothing real. The tool search and the command runner are replaced b
 
 Outputs:     Writes nothing to disk.
 
-Usage:       pytest validation/repo_tools/test_check_python_files.py
+Usage:       pytest validation/sdgtools/test_check_python_files.py
                  run these checks
-             pytest validation/repo_tools/test_check_python_files.py -v
+             pytest validation/sdgtools/test_check_python_files.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -35,7 +35,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import check_python_files as script
+from sdgtools import check_python_files as script
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

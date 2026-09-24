@@ -43,7 +43,7 @@ python repo_tools/build_inventory.py --check || {
 # Every Python file passes ruff format, ruff check and mypy, as configured in
 # pyproject.toml. Each tool prints its own report, so a refused commit names
 # the file and the line.
-python repo_tools/check_python_files.py --quiet || {
+check_python_files --quiet || {
   echo "pre-commit: fix what ruff or mypy reported above, then commit again"
   exit 1
 }

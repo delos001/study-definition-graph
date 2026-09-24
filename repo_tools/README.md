@@ -37,17 +37,6 @@ python repo_tools/build_inventory.py --quiet
     print nothing; use the exit code
 ```
 
-## check_python_files.py
-
-Runs the three tool checks every Python file must pass, in order: ruff format in check mode, ruff check, and mypy. Each tool's own output is printed as it runs, so a failure names the file and the line. All three are configured in pyproject.toml; this script adds nothing to what they check.
-
-```
-python repo_tools/check_python_files.py
-    run all three checks, report each, exit non-zero if any failed
-python repo_tools/check_python_files.py --quiet
-    print only the tools' own reports and the final verdict lines
-```
-
 ## verify_headers.py
 
 Checks that every Python file in the four code folders, src/sdg/, repo_tools/, validation/ and .claude/hooks/, opens with the full header block .claude/rules/writing_python_files.md requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.

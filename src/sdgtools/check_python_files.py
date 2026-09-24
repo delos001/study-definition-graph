@@ -17,9 +17,9 @@ Inputs:      pyproject.toml and every Python file under src/, repo_tools/,
 Outputs:     Nothing on disk. Prints each tool's report, then one line per tool
              saying whether it passed.
 
-Usage:       python repo_tools/check_python_files.py
+Usage:       check_python_files
                  run all three checks, report each, exit non-zero if any failed
-             python repo_tools/check_python_files.py --quiet
+             check_python_files --quiet
                  print only the tools' own reports and the final verdict lines
 
 Exit codes:  0   success (every tool passed)
@@ -49,7 +49,7 @@ from pathlib import Path
 # The three commands, and how to reach them when the sdg environment is not
 # the active one.
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 # Each entry is the tool's name and the arguments it is run with. mypy takes
 # its file list from pyproject.toml, so it needs none here.
