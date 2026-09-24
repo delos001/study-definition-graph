@@ -45,15 +45,15 @@ Inputs:      validation/**/test_*.py             (read-only, parsed rather than 
 Outputs:     validation/validation_inventory.csv, rewritten in full. With --check
              or --check-status, nothing on disk.
 
-Usage:       python repo_tools/build_inventory.py
+Usage:       build_inventory
                  regenerate the inventory
-             python repo_tools/build_inventory.py --check
+             build_inventory --check
                  report whether the inventory on disk is current; write nothing.
                  For hooks.
-             python repo_tools/build_inventory.py --check-status
+             build_inventory --check-status
                  check only the hand-kept columns of the inventory on disk;
                  write nothing
-             python repo_tools/build_inventory.py --quiet
+             build_inventory --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success (the inventory was written, or a check found it in order)
@@ -88,7 +88,7 @@ from pathlib import Path
 #######################################################################################
 ### Settings ###
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 VALIDATION_DIR = REPO_ROOT / "validation"
 INVENTORY_PATH = VALIDATION_DIR / "validation_inventory.csv"
 
@@ -678,7 +678,7 @@ def main(argv: list[str] | None = None) -> int:
         if blocking:
             return 19 if any(": cannot parse" in p for p in blocking) else 20
         if not INVENTORY_PATH.is_file():
-            say(f"{inventory} is missing. Run: python repo_tools/build_inventory.py")
+            say(f"{inventory} is missing. Run: build_inventory")
             return 16
         on_disk = list(existing_rows().values())
         live = {check.check_id for _, _, check in found}
@@ -718,7 +718,7 @@ def main(argv: list[str] | None = None) -> int:
         if current == text:
             say(f"{inventory} is current, {len(rows)} check(s)")
             return 0
-        say(f"{inventory} is stale. Run: python repo_tools/build_inventory.py")
+        say(f"{inventory} is stale. Run: build_inventory")
         return 16
 
     INVENTORY_PATH.write_text(text, encoding="utf-8", newline="")

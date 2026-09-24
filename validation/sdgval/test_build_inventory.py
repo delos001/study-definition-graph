@@ -1,6 +1,6 @@
 """
 Script:      test_build_inventory.py
-Description: Checks for repo_tools/build_inventory.py, the hand-run script that
+Description: Checks for src/sdgval/build_inventory.py, the hand-run script that
              generates validation/validation_inventory.csv from the checks in the
              test files and, under --check, is the pre-commit hook that refuses
              a commit whose inventory is stale. Each check writes one or two
@@ -16,9 +16,9 @@ Inputs:      validation/**/test_*.py and validation/validation_inventory.csv
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/repo_tools/test_build_inventory.py
+Usage:       pytest validation/sdgval/test_build_inventory.py
                  run these checks
-             pytest validation/repo_tools/test_build_inventory.py -v
+             pytest validation/sdgval/test_build_inventory.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -35,7 +35,7 @@ from pathlib import Path
 
 import pytest
 
-import build_inventory as script
+from sdgval import build_inventory as script
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -567,7 +567,7 @@ def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
     assert not inventory.exists()
-    assert "is stale. Run: python repo_tools/build_inventory.py" in outcome.printed
+    assert "is stale. Run: build_inventory" in outcome.printed
 
 
 @code("HRS0133")
@@ -586,7 +586,7 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
     assert inventory.read_text(encoding="utf-8") == stale
-    assert "is stale. Run: python repo_tools/build_inventory.py" in outcome.printed
+    assert "is stale. Run: build_inventory" in outcome.printed
 
 
 @code("HRS0063")
@@ -981,7 +981,7 @@ def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
     tests_folder({"repo_tools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 16
-    assert "is missing. Run: python repo_tools/build_inventory.py" in outcome.printed
+    assert "is missing. Run: build_inventory" in outcome.printed
 
 
 @code("HRS0169")

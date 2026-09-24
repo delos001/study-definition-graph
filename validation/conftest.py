@@ -149,12 +149,9 @@ from validation.select_checks import (
 )
 
 # The rule that says which code file a check file proves lives in the inventory
-# generator, repo_tools/build_inventory.py, which fills the same column of the
-# inventory. Importing it means the
-# inventory and a report can never disagree. pyproject.toml puts repo_tools/ on
-# pytest's import path, and the generator uses only the standard library, so this
-# import cannot fail because the sdg package is broken.
-from build_inventory import ASPECT_OF, code_folder_and_target, split_path
+# generator, src/sdgval/build_inventory.py, which fills the same column of the
+# inventory. Importing it means the inventory and a report can never disagree.
+from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 REPO_ROOT = VALIDATION_DIR.parent
@@ -197,7 +194,7 @@ EXIT_MEANING = {
 #
 # The first two fixtures serve the tests of the model loader, src/sdg/usdm/usdm_spec.py, which stage one
 # manifest with one entry, broken in one chosen way. The third, fake_repo,
-# serves the tests of src/sdg/sources/ and of the tools in repo_tools/, which need a
+# serves the tests of src/sdg/sources/ and of the tools in src/sdgtools/, which need a
 # whole small repo to walk.
 
 
@@ -976,7 +973,7 @@ def _selection(config: pytest.Config) -> str:
 def _target_of(test_file: Path) -> tuple[str, str]:
     """Name the code file a test file proves.
 
-    The rule is the inventory generator's, repo_tools/build_inventory.py, imported above, so the report's target
+    The rule is the inventory generator's, src/sdgval/build_inventory.py, imported above, so the report's target
     columns and the inventory's agree by construction.
 
     Args:

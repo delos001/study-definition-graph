@@ -32,7 +32,6 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import os
 import subprocess
 import textwrap
 from pathlib import Path
@@ -42,7 +41,6 @@ import pytest
 CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(
     encoding="utf-8"
 )
-REPO_TOOLS = Path(__file__).resolve().parents[1] / "repo_tools"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 positive = pytest.mark.positive
@@ -65,18 +63,18 @@ category = pytest.mark.category
 # the report back as rows.
 
 
-def with_repo_tools(monkeypatch) -> None:
-    """Put repo_tools/ and the repo root on the import path of the throwaway suite's process.
+def with_repo_root(monkeypatch) -> None:
+    """Put the repo root on the import path of the throwaway suite's process.
 
-    The copied conftest imports the inventory generator, repo_tools/build_inventory.py,
-    by its bare name and the selection plugin, validation/select_checks.py, by its
-    dotted name. The real run gets both paths from pyproject.toml, which the
-    throwaway suite does not read.
+    The copied conftest imports the selection plugin, validation/select_checks.py,
+    by its dotted name. The real run gets the repo root from pyproject.toml, which
+    the throwaway suite does not read. The inventory generator it also imports is
+    in the installed sdgval package, so it needs no path.
 
     Args:
         monkeypatch: pytest's patcher, which puts the variable back when the check ends.
     """
-    monkeypatch.setenv("PYTHONPATH", os.pathsep.join([str(REPO_TOOLS), str(REPO_ROOT)]))
+    monkeypatch.setenv("PYTHONPATH", str(REPO_ROOT))
 
 
 def run_suite(pytester, monkeypatch, test_source: str, *extra_args: str):
@@ -91,7 +89,7 @@ def run_suite(pytester, monkeypatch, test_source: str, *extra_args: str):
     Returns:
         pytest's result and the folder the report was written to.
     """
-    with_repo_tools(monkeypatch)
+    with_repo_root(monkeypatch)
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite=textwrap.dedent(test_source))
     out = pytester.path / "reports_out"
@@ -296,7 +294,7 @@ def test_a_check_without_parameters_has_an_empty_parameter(parametrized):
 def test_no_flag_writes_nothing(pytester, monkeypatch):
     """Without --validation-report, a run writes no report at all, so development
     runs leave no trace."""
-    with_repo_tools(monkeypatch)
+    with_repo_root(monkeypatch)
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite="def test_ok():\n    assert True\n")
     result = pytester.runpytest_subprocess()
@@ -805,7 +803,7 @@ def committed_repo(pytester, monkeypatch, test_source: str) -> str:
     Returns:
         The short hash of the commit.
     """
-    with_repo_tools(monkeypatch)
+    with_repo_root(monkeypatch)
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite=textwrap.dedent(test_source))
     (pytester.path / ".gitignore").write_text(

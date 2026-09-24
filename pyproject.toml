@@ -22,6 +22,7 @@ check_facts = "sdgtools.check_facts:main"
 check_python_files = "sdgtools.check_python_files:main"
 build_index = "sdgtools.build_index:main"
 verify_headers = "sdgtools.verify_headers:main"
+build_inventory = "sdgval.build_inventory:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -68,7 +69,7 @@ known-first-party = ["sdg"]
 # Every function must carry hints, as .claude/rules/writing_python_files.md requires. The
 # packages below ship no type stubs, so their imports are allowed untyped.
 python_version = "3.12"
-files = ["src", "repo_tools", "validation", ".claude/hooks"]
+files = ["src", "validation", ".claude/hooks"]
 # validation/repo_tools/ and validation/claude_hooks/ import the repo tools and the
 # hooks by bare name, as pytest does.
 mypy_path = ["src", "repo_tools", ".claude/hooks", "."]

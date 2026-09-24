@@ -66,7 +66,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from build_inventory import ASPECT_OF, CATEGORIES, OBJECTIVES, OBJECTIVES_BY_ASPECT
+from sdgval.build_inventory import (
+    ASPECT_OF,
+    CATEGORIES,
+    OBJECTIVES,
+    OBJECTIVES_BY_ASPECT,
+)
 
 #######################################################################################
 ### Settings ###

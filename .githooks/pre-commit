@@ -33,9 +33,9 @@ verify_headers || {
 
 # validation/validation_inventory.csv is generated from the checks in the test files.
 # A commit that changes a check without regenerating the inventory ships a list
-# that disagrees with the checks it describes. This check uses only the standard library.
-python repo_tools/build_inventory.py --check || {
-  echo "pre-commit: run 'python repo_tools/build_inventory.py' and stage validation/validation_inventory.csv"
+# that disagrees with the checks it describes.
+build_inventory --check || {
+  echo "pre-commit: run 'build_inventory' and stage validation/validation_inventory.csv"
   exit 1
 }
 
