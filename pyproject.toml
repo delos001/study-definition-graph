@@ -24,6 +24,18 @@ build_index = "sdgtools.build_index:main"
 verify_headers = "sdgtools.verify_headers:main"
 build_inventory = "sdgval.build_inventory:main"
 
+# The validation package's plugins, which pytest loads on its own wherever the
+# project is installed, including the separate pytest processes the report's own
+# checks start. This is pytest's documented way for an installed package to provide
+# plugins. Loading them at startup rather than from validation/conftest.py matters
+# for select_checks, because pytest reads the command line before it loads a
+# conftest below the root folder, so an option added there would be unknown.
+[project.entry-points.pytest11]
+sdgval_labels = "sdgval.labels"
+sdgval_select_checks = "sdgval.select_checks"
+sdgval_skip_rules = "sdgval.skip_rules"
+sdgval_report = "sdgval.report"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
@@ -40,11 +52,6 @@ where = ["src"]
 # staging by its dotted name, the same name mypy knows it by.
 pythonpath = ["repo_tools", ".claude/hooks", "."]
 testpaths = ["validation"]
-# src/sdgval/select_checks.py adds the options that select checks by category,
-# aspect, objective, id or group. It is loaded here as a plugin, because pytest reads
-# the command line before it loads validation/conftest.py, so an option added there
-# would be unknown at that moment and its value taken for a path.
-addopts = "-p sdgval.select_checks"
 
 [tool.ruff]
 # Line length matches ruff's default formatter width. The four folders listed are the

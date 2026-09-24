@@ -3,14 +3,15 @@ Script:      test_select_checks.py
 Description: Checks for src/sdgval/select_checks.py, the plugin that selects checks
              by category, objective, id or named group. Each check runs one
              throwaway suite of four checks, which differ in category, objective
-             and id, in a separate pytest process with the real conftest.py and
-             the real plugin, and reads the report to see which checks ran. A
+             and id, in a separate pytest process with the real plugins, staged by
+             the staged_suite fixture in validation/conftest.py, and reads the
+             report to see which checks ran. A
              deselected check neither runs nor gets a report row, so the report's
              ids say what was kept. The refusals are confirmed by exit code, by
              message and by the absence of a report.
 
-Inputs:      validation/conftest.py and src/sdgval/select_checks.py (read-only;
-             copied into, and loaded by, the throwaway suite's process)
+Inputs:      Nothing real. The throwaway suite is written to pytest's own
+             temporary folder, and the installed plugins are loaded by its process.
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
@@ -30,7 +31,6 @@ from __future__ import annotations
 import textwrap
 
 import pytest
-from validation.test_conftest import run_suite, the_report
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -88,31 +88,31 @@ GROUPS_FILE = """
 
 
 def selected(
-    pytester, monkeypatch, *args: str
+    staged_suite, *args: str
 ) -> tuple[int, set[str], list[dict[str, str]], str]:
     """Run the selection suite with the given options and say which checks ran.
 
     Args:
-        pytester: pytest's helper for running a separate suite.
+        staged_suite: The throwaway suite, from validation/conftest.py.
         *args: The selection options.
 
     Returns:
         pytest's exit code, the ids of the checks that got a report row, the rows,
         and everything pytest printed.
     """
-    result, out = run_suite(pytester, SELECTION_SUITE, *args)
-    rows = the_report(out) if out.exists() else []
+    result, out = staged_suite.run(SELECTION_SUITE, *args)
+    rows = staged_suite.report(out) if out.exists() else []
     printed = result.stdout.str() + result.stderr.str()
     return result.ret, {r["id"] for r in rows}, rows, printed
 
 
-def stage_groups(pytester) -> None:
+def stage_groups(staged_suite) -> None:
     """Write the groups file under the throwaway suite's root, where the plugin reads it.
 
     Args:
-        pytester: pytest's helper for running a separate suite.
+        staged_suite: The throwaway suite, from validation/conftest.py.
     """
-    folder = pytester.path / "validation"
+    folder = staged_suite.validation
     folder.mkdir(exist_ok=True)
     (folder / "validation_groups.yml").write_text(
         textwrap.dedent(GROUPS_FILE), encoding="utf-8"
@@ -131,10 +131,10 @@ def stage_groups(pytester) -> None:
 @category("repository")
 @objective("functionality")
 @positive
-def test_category_keeps_only_that_category(pytester, monkeypatch):
+def test_category_keeps_only_that_category(staged_suite):
     """With --category, only the checks carrying that category run, and the others get
     no report row."""
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--category", "repository")
+    ret, ids, _, _ = selected(staged_suite, "--category", "repository")
     assert ret == 0
     assert ids == {"XYZ0011", "XYZ0014"}
 
@@ -143,9 +143,9 @@ def test_category_keeps_only_that_category(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_objective_keeps_only_that_objective(pytester, monkeypatch):
+def test_objective_keeps_only_that_objective(staged_suite):
     """With --objective, only the checks carrying that objective run."""
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--objective", "correctness")
+    ret, ids, _, _ = selected(staged_suite, "--objective", "correctness")
     assert ret == 0
     assert ids == {"XYZ0011", "XYZ0013"}
 
@@ -154,10 +154,10 @@ def test_objective_keeps_only_that_objective(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
+def test_category_and_objective_narrow_each_other(staged_suite):
     """With both --category and --objective, only the checks matching both run."""
     ret, ids, _, _ = selected(
-        pytester, monkeypatch, "--category", "repository", "--objective", "correctness"
+        staged_suite, "--category", "repository", "--objective", "correctness"
     )
     assert ret == 0
     assert ids == {"XYZ0011"}
@@ -167,9 +167,9 @@ def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
+def test_a_comma_separated_list_means_any_of_the_values(staged_suite):
     """A comma-separated list on one option keeps the checks matching any value in it."""
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--category", "sources,processing")
+    ret, ids, _, _ = selected(staged_suite, "--category", "sources,processing")
     assert ret == 0
     assert ids == {"XYZ0012", "XYZ0013"}
 
@@ -178,9 +178,9 @@ def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_id_keeps_only_those_checks(pytester, monkeypatch):
+def test_id_keeps_only_those_checks(staged_suite):
     """With --id, only the checks carrying those ids run."""
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--id", "XYZ0012,XYZ0014")
+    ret, ids, _, _ = selected(staged_suite, "--id", "XYZ0012,XYZ0014")
     assert ret == 0
     assert ids == {"XYZ0012", "XYZ0014"}
 
@@ -189,11 +189,11 @@ def test_id_keeps_only_those_checks(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_group_runs_the_ids_the_groups_file_lists(pytester, monkeypatch):
+def test_group_runs_the_ids_the_groups_file_lists(staged_suite):
     """With --group, the checks whose ids the named group lists in
     validation/validation_groups.yml run, and no others."""
-    stage_groups(pytester)
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--group", "odd")
+    stage_groups(staged_suite)
+    ret, ids, _, _ = selected(staged_suite, "--group", "odd")
     assert ret == 0
     assert ids == {"XYZ0011", "XYZ0013"}
 
@@ -202,11 +202,11 @@ def test_group_runs_the_ids_the_groups_file_lists(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_the_selection_column_records_the_options(pytester, monkeypatch):
+def test_the_selection_column_records_the_options(staged_suite):
     """The report's selection column records the selection options as given, so a
     narrowed run cannot pass for a full one."""
     _, _, rows, _ = selected(
-        pytester, monkeypatch, "--category", "repository", "--objective", "correctness"
+        staged_suite, "--category", "repository", "--objective", "correctness"
     )
     assert {r["selection"] for r in rows} == {
         "--category repository --objective correctness"
@@ -224,11 +224,11 @@ def test_the_selection_column_records_the_options(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
+def test_a_category_not_in_the_list_stops_the_run(staged_suite):
     """A --category value that is not a defined category stops the run with pytest's
     usage error, exit 4, the message names the value and the categories, and no
     report is written."""
-    ret, ids, _, printed = selected(pytester, monkeypatch, "--category", "machinery")
+    ret, ids, _, printed = selected(staged_suite, "--category", "machinery")
     assert ret == 4
     assert "--category machinery: not one of repository, sources, processing" in printed
     assert ids == set()
@@ -238,10 +238,10 @@ def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_id_no_collected_check_carries_stops_the_run(pytester, monkeypatch):
+def test_an_id_no_collected_check_carries_stops_the_run(staged_suite):
     """An --id that no collected check carries stops the run with exit 4 rather than
     running nothing, so a typo cannot pass for a clean run."""
-    ret, ids, _, printed = selected(pytester, monkeypatch, "--id", "XYZ0099")
+    ret, ids, _, printed = selected(staged_suite, "--id", "XYZ0099")
     assert ret == 4
     assert "no collected check carries the id XYZ0099" in printed
     assert ids == set()
@@ -251,11 +251,11 @@ def test_an_id_no_collected_check_carries_stops_the_run(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_group_not_in_the_file_stops_the_run(pytester, monkeypatch):
+def test_a_group_not_in_the_file_stops_the_run(staged_suite):
     """A --group name that validation/validation_groups.yml does not define stops the
     run with exit 4, naming the groups that do exist."""
-    stage_groups(pytester)
-    ret, ids, _, printed = selected(pytester, monkeypatch, "--group", "even")
+    stage_groups(staged_suite)
+    ret, ids, _, printed = selected(staged_suite, "--group", "even")
     assert ret == 4
     assert "--group even: no such group in validation/validation_groups.yml" in printed
     assert "the groups are odd" in printed
@@ -266,10 +266,10 @@ def test_a_group_not_in_the_file_stops_the_run(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_group_without_the_groups_file_stops_the_run(pytester, monkeypatch):
+def test_group_without_the_groups_file_stops_the_run(staged_suite):
     """A --group when validation/validation_groups.yml is missing stops the run with
     exit 4 and a message naming the file."""
-    ret, ids, _, printed = selected(pytester, monkeypatch, "--group", "odd")
+    ret, ids, _, printed = selected(staged_suite, "--group", "odd")
     assert ret == 4
     assert "--group needs validation/validation_groups.yml" in printed
     assert ids == set()
@@ -279,11 +279,11 @@ def test_group_without_the_groups_file_stops_the_run(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_defined_value_matching_no_check_stops_the_run(pytester, monkeypatch):
+def test_a_defined_value_matching_no_check_stops_the_run(staged_suite):
     """A --category that is a defined category but that no collected check carries
     stops the run with exit 4 rather than running nothing, and the message says the
     option matched no check and what to do about it."""
-    ret, ids, _, printed = selected(pytester, monkeypatch, "--category", "products")
+    ret, ids, _, printed = selected(staged_suite, "--category", "products")
     assert ret == 4
     assert "no check matches every option given: --category matched 0" in printed
     assert "Drop or widen the option that matched fewest." in printed
@@ -294,12 +294,12 @@ def test_a_defined_value_matching_no_check_stops_the_run(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch):
+def test_options_that_together_match_nothing_stop_the_run(staged_suite):
     """Two options that each match a check, but no one check, stop the run with exit
     4 rather than running nothing, and the message gives each option's own count and
     what to do, so the reader can see which one is the odd one out."""
     ret, ids, _, printed = selected(
-        pytester, monkeypatch, "--category", "sources", "--id", "XYZ0011"
+        staged_suite, "--category", "sources", "--id", "XYZ0011"
     )
     assert ret == 4
     assert (
@@ -313,10 +313,10 @@ def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch)
 @category("repository")
 @objective("functionality")
 @positive
-def test_aspect_keeps_only_the_checks_of_that_aspect(pytester, monkeypatch):
+def test_aspect_keeps_only_the_checks_of_that_aspect(staged_suite):
     """With --aspect, only the checks whose objective belongs to that aspect of
     quality run, although no check carries the aspect itself."""
-    ret, ids, _, _ = selected(pytester, monkeypatch, "--aspect", "conformance")
+    ret, ids, _, _ = selected(staged_suite, "--aspect", "conformance")
     assert ret == 0
     assert ids == {"XYZ0014"}
 
@@ -325,11 +325,11 @@ def test_aspect_keeps_only_the_checks_of_that_aspect(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @positive
-def test_aspect_and_category_narrow_each_other(pytester, monkeypatch):
+def test_aspect_and_category_narrow_each_other(staged_suite):
     """With both --aspect and --category, only the checks matching both run, so a run
     can be aimed at one aspect of one kind of thing."""
     ret, ids, _, _ = selected(
-        pytester, monkeypatch, "--aspect", "integrity", "--category", "repository"
+        staged_suite, "--aspect", "integrity", "--category", "repository"
     )
     assert ret == 0
     assert ids == {"XYZ0011"}
@@ -339,10 +339,10 @@ def test_aspect_and_category_narrow_each_other(pytester, monkeypatch):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_aspect_not_in_the_list_stops_the_run(pytester, monkeypatch):
+def test_an_aspect_not_in_the_list_stops_the_run(staged_suite):
     """An --aspect value that is not a defined aspect of quality stops the run with
     pytest's usage error, exit 4, and the message names the value and the aspects."""
-    ret, ids, _, printed = selected(pytester, monkeypatch, "--aspect", "quality")
+    ret, ids, _, printed = selected(staged_suite, "--aspect", "quality")
     assert ret == 4
     assert "--aspect quality: not one of conformance, integrity, operation" in printed
     assert ids == set()

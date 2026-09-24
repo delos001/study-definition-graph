@@ -55,7 +55,7 @@ from sdg.usdm import usdm_spec
 FIXTURE = Path(__file__).resolve().parents[2] / "fixtures" / "usdm_three_classes.yml"
 FIXTURE_CLASSES = ("Condition", "Identifier", "StudyIdentifier")
 
-# The real-file checks read the pinned model file. validation/conftest.py skips them
+# The real-file checks read the pinned model file. src/sdgval/skip_rules.py skips them
 # when it is not downloaded, as on a fresh clone, or when it no longer matches its
 # manifest entry, rather than fail and hide the logic checks' results.
 needs_pinned_file = pytest.mark.needs_pinned(

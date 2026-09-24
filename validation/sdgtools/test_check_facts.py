@@ -51,7 +51,7 @@ category = pytest.mark.category
 
 # The real run reads the pinned files its measurements need: the USDM model file, the
 # USDM export under each worked example, and the concepts workbook.
-# validation/conftest.py skips the real-run check when any of them is not downloaded
+# src/sdgval/skip_rules.py skips the real-run check when any of them is not downloaded
 # or no longer matches its manifest entry.
 needs_pinned_file = pytest.mark.needs_pinned(
     PINNED_LOCAL,

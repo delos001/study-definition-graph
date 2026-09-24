@@ -130,7 +130,7 @@ def refused_with(error, target=LOCAL) -> str:
 #
 # One check per pinned file, so a report names the file that changed. It is the only
 # check that fails for a changed pinned file; every other check that reads one is
-# skipped as blocked by validation/conftest.py.
+# skipped as blocked by src/sdgval/skip_rules.py.
 
 
 @code("SA00106")

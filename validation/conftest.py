@@ -1,126 +1,38 @@
 """
 Script:      conftest.py
-Description: Supplies the conditions for the test_*.py files under validation/ to run in a
-             controlled environment. This file is read automatically before any test
-             script under validation/ runs. pytest requires this file to be named
-             conftest.py.
+Description: Supplies the setups the test_*.py files under validation/ share. pytest
+             reads this file automatically before any test file under validation/
+             runs, and requires it to be named conftest.py.
 
-             When pytest loads conftest.py it adds the following for the test_*.py
-             scripts to use:
-               - the --validation-report flag,
-               - the fixtures:
-                    - manifest_dir points the manifest reader, src/sdg/sources/read_manifests.py, at a temporary folder,
-                    - manifest_recording writes one manifest entry for one file,
-                    - fake_repo builds a throwaway repo with pyproject.toml, manifests/
-                      and inputs/.
-
-             The --validation-report flag enables the writing of a validation report:
-             one CSV file per run, one row per check, into validation/reports/.
+             It adds these fixtures for the test files to ask for by name:
+               - manifest_dir points the manifest reader,
+                 src/sdg/sources/read_manifests.py, at a temporary folder,
+               - manifest_recording writes one manifest entry for one file,
+               - fake_repo builds a throwaway repo with pyproject.toml, manifests/
+                 and inputs/,
+               - staged_suite runs a throwaway suite of checks in a separate pytest
+                 process and reads back the report it writes, for the checks of
+                 the validation package's own plugins.
 
              The fixtures stage the data so the real manifests/ and inputs/ are never
              touched.
 
-             A report is meant to be auditable, so it identifies what was tested, how,
-             when, by whom, and with what outcome. The run's own details are repeated
-             on every row, so each file is complete on its own and any row can be
-             joined to validation/validation_inventory.csv by its check code.
-               - What was tested is the target file, the file of checks and its sha256,
-                 the fixture files and their sha256s, the code commit, and the pinned
-                 USDM data version (the manifest's recorded sha256, and whether the
-                 file was present). The working folder must match that commit
-                 exactly, so a run asked for a report refuses to start when there
-                 are uncommitted changes, before any check runs, and says which
-                 files they are. The commit it would have named would not have
-                 described the code that ran.
-               - How is which checks were selected, how many the run set out to
-                 cover and how many it reports on, and, at the far right of each
-                 row, the Python and pytest versions and the operating system. The
-                 two counts differ when checks were dropped or the run stopped
-                 early, so a partial run cannot read as a whole one. They are
-                 counted from what happened rather than from the options typed,
-                 because an option this file does not know about narrows a run
-                 just the same.
-               - When is the local timestamp with its zone, and by whom is the git user
-                 name.
-               - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check. A row holds the check's id, its name, its
-                 parameter when it has one, its category, its aspect of quality,
-                 its objective, its case when it staged its own situation, its
-                 expected result, which is its docstring's first paragraph, its own
-                 outcome, and the reason when that is not passed: the assertion
-                 message, the step that broke, or why it was skipped. A check that
-                 goes wrong twice, failing and then breaking in its clean-up,
-                 keeps both reasons in the order the steps ran.
+             It also enables pytest's own pytester helper, which staged_suite is
+             built on.
 
-             The verdict is PASS only when pytest itself exited 0. pytest's exit
-             status already accounts for every kind of failure:
-               - a test's own checks,
-               - its set-up,
-               - its clean-up,
-               - a file that fails to load,
-               - an internal error.
-             Therefore the report can never say PASS when the terminal said otherwise.
-             The rows are the detail; the exit status is the verdict. When no check
-             ran at all, a report is still written, with one row saying so. Why no
-             check ran is in that row's exit_meaning, because the exit status is
-             all the writer knows about the cause.
+             The machinery that runs the checks is not here. It is the validation
+             package, src/sdgval/, which pytest loads through the pytest11 entry
+             point in pyproject.toml: the labels, the selection options, the skip
+             rules and the report.
 
-             It registers the markers the tests carry:
-               - @code carries the check's permanent id from validation/validation_inventory.csv,
-               - @category carries what kind of thing the check confirms, one of
-                 the categories validation/validation_inventory_dictionary.md
-                 defines,
-               - @objective carries the question the check asks, one of the
-                 objectives the same dictionary defines. The aspect of quality
-                 the report records is looked up from it rather than marked,
-               - @positive means a staged working situation where the code is
-                 expected to succeed,
-               - @negative means a staged broken situation where the code is
-                 expected to refuse for the right reason,
-               - @needs_pinned names the real pinned files a check reads.
+Inputs:      Nothing real. Every fixture writes to pytest's own temporary folder.
 
-             Before a check marked @needs_pinned runs, each pinned file it names is
-             looked at. The check is skipped, with the reason recorded, when a file
-             is not downloaded or when it no longer matches its manifest entry. The
-             second case is called blocked. Only the stability check for that file
-             fails, so one changed file is reported as one failure, not as a
-             failure of every check that reads it.
-
-             The selection options, --category, --objective, --id and --group,
-             are added by src/sdgval/select_checks.py, which pyproject.toml loads
-             as a plugin at startup. The report's selection column records what
-             they asked for.
-
-             It also enables pytest's own "pytester" helper, which the report-writer's
-             tests use to run small throwaway suites.
-
-Inputs:      git (for the commit hash and user name; read-only)
-             manifests/*.json (read-only; the pinned data version, and the entries
-                 the @needs_pinned files are looked up in)
-             inputs/** (read-only; only the files a @needs_pinned check names, which
-                 are measured)
-             validation/fixtures/* (read-only; hashed)
-
-Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
-             validation/reports/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
-             An existing name is never overwritten; it gets a numeric suffix. A run
-             whose command line pytest refused writes nothing, because it
-             validated nothing, and neither does a listing run, --collect-only,
-             because it ran nothing.
+Outputs:     Nothing outside pytest's own temporary folder.
 
 Usage:       pytest
-                 run every test, write nothing
-             pytest --validation-report
-                 run every test and write the report to validation/reports/
-             pytest --validation-report --validation-report-dir <folder>
-                 same, writing to another folder (the report-writer's own
-                 tests use this to write into a temporary folder)
-             pytest --category sources --validation-report
-                 run only some checks and write a report of them; the options
-                 are src/sdgval/select_checks.py's
+                 read on its own before any check under validation/ runs
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed, 2 interrupted,
-             3 internal error, 4 bad command line, 5 no tests collected
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -129,58 +41,18 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import csv
-import datetime as dt
-import fnmatch
-import functools
 import hashlib
 import json
-import platform
 import subprocess
-import time
+import textwrap
 from pathlib import Path
 
 import pytest
 
-# The rule that says which code file a check file proves lives in the inventory
-# generator, src/sdgval/build_inventory.py, which fills the same column of the
-# inventory. Importing it means the inventory and a report can never disagree.
-from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
-from sdgval.select_checks import (
-    SELECTORS,
-    category_of,
-    code_of,
-    objective_of,
-    wanted,
-)
-
-VALIDATION_DIR = Path(__file__).resolve().parent
-REPO_ROOT = VALIDATION_DIR.parent
-FIXTURE_DIR = VALIDATION_DIR / "fixtures"
-
-# These two lines name the pinned model file and the manifest that records it.
-# They are written here as literals rather than imported from the loader, src/sdg/usdm/usdm_spec.py, so
-# the test setup does not depend on a module the tests themselves are meant to
-# prove. The loader's test, once rewritten, is where the two are confirmed against
-# each other.
-PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
-MANIFEST = REPO_ROOT / "manifests" / "cdisc_usdm_v4.json"
-
 # pytest has a helper called pytester that lets a test run a small, separate
 # test suite of its own. It is switched off unless a file asks for it. The
-# report-writer's tests, in validation/test_conftest.py, use it to run a
-# throwaway suite and then read the report that comes out.
+# staged_suite fixture below is built on it.
 pytest_plugins = ["pytester"]
-
-# pytest ends every run with a number that says how the run went. The report
-# prints that number together with its meaning, in these words.
-EXIT_MEANING = {
-    0: "all tests passed",
-    1: "one or more tests failed or errored",
-    2: "the run was interrupted",
-    3: "pytest hit an internal error",
-    4: "pytest was given a bad command line",
-    5: "no tests were collected",
-}
 
 
 #######################################################################################
@@ -409,720 +281,131 @@ def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
     return repo
 
 
-#######################################################################################
-### Command line and markers ###
+class StagedSuite:
+    """A throwaway suite of checks, run in a separate pytest process.
 
-
-def pytest_addoption(parser):
-    """Add the report options to the pytest command line.
-
-    --validation-report is off unless given. With it, one report is written after the
-    run. --validation-report-dir says which folder the report goes in. It defaults to
-    validation/reports; the report-writer's own checks point it at a temporary folder
-    instead.
-
-    Args:
-        parser: pytest's command-line parser.
+    The suite is laid out like the real repo: its test file sits in a validation/
+    folder under the temporary root, because the validation package finds
+    validation/ from pytest's root folder. The package's plugins are loaded in the
+    separate process through their entry point, as they are for a real run.
     """
-    parser.addoption(
-        "--validation-report",
-        action="store_true",
-        default=False,
-        help="after the run, write one validation report, one row per check",
-    )
-    parser.addoption(
-        "--validation-report-dir",
-        default=str(VALIDATION_DIR / "reports"),
-        help="folder the report is written to (default: validation/reports)",
-    )
 
+    def __init__(self, pytester: pytest.Pytester):
+        """Hold the pytester the suite is staged with.
 
-def pytest_configure(config):
-    """Tell pytest about the markers the checks use: code, category, objective,
-    positive, negative and needs_pinned.
+        Args:
+            pytester: pytest's helper for running a separate suite.
+        """
+        self.pytester = pytester
+        self.root = pytester.path
+        self.validation = pytester.path / "validation"
+        self.test_file = self.validation / "test_suite.py"
+        self.report_dir = pytester.path / "reports_out"
 
-    A marker is a label a check carries. pytest warns about a label it has not been told
-    about, so each is declared here with a sentence saying what it means.
+    def write(self, test_source: str) -> Path:
+        """Write the suite's one test file into its validation/ folder.
 
-    Args:
-        config: pytest's configuration.
-    """
-    config.addinivalue_line(
-        "markers",
-        "category(name): what kind of thing the check confirms, one of the categories "
-        "in validation/validation_inventory_dictionary.md",
-    )
-    config.addinivalue_line(
-        "markers",
-        "objective(name): what the check confirms about its category, one of the "
-        "objectives in validation/validation_inventory_dictionary.md",
-    )
-    config.addinivalue_line(
-        "markers",
-        "positive: a check of a staged working situation, expected to succeed",
-    )
-    config.addinivalue_line(
-        "markers",
-        "negative: a check of a staged broken situation, expected to refuse for "
-        "the right reason",
-    )
-    # The code is the check's short, permanent id in validation/validation_inventory.csv:
-    # S, a suite letter and five digits, such as SA00042, assigned once and never
-    # reused.
-    config.addinivalue_line(
-        "markers", "code(id): the check's id in validation/validation_inventory.csv"
-    )
-    config.addinivalue_line(
-        "markers",
-        "needs_pinned(*paths): the real pinned files the check reads, each written as "
-        "a manifest writes it, where * stands for any run of characters",
-    )
+        Args:
+            test_source: The source of the test file.
 
+        Returns:
+            The test file's path.
+        """
+        self.validation.mkdir(exist_ok=True)
+        self.test_file.write_text(textwrap.dedent(test_source), encoding="utf-8")
+        return self.test_file
 
-#######################################################################################
-### Pinned files a check depends on ###
-#
-# A check that reads real pinned files names them with @needs_pinned. Before the check
-# runs, every file that matches is looked at, and the check is skipped with the
-# reason when one is not downloaded or no longer matches its manifest entry. A
-# skipped check is recorded as skipped in a report, with that reason. The stability
-# check for each pinned file, in validation/sdg/sources/test_verify_pinned.py, is the only
-# check that fails for a changed file, so the change is reported once. A marker that
-# names a file no manifest records is a mistake in the check, so that check errors
-# rather than skips, and the run fails.
+    def run(self, test_source: str, *extra_args: str):
+        """Write the suite and run it with a report asked for.
 
+        Args:
+            test_source: The source of the test file.
+            *extra_args: Any further pytest arguments.
 
-class UnmatchedPatternError(Exception):
-    """A @needs_pinned marker names a file that no manifest records."""
-
-
-def pinned_skip_reason(pattern: str) -> str | None:
-    """Say why a check that reads the pinned files matching a pattern cannot run.
-
-    The pattern is a path as a manifest writes it, where * stands for any run of
-    characters. Each manifest entry whose path matches is looked at in turn, and the
-    first problem found is the answer.
-
-    Args:
-        pattern: The pinned file or files the check reads.
-
-    Returns:
-        None when every matching file is on disk and matches its entry. Otherwise the
-        reason: a file is not downloaded, or a file no longer matches its entry,
-        which is reported as blocked.
-
-    Raises:
-        UnmatchedPatternError: No manifest records a file matching the pattern.
-        NotInRepoError: The sdg package is not running from inside its repo.
-        ManifestError: A manifest is missing or cannot be read.
-    """
-    # Imported here rather than at the top, so the report can still be written when
-    # the sdg package itself is broken.
-    from sdg.sources.fingerprint_file import compare
-    from sdg.sources.read_manifests import manifests
-
-    matched = [
-        entry
-        for manifest in manifests()
-        for entry in manifest.entries
-        if fnmatch.fnmatchcase(entry.local, pattern)
-    ]
-    if not matched:
-        raise UnmatchedPatternError(
-            f"no manifest records a file matching {pattern}; "
-            "correct the @needs_pinned marker"
+        Returns:
+            pytest's result and the folder the report was written to.
+        """
+        self.write(test_source)
+        result = self.pytester.runpytest_subprocess(
+            "--validation-report",
+            "--validation-report-dir",
+            str(self.report_dir),
+            *extra_args,
         )
-    for entry in matched:
-        if not entry.path.is_file():
-            return f"not downloaded: {entry.local}; run acquire_sources"
-        if not compare(entry.path, entry).matched:
-            return (
-                f"blocked: {entry.local} does not match its manifest entry; "
-                "see the stability check for that file"
+        return result, self.report_dir
+
+    @staticmethod
+    def report(folder: Path) -> list[dict[str, str]]:
+        """Read the one report a run wrote.
+
+        Args:
+            folder: Where the report was written.
+
+        Returns:
+            The report's rows, one record per check, each a dict keyed by column name.
+        """
+        reports = list(folder.glob("*.csv"))
+        assert len(reports) == 1, [r.name for r in reports]
+        with reports[0].open(encoding="utf-8", newline="") as fh:
+            return list(csv.DictReader(fh))
+
+    @staticmethod
+    def row(rows: list[dict[str, str]], check_name: str) -> dict[str, str]:
+        """Pick the one row for a named check.
+
+        Args:
+            rows: The report's rows.
+            check_name: The check's function name.
+
+        Returns:
+            That check's row.
+        """
+        matches = [r for r in rows if r["name"] == check_name]
+        assert len(matches) == 1, [r["name"] for r in rows]
+        return matches[0]
+
+    def commit(self, test_source: str) -> str:
+        """Write the suite and commit it as a git repository.
+
+        pytest's own cache, the files pytester writes for itself and Python's
+        bytecode folders are ignored in the repository, so only the suite's own files
+        count as changes. A notes file is committed too, for a check that needs a
+        tracked file it can change without the run writing it back.
+
+        Args:
+            test_source: The source of the test file.
+
+        Returns:
+            The short hash of the commit.
+        """
+        self.write(test_source)
+        (self.root / ".gitignore").write_text(
+            ".pytest_cache/\n__pycache__/\nrunpytest-*\nstdout\nstderr\n",
+            encoding="utf-8",
+        )
+        (self.root / "notes.txt").write_text("kept\n", encoding="utf-8")
+        identity = ["-c", "user.name=Check", "-c", "user.email=check@example.invalid"]
+        for args in (["init", "-q"], ["add", "-A"], ["commit", "-q", "-m", "staged"]):
+            subprocess.run(
+                ["git", *identity, *args],
+                cwd=self.root,
+                check=True,
+                capture_output=True,
             )
-    return None
-
-
-# Each pattern is looked at once per run, since a pinned file does not change while
-# the checks run and measuring it again for every check would only cost time.
-_cached_skip_reason = functools.cache(pinned_skip_reason)
-
-
-def pytest_runtest_setup(item):
-    """Skip a check whose pinned files are not downloaded or no longer match.
-
-    pytest calls this before it sets up each check, so the pinned files are looked at
-    before any fixture could point the manifest reader somewhere else. A marker naming
-    a file no manifest records makes the check's set-up fail instead, which pytest
-    reports as an error.
-
-    Args:
-        item: The check about to run.
-    """
-    for marker in item.iter_markers("needs_pinned"):
-        for pattern in marker.args:
-            # A pattern that matches nothing is not a state of the repo to skip on,
-            # so it is turned into a set-up failure with the message kept.
-            try:
-                reason = _cached_skip_reason(pattern)
-            except UnmatchedPatternError as exc:
-                pytest.fail(str(exc), pytrace=False)
-            if reason:
-                pytest.skip(reason)
-
-
-#######################################################################################
-### Collecting outcomes ###
-#
-# pytest runs each test in three steps: set-up, the test itself (pytest calls
-# this the call step), and clean-up. It reports on each step separately. One
-# row per test is kept here, and a later step may make the row worse but never
-# better: a test whose checks passed but whose clean-up failed ends up as an
-# error, which is also what pytest prints on the terminal. The reason is added to
-# rather than replaced, so a test that fails and then breaks in its clean-up keeps
-# both reasons instead of the second hiding the first. Nothing here decides
-# whether the run passed. That verdict comes from pytest's own exit number, in
-# pytest_sessionfinish below.
-
-# One row per test, keyed by the id pytest gives the test.
-_outcomes: dict[str, dict] = {}
-
-
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    """Record the outcome of one step of one check into that check's row.
-
-    pytest calls this after each of the three steps. The row is created by the first
-    step that has something to say and updated by the later ones.
-
-    Args:
-        item: The check.
-        call: The step that just ran and how it ended.
-    """
-    result = yield
-    report = result.get_result()
-
-    if report.when == "call":
-        # The test itself ran. Its outcome is passed, failed or skipped.
-        outcome = report.outcome
-    elif report.passed:
-        # Set-up or clean-up went fine. That says nothing about the test on
-        # its own, so there is nothing to record.
-        return
-    elif report.skipped:
-        # The test was skipped before it ran, by a skipif marker on it.
-        outcome = "skipped"
-    else:
-        # Set-up or clean-up broke. pytest's own word for that is error.
-        outcome = "error"
-
-    row = _outcomes.setdefault(
-        item.nodeid,
-        {
-            "file": Path(str(item.fspath)),
-            "code": code_of(item),
-            "name": item.originalname,
-            "parameter": _parameter(item),
-            "category": category_of(item),
-            "objective": objective_of(item),
-            "case": _case(item),
-            "expected_result": _first_paragraph(item.obj.__doc__),
-            "outcome": outcome,
-            "reason": "",
-        },
-    )
-    # A clean-up error replaces an earlier pass. No step ever makes a row
-    # better than it was.
-    if outcome == "error" or row["outcome"] in ("passed", ""):
-        row["outcome"] = outcome
-    if outcome == "error":
-        _add_reason(
-            row, "clean-up failed" if report.when == "teardown" else "set-up failed"
-        )
-    if outcome == "failed":
-        # pytest keeps the one-line message of the failure, usually the
-        # assertion, on the report; that is what a reader needs first.
-        crash = getattr(report.longrepr, "reprcrash", None)
-        _add_reason(row, crash.message.splitlines()[0] if crash else "failed")
-    if outcome == "skipped":
-        # For a skip, pytest stores the reason as the third item of a tuple of
-        # file, line and reason. The reason is what a reader needs, usually
-        # that the pinned file is not downloaded.
-        reason = (
-            report.longrepr[2]
-            if isinstance(report.longrepr, tuple)
-            else str(report.longrepr)
-        )
-        _add_reason(row, reason.removeprefix("Skipped: "))
-
-
-def _add_reason(row: dict, reason: str) -> None:
-    """Add one step's reason to a check's row, keeping what earlier steps said.
-
-    A check can go wrong twice, failing its own assertion and then breaking in its
-    clean-up. Replacing the reason would drop the assertion message and leave the
-    row reading as though only the clean-up broke, which is the row getting better
-    rather than worse.
-
-    Args:
-        row: The check's row.
-        reason: What this step has to say.
-    """
-    if reason and reason not in row["reason"].split("; "):
-        row["reason"] = f"{row['reason']}; {reason}" if row["reason"] else reason
-
-
-def _parameter(item) -> str:
-    """Read the parameter pytest ran a check with.
-
-    A parametrized check runs once per value, and pytest names each run with the
-    value in brackets after the function name. The report keeps the function name
-    in its own column, the same as the inventory's, and the value here, so a reader
-    can filter on either.
-
-    Args:
-        item: The check.
-
-    Returns:
-        pytest's id for the parameter, or an empty string when the check has none.
-    """
-    callspec = getattr(item, "callspec", None)
-    return str(callspec.id) if callspec is not None else ""
-
-
-def _case(item) -> str:
-    """Read a check's case off its marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        positive, negative, or an empty string when it carries neither, as a check
-        that looked at something real rather than staging a situation does.
-    """
-    if item.get_closest_marker("positive"):
-        return "positive"
-    if item.get_closest_marker("negative"):
-        return "negative"
-    return ""
-
-
-def _first_paragraph(doc: str | None) -> str:
-    """Give a check's docstring's first paragraph as one line.
-
-    That paragraph is the check's expected result, and it is what the report shows for
-    the check.
-
-    Args:
-        doc: The docstring, or None when the check has none.
-
-    Returns:
-        The first paragraph as one line, or the words (no docstring) when the check has none.
-    """
-    if not doc:
-        return "(no docstring)"
-    first = doc.strip().split("\n\n", 1)[0]
-    return " ".join(line.strip() for line in first.splitlines())
-
-
-#######################################################################################
-### Writing the report ###
-
-
-def _git(*args: str, cwd: Path = REPO_ROOT) -> str:
-    """Run one git command in the repo.
-
-    If git is not installed or the command fails, the result is '(unknown)' instead of
-    an error, so a report can still be written.
-
-    Args:
-        *args: The git command's arguments.
-        cwd: The folder to run in. pytest's root folder for a real run; the
-            report-writer's own checks pass a temporary repository.
-
-    Returns:
-        The command's output, trimmed, or '(unknown)'.
-    """
-    try:
         return subprocess.run(
-            ["git", *args], cwd=cwd, capture_output=True, text=True, check=True
-        ).stdout.strip()
-    except (OSError, subprocess.CalledProcessError):
-        return "(unknown)"
-
-
-def uncommitted_changes(root: Path, report_dir: Path) -> list[str] | None:
-    """List what git says is changed, staged or untracked under the root.
-
-    The reports folder itself is left out, since the report about to be written, and
-    any earlier one not yet committed, are not changes to the code being validated.
-
-    Args:
-        root: The repository's root folder.
-        report_dir: The folder reports are written to.
-
-    Returns:
-        git's own one-line descriptions of the changes, or None when git did not
-        answer, because it is not installed or the root is not a repository.
-    """
-    try:
-        status = subprocess.run(
-            ["git", "status", "--porcelain", "--untracked-files=all"],
-            cwd=root,
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=self.root,
+            check=True,
             capture_output=True,
             text=True,
-            check=True,
-        ).stdout
-    except (OSError, subprocess.CalledProcessError):
-        return None
-    try:
-        reports = report_dir.resolve().relative_to(root.resolve()).as_posix()
-    except ValueError:
-        reports = None
-    changes = []
-    for line in status.splitlines():
-        if not line.strip():
-            continue
-        # A status line is two letters, a space, then the path.
-        path = line[3:]
-        if reports and (path == reports or path.startswith(reports + "/")):
-            continue
-        changes.append(line)
-    return changes
+        ).stdout.strip()
 
 
-def _sha256(path: Path) -> str:
-    """Measure a file's sha256.
-
-    The report names the exact bytes of the test code and fixtures it ran on, and this
-    is how.
-
-    Args:
-        path: The file to measure.
+@pytest.fixture
+def staged_suite(pytester) -> StagedSuite:
+    """Give a check a throwaway suite to write, run and read the report of.
 
     Returns:
-        The sha256 as hex.
+        The staged suite.
     """
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def _pinned_data_version() -> tuple[str, str]:
-    """Say which version of the pinned model file was on the machine at run time.
-
-    The recorded sha256 identifies the version. If the manifest cannot be read, the
-    first value says so instead, and the report is still written.
-
-    Returns:
-        The recorded sha256, and whether the file was present.
-    """
-    present = "present" if (REPO_ROOT / PINNED_LOCAL).exists() else "absent"
-    # The manifest is read directly here rather than through the sdg package, so a
-    # broken package cannot stop the report from being written.
-    try:
-        entries = json.loads(MANIFEST.read_text(encoding="utf-8")).get("files", [])
-        entry = next(e for e in entries if e.get("local") == PINNED_LOCAL)
-        return entry.get("sha256", "?"), present
-    except (OSError, ValueError, StopIteration):
-        return "(manifest entry not readable)", present
-
-
-def _unique(path: Path) -> Path:
-    """Find a file name that is not in use yet.
-
-    If the path already exists, -2, -3 and so on are added to the name, so a second
-    report on the same day and commit never overwrites the first.
-
-    Args:
-        path: The name wanted.
-
-    Returns:
-        That path, or the first numbered variant of it that does not exist.
-    """
-    candidate, n = path, 1
-    while candidate.exists():
-        n += 1
-        candidate = path.with_name(f"{path.stem}-{n}{path.suffix}")
-    return candidate
-
-
-# The moment the run started, so the report can say when the run began.
-_started_at = 0.0
-
-# How many checks were dropped before the run, counted from pytest's own hook rather
-# than from the options that did the dropping. pytest fires that hook for every
-# deselection whatever caused it, including its own --deselect, its -k and -m
-# filters, and the options src/sdgval/select_checks.py adds, so the count stays
-# right without this file knowing which options exist.
-_deselected = 0
-
-
-def pytest_deselected(items):
-    """Count checks dropped from the run before it started.
-
-    Args:
-        items: The checks being dropped.
-    """
-    global _deselected
-    _deselected += len(items)
-
-
-def pytest_sessionstart(session):
-    """Note the moment the run started, and refuse a report on uncommitted changes.
-
-    The refusal happens here, before any check is collected, so a dirty working
-    folder costs seconds rather than the whole run. A report names the commit it
-    validated, and a folder with uncommitted changes matches no commit.
-
-    Args:
-        session: The pytest run.
-
-    Raises:
-        pytest.UsageError: A report was asked for and the working folder has changes
-            that are not committed.
-    """
-    global _started_at
-    _started_at = time.monotonic()
-    if not session.config.getoption("--validation-report"):
-        return
-    report_dir = Path(session.config.getoption("--validation-report-dir"))
-    changes = uncommitted_changes(session.config.rootpath, report_dir)
-    if changes:
-        listed = "\n".join(f"  {change}" for change in changes)
-        raise pytest.UsageError(
-            "No checks were run and no validation report was written, because the "
-            "working folder has changes that are not committed:\n"
-            f"{listed}\n"
-            "A report names the commit it validated, and these changes belong to no "
-            "commit yet. Commit them, or set them aside with git stash, then run the "
-            "report again."
-        )
-
-
-# The columns of a report, in the order they are written: which run, what it
-# covered and how it went, then the inventory's columns in the inventory's own
-# order with the parameter beside the name, then how the check ended, then the
-# details a reader needs only to reproduce a failure. The inventory's columns
-# carry its names, so a row joins to it by id.
-REPORT_COLUMNS = (
-    "run_id",
-    "selection",
-    "checks_collected",
-    "checks_reported",
-    "run_verdict",
-    "pytest_exit_status",
-    "exit_meaning",
-    "category",
-    "quality_aspect",
-    "objective",
-    "staged_case",
-    "folder_path",
-    "file_name",
-    "name",
-    "parameter",
-    "id",
-    "target_folder_path",
-    "target_file_name",
-    "expected_result",
-    "outcome",
-    "outcome_reason",
-    "started",
-    "commit",
-    "run_by",
-    "check_file_sha256",
-    "fixture_sha256s",
-    "pinned_usdm_sha256",
-    "pinned_usdm_present",
-    "python_version",
-    "pytest_version",
-    "platform",
-)
-
-
-def _selection(config: pytest.Config) -> str:
-    """Say which checks the command line selected.
-
-    The answer is read from pytest's own parsing rather than from the raw command
-    line, so a node id, a path, or the value of any option is recorded for what it is.
-    The paths and node ids count only when the person typed them; when pytest filled
-    them in from its configured test paths, the whole suite was selected.
-
-    Args:
-        config: pytest's configuration for the run.
-
-    Returns:
-        The paths and node ids typed, the -k or -m filters given, and the
-        --category, --objective, --id and --group options given, joined with
-        spaces, or all when the whole suite was selected.
-    """
-    kept: list[str] = []
-    if config.args_source == pytest.Config.ArgsSource.ARGS:
-        kept.extend(config.args)
-    keyword = config.getoption("keyword")
-    if keyword:
-        kept.append(f"-k {keyword}")
-    markexpr = config.getoption("markexpr")
-    if markexpr:
-        kept.append(f"-m {markexpr}")
-    for name in SELECTORS:
-        values = wanted(config, name)
-        if values:
-            kept.append(f"--{name} {','.join(values)}")
-    return " ".join(kept) or "all"
-
-
-def _target_of(test_file: Path) -> tuple[str, str]:
-    """Name the code file a test file proves.
-
-    The rule is the inventory generator's, src/sdgval/build_inventory.py, imported above, so the report's target
-    columns and the inventory's agree by construction.
-
-    Args:
-        test_file: The test file's path.
-
-    Returns:
-        The target's folder and its file name, the name marked when the file was not
-        found at run time.
-    """
-    _, path = code_folder_and_target(test_file, VALIDATION_DIR)
-    folder, name = split_path(path)
-    # The mirrored file is named even when it is not there, so the gap shows.
-    if not (REPO_ROOT / path).exists():
-        name = f"{name} (not found at run time)"
-    return folder, name
-
-
-def pytest_sessionfinish(session, exitstatus):
-    """Write the report after the whole run, if asked.
-
-    Nothing is written unless --validation-report was given. One CSV file is written
-    per run, one row per check, with the run's own details repeated on every row so
-    the file is complete on its own. The verdict is PASS only when pytest's own exit
-    number is 0.
-
-    Args:
-        session: The pytest run.
-        exitstatus: pytest's exit number for the run.
-    """
-    if not session.config.getoption("--validation-report"):
-        return
-    # A refused command line, such as a selection option naming nothing, ran no
-    # check and validated nothing. The refusal is on the terminal, and a report
-    # of it would only be a file to delete.
-    if int(exitstatus) == int(pytest.ExitCode.USAGE_ERROR):
-        return
-    # A listing run, --collect-only, runs no check, so there is nothing to report.
-    if session.config.getoption("collectonly"):
-        return
-
-    # Everything the report states about the run is gathered once here and
-    # written on every row.
-    now = dt.datetime.now().astimezone()
-    started = now - dt.timedelta(seconds=time.monotonic() - _started_at)
-    status = int(exitstatus)
-    root = session.config.rootpath
-    commit = _git("rev-parse", "--short", "HEAD", cwd=root)
-    sha256, present = _pinned_data_version()
-    fixtures = (
-        sorted(p for p in FIXTURE_DIR.glob("*") if p.is_file())
-        if FIXTURE_DIR.exists()
-        else []
-    )
-    # The file is named first, so the id in every row is the file's own name and
-    # the two can never disagree, numbered suffix included.
-    report_dir = Path(session.config.getoption("--validation-report-dir"))
-    report_dir.mkdir(parents=True, exist_ok=True)
-    target = _unique(report_dir / f"run_{now:%Y-%m-%d}_{commit}.csv")
-    run = {
-        "run_id": target.stem,
-        "run_verdict": "PASS" if status == 0 else "FAIL",
-        "pytest_exit_status": status,
-        "exit_meaning": EXIT_MEANING.get(status, "unknown status"),
-        "started": f"{started:%Y-%m-%d %H:%M:%S %z}",
-        "commit": commit,
-        "run_by": _git("config", "user.name", cwd=root),
-        "selection": _selection(session.config),
-        # What the run set out to cover, against what it ended up reporting on. The
-        # two differ when checks were dropped or the run stopped early, so a run
-        # that covered part of the suite cannot read as one that covered all of it,
-        # whatever narrowed it.
-        "checks_collected": len(session.items) + _deselected,
-        "checks_reported": len(_outcomes),
-        "python_version": platform.python_version(),
-        "pytest_version": pytest.__version__,
-        "platform": platform.platform(),
-        "pinned_usdm_sha256": sha256,
-        "pinned_usdm_present": present,
-        "fixture_sha256s": "; ".join(
-            f"validation/fixtures/{p.name}={_sha256(p)}" for p in fixtures
-        ),
-    }
-
-    rows: list[dict] = []
-    if _outcomes:
-        # Rows keep the order the checks ran in, grouped by test file. The
-        # per-file values are worked out once per file, not once per row.
-        by_file: dict[Path, list[dict]] = {}
-        for outcome in _outcomes.values():
-            by_file.setdefault(outcome["file"], []).append(outcome)
-        for file, outcomes in by_file.items():
-            validation_folder, validation_file = split_path(
-                f"validation/{file.relative_to(VALIDATION_DIR).as_posix()}"
-            )
-            target_folder, target_file = _target_of(file)
-            per_file = {
-                "folder_path": validation_folder,
-                "file_name": validation_file,
-                "check_file_sha256": _sha256(file),
-                "target_folder_path": target_folder,
-                "target_file_name": target_file,
-            }
-            for outcome in outcomes:
-                rows.append(
-                    {
-                        **run,
-                        **per_file,
-                        "id": outcome["code"],
-                        "name": outcome["name"],
-                        "parameter": outcome["parameter"],
-                        "category": outcome["category"],
-                        "quality_aspect": ASPECT_OF.get(outcome["objective"], ""),
-                        "objective": outcome["objective"],
-                        "staged_case": outcome["case"],
-                        "expected_result": outcome["expected_result"],
-                        "outcome": outcome["outcome"],
-                        "outcome_reason": outcome["reason"],
-                    }
-                )
-    else:
-        # No outcome was collected, so no check ran. The row says only that. Why
-        # no check ran is already in the exit_meaning column, which is right for
-        # every exit number, and the writer cannot know more than the number.
-        rows.append(
-            {
-                **run,
-                "folder_path": "",
-                "file_name": "",
-                "check_file_sha256": "",
-                "target_folder_path": "",
-                "target_file_name": "",
-                "id": "",
-                "name": "",
-                "parameter": "",
-                "category": "",
-                "quality_aspect": "",
-                "objective": "",
-                "staged_case": "",
-                "expected_result": "",
-                "outcome": "none",
-                "outcome_reason": "no check ran",
-            }
-        )
-
-    with target.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=REPORT_COLUMNS, lineterminator="\n")
-        writer.writeheader()
-        writer.writerows(rows)
-
-    terminal = session.config.pluginmanager.get_plugin("terminalreporter")
-    if terminal is not None:
-        terminal.write_line(f"validation report written: {target.as_posix()}")
+    return StagedSuite(pytester)

@@ -243,7 +243,7 @@ def code_folder_and_target(
 ) -> tuple[str, str]:
     """Work out the code folder a test file mirrors and the code file it proves.
 
-    This is the one place the rule is written. validation/conftest.py uses it too, to
+    This is the one place the rule is written. src/sdgval/report.py uses it too, to
     fill the same columns of a validation report, so the inventory and the report can
     never disagree about what a check file proves.
 

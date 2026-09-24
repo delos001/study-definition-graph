@@ -24,14 +24,13 @@ Description: A pytest plugin that selects checks in the inventory's own terms.
              It is a plugin rather than part of conftest.py because pytest reads
              the command line before it loads a conftest below the root folder.
              An option a conftest adds is unknown at that moment, and its value is
-             taken for a path. pyproject.toml loads this file at startup with
-             -p sdgval.select_checks, so the options are known from the start.
+             taken for a path. pytest loads this file at startup through the
+             pytest11 entry point in pyproject.toml, so the options are known from
+             the start.
 
-             It also holds the readers for the code, category and objective
-             markers, which conftest.py uses when it writes the report, and the
-             lookup from an objective to its aspect of quality. The aspect is not
-             a marker, so --aspect reads the objective and looks it up, which is
-             how the inventory's quality_aspect column is filled too.
+             The labels it selects on are read by labels.py. The aspect is not a
+             label, so --aspect reads the objective and looks it up, which is how
+             the inventory's quality_aspect column is filled too.
 
 Inputs:      validation/validation_groups.yml (read-only; only with --group)
 
@@ -66,12 +65,8 @@ from pathlib import Path
 import pytest
 import yaml
 
-from sdgval.build_inventory import (
-    ASPECT_OF,
-    CATEGORIES,
-    OBJECTIVES,
-    OBJECTIVES_BY_ASPECT,
-)
+from sdgval.build_inventory import CATEGORIES, OBJECTIVES, OBJECTIVES_BY_ASPECT
+from sdgval.labels import aspect_of, category_of, code_of, objective_of
 
 #######################################################################################
 ### Settings ###
@@ -85,33 +80,7 @@ SELECTORS = ("category", "aspect", "objective", "id", "group")
 
 
 #######################################################################################
-### Reading a check's markers ###
-
-
-def _marker_value(item: pytest.Item, name: str) -> str:
-    """Read the text a marker such as @code("SA00001") was given.
-
-    Args:
-        item: The check.
-        name: The marker's name.
-
-    Returns:
-        The text, or an empty string when the check carries no such marker.
-    """
-    marker = item.get_closest_marker(name)
-    return str(marker.args[0]) if marker and marker.args else ""
-
-
-def code_of(item: pytest.Item) -> str:
-    """Read a check's permanent id off its code marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The id, or an empty string when the check carries no code marker.
-    """
-    return _marker_value(item, "code")
+### Counting a check once ###
 
 
 def check_key(item: pytest.Item) -> str:
@@ -125,47 +94,6 @@ def check_key(item: pytest.Item) -> str:
         it carries no code marker.
     """
     return code_of(item) or item.nodeid.split("[")[0]
-
-
-def category_of(item: pytest.Item) -> str:
-    """Read a check's category off its category marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The category, or an empty string when the check carries no category marker.
-    """
-    return _marker_value(item, "category")
-
-
-def aspect_of(item: pytest.Item) -> str:
-    """Say which aspect of quality a check's objective belongs to.
-
-    The aspect is not a marker. It is looked up from the objective, the same way the
-    inventory's quality_aspect column is filled, so a check cannot be selected under
-    an aspect its objective does not belong to.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The aspect, or an empty string when the check carries no objective the table
-        knows.
-    """
-    return ASPECT_OF.get(objective_of(item), "")
-
-
-def objective_of(item: pytest.Item) -> str:
-    """Read a check's objective off its objective marker.
-
-    Args:
-        item: The check.
-
-    Returns:
-        The objective, or an empty string when the check carries no objective marker.
-    """
-    return _marker_value(item, "objective")
 
 
 #######################################################################################
