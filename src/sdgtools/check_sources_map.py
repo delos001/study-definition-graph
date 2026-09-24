@@ -38,9 +38,9 @@ Outputs:     Nothing on disk. Prints one line per disagreement, or nothing when
              so a commit works in a terminal where the sdg environment is not
              active, and this one reads the manifests through the sdg package.
 
-Usage:       python repo_tools/check_sources_map.py
+Usage:       check_sources_map
                  report every disagreement
-             python repo_tools/check_sources_map.py --quiet
+             check_sources_map --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success (the map and the manifests agree)

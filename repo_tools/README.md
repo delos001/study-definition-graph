@@ -59,17 +59,6 @@ python repo_tools/check_python_files.py --quiet
     print only the tools' own reports and the final verdict lines
 ```
 
-## check_sources_map.py
-
-Compares docs/sources_index.md with the manifests, so a pinned file cannot exist without the map saying it does.
-
-```
-python repo_tools/check_sources_map.py
-    report every disagreement
-python repo_tools/check_sources_map.py --quiet
-    print nothing; use the exit code
-```
-
 ## verify_headers.py
 
 Checks that every Python file in the four code folders, src/sdg/, repo_tools/, validation/ and .claude/hooks/, opens with the full header block .claude/rules/writing_python_files.md requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.

@@ -1,6 +1,6 @@
 """
 Script:      test_check_sources_map.py
-Description: Checks for repo_tools/check_sources_map.py, the hand-run tool that
+Description: Checks for src/sdgtools/check_sources_map.py, the hand-run tool that
              compares docs/sources_index.md with the manifests. Each check stages
              a throwaway repo holding one recorded file and a map written one way,
              points the tool's map at it, runs main() in-process, and asserts the
@@ -15,9 +15,9 @@ Inputs:      Nothing real. The map and the manifests are written to pytest's own
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/repo_tools/test_check_sources_map.py
+Usage:       pytest validation/sdgtools/test_check_sources_map.py
                  run these checks
-             pytest validation/repo_tools/test_check_sources_map.py -v
+             pytest validation/sdgtools/test_check_sources_map.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 import pytest
 
-import check_sources_map as script
+from sdgtools import check_sources_map as script
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
