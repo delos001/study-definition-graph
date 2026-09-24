@@ -16,6 +16,8 @@ read_xlsx = "sdg.view.read_xlsx:main"
 usdm_spec = "sdg.usdm.usdm_spec:main"
 check_api_key = "sdgtools.check_api_key:main"
 check_neo4j = "sdgtools.check_neo4j:main"
+find_unrecorded_files = "sdgtools.find_unrecorded_files:main"
+
 
 [tool.setuptools.packages.find]
 where = ["src"]

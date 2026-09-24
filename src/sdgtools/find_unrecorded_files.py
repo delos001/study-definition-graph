@@ -19,9 +19,9 @@ Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
 Outputs:     Nothing on disk. Prints one repo-relative path per unrecorded
              file, or nothing when there are none.
 
-Usage:       python repo_tools/find_unrecorded_files.py
+Usage:       find_unrecorded_files
                  list every unrecorded file
-             python repo_tools/find_unrecorded_files.py --quiet
+             find_unrecorded_files --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success (every file under inputs/ is recorded)
