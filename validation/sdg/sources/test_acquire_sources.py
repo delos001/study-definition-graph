@@ -249,7 +249,7 @@ def folder(fake_repo, network, capsys) -> Outcome:
 # does what the header says.
 
 
-@code("SRC0001")
+@code("SA00001")
 @category("repository")
 @objective("functionality")
 @positive
@@ -260,7 +260,7 @@ def test_missing_file_is_fetched_and_placed(fetched, fake_repo):
     assert (fake_repo.root / LOCAL).read_bytes() == CONTENT
 
 
-@code("SRC0002")
+@code("SA00002")
 @category("repository")
 @objective("functionality")
 @positive
@@ -270,7 +270,7 @@ def test_fetched_file_leaves_no_part_file(fetched, fake_repo):
     assert not partial_path(fake_repo.root / LOCAL).exists()
 
 
-@code("SRC0003")
+@code("SA00003")
 @category("repository")
 @objective("functionality")
 @positive
@@ -280,7 +280,7 @@ def test_fetch_is_reported(fetched):
     assert "1 fetched, 0 present and matching" in fetched.out
 
 
-@code("SRC0004")
+@code("SA00004")
 @category("repository")
 @objective("functionality")
 @positive
@@ -290,7 +290,7 @@ def test_present_matching_file_is_not_fetched(present):
     assert present.code == 0
 
 
-@code("SRC0005")
+@code("SA00005")
 @category("repository")
 @objective("functionality")
 @positive
@@ -299,7 +299,7 @@ def test_present_matching_file_is_counted_as_present(present):
     assert "0 fetched, 1 present and matching" in present.out
 
 
-@code("SRC0006")
+@code("SA00006")
 @category("repository")
 @objective("functionality")
 @positive
@@ -310,7 +310,7 @@ def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
     assert "1 to fetch, 0 present and matching" in dry_run_missing.out
 
 
-@code("SRC0007")
+@code("SA00007")
 @category("repository")
 @objective("functionality")
 @positive
@@ -321,7 +321,7 @@ def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
     assert not partial_path(final).exists()
 
 
-@code("SRC0008")
+@code("SA00008")
 @category("repository")
 @objective("functionality")
 @positive
@@ -331,7 +331,7 @@ def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
     assert dry_run_missing.code == 8
 
 
-@code("SRC0009")
+@code("SA00009")
 @category("repository")
 @objective("functionality")
 @positive
@@ -345,7 +345,7 @@ def test_dry_run_exits_0_when_the_corpus_is_complete(fake_repo, network, capsys)
     assert run(capsys, "--dry-run", "--quiet").code == 0
 
 
-@code("SRC0010")
+@code("SA00010")
 @category("repository")
 @objective("functionality")
 @positive
@@ -357,7 +357,7 @@ def test_quiet_prints_nothing(fake_repo, network, capsys):
     assert run(capsys, "--quiet").out == ""
 
 
-@code("SRC0011")
+@code("SA00011")
 @category("repository")
 @objective("functionality")
 @positive
@@ -372,7 +372,7 @@ def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
     assert not (fake_repo.root / "inputs/set_b/b.txt").exists()
 
 
-@code("SRC0012")
+@code("SA00012")
 @category("repository")
 @objective("functionality")
 @positive
@@ -395,7 +395,7 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 # alone on disk, or the exit code the header gives that state.
 
 
-@code("SRC0013")
+@code("SA00013")
 @category("repository")
 @objective("functionality")
 @negative
@@ -406,7 +406,7 @@ def test_changed_file_is_reported_as_a_mismatch(changed):
     assert "left alone" in changed.out
 
 
-@code("SRC0014")
+@code("SA00014")
 @category("repository")
 @objective("functionality")
 @negative
@@ -416,7 +416,7 @@ def test_changed_file_is_left_alone(changed, fake_repo):
     assert (fake_repo.root / LOCAL).read_bytes() == CHANGED
 
 
-@code("SRC0015")
+@code("SA00015")
 @category("repository")
 @objective("functionality")
 @negative
@@ -427,7 +427,7 @@ def test_changed_file_exits_9(changed):
     assert "disagree with their entry" in changed.out
 
 
-@code("SRC0016")
+@code("SA00016")
 @category("repository")
 @objective("functionality")
 @negative
@@ -440,7 +440,7 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
     assert not partial_path(final).exists()
 
 
-@code("SRC0017")
+@code("SA00017")
 @category("repository")
 @objective("functionality")
 @negative
@@ -451,7 +451,7 @@ def test_wrong_hash_download_exits_12(wrong_hash):
     assert "1 fetch(es) failed" in wrong_hash.out
 
 
-@code("SRC0018")
+@code("SA00018")
 @category("repository")
 @objective("functionality")
 @negative
@@ -461,7 +461,7 @@ def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
     assert "no such host" in failed_fetch.out
 
 
-@code("SRC0019")
+@code("SA00019")
 @category("repository")
 @objective("functionality")
 @negative
@@ -470,7 +470,7 @@ def test_failed_fetch_exits_11(failed_fetch):
     assert failed_fetch.code == 11
 
 
-@code("SRC0020")
+@code("SA00020")
 @category("repository")
 @objective("functionality")
 @negative
@@ -493,7 +493,7 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
     assert "FAILED" in outcome.out
 
 
-@code("SRC0021")
+@code("SA00021")
 @category("repository")
 @objective("functionality")
 @negative
@@ -515,7 +515,7 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     assert "would fetch  b.txt" in outcome.out
 
 
-@code("SRC0122")
+@code("SA00022")
 @category("repository")
 @objective("functionality")
 @negative
@@ -538,7 +538,7 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
     assert "DISCARDED" in outcome.out
 
 
-@code("SRC0126")
+@code("SA00023")
 @category("repository")
 @objective("functionality")
 @negative
@@ -561,7 +561,7 @@ def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
     assert "DISCARDED" in outcome.out
 
 
-@code("SRC0123")
+@code("SA00024")
 @category("repository")
 @objective("functionality")
 @negative
@@ -584,7 +584,7 @@ def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
     assert "CANNOT READ" in outcome.out
 
 
-@code("SRC0022")
+@code("SA00025")
 @category("repository")
 @objective("functionality")
 @negative
@@ -597,7 +597,7 @@ def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
     assert "left alone" in locked.out
 
 
-@code("SRC0023")
+@code("SA00026")
 @category("repository")
 @objective("functionality")
 @negative
@@ -606,7 +606,7 @@ def test_locked_file_exits_13(locked):
     assert locked.code == 13
 
 
-@code("SRC0024")
+@code("SA00027")
 @category("repository")
 @objective("functionality")
 @negative
@@ -618,7 +618,7 @@ def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
     assert "left alone" in folder.out
 
 
-@code("SRC0025")
+@code("SA00028")
 @category("repository")
 @objective("functionality")
 @negative
@@ -627,7 +627,7 @@ def test_folder_at_a_recorded_path_exits_13(folder):
     assert folder.code == 13
 
 
-@code("SRC0026")
+@code("SA00029")
 @category("repository")
 @objective("functionality")
 @negative
@@ -642,7 +642,7 @@ def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, caps
     assert "lacks url" in outcome.out
 
 
-@code("SRC0027")
+@code("SA00030")
 @category("repository")
 @objective("functionality")
 @negative
@@ -656,7 +656,7 @@ def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys)
     assert "set_a.json: cannot read" in outcome.out
 
 
-@code("SRC0028")
+@code("SA00031")
 @category("repository")
 @objective("functionality")
 @negative
@@ -670,7 +670,7 @@ def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
     assert "no manifest named set_b" in outcome.out
 
 
-@code("SRC0029")
+@code("SA00032")
 @category("repository")
 @objective("functionality")
 @negative
@@ -687,7 +687,7 @@ def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys
     assert "pip install -e ." in outcome.out
 
 
-@code("SRC0030")
+@code("SA00033")
 @category("repository")
 @objective("functionality")
 @negative

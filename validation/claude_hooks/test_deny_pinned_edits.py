@@ -145,7 +145,7 @@ def edit(monkeypatch, capsys, file_path: str, cwd: str | None = None) -> Outcome
 # is found the way the header says, and a malformed message never blocks work.
 
 
-@code("CCH0001")
+@code("SA00417")
 @category("repository")
 @objective("functionality")
 @positive
@@ -156,7 +156,7 @@ def test_an_ordinary_file_is_allowed(repo, monkeypatch, capsys):
     assert outcome.printed == ""
 
 
-@code("CCH0002")
+@code("SA00418")
 @category("repository")
 @objective("functionality")
 @positive
@@ -165,7 +165,7 @@ def test_the_inputs_readme_is_allowed(repo, monkeypatch, capsys):
     assert not edit(monkeypatch, capsys, str(repo / "inputs" / "README.md")).denied
 
 
-@code("CCH0003")
+@code("SA00419")
 @category("repository")
 @objective("functionality")
 @positive
@@ -176,7 +176,7 @@ def test_a_nested_gitkeep_under_inputs_is_allowed(repo, monkeypatch, capsys):
     assert not edit(monkeypatch, capsys, str(path)).denied
 
 
-@code("CCH0004")
+@code("SA00420")
 @category("repository")
 @objective("functionality")
 @positive
@@ -187,7 +187,7 @@ def test_a_study_manifest_is_allowed(repo, monkeypatch, capsys):
     assert not edit(monkeypatch, capsys, str(path)).denied
 
 
-@code("CCH0005")
+@code("SA00421")
 @category("repository")
 @objective("functionality")
 @positive
@@ -197,7 +197,7 @@ def test_the_manifests_readme_is_allowed(repo, monkeypatch, capsys):
     assert not edit(monkeypatch, capsys, str(repo / "manifests" / "README.md")).denied
 
 
-@code("CCH0006")
+@code("SA00422")
 @category("repository")
 @objective("functionality")
 @positive
@@ -210,7 +210,7 @@ def test_a_path_outside_the_repo_is_allowed(
     assert not edit(monkeypatch, capsys, str(elsewhere)).denied
 
 
-@code("CCH0007")
+@code("SA00423")
 @category("repository")
 @objective("functionality")
 @positive
@@ -225,7 +225,7 @@ def test_the_project_dir_outranks_the_message_cwd(
     assert not outcome.denied
 
 
-@code("CCH0008")
+@code("SA00424")
 @category("repository")
 @objective("functionality")
 @negative
@@ -240,7 +240,7 @@ def test_the_message_cwd_is_used_when_the_variable_is_absent(
     assert outcome.denied
 
 
-@code("CCH0009")
+@code("SA00425")
 @category("repository")
 @objective("functionality")
 @positive
@@ -252,7 +252,7 @@ def test_a_malformed_message_is_allowed(repo, monkeypatch, capsys):
     assert outcome.printed == ""
 
 
-@code("CCH0010")
+@code("SA00426")
 @category("repository")
 @objective("functionality")
 @positive
@@ -266,7 +266,7 @@ def test_a_message_without_a_path_is_allowed(repo, monkeypatch, capsys):
     assert outcome.printed == ""
 
 
-@code("CCH0011")
+@code("SA00427")
 @category("repository")
 @objective("functionality")
 @positive
@@ -288,7 +288,7 @@ def test_a_refusal_is_printed_in_the_form_claude_code_reads(repo, monkeypatch, c
 # is meant to come from instead.
 
 
-@code("CCH0016")
+@code("SA00428")
 @category("repository")
 @objective("functionality")
 @negative
@@ -304,7 +304,7 @@ def test_a_pinned_file_is_refused_from_another_folder(
     assert "inputs/x.pdf" in outcome.reason
 
 
-@code("CCH0012")
+@code("SA00429")
 @category("repository")
 @objective("functionality")
 @negative
@@ -317,7 +317,7 @@ def test_a_pinned_file_is_refused(repo, monkeypatch, capsys):
     assert "acquire_sources" in outcome.reason
 
 
-@code("CCH0013")
+@code("SA00430")
 @category("repository")
 @objective("functionality")
 @negative
@@ -330,7 +330,7 @@ def test_a_nested_pinned_file_is_refused(repo, monkeypatch, capsys):
     assert "inputs/standards/cdisc/usdm_v4/dataStructure.yml" in outcome.reason
 
 
-@code("CCH0014")
+@code("SA00431")
 @category("repository")
 @objective("functionality")
 @negative
@@ -344,7 +344,7 @@ def test_a_hand_written_manifest_is_refused(repo, monkeypatch, capsys):
     assert "made by a person" in outcome.reason
 
 
-@code("CCH0015")
+@code("SA00432")
 @category("repository")
 @objective("functionality")
 @negative

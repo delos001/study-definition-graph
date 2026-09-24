@@ -22,7 +22,7 @@ Four of the five options are spelled as the column they select on, so what you t
 | `--category` | `category` | `repository`, `sources`, `processing` or `products` |
 | `--aspect` | `quality_aspect` | `conformance`, `integrity` or `operation` |
 | `--objective` | `objective` | any objective the dictionary lists under those aspects |
-| `--id` | `id` | a check's permanent id, such as `SRC0128` |
+| `--id` | `id` | a check's permanent id, such as `SA00106` |
 | `--group` | none | a group named in [validation_groups.yml](validation_groups.yml) |
 
 `--aspect` is the one place a word and a column name differ. The column is `quality_aspect`, because the table holds other kinds of aspect-less column and the word alone would not say which aspect was meant. The option is `--aspect`, because a dash or an underscore inside a command-line flag reads badly. There is no other divergence to remember.
@@ -86,7 +86,7 @@ Three things govern it.
 | The integrity checks on the pinned sources only | `pytest --aspect integrity --category sources` |
 | The conformance checks on the pipeline only | `pytest --aspect conformance --category processing` |
 | Every stability check | `pytest --objective stability` |
-| Two named checks | `pytest --id SRC0128,HRS0018` |
+| Two named checks | `pytest --id SA00106,SA00283` |
 | Every check that reads a real pinned file, after a re-pin | `pytest --group pinned` |
 | What the pre-commit hook enforces, after it refuses a commit | `pytest --group hook` |
 | A listing of what a selection would run | `pytest --aspect integrity --collect-only -q` |

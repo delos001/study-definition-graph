@@ -175,7 +175,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 # exit code.
 
 
-@code("HRS0105")
+@code("SA00284")
 @category("repository")
 @objective("functionality")
 @positive
@@ -184,7 +184,7 @@ def test_matching_database_exits_0(working):
     assert working.exit_code == 0
 
 
-@code("HRS0106")
+@code("SA00285")
 @category("repository")
 @objective("functionality")
 @positive
@@ -194,7 +194,7 @@ def test_matching_database_reports_the_version(working):
     assert str(PINNED) in working.printed
 
 
-@code("HRS0107")
+@code("SA00286")
 @category("repository")
 @objective("functionality")
 @positive
@@ -203,7 +203,7 @@ def test_the_password_is_never_printed(working):
     assert PASSWORD not in working.printed
 
 
-@code("HRS0108")
+@code("SA00287")
 @category("repository")
 @objective("functionality")
 @positive
@@ -216,7 +216,7 @@ def test_quoted_settings_are_read(repo):
     assert script.read_settings(repo / ".env") == script.Settings(URI, USER, PASSWORD)
 
 
-@code("HRS0109")
+@code("SA00288")
 @category("repository")
 @objective("functionality")
 @positive
@@ -226,7 +226,7 @@ def test_the_pin_is_read_from_the_image_tag(repo):
     assert script.read_pinned_release(repo / "docker-compose.yml") == PINNED
 
 
-@code("HRS0110")
+@code("SA00289")
 @category("repository")
 @objective("functionality")
 @positive
@@ -236,7 +236,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     assert run(capsys, "--quiet").printed == ""
 
 
-@code("HRS0111")
+@code("SA00290")
 @category("repository")
 @objective("functionality")
 @positive
@@ -253,7 +253,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 # that names the cause and what to do about it. One thing is broken per check.
 
 
-@code("HRS0112")
+@code("SA00291")
 @category("repository")
 @objective("functionality")
 @negative
@@ -266,7 +266,7 @@ def test_missing_env_file_is_refused(repo, capsys):
     assert "Copy-Item .env.example .env" in outcome.printed
 
 
-@code("HRS0113")
+@code("SA00292")
 @category("repository")
 @objective("functionality")
 @negative
@@ -280,7 +280,7 @@ def test_missing_settings_are_refused_by_name(repo, capsys):
     assert "copy the NEO4J_ lines from .env.example" in outcome.printed
 
 
-@code("HRS0114")
+@code("SA00293")
 @category("repository")
 @objective("functionality")
 @negative
@@ -294,7 +294,7 @@ def test_missing_compose_file_is_refused(repo, capsys):
     assert "restore it from git" in outcome.printed
 
 
-@code("HRS0115")
+@code("SA00294")
 @category("repository")
 @objective("functionality")
 @negative
@@ -311,7 +311,7 @@ def test_compose_file_without_an_image_is_refused(repo, capsys):
     assert "services.neo4j.image" in outcome.printed
 
 
-@code("HRS0116")
+@code("SA00295")
 @category("repository")
 @objective("functionality")
 @negative
@@ -325,7 +325,7 @@ def test_unpinned_image_tag_is_refused(repo, capsys):
     assert "not in the form neo4j:<version>-<edition>" in outcome.printed
 
 
-@code("HRS0117")
+@code("SA00296")
 @category("repository")
 @objective("functionality")
 @negative
@@ -341,7 +341,7 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
     assert "docker compose up -d" in outcome.printed
 
 
-@code("HRS0149")
+@code("SA00297")
 @category("repository")
 @objective("functionality")
 @negative
@@ -357,7 +357,7 @@ def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
     assert "docker compose up -d" in outcome.printed
 
 
-@code("HRS0150")
+@code("SA00298")
 @category("repository")
 @objective("functionality")
 @negative
@@ -374,7 +374,7 @@ def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsy
     assert "docker compose" not in outcome.printed
 
 
-@code("HRS0118")
+@code("SA00299")
 @category("repository")
 @objective("functionality")
 @negative
@@ -391,7 +391,7 @@ def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
     assert PASSWORD not in outcome.printed
 
 
-@code("HRS0119")
+@code("SA00300")
 @category("repository")
 @objective("functionality")
 @negative
@@ -407,7 +407,7 @@ def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys)
     assert str(PINNED) in outcome.printed
 
 
-@code("HRS0120")
+@code("SA00301")
 @category("repository")
 @objective("functionality")
 @negative
@@ -423,7 +423,7 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
     assert "docker-compose.yml pins" in outcome.printed
 
 
-@code("HRS0121")
+@code("SA00302")
 @category("repository")
 @objective("functionality")
 @negative
@@ -516,7 +516,7 @@ def stand_in_for_the_driver(monkeypatch, driver: FakeDriver) -> dict:
 SETTINGS = script.Settings(uri=URI, user=USER, password=PASSWORD)
 
 
-@code("HRS0180")
+@code("SA00303")
 @category("repository")
 @objective("functionality")
 @positive
@@ -531,7 +531,7 @@ def test_the_driver_is_built_from_the_settings_and_the_timeout(monkeypatch):
     assert built["connection_timeout"] == script.CONNECT_TIMEOUT_SECONDS
 
 
-@code("HRS0181")
+@code("SA00304")
 @category("repository")
 @objective("functionality")
 @positive
@@ -544,7 +544,7 @@ def test_connectivity_is_verified_before_the_query_is_sent(monkeypatch):
     assert driver.calls == ["verify", "query", "close"]
 
 
-@code("HRS0182")
+@code("SA00305")
 @category("repository")
 @objective("functionality")
 @negative
@@ -559,7 +559,7 @@ def test_the_connection_is_closed_even_when_the_query_fails(monkeypatch):
     assert driver.calls == ["verify", "query", "close"]
 
 
-@code("HRS0183")
+@code("SA00306")
 @category("repository")
 @objective("functionality")
 @positive

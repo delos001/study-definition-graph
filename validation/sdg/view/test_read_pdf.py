@@ -143,7 +143,7 @@ def run(write_list, monkeypatch, capsys, text, *argv):
 # through as written.
 
 
-@code("VIW0001")
+@code("SA00156")
 @category("processing")
 @objective("functionality")
 @positive
@@ -153,7 +153,7 @@ def test_every_row_becomes_a_document(repo, write_list):
     assert sorted(documents) == ["guide", "plain"]
 
 
-@code("VIW0002")
+@code("SA00157")
 @category("processing")
 @objective("functionality")
 @positive
@@ -164,7 +164,7 @@ def test_the_path_comes_from_the_manifest(repo, write_list):
     assert documents["guide"].path == repo.root / GUIDE
 
 
-@code("VIW0003")
+@code("SA00158")
 @category("processing")
 @objective("functionality")
 @positive
@@ -175,7 +175,7 @@ def test_the_manifest_is_carried_for_the_missing_file_message(repo, write_list):
     assert documents["guide"].manifest == "example.json"
 
 
-@code("VIW0004")
+@code("SA00159")
 @category("processing")
 @objective("functionality")
 @positive
@@ -187,7 +187,7 @@ def test_boilerplate_patterns_are_compiled(repo, write_list):
     assert documents["guide"].boilerplate[0].match("   Page 12  ")
 
 
-@code("VIW0005")
+@code("SA00160")
 @category("processing")
 @objective("functionality")
 @positive
@@ -197,7 +197,7 @@ def test_an_empty_boilerplate_list_strips_nothing(repo, write_list):
     assert documents["plain"].boilerplate == ()
 
 
-@code("VIW0006")
+@code("SA00161")
 @category("processing")
 @objective("functionality")
 @positive
@@ -207,7 +207,7 @@ def test_the_default_is_the_one_the_list_names(repo, write_list):
     assert default == "guide"
 
 
-@code("VIW0007")
+@code("SA00162")
 @category("processing")
 @objective("functionality")
 @positive
@@ -218,7 +218,7 @@ def test_docs_names_every_document(repo, write_list, monkeypatch, capsys):
     assert "Plain Document" in outcome.printed
 
 
-@code("VIW0008")
+@code("SA00163")
 @category("processing")
 @objective("functionality")
 @positive
@@ -236,7 +236,7 @@ def test_docs_exits_0_when_every_document_is_present(
 # and that its message names that cause and its remedy.
 
 
-@code("VIW0009")
+@code("SA00164")
 @category("processing")
 @objective("functionality")
 @negative
@@ -249,7 +249,7 @@ def test_a_missing_list_is_refused(repo, tmp_path):
     assert "restore it from git" in str(raised.value)
 
 
-@code("VIW0010")
+@code("SA00165")
 @category("processing")
 @objective("functionality")
 @negative
@@ -261,7 +261,7 @@ def test_a_list_that_is_not_yaml_is_refused(repo, write_list):
     assert "not valid YAML" in str(raised.value)
 
 
-@code("VIW0011")
+@code("SA00166")
 @category("processing")
 @objective("functionality")
 @negative
@@ -273,7 +273,7 @@ def test_a_list_with_no_documents_is_refused(repo, write_list):
     assert "no documents list" in str(raised.value)
 
 
-@code("VIW0012")
+@code("SA00167")
 @category("processing")
 @objective("functionality")
 @negative
@@ -286,7 +286,7 @@ def test_a_row_missing_a_field_is_refused(repo, write_list):
     assert "label" in str(raised.value)
 
 
-@code("VIW0069")
+@code("SA00168")
 @category("processing")
 @objective("functionality")
 @negative
@@ -308,7 +308,7 @@ def test_a_row_that_is_not_a_set_of_fields_is_refused(repo, write_list):
     assert "plain" in str(raised.value)
 
 
-@code("VIW0070")
+@code("SA00169")
 @category("processing")
 @objective("functionality")
 @pytest.mark.parametrize(
@@ -330,7 +330,7 @@ def test_a_boilerplate_that_is_not_a_list_is_refused(repo, write_list, written):
     assert "guide" in str(raised.value) and "list" in str(raised.value)
 
 
-@code("VIW0013")
+@code("SA00170")
 @category("processing")
 @objective("functionality")
 @negative
@@ -344,7 +344,7 @@ def test_a_file_no_manifest_records_is_refused(repo, write_list):
     assert "record the file in manifests/" in str(raised.value)
 
 
-@code("VIW0014")
+@code("SA00171")
 @category("processing")
 @objective("functionality")
 @negative
@@ -357,7 +357,7 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
     assert "nowhere" in str(raised.value)
 
 
-@code("VIW0015")
+@code("SA00172")
 @category("processing")
 @objective("functionality")
 @negative
@@ -371,7 +371,7 @@ def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
     assert "restore it from git" in printed
 
 
-@code("VIW0016")
+@code("SA00173")
 @category("processing")
 @objective("functionality")
 @negative
@@ -385,7 +385,7 @@ def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, caps
     assert "no manifest records" in outcome.printed
 
 
-@code("VIW0067")
+@code("SA00174")
 @category("processing")
 @objective("functionality")
 @negative
@@ -401,7 +401,7 @@ def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys
     assert "pip install -e ." in outcome.printed
 
 
-@code("VIW0068")
+@code("SA00175")
 @category("processing")
 @objective("functionality")
 @negative
@@ -414,7 +414,7 @@ def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
     assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
 
 
-@code("VIW0017")
+@code("SA00176")
 @category("processing")
 @objective("functionality")
 @negative
@@ -521,7 +521,7 @@ def usage_mistake(capsys, *argv):
 # stripped unless it is asked for.
 
 
-@code("VIW0034")
+@code("SA00177")
 @category("processing")
 @objective("functionality")
 @positive
@@ -532,7 +532,7 @@ def test_a_section_is_found_by_number(readable, capsys):
     assert "alpha content" in outcome.printed
 
 
-@code("VIW0035")
+@code("SA00178")
 @category("processing")
 @objective("functionality")
 @positive
@@ -541,7 +541,7 @@ def test_a_section_is_found_by_title(readable, capsys):
     assert "beta content" in read(capsys, "Second").printed
 
 
-@code("VIW0036")
+@code("SA00179")
 @category("processing")
 @objective("functionality")
 @positive
@@ -552,7 +552,7 @@ def test_the_section_map_lists_every_section(readable, capsys):
     assert "Second Section" in printed
 
 
-@code("VIW0037")
+@code("SA00180")
 @category("processing")
 @objective("functionality")
 @positive
@@ -562,7 +562,7 @@ def test_a_page_range_is_printed(readable, capsys):
     assert "beta content" in read(capsys, "--doc", "plain", "--pages", "2").printed
 
 
-@code("VIW0044")
+@code("SA00181")
 @category("processing")
 @objective("functionality")
 @positive
@@ -572,7 +572,7 @@ def test_a_two_page_range_prints_both_pages_in_order(readable, capsys):
     assert printed.index("alpha content") < printed.index("beta content")
 
 
-@code("VIW0038")
+@code("SA00182")
 @category("processing")
 @objective("functionality")
 @positive
@@ -586,7 +586,7 @@ def test_a_term_is_searched_for_across_pages(readable, capsys):
     assert "No pages contain" not in outcome.printed
 
 
-@code("VIW0039")
+@code("SA00183")
 @category("processing")
 @objective("functionality")
 @positive
@@ -596,7 +596,7 @@ def test_page_furniture_is_stripped(readable, capsys):
     assert "Page 1" not in read(capsys, "--pages", "1").printed
 
 
-@code("VIW0040")
+@code("SA00184")
 @category("processing")
 @objective("functionality")
 @positive
@@ -612,7 +612,7 @@ def test_raw_keeps_the_page_furniture(readable, capsys):
 # Each refusal the header promises, with the exit code that names its cause.
 
 
-@code("VIW0041")
+@code("SA00185")
 @category("processing")
 @objective("functionality")
 @negative
@@ -625,7 +625,7 @@ def test_a_section_that_does_not_exist_exits_23(readable, capsys):
     assert "--list" in outcome.printed
 
 
-@code("VIW0042")
+@code("SA00186")
 @category("processing")
 @objective("functionality")
 @negative
@@ -637,7 +637,7 @@ def test_section_mode_on_a_document_without_bookmarks_exits_24(readable, capsys)
     assert "--find" in outcome.printed
 
 
-@code("VIW0045")
+@code("SA00187")
 @category("processing")
 @objective("functionality")
 @negative
@@ -649,7 +649,7 @@ def test_a_page_range_that_is_not_numbers_is_a_usage_mistake(readable, capsys):
     assert "such as 26-31" in outcome.printed
 
 
-@code("VIW0049")
+@code("SA00188")
 @category("processing")
 @objective("functionality")
 @negative
@@ -661,7 +661,7 @@ def test_a_page_range_with_a_trailing_dash_is_a_usage_mistake(readable, capsys):
     assert "such as 26-31" in outcome.printed
 
 
-@code("VIW0046")
+@code("SA00189")
 @category("processing")
 @objective("functionality")
 @negative
@@ -673,7 +673,7 @@ def test_a_page_range_starting_before_page_1_is_a_usage_mistake(readable, capsys
     assert "starts before page 1" in outcome.printed
 
 
-@code("VIW0047")
+@code("SA00190")
 @category("processing")
 @objective("functionality")
 @negative
@@ -685,7 +685,7 @@ def test_a_page_range_past_the_document_is_a_usage_mistake(readable, capsys):
     assert "which has 2 pages" in outcome.printed
 
 
-@code("VIW0048")
+@code("SA00191")
 @category("processing")
 @objective("functionality")
 @negative
@@ -697,7 +697,7 @@ def test_a_page_range_ending_before_it_starts_is_a_usage_mistake(readable, capsy
     assert "ends before it starts" in outcome.printed
 
 
-@code("VIW0043")
+@code("SA00192")
 @category("processing")
 @objective("functionality")
 @negative
@@ -765,7 +765,7 @@ def shared_page(fake_repo, write_list, monkeypatch):
 # checks prove the text on the far side of each cut is left out.
 
 
-@code("VIW0051")
+@code("SA00193")
 @category("processing")
 @objective("functionality")
 @positive
@@ -778,7 +778,7 @@ def test_the_previous_sections_text_is_left_out_at_the_start(shared_page, capsys
     assert "alpha content" not in outcome.printed
 
 
-@code("VIW0066")
+@code("SA00194")
 @category("processing")
 @objective("functionality")
 @positive
@@ -793,7 +793,7 @@ def test_the_next_sections_text_is_left_out_when_both_share_one_page(
     assert "beta content" not in outcome.printed
 
 
-@code("VIW0052")
+@code("SA00195")
 @category("processing")
 @objective("functionality")
 @positive
@@ -846,7 +846,7 @@ def page_with_table():
     return page
 
 
-@code("VIW0053")
+@code("SA00196")
 @category("processing")
 @objective("functionality")
 @positive
@@ -858,7 +858,7 @@ def test_a_page_with_a_picture_gets_the_not_shown_note():
     assert "1 image(s)" in note
 
 
-@code("VIW0054")
+@code("SA00197")
 @category("processing")
 @objective("functionality")
 @positive
@@ -873,7 +873,7 @@ def test_a_page_with_a_table_gets_the_not_shown_note():
 ### Checks on finding a section and a term ###
 
 
-@code("VIW0055")
+@code("SA00198")
 @category("processing")
 @objective("functionality")
 @positive
@@ -884,7 +884,7 @@ def test_a_ligature_is_decomposed_for_searching():
     assert "definition" in read_pdf.searchable("Deﬁnition")
 
 
-@code("VIW0056")
+@code("SA00199")
 @category("processing")
 @objective("functionality")
 @positive
@@ -910,7 +910,7 @@ def test_an_exact_section_number_beats_a_title_match():
     assert read_pdf.find_section(sections, "2")["number"] == "2"
 
 
-@code("VIW0057")
+@code("SA00200")
 @category("processing")
 @objective("functionality")
 @positive
@@ -921,7 +921,7 @@ def test_a_trailing_period_on_a_section_number_is_tolerated(readable, capsys):
     assert "alpha content" in outcome.printed
 
 
-@code("VIW0058")
+@code("SA00201")
 @category("processing")
 @objective("functionality")
 @positive
@@ -970,7 +970,7 @@ def headingless(fake_repo, write_list, monkeypatch):
     return fake_repo
 
 
-@code("VIW0077")
+@code("SA00202")
 @category("processing")
 @objective("functionality")
 @negative
@@ -987,7 +987,7 @@ def test_a_section_whose_own_heading_is_missing_warns_that_it_may_open_mid_secti
     assert "may open mid-section" in outcome.printed
 
 
-@code("VIW0078")
+@code("SA00203")
 @category("processing")
 @objective("functionality")
 @negative
@@ -1003,7 +1003,7 @@ def test_a_next_sections_missing_heading_warns_that_it_may_run_past_the_section(
     assert "may run past this section" in outcome.printed
 
 
-@code("VIW0079")
+@code("SA00204")
 @category("processing")
 @objective("functionality")
 @negative
@@ -1020,7 +1020,7 @@ def test_the_warning_is_kept_out_of_the_extracted_text(headingless, capsys):
 ### Checks on what a page loses and what a search shows ###
 
 
-@code("VIW0080")
+@code("SA00205")
 @category("processing")
 @objective("functionality")
 @positive
@@ -1046,7 +1046,7 @@ def test_an_extracted_page_carries_the_note_about_what_it_lost(
     assert printed.index("alpha content") < printed.index("NOT SHOWN IN TEXT")
 
 
-@code("VIW0081")
+@code("SA00206")
 @category("processing")
 @objective("functionality")
 @positive
@@ -1071,7 +1071,7 @@ def test_a_page_whose_tables_cannot_be_read_still_extracts(
     assert "table(s)" not in outcome.printed
 
 
-@code("VIW0082")
+@code("SA00207")
 @category("processing")
 @objective("functionality")
 @positive
@@ -1083,7 +1083,7 @@ def test_a_search_that_matches_nothing_says_so_and_exits_0(readable, capsys):
     assert "No pages contain" in outcome.printed
 
 
-@code("VIW0083")
+@code("SA00208")
 @category("processing")
 @objective("functionality")
 @positive

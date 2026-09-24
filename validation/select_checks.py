@@ -45,7 +45,7 @@ Usage:       pytest --category sources
                  run only the checks with that category and that objective
              pytest --aspect conformance --category processing
                  any options may be combined; each narrows the rest
-             pytest --id SRC0128,HRS0018
+             pytest --id SA00106,SA00283
                  run only the checks with those ids; a comma-separated list, or
                  a repeated option, means any of them
              pytest --group pinned
@@ -89,7 +89,7 @@ SELECTORS = ("category", "aspect", "objective", "id", "group")
 
 
 def _marker_value(item: pytest.Item, name: str) -> str:
-    """Read the text a marker such as @code("XYZ0001") was given.
+    """Read the text a marker such as @code("SA00001") was given.
 
     Args:
         item: The check.

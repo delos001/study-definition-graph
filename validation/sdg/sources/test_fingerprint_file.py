@@ -98,7 +98,7 @@ def file_on_disk(tmp_path):
 # A file is measured correctly, and a file that matches its entry says so.
 
 
-@code("SRC0059")
+@code("SA00065")
 @category("repository")
 @objective("correctness")
 @positive
@@ -107,7 +107,7 @@ def test_fingerprint_measures_the_size(file_on_disk):
     assert fingerprint(file_on_disk).bytes == len(CONTENT)
 
 
-@code("SRC0060")
+@code("SA00066")
 @category("repository")
 @objective("correctness")
 @positive
@@ -117,7 +117,7 @@ def test_fingerprint_measures_the_sha256(file_on_disk):
     assert fingerprint(file_on_disk).sha256 == hashlib.sha256(CONTENT).hexdigest()
 
 
-@code("SRC0061")
+@code("SA00067")
 @category("repository")
 @objective("correctness")
 @positive
@@ -130,7 +130,7 @@ def test_reading_in_pieces_loses_nothing(tmp_path):
     assert fingerprint(path).sha256 == hashlib.sha256(content).hexdigest()
 
 
-@code("SRC0062")
+@code("SA00068")
 @category("repository")
 @objective("functionality")
 @positive
@@ -148,7 +148,7 @@ def test_matching_file_compares_as_matched(file_on_disk):
 # path that cannot be measured is refused.
 
 
-@code("SRC0063")
+@code("SA00069")
 @category("repository")
 @objective("functionality")
 @negative
@@ -160,7 +160,7 @@ def test_size_difference_is_reported_with_both_numbers(file_on_disk):
     assert got.detail == f"size {len(CONTENT)} bytes, manifest says {len(CONTENT) + 5}"
 
 
-@code("SRC0064")
+@code("SA00070")
 @category("repository")
 @objective("functionality")
 @negative
@@ -177,7 +177,7 @@ def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
     compare(file_on_disk, entry_for_bytes(CONTENT, bytes=len(CONTENT) + 5))
 
 
-@code("SRC0065")
+@code("SA00071")
 @category("repository")
 @objective("functionality")
 @negative
@@ -197,7 +197,7 @@ def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
     assert f"manifest says {entry.sha256[:16]}" in got.detail
 
 
-@code("SRC0066")
+@code("SA00072")
 @category("repository")
 @objective("functionality")
 @negative
@@ -210,7 +210,7 @@ def test_fingerprint_refuses_a_missing_file(tmp_path):
     assert str(missing) in str(caught.value)
 
 
-@code("SRC0067")
+@code("SA00073")
 @category("repository")
 @objective("functionality")
 @negative
@@ -223,7 +223,7 @@ def test_compare_refuses_a_missing_file(tmp_path):
     assert str(missing) in str(caught.value)
 
 
-@code("SRC0068")
+@code("SA00074")
 @category("repository")
 @objective("functionality")
 @negative
@@ -237,7 +237,7 @@ def test_fingerprint_refuses_a_folder(tmp_path):
     assert str(folder) in str(caught.value)
 
 
-@code("SRC0069")
+@code("SA00075")
 @category("repository")
 @objective("functionality")
 @negative

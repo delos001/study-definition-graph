@@ -130,7 +130,7 @@ def refused_with(error, *args) -> str:
 # These checks read the real manifests/ folder as it is.
 
 
-@code("SRC0070")
+@code("SA00076")
 @category("repository")
 @objective("functionality")
 @positive
@@ -141,7 +141,7 @@ def test_repo_root_is_the_folder_holding_pyproject():
     assert (root / "pyproject.toml").is_file()
 
 
-@code("SRC0074")
+@code("SA00077")
 @category("repository")
 @objective("functionality")
 @positive
@@ -160,7 +160,7 @@ def test_every_entry_names_the_manifest_it_came_from(real_manifests):
 # fields.
 
 
-@code("SRC0072")
+@code("SA00078")
 @category("repository")
 @objective("conformance")
 def test_every_manifest_lands_under_inputs(real_manifests):
@@ -170,7 +170,7 @@ def test_every_manifest_lands_under_inputs(real_manifests):
         assert manifest.local_dir.startswith("inputs/"), manifest.name
 
 
-@code("SRC0073")
+@code("SA00079")
 @category("repository")
 @objective("conformance")
 def test_every_entry_carries_the_five_required_fields(real_manifests):
@@ -193,7 +193,7 @@ def test_every_entry_carries_the_five_required_fields(real_manifests):
 # temporary folder.
 
 
-@code("SRC0075")
+@code("SA00080")
 @category("repository")
 @objective("functionality")
 @positive
@@ -203,7 +203,7 @@ def test_study_manifest_is_read_with_the_top_level_ones(top_level_and_study_sets
     assert "NCT1" in [manifest.name for manifest in manifests()]
 
 
-@code("SRC0076")
+@code("SA00081")
 @category("repository")
 @objective("functionality")
 @positive
@@ -212,7 +212,7 @@ def test_study_manifests_are_listed_after_the_top_level_ones(top_level_and_study
     assert [manifest.name for manifest in manifests()] == ["set_a", "NCT1"]
 
 
-@code("SRC0077")
+@code("SA00082")
 @category("repository")
 @objective("functionality")
 @positive
@@ -221,7 +221,7 @@ def test_manifests_are_listed_in_path_order(three_sets):
     assert [manifest.name for manifest in manifests()] == ["alpha", "mid", "zeta"]
 
 
-@code("SRC0078")
+@code("SA00083")
 @category("repository")
 @objective("functionality")
 @positive
@@ -232,7 +232,7 @@ def test_listing_order_is_the_same_on_every_call(three_sets):
     assert first == second
 
 
-@code("SRC0079")
+@code("SA00084")
 @category("repository")
 @objective("functionality")
 @positive
@@ -241,7 +241,7 @@ def test_one_manifest_can_be_read_by_name(three_sets):
     assert [manifest.name for manifest in manifests("mid")] == ["mid"]
 
 
-@code("SRC0080")
+@code("SA00085")
 @category("repository")
 @objective("functionality")
 @positive
@@ -251,7 +251,7 @@ def test_the_name_may_carry_the_json_suffix(three_sets):
     assert [manifest.name for manifest in manifests("mid.json")] == ["mid"]
 
 
-@code("SRC0081")
+@code("SA00086")
 @category("repository")
 @objective("functionality")
 @positive
@@ -263,7 +263,7 @@ def test_entry_for_finds_a_recorded_file(one_recorded_file):
     assert found.local == LOCAL
 
 
-@code("SRC0082")
+@code("SA00087")
 @category("repository")
 @objective("functionality")
 @positive
@@ -272,7 +272,7 @@ def test_entry_for_accepts_backslashes(one_recorded_file):
     assert entry_for("inputs\\set_a\\a.txt") == entry_for(LOCAL)
 
 
-@code("SRC0083")
+@code("SA00088")
 @category("repository")
 @objective("functionality")
 @positive
@@ -281,7 +281,7 @@ def test_entry_for_accepts_a_full_path(one_recorded_file):
     assert entry_for(one_recorded_file) == entry_for(LOCAL)
 
 
-@code("SRC0084")
+@code("SA00089")
 @category("repository")
 @objective("functionality")
 @positive
@@ -290,7 +290,7 @@ def test_entry_path_is_the_file_on_this_machine(one_recorded_file):
     assert entry_for(LOCAL).path == one_recorded_file
 
 
-@code("SRC0085")
+@code("SA00090")
 @category("repository")
 @objective("functionality")
 @positive
@@ -300,7 +300,7 @@ def test_entry_for_gives_none_for_an_unrecorded_file(one_recorded_file, fake_rep
     assert entry_for("inputs/set_a/stray.txt") is None
 
 
-@code("SRC0124")
+@code("SA00091")
 @category("repository")
 @objective("functionality")
 @positive
@@ -312,7 +312,7 @@ def test_entry_named_finds_a_recorded_file_by_its_name(one_recorded_file):
     assert found.local == LOCAL
 
 
-@code("SRC0125")
+@code("SA00092")
 @category("repository")
 @objective("functionality")
 @positive
@@ -322,7 +322,7 @@ def test_entry_named_gives_none_for_a_name_no_manifest_records(one_recorded_file
     assert entry_named("nobody_recorded_this.txt") is None
 
 
-@code("SRC0119")
+@code("SA00093")
 @category("repository")
 @objective("functionality")
 @positive
@@ -338,7 +338,7 @@ def test_a_relative_path_is_read_from_the_repo_root(
     assert entry_for(Path(LOCAL)) == entry_for(LOCAL)
 
 
-@code("SRC0086")
+@code("SA00094")
 @category("repository")
 @objective("functionality")
 @positive
@@ -357,7 +357,7 @@ def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
 # to fix the wrong thing.
 
 
-@code("SRC0087")
+@code("SA00095")
 @category("repository")
 @objective("functionality")
 @negative
@@ -371,7 +371,7 @@ def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
     assert "pip install -e ." in refused_with(NotInRepoError)
 
 
-@code("SRC0088")
+@code("SA00096")
 @category("repository")
 @objective("functionality")
 @negative
@@ -385,7 +385,7 @@ def test_repo_check_runs_before_any_manifest_is_read(fake_repo):
     refused_with(NotInRepoError)
 
 
-@code("SRC0089")
+@code("SA00097")
 @category("repository")
 @objective("functionality")
 @negative
@@ -398,7 +398,7 @@ def test_missing_manifests_folder_is_named_with_the_restore_remedy(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0090")
+@code("SA00098")
 @category("repository")
 @objective("functionality")
 @negative
@@ -410,7 +410,7 @@ def test_empty_manifests_folder_is_reported_as_none_found(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0091")
+@code("SA00099")
 @category("repository")
 @objective("functionality")
 @negative
@@ -421,7 +421,7 @@ def test_unknown_manifest_name_is_refused_by_name(fake_repo):
     assert "no manifest named set_b" in refused_with(ManifestError, "set_b")
 
 
-@code("SRC0092")
+@code("SA00100")
 @category("repository")
 @objective("functionality")
 @negative
@@ -436,7 +436,7 @@ def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0120")
+@code("SA00101")
 @category("repository")
 @objective("functionality")
 @negative
@@ -451,7 +451,7 @@ def test_manifest_that_is_a_list_is_refused_naming_the_file(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0121")
+@code("SA00102")
 @category("repository")
 @objective("functionality")
 @negative
@@ -465,7 +465,7 @@ def test_entry_that_is_not_an_object_is_refused_naming_the_file(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0093")
+@code("SA00103")
 @category("repository")
 @objective("functionality")
 @negative
@@ -479,7 +479,7 @@ def test_entry_missing_fields_has_every_missing_field_named(fake_repo):
     assert "repair that entry in manifests/set_a.json" in message
 
 
-@code("SRC0094")
+@code("SA00104")
 @category("repository")
 @objective("functionality")
 @negative
@@ -493,7 +493,7 @@ def test_size_that_is_not_a_whole_number_is_quoted_as_written(fake_repo):
     assert "repair that entry in manifests/set_a.json" in message
 
 
-@code("SRC0095")
+@code("SA00105")
 @category("repository")
 @objective("functionality")
 @negative

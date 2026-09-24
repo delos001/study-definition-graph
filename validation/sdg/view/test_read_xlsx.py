@@ -136,7 +136,7 @@ def run(capsys, *argv):
 # cell values that would otherwise break a row are handled.
 
 
-@code("VIW0018")
+@code("SA00209")
 @category("processing")
 @objective("functionality")
 @positive
@@ -146,7 +146,7 @@ def test_a_name_fragment_finds_the_workbook(inputs, capsys):
     assert run(capsys, "Terms").exit_code == 0
 
 
-@code("VIW0019")
+@code("SA00210")
 @category("processing")
 @objective("functionality")
 @positive
@@ -157,7 +157,7 @@ def test_listing_names_every_sheet(inputs, capsys):
     assert "notes" in printed
 
 
-@code("VIW0050")
+@code("SA00211")
 @category("processing")
 @objective("functionality")
 @positive
@@ -187,7 +187,7 @@ def test_listing_survives_a_sheet_without_a_dimension_record(inputs, capsys):
     assert re.search(r"study +rows x +cols", outcome.printed)
 
 
-@code("VIW0020")
+@code("SA00212")
 @category("processing")
 @objective("functionality")
 @positive
@@ -198,7 +198,7 @@ def test_a_sheet_prints_as_a_table(inputs, capsys):
     assert "Screening" in outcome.printed
 
 
-@code("VIW0021")
+@code("SA00213")
 @category("processing")
 @objective("functionality")
 @positive
@@ -208,7 +208,7 @@ def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
     assert run(capsys, "Example_Terms", "--sheet", "TERMS").exit_code == 0
 
 
-@code("VIW0022")
+@code("SA00214")
 @category("processing")
 @objective("functionality")
 @positive
@@ -221,7 +221,7 @@ def test_records_format_prints_one_field_per_line(inputs, capsys):
     assert "Visit: Screening" in printed
 
 
-@code("VIW0023")
+@code("SA00215")
 @category("processing")
 @objective("functionality")
 @positive
@@ -232,7 +232,7 @@ def test_an_empty_cell_prints_as_nothing(inputs, capsys):
     assert "None" not in printed
 
 
-@code("VIW0024")
+@code("SA00216")
 @category("processing")
 @objective("functionality")
 @positive
@@ -242,7 +242,7 @@ def test_a_newline_inside_a_cell_does_not_break_the_row(inputs, capsys):
     assert "predose and 1h" in printed
 
 
-@code("VIW0025")
+@code("SA00217")
 @category("processing")
 @objective("functionality")
 @positive
@@ -255,7 +255,7 @@ def test_find_reports_the_hits_in_one_workbook(inputs, capsys):
     assert "No cells contain" not in outcome.printed
 
 
-@code("VIW0026")
+@code("SA00218")
 @category("processing")
 @objective("functionality")
 @positive
@@ -267,7 +267,7 @@ def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
     assert "No cells contain" in outcome.printed
 
 
-@code("VIW0027")
+@code("SA00219")
 @category("processing")
 @objective("functionality")
 @positive
@@ -279,7 +279,7 @@ def test_all_searches_every_workbook(inputs, capsys):
     assert "Example_Study.xlsx" in printed
 
 
-@code("VIW0028")
+@code("SA00220")
 @category("processing")
 @objective("functionality")
 @positive
@@ -299,7 +299,7 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 # and that the message names that cause and what to do instead.
 
 
-@code("VIW0029")
+@code("SA00221")
 @category("processing")
 @objective("functionality")
 @negative
@@ -311,7 +311,7 @@ def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
     assert "Run without --sheet" in outcome.printed
 
 
-@code("VIW0030")
+@code("SA00222")
 @category("processing")
 @objective("functionality")
 @negative
@@ -323,7 +323,7 @@ def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
     assert "Nothing_Like_This" in outcome.printed
 
 
-@code("VIW0031")
+@code("SA00223")
 @category("processing")
 @objective("functionality")
 @negative
@@ -336,7 +336,7 @@ def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
     assert "Example_Study.xlsx" in outcome.printed
 
 
-@code("VIW0032")
+@code("SA00224")
 @category("processing")
 @objective("functionality")
 @negative
@@ -349,7 +349,7 @@ def test_all_without_find_is_a_usage_mistake(inputs, capsys):
     assert "--all requires --find" in capsys.readouterr().err
 
 
-@code("VIW0033")
+@code("SA00225")
 @category("processing")
 @objective("functionality")
 @negative
@@ -369,7 +369,7 @@ def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
 # case, so a person can type whichever they have to hand.
 
 
-@code("VIW0061")
+@code("SA00226")
 @category("processing")
 @objective("functionality")
 @positive
@@ -378,7 +378,7 @@ def test_a_full_path_finds_the_workbook(inputs, capsys):
     assert run(capsys, str(inputs / "standards" / "Example_Terms.xlsx")).exit_code == 0
 
 
-@code("VIW0062")
+@code("SA00227")
 @category("processing")
 @objective("functionality")
 @positive
@@ -391,7 +391,7 @@ def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tm
     assert run(capsys, "inputs/standards/Example_Terms.xlsx").exit_code == 0
 
 
-@code("VIW0063")
+@code("SA00228")
 @category("processing")
 @objective("functionality")
 @positive
@@ -404,7 +404,7 @@ def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
 ### Checks on long and empty cells ###
 
 
-@code("VIW0059")
+@code("SA00229")
 @category("processing")
 @objective("functionality")
 @positive
@@ -420,7 +420,7 @@ def test_a_long_cell_is_cut_short_with_an_ellipsis_in_a_table(inputs, capsys):
     assert long_cell not in printed
 
 
-@code("VIW0060")
+@code("SA00230")
 @category("processing")
 @objective("functionality")
 @positive
@@ -439,7 +439,7 @@ def test_an_empty_field_is_skipped_in_records_format(inputs, capsys):
 ### Checks on what a search reports ###
 
 
-@code("VIW0064")
+@code("SA00231")
 @category("processing")
 @objective("functionality")
 @positive
@@ -451,7 +451,7 @@ def test_a_search_reports_one_hit_per_row(inputs):
     assert len(read_xlsx.search_workbook(path, "hit")) == 1
 
 
-@code("VIW0065")
+@code("SA00232")
 @category("processing")
 @objective("functionality")
 @positive
@@ -472,7 +472,7 @@ def test_a_search_hit_cuts_a_long_cell_short(inputs):
 # says which row holds them, counted the way the sheet counts its own rows.
 
 
-@code("VIW0071")
+@code("SA00233")
 @category("processing")
 @objective("functionality")
 @positive
@@ -489,7 +489,7 @@ def test_header_row_makes_the_named_row_the_column_names(inputs, capsys):
     assert printed.index("Visit") < printed.index("Screening")
 
 
-@code("VIW0072")
+@code("SA00234")
 @category("processing")
 @objective("functionality")
 @positive
@@ -507,7 +507,7 @@ def test_header_row_counts_the_sheets_own_rows_including_blank_ones(inputs, caps
     assert "Visit" in printed
 
 
-@code("VIW0073")
+@code("SA00235")
 @category("processing")
 @objective("functionality")
 @positive
@@ -521,7 +521,7 @@ def test_the_heading_says_which_row_the_reading_started_at(inputs, capsys):
     assert "from row 2" in printed
 
 
-@code("VIW0074")
+@code("SA00236")
 @category("processing")
 @objective("functionality")
 @positive
@@ -533,7 +533,7 @@ def test_without_the_option_the_first_row_is_the_column_names(inputs, capsys):
     assert "Visit" in printed
 
 
-@code("VIW0075")
+@code("SA00237")
 @category("processing")
 @objective("functionality")
 @negative
@@ -547,7 +547,7 @@ def test_a_header_row_past_the_end_of_the_sheet_is_refused(inputs, capsys):
     assert "terms" in outcome.printed
 
 
-@code("VIW0076")
+@code("SA00238")
 @category("processing")
 @objective("functionality")
 @negative

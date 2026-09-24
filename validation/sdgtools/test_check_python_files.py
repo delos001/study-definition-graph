@@ -142,7 +142,7 @@ def run_tool(capsys, *argv: str) -> Outcome:
 # reached through conda, and the quiet option drops only the progress lines.
 
 
-@code("HRS0123")
+@code("SA00307")
 @category("repository")
 @objective("functionality")
 @positive
@@ -151,7 +151,7 @@ def test_all_passing_exits_0(stage, capsys):
     assert run_tool(capsys).exit_code == 0
 
 
-@code("HRS0124")
+@code("SA00308")
 @category("repository")
 @objective("functionality")
 @positive
@@ -162,7 +162,7 @@ def test_each_tool_gets_a_verdict_line(stage, capsys):
         assert f"{name}: passed" in printed
 
 
-@code("HRS0125")
+@code("SA00309")
 @category("repository")
 @objective("functionality")
 @positive
@@ -173,7 +173,7 @@ def test_the_tools_run_in_the_set_order(stage, capsys):
     assert [tool_of(command) for command in stage.commands] == list(TOOLS)
 
 
-@code("HRS0126")
+@code("SA00310")
 @category("repository")
 @objective("functionality")
 @positive
@@ -184,7 +184,7 @@ def test_the_tools_run_from_the_repo_root(stage, capsys):
     assert stage.cwds == [script.REPO_ROOT] * len(TOOLS)
 
 
-@code("HRS0127")
+@code("SA00311")
 @category("repository")
 @objective("functionality")
 @positive
@@ -197,7 +197,7 @@ def test_a_tool_off_the_path_is_run_through_conda(stage, capsys):
         assert command[:5] == ["conda", "run", "-n", "sdg", "--no-capture-output"]
 
 
-@code("HRS0128")
+@code("SA00312")
 @category("repository")
 @objective("functionality")
 @positive
@@ -218,7 +218,7 @@ def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
 # run at all is its own exit code with the fix.
 
 
-@code("HRS0129")
+@code("SA00313")
 @category("repository")
 @objective("functionality")
 @negative
@@ -233,7 +233,7 @@ def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
     assert "mypy: passed" in outcome.printed
 
 
-@code("HRS0130")
+@code("SA00314")
 @category("repository")
 @objective("functionality")
 @negative
@@ -245,7 +245,7 @@ def test_every_tool_still_runs_after_one_fails(stage, capsys):
     assert [tool_of(command) for command in stage.commands] == list(TOOLS)
 
 
-@code("HRS0131")
+@code("SA00315")
 @category("repository")
 @objective("functionality")
 @negative

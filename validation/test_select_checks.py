@@ -128,7 +128,7 @@ def stage_groups(pytester) -> None:
 # report records what was asked for.
 
 
-@code("TST0021")
+@code("SA00462")
 @category("repository")
 @objective("functionality")
 @positive
@@ -140,7 +140,7 @@ def test_category_keeps_only_that_category(pytester, monkeypatch):
     assert ids == {"XYZ0011", "XYZ0014"}
 
 
-@code("TST0022")
+@code("SA00463")
 @category("repository")
 @objective("functionality")
 @positive
@@ -151,7 +151,7 @@ def test_objective_keeps_only_that_objective(pytester, monkeypatch):
     assert ids == {"XYZ0011", "XYZ0013"}
 
 
-@code("TST0023")
+@code("SA00464")
 @category("repository")
 @objective("functionality")
 @positive
@@ -164,7 +164,7 @@ def test_category_and_objective_narrow_each_other(pytester, monkeypatch):
     assert ids == {"XYZ0011"}
 
 
-@code("TST0024")
+@code("SA00465")
 @category("repository")
 @objective("functionality")
 @positive
@@ -175,7 +175,7 @@ def test_a_comma_separated_list_means_any_of_the_values(pytester, monkeypatch):
     assert ids == {"XYZ0012", "XYZ0013"}
 
 
-@code("TST0025")
+@code("SA00466")
 @category("repository")
 @objective("functionality")
 @positive
@@ -186,7 +186,7 @@ def test_id_keeps_only_those_checks(pytester, monkeypatch):
     assert ids == {"XYZ0012", "XYZ0014"}
 
 
-@code("TST0026")
+@code("SA00467")
 @category("repository")
 @objective("functionality")
 @positive
@@ -199,7 +199,7 @@ def test_group_runs_the_ids_the_groups_file_lists(pytester, monkeypatch):
     assert ids == {"XYZ0011", "XYZ0013"}
 
 
-@code("TST0027")
+@code("SA00468")
 @category("repository")
 @objective("functionality")
 @positive
@@ -221,7 +221,7 @@ def test_the_selection_column_records_the_options(pytester, monkeypatch):
 # why, and leaves no report.
 
 
-@code("TST0028")
+@code("SA00469")
 @category("repository")
 @objective("functionality")
 @negative
@@ -235,7 +235,7 @@ def test_a_category_not_in_the_list_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("TST0029")
+@code("SA00470")
 @category("repository")
 @objective("functionality")
 @negative
@@ -248,7 +248,7 @@ def test_an_id_no_collected_check_carries_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("TST0030")
+@code("SA00471")
 @category("repository")
 @objective("functionality")
 @negative
@@ -263,7 +263,7 @@ def test_a_group_not_in_the_file_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("TST0031")
+@code("SA00472")
 @category("repository")
 @objective("functionality")
 @negative
@@ -276,7 +276,7 @@ def test_group_without_the_groups_file_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("TST0037")
+@code("SA00473")
 @category("repository")
 @objective("functionality")
 @negative
@@ -291,7 +291,7 @@ def test_a_defined_value_matching_no_check_stops_the_run(pytester, monkeypatch):
     assert ids == set()
 
 
-@code("TST0038")
+@code("SA00474")
 @category("repository")
 @objective("functionality")
 @negative
@@ -310,7 +310,7 @@ def test_options_that_together_match_nothing_stop_the_run(pytester, monkeypatch)
     assert ids == set()
 
 
-@code("TST0043")
+@code("SA00475")
 @category("repository")
 @objective("functionality")
 @positive
@@ -322,7 +322,7 @@ def test_aspect_keeps_only_the_checks_of_that_aspect(pytester, monkeypatch):
     assert ids == {"XYZ0014"}
 
 
-@code("TST0044")
+@code("SA00476")
 @category("repository")
 @objective("functionality")
 @positive
@@ -336,7 +336,7 @@ def test_aspect_and_category_narrow_each_other(pytester, monkeypatch):
     assert ids == {"XYZ0011"}
 
 
-@code("TST0045")
+@code("SA00477")
 @category("repository")
 @objective("functionality")
 @negative

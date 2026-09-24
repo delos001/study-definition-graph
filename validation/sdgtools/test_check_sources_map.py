@@ -119,7 +119,7 @@ def run(capsys, text, *argv):
 # for a group of files, and a heading may name two files at once.
 
 
-@code("HRS0094")
+@code("SA00316")
 @category("repository")
 @objective("functionality")
 @positive
@@ -129,7 +129,7 @@ def test_a_map_naming_every_file_exits_0(repo, capsys):
     assert run(capsys, MAP).exit_code == 0
 
 
-@code("HRS0095")
+@code("SA00317")
 @category("repository")
 @objective("functionality")
 @positive
@@ -138,7 +138,7 @@ def test_a_map_naming_every_file_prints_nothing(repo, capsys):
     assert run(capsys, MAP).printed == ""
 
 
-@code("HRS0096")
+@code("SA00318")
 @category("repository")
 @objective("functionality")
 @positive
@@ -162,7 +162,7 @@ def test_a_placeholder_heading_covers_a_group(repo, fake_repo, capsys):
     assert run(capsys, text).exit_code == 0
 
 
-@code("HRS0097")
+@code("SA00319")
 @category("repository")
 @objective("functionality")
 @positive
@@ -176,7 +176,7 @@ def test_a_starred_heading_covers_a_subfolder(repo, fake_repo, capsys):
     assert run(capsys, MAP + "\n### Document: uml/*.png\n").exit_code == 0
 
 
-@code("HRS0098")
+@code("SA00320")
 @category("repository")
 @objective("functionality")
 @positive
@@ -202,7 +202,7 @@ def test_one_heading_may_name_two_files(repo, fake_repo, capsys):
 # and that the message names what is wrong.
 
 
-@code("HRS0099")
+@code("SA00321")
 @category("repository")
 @objective("functionality")
 @negative
@@ -219,7 +219,7 @@ def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
     assert "no heading in the map covers it" in outcome.printed
 
 
-@code("HRS0138")
+@code("SA00322")
 @category("repository")
 @objective("functionality")
 @negative
@@ -250,7 +250,7 @@ def test_a_placeholder_heading_does_not_reach_outside_its_group(
     assert PINNED in outcome.printed
 
 
-@code("HRS0100")
+@code("SA00323")
 @category("repository")
 @objective("functionality")
 @negative
@@ -263,7 +263,7 @@ def test_a_location_nothing_lives_in_exits_36(repo, capsys):
     assert "inputs/standards/nowhere" in outcome.printed
 
 
-@code("HRS0101")
+@code("SA00324")
 @category("repository")
 @objective("functionality")
 @negative
@@ -281,7 +281,7 @@ def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
     assert "inputs/standards/nowhere" in outcome.printed
 
 
-@code("HRS0102")
+@code("SA00325")
 @category("repository")
 @objective("functionality")
 @negative
@@ -293,7 +293,7 @@ def test_a_missing_map_exits_13(repo, capsys):
     assert "cannot be read" in outcome.printed
 
 
-@code("HRS0146")
+@code("SA00326")
 @category("repository")
 @objective("functionality")
 @negative
@@ -308,7 +308,7 @@ def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
     assert "pip install -e ." in outcome.printed
 
 
-@code("HRS0147")
+@code("SA00327")
 @category("repository")
 @objective("functionality")
 @negative
@@ -334,7 +334,7 @@ def quiet_with_a_forgotten_file(repo, fake_repo, capsys):
     return run(capsys, MAP, "--quiet")
 
 
-@code("HRS0103")
+@code("SA00328")
 @category("repository")
 @objective("functionality")
 @positive
@@ -344,7 +344,7 @@ def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
     assert quiet_with_a_forgotten_file.printed == ""
 
 
-@code("HRS0153")
+@code("SA00329")
 @category("repository")
 @objective("functionality")
 @positive
@@ -363,7 +363,7 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 # map cannot prove the real one is right.
 
 
-@code("HRS0104")
+@code("SA00330")
 @category("repository")
 @objective("completeness")
 def test_the_real_map_and_manifests_agree():

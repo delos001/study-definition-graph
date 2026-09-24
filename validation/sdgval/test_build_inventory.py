@@ -51,10 +51,9 @@ category = pytest.mark.category
 
 # One test file with two well-formed staged checks, written the way the real files
 # are, one a working situation and one a broken one. The ids are made up, and they
-# use a registered prefix because the
-# generator refuses one that is not registered. The numbers start at 9 to stay well
-# clear of the band the real repo_tools ids sit in, so a reader cannot mistake one
-# of these for a check that exists.
+# use the registered suite SA because the generator refuses one that is not
+# registered. The numbers start at 99 to stay well clear of the real ids, so a
+# reader cannot mistake one of these for a check that exists.
 TWO_CHECKS = '''
 import pytest
 
@@ -65,7 +64,7 @@ objective = pytest.mark.objective
 category = pytest.mark.category
 
 
-@code("HRS9001")
+@code("SA99001")
 @category("repository")
 @objective("conformance")
 @positive
@@ -76,7 +75,7 @@ def test_first():
     """
 
 
-@code("HRS9002")
+@code("SA99002")
 @category("repository")
 @objective("conformance")
 @negative
@@ -94,7 +93,7 @@ objective = pytest.mark.objective
 category = pytest.mark.category
 
 
-@code("HRS9003")
+@code("SA99003")
 @category("repository")
 @objective("completeness")
 def test_third():
@@ -267,7 +266,7 @@ def written(tests_folder, capsys) -> Path:
 # current file.
 
 
-@code("HRS0053")
+@code("SA00376")
 @category("repository")
 @objective("functionality")
 @positive
@@ -275,14 +274,14 @@ def test_row_holds_the_check_as_written(generated):
     """A row carries the check's name, id, category, objective, case and the first
     paragraph of its docstring as one line, with the second paragraph left out."""
     first = next(r for r in generated if r["name"] == "test_first")
-    assert first["id"] == "HRS9001"
+    assert first["id"] == "SA99001"
     assert first["category"] == "repository"
     assert first["objective"] == "conformance"
     assert first["staged_case"] == "positive"
     assert first["expected_result"] == "The first thing works."
 
 
-@code("HRS0054")
+@code("SA00377")
 @category("repository")
 @objective("functionality")
 @positive
@@ -296,7 +295,7 @@ def test_row_names_the_check_file_and_the_target(generated):
     assert first["target_file_name"] == "alpha.py"
 
 
-@code("HRS0122")
+@code("SA00378")
 @category("repository")
 @objective("functionality")
 @positive
@@ -310,7 +309,7 @@ def test_a_hook_check_targets_the_hook(tests_folder, capsys):
     assert first["target_file_name"] == "alpha.py"
 
 
-@code("HRS0154")
+@code("SA00379")
 @category("repository")
 @objective("functionality")
 @positive
@@ -324,7 +323,7 @@ def test_a_check_that_staged_nothing_has_an_empty_case(tests_folder, capsys):
     assert row["staged_case"] == ""
 
 
-@code("HRS0171")
+@code("SA00380")
 @category("repository")
 @objective("functionality")
 @positive
@@ -335,12 +334,12 @@ def test_a_check_with_neither_marker_has_no_case(tests_folder, capsys):
         {"sdgtools/test_alpha.py": TWO_CHECKS.replace("@negative\n", "")}
     )
     assert run(capsys).exit_code == 0
-    row = next(r for r in rows_of(inventory) if r["id"] == "HRS9002")
+    row = next(r for r in rows_of(inventory) if r["id"] == "SA99002")
     assert row["objective"] == "conformance"
     assert row["staged_case"] == ""
 
 
-@code("HRS0055")
+@code("SA00381")
 @category("repository")
 @objective("functionality")
 @positive
@@ -353,7 +352,7 @@ def test_new_check_starts_active_at_version_1(generated):
     } == {("active", "", "", "1")}
 
 
-@code("HRS0056")
+@code("SA00382")
 @category("repository")
 @objective("functionality")
 @positive
@@ -362,13 +361,13 @@ def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
     superseded_by, status_reason and version are kept, whatever else changed."""
     with_hand_kept(
         written,
-        "HRS9002",
+        "SA99002",
         status="inactive",
         status_reason="Switched off while the fake server is rebuilt.",
         version="3",
     )
     assert run(capsys).exit_code == 0
-    second = next(r for r in rows_of(written) if r["id"] == "HRS9002")
+    second = next(r for r in rows_of(written) if r["id"] == "SA99002")
     assert (second["status"], second["status_reason"], second["version"]) == (
         "inactive",
         "Switched off while the fake server is rebuilt.",
@@ -376,7 +375,7 @@ def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
     )
 
 
-@code("HRS0057")
+@code("SA00383")
 @category("repository")
 @objective("functionality")
 @positive
@@ -387,11 +386,11 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
     inventory = tests_folder(
         {
             "conftest.py": '"""The record writer."""\n',
-            # One file per group, each carrying the prefix its folder really uses,
-            # so that the three files hold six ids between them and none repeats.
-            "test_conftest.py": TWO_CHECKS.replace("HRS9", "TST9"),
+            # One file per group, each with its own band of numbers, so that the
+            # three files hold six ids between them and none repeats.
+            "test_conftest.py": TWO_CHECKS.replace("SA99", "SA97"),
             "sdgtools/test_alpha.py": TWO_CHECKS,
-            "sdg/sources/test_beta.py": TWO_CHECKS.replace("HRS9", "SRC9"),
+            "sdg/sources/test_beta.py": TWO_CHECKS.replace("SA99", "SA98"),
         }
     )
     assert run(capsys).exit_code == 0
@@ -405,7 +404,7 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
     ]
 
 
-@code("HRS0141")
+@code("SA00384")
 @category("repository")
 @objective("functionality")
 @positive
@@ -421,7 +420,7 @@ def test_a_check_file_in_a_package_subfolder_targets_that_subfolder_under_src(
     assert first["target_file_name"] == "alpha.py"
 
 
-@code("HRS0174")
+@code("SA00385")
 @category("repository")
 @objective("functionality")
 @positive
@@ -442,7 +441,7 @@ def test_a_top_level_check_file_targets_the_validation_file_of_the_same_name(
     assert first["target_file_name"] == "alpha.py"
 
 
-@code("HRS0062")
+@code("SA00386")
 @category("repository")
 @objective("functionality")
 @positive
@@ -450,12 +449,12 @@ def test_deleted_check_drops_out(tests_folder, capsys):
     """A row whose check no longer exists in any test file is not written again."""
     inventory = tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     assert run(capsys).exit_code == 0
-    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.split('@code("HRS9002")')[0]})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.split('@code("SA99002")')[0]})
     assert run(capsys).exit_code == 0
-    assert [r["id"] for r in rows_of(inventory)] == ["HRS9001"]
+    assert [r["id"] for r in rows_of(inventory)] == ["SA99001"]
 
 
-@code("HRS0058")
+@code("SA00387")
 @category("repository")
 @objective("functionality")
 @positive
@@ -471,7 +470,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
     assert "is current, 2 check(s)" in outcome.printed
 
 
-@code("HRS0059")
+@code("SA00388")
 @category("repository")
 @objective("functionality")
 @positive
@@ -491,7 +490,7 @@ def test_quiet_prints_nothing(tests_folder, capsys):
 # columns of the inventory on disk without writing anything.
 
 
-@code("HRS0155")
+@code("SA00389")
 @category("repository")
 @objective("functionality")
 @positive
@@ -502,7 +501,7 @@ def test_check_status_passes_a_superseded_check_with_an_active_successor(
     superseded_by names an active check, passes: the run exits 0 and writes
     nothing."""
     rows = rows_of(written)
-    rows.append(removed_row("HRS9009", status="superseded", superseded_by="HRS9001"))
+    rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99001"))
     write_rows(written, rows)
     before = written.read_text(encoding="utf-8")
     outcome = run(capsys, "--check-status")
@@ -511,7 +510,7 @@ def test_check_status_passes_a_superseded_check_with_an_active_successor(
     assert "the hand-kept columns are in order" in outcome.printed
 
 
-@code("HRS0156")
+@code("SA00390")
 @category("repository")
 @objective("functionality")
 @positive
@@ -521,7 +520,7 @@ def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
     rows = rows_of(written)
     rows.append(
         removed_row(
-            "HRS9009",
+            "SA99009",
             status="retired",
             status_reason="The command it tested was withdrawn.",
         )
@@ -537,7 +536,7 @@ def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
 # hook makes.
 
 
-@code("HRS0060")
+@code("SA00391")
 @category("repository")
 @objective("correctness")
 def test_real_inventory_is_current():
@@ -555,7 +554,7 @@ def test_real_inventory_is_current():
 # validation folder.
 
 
-@code("HRS0061")
+@code("SA00392")
 @category("repository")
 @objective("functionality")
 @negative
@@ -569,7 +568,7 @@ def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
     assert "is stale. Run: build_inventory" in outcome.printed
 
 
-@code("HRS0133")
+@code("SA00393")
 @category("repository")
 @objective("functionality")
 @negative
@@ -588,7 +587,7 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     assert "is stale. Run: build_inventory" in outcome.printed
 
 
-@code("HRS0063")
+@code("SA00394")
 @category("repository")
 @objective("functionality")
 @negative
@@ -596,7 +595,7 @@ def test_check_without_id_exits_18(tests_folder, capsys):
     """A check with no @code marker makes the run exit 18, naming the file and the
     check, and the inventory is not written."""
     inventory = tests_folder(
-        {"sdgtools/test_alpha.py": TWO_CHECKS.replace('@code("HRS9002")\n', "")}
+        {"sdgtools/test_alpha.py": TWO_CHECKS.replace('@code("SA99002")\n', "")}
     )
     outcome = run(capsys)
     assert outcome.exit_code == 18
@@ -606,7 +605,7 @@ def test_check_without_id_exits_18(tests_folder, capsys):
     )
 
 
-@code("HRS0157")
+@code("SA00395")
 @category("repository")
 @objective("functionality")
 @negative
@@ -627,7 +626,7 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
     assert "test_second has no @objective marker" in outcome.printed
 
 
-@code("HRS0172")
+@code("SA00396")
 @category("repository")
 @objective("functionality")
 @negative
@@ -637,7 +636,7 @@ def test_check_without_category_exits_18(tests_folder, capsys):
     inventory = tests_folder(
         {
             "sdgtools/test_alpha.py": TWO_CHECKS.replace(
-                '@code("HRS9002")\n@category("repository")\n', '@code("HRS9002")\n'
+                '@code("SA99002")\n@category("repository")\n', '@code("SA99002")\n'
             )
         }
     )
@@ -647,7 +646,7 @@ def test_check_without_category_exits_18(tests_folder, capsys):
     assert "test_second has no @category marker" in outcome.printed
 
 
-@code("HRS0173")
+@code("SA00397")
 @category("repository")
 @objective("functionality")
 @negative
@@ -657,8 +656,8 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
     tests_folder(
         {
             "sdgtools/test_alpha.py": TWO_CHECKS.replace(
-                '@code("HRS9002")\n@category("repository")',
-                '@code("HRS9002")\n@category("machinery")',
+                '@code("SA99002")\n@category("repository")',
+                '@code("SA99002")\n@category("machinery")',
             )
         }
     )
@@ -670,7 +669,7 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
     assert ", ".join(script.CATEGORIES) in outcome.printed
 
 
-@code("HRS0158")
+@code("SA00398")
 @category("repository")
 @objective("functionality")
 @negative
@@ -680,8 +679,8 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
     tests_folder(
         {
             "sdgtools/test_alpha.py": TWO_CHECKS.replace(
-                '@code("HRS9002")\n@category("repository")\n@objective("conformance")',
-                '@code("HRS9002")\n@category("repository")\n@objective("behaviour")',
+                '@code("SA99002")\n@category("repository")\n@objective("conformance")',
+                '@code("SA99002")\n@category("repository")\n@objective("behaviour")',
             )
         }
     )
@@ -693,7 +692,7 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
     assert ", ".join(script.OBJECTIVES) in outcome.printed
 
 
-@code("HRS0178")
+@code("SA00399")
 @category("repository")
 @objective("functionality")
 @positive
@@ -718,7 +717,7 @@ def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
     assert row["staged_case"] == "positive"
 
 
-@code("HRS0160")
+@code("SA00400")
 @category("repository")
 @objective("functionality")
 @negative
@@ -745,7 +744,7 @@ def test_a_first_sentence_starting_with_a_refused_character_exits_18(
     assert "start it with a letter or a digit" in outcome.printed
 
 
-@code("HRS0179")
+@code("SA00401")
 @category("repository")
 @objective("functionality")
 @positive
@@ -762,58 +761,58 @@ def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, caps
         }
     )
     assert run(capsys).exit_code == 0
-    row = next(r for r in rows_of(inventory) if r["id"] == "HRS9002")
+    row = next(r for r in rows_of(inventory) if r["id"] == "SA99002")
     assert row["expected_result"] == "The wrong thing is refused."
 
 
-@code("HRS0065")
+@code("SA00402")
 @category("repository")
 @objective("functionality")
 @negative
 def test_duplicate_id_exits_18(tests_folder, capsys):
     """Two checks carrying the same id make the run exit 18, and the message names
     both checks."""
-    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("HRS9002", "HRS9001")})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("SA99002", "SA99001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
-    assert "HRS9001 is carried by both test_first and test_second" in outcome.printed
+    assert "SA99001 is carried by both test_first and test_second" in outcome.printed
 
 
-@code("HRS0175")
+@code("SA00403")
 @category("repository")
 @objective("functionality")
 @negative
 def test_an_id_of_the_wrong_shape_exits_18(tests_folder, capsys):
-    """An id that is not three capital letters and four digits makes the run exit 18,
+    """An id that is not S, a capital letter and five digits makes the run exit 18,
     and the message names the check and says what an id looks like."""
-    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("HRS9001", "hrs9001")})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("SA99001", "sa99001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert (
-        "validation/sdgtools/test_alpha.py: test_first has the id 'hrs9001', which "
-        "is not three capital letters and four digits" in outcome.printed
+        "validation/sdgtools/test_alpha.py: test_first has the id 'sa99001', which "
+        "is not S, a capital letter and five digits" in outcome.printed
     )
 
 
-@code("HRS0176")
+@code("SA00404")
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_unregistered_id_prefix_exits_18(tests_folder, capsys):
-    """An id whose three letters are not one of the registered prefixes makes the run
-    exit 18, and the message names the prefix and lists the ones that are
+def test_an_unregistered_suite_exits_18(tests_folder, capsys):
+    """An id whose two letters are not one of the registered suites makes the run
+    exit 18, and the message names the suite and lists the ones that are
     registered."""
-    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("HRS9001", "ZZZ9001")})
+    tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS.replace("SA99001", "SZ99001")})
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert (
-        "validation/sdgtools/test_alpha.py: test_first has the id ZZZ9001, and ZZZ "
-        "is not one of the prefixes" in outcome.printed
+        "validation/sdgtools/test_alpha.py: test_first has the id SZ99001, and SZ "
+        "is not one of the suites" in outcome.printed
     )
-    assert ", ".join(script.ID_PREFIXES) in outcome.printed
+    assert ", ".join(script.SUITES) in outcome.printed
 
 
-@code("HRS0066")
+@code("SA00405")
 @category("repository")
 @objective("functionality")
 @negative
@@ -826,7 +825,7 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
     assert "validation/sdgtools/test_alpha.py: cannot parse" in outcome.printed
 
 
-@code("HRS0067")
+@code("SA00406")
 @category("repository")
 @objective("functionality")
 @negative
@@ -845,22 +844,22 @@ def test_no_test_files_exits_20(tests_folder, capsys):
 # and nothing is written. A problem with a check's markers outranks it.
 
 
-@code("HRS0161")
+@code("SA00407")
 @category("repository")
 @objective("functionality")
 @negative
 def test_a_status_not_in_the_list_exits_45(written, capsys):
     """A row whose status is not one of the five makes the run exit 45, quoting the
     status, and the inventory is not rewritten."""
-    with_hand_kept(written, "HRS9002", status="archived")
+    with_hand_kept(written, "SA99002", status="archived")
     before = written.read_text(encoding="utf-8")
     outcome = run(capsys)
     assert outcome.exit_code == 45
     assert written.read_text(encoding="utf-8") == before
-    assert "HRS9002 has status 'archived', which is not one of" in outcome.printed
+    assert "SA99002 has status 'archived', which is not one of" in outcome.printed
 
 
-@code("HRS0162")
+@code("SA00408")
 @category("repository")
 @objective("functionality")
 @negative
@@ -869,16 +868,16 @@ def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, stat
     """A removed check marked inactive or retired with status_reason empty makes the
     check-status run exit 45, saying the reason is missing."""
     rows = rows_of(written)
-    rows.append(removed_row("HRS9009", status=status))
+    rows.append(removed_row("SA99009", status=status))
     write_rows(written, rows)
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 45
-    assert f"HRS9009 is {status} but status_reason does not say why" in (
+    assert f"SA99009 is {status} but status_reason does not say why" in (
         outcome.printed
     )
 
 
-@code("HRS0163")
+@code("SA00409")
 @category("repository")
 @objective("functionality")
 @negative
@@ -886,29 +885,29 @@ def test_superseded_without_a_successor_exits_45(written, capsys):
     """A removed check marked superseded with superseded_by empty makes the
     check-status run exit 45, saying no check is named."""
     rows = rows_of(written)
-    rows.append(removed_row("HRS9009", status="superseded"))
+    rows.append(removed_row("SA99009", status="superseded"))
     write_rows(written, rows)
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 45
-    assert "HRS9009 is superseded but superseded_by names no check" in outcome.printed
+    assert "SA99009 is superseded but superseded_by names no check" in outcome.printed
 
 
-@code("HRS0164")
+@code("SA00410")
 @category("repository")
 @objective("functionality")
 @negative
 def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
     """A row that names checks in superseded_by while its status is not superseded
     makes the run exit 45."""
-    with_hand_kept(written, "HRS9002", superseded_by="HRS9001")
+    with_hand_kept(written, "SA99002", superseded_by="SA99001")
     outcome = run(capsys)
     assert outcome.exit_code == 45
-    assert "HRS9002 names checks in superseded_by but is active, not superseded" in (
+    assert "SA99002 names checks in superseded_by but is active, not superseded" in (
         outcome.printed
     )
 
 
-@code("HRS0177")
+@code("SA00411")
 @category("repository")
 @objective("functionality")
 @negative
@@ -917,14 +916,14 @@ def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
     makes the run exit 45, because a sentence saying why a check is switched off does
     not belong on one that is running."""
     with_hand_kept(
-        written, "HRS9002", status_reason="Switched off while the API moved."
+        written, "SA99002", status_reason="Switched off while the API moved."
     )
     outcome = run(capsys)
     assert outcome.exit_code == 45
-    assert "HRS9002 has a status_reason but is active" in outcome.printed
+    assert "SA99002 has a status_reason but is active" in outcome.printed
 
 
-@code("HRS0165")
+@code("SA00412")
 @category("repository")
 @objective("functionality")
 @negative
@@ -932,29 +931,29 @@ def test_a_successor_that_is_not_active_exits_45(written, capsys):
     """A superseded row whose superseded_by names a check that is not active in the
     inventory makes the check-status run exit 45, naming that check."""
     rows = rows_of(written)
-    rows.append(removed_row("HRS9009", status="superseded", superseded_by="HRS9404"))
+    rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99404"))
     write_rows(written, rows)
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 45
-    assert "HRS9009 is superseded by HRS9404, which is not an active check" in (
+    assert "SA99009 is superseded by SA99404, which is not an active check" in (
         outcome.printed
     )
 
 
-@code("HRS0166")
+@code("SA00413")
 @category("repository")
 @objective("functionality")
 @negative
 def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
     """A row whose version is not a whole number from 1 up, such as 1.1, makes the
     run exit 45, quoting the value."""
-    with_hand_kept(written, "HRS9002", version="1.1")
+    with_hand_kept(written, "SA99002", version="1.1")
     outcome = run(capsys)
     assert outcome.exit_code == 45
-    assert "HRS9002 has version '1.1', which is not a whole number" in outcome.printed
+    assert "SA99002 has version '1.1', which is not a whole number" in outcome.printed
 
 
-@code("HRS0167")
+@code("SA00414")
 @category("repository")
 @objective("functionality")
 @negative
@@ -962,15 +961,15 @@ def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
     """A row marked retired whose check is still in the test files makes the run exit
     45, saying to remove the check or change its status."""
     with_hand_kept(
-        written, "HRS9002", status="retired", status_reason="No longer needed."
+        written, "SA99002", status="retired", status_reason="No longer needed."
     )
     outcome = run(capsys)
     assert outcome.exit_code == 45
-    assert "HRS9002 is retired but is still in the test files" in outcome.printed
+    assert "SA99002 is retired but is still in the test files" in outcome.printed
     assert "remove the check or change its status" in outcome.printed
 
 
-@code("HRS0168")
+@code("SA00415")
 @category("repository")
 @objective("functionality")
 @negative
@@ -983,14 +982,14 @@ def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
     assert "is missing. Run: build_inventory" in outcome.printed
 
 
-@code("HRS0169")
+@code("SA00416")
 @category("repository")
 @objective("functionality")
 @negative
 def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, capsys):
     """When one check has no @objective marker and another row has a status not in
     the list, the run exits 18, and both problems are named."""
-    with_hand_kept(written, "HRS9001", status="archived")
+    with_hand_kept(written, "SA99001", status="archived")
     tests_folder(
         {
             "sdgtools/test_alpha.py": TWO_CHECKS.replace(
@@ -1002,4 +1001,4 @@ def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, ca
     outcome = run(capsys)
     assert outcome.exit_code == 18
     assert "test_second has no @objective marker" in outcome.printed
-    assert "HRS9001 has status 'archived'" in outcome.printed
+    assert "SA99001 has status 'archived'" in outcome.printed

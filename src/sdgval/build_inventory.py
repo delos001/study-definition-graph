@@ -155,24 +155,18 @@ OBJECTIVES = tuple(ASPECT_OF)
 # from the question it asks, so any objective may carry one.
 CASES = ("positive", "negative")
 
-# The three letters a check's id may start with, and the folder each one names. A
-# check takes its folder's prefix when it is first filed, and the id never changes
-# afterwards, so a check that later moves keeps a prefix its folder no longer
-# matches. That is why the generator confirms only the letters themselves, not
-# whether they still fit. A new folder needs a new prefix added here.
-# validation/validation_inventory_dictionary.md describes them for a reader.
-ID_PREFIXES = {
-    "SRC": "src/sdg/sources",
-    "USD": "src/sdg/usdm",
-    "VIW": "src/sdg/view",
-    "SDG": "src/sdg",
-    "HRS": "repo_tools",
-    "CCH": ".claude/hooks",
-    "TST": "validation",
+# The suites a check's id may belong to, and what each one holds. An id is a plain
+# unique key: where a check lives and what it covers are columns of their own, so
+# the id says nothing about either and never has to change when they do. Every check
+# in validation/ is in suite A. A separate suite of checks, if one is ever needed,
+# is added here as SB. validation/validation_inventory_dictionary.md describes them
+# for a reader.
+SUITES = {
+    "SA": "suite A, every check under validation/",
 }
 
-# An id is three capital letters and four digits, such as SRC0042.
-ID_SHAPE = re.compile(r"[A-Z]{3}[0-9]{4}")
+# An id is S, the suite's letter and five digits, such as SA00042.
+ID_SHAPE = re.compile(r"S[A-Z][0-9]{5}")
 
 # Where a check stands. validation/README.md says what each one means.
 STATUSES = ("pending", "active", "inactive", "superseded", "retired")
@@ -294,7 +288,7 @@ def split_path(path: str) -> tuple[str, str]:
 
 
 def _marker_argument(decorator: ast.expr, name: str) -> str | None:
-    """Read the text a marker such as @code("XYZ0001") was given.
+    """Read the text a marker such as @code("SA00001") was given.
 
     Args:
         decorator: One decorator of a check.
@@ -335,7 +329,7 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
     for node in tree.body:
         if not isinstance(node, ast.FunctionDef) or not node.name.startswith("test_"):
             continue
-        # A check is written as @code("XYZ0001"), @category("repository"),
+        # A check is written as @code("SA00001"), @category("repository"),
         # @objective("correctness") and, for a check that staged its own situation,
         # @positive or @negative: the short names the test files give pytest's
         # markers.
@@ -502,11 +496,8 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
 def id_problems(rows: list[dict[str, str]]) -> list[str]:
     """Check every id for its shape and for carrying a registered prefix.
 
-    Whether a prefix still names the folder of the file its check covers is not
-    checked. A prefix is chosen when a check is first filed and the id never
-    changes, so a check that later moves keeps one its folder no longer matches,
-    and the generator cannot tell that apart from a wrong choice without a record
-    of when each check was filed.
+    The id carries no meaning beyond its suite, so there is nothing else about it
+    to confirm.
 
     Args:
         rows: The rows about to be written.
@@ -524,13 +515,13 @@ def id_problems(rows: list[dict[str, str]]) -> list[str]:
             continue
         if not ID_SHAPE.fullmatch(check_id):
             problems.append(
-                f"{where} has the id {check_id!r}, which is not three capital "
-                "letters and four digits, such as SRC0042"
+                f"{where} has the id {check_id!r}, which is not S, a capital "
+                "letter and five digits, such as SA00042"
             )
-        elif check_id[:3] not in ID_PREFIXES:
+        elif check_id[:2] not in SUITES:
             problems.append(
-                f"{where} has the id {check_id}, and {check_id[:3]} is not one of "
-                f"the prefixes {', '.join(ID_PREFIXES)}"
+                f"{where} has the id {check_id}, and {check_id[:2]} is not one of "
+                f"the suites {', '.join(SUITES)}"
             )
     return problems
 

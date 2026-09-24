@@ -220,7 +220,7 @@ def attempt(server, tmp_path, behavior) -> Failed:
 # temporary name, and the request is made the way the header says.
 
 
-@code("SRC0031")
+@code("SA00034")
 @category("repository")
 @objective("functionality")
 @positive
@@ -231,7 +231,7 @@ def test_download_is_written_under_the_part_name(completed):
     assert completed.partial.is_file()
 
 
-@code("SRC0032")
+@code("SA00035")
 @category("repository")
 @objective("correctness")
 @positive
@@ -240,7 +240,7 @@ def test_download_holds_the_bytes_the_server_sent(completed):
     assert completed.partial.read_bytes() == b"".join(CHUNKS)
 
 
-@code("SRC0033")
+@code("SA00036")
 @category("repository")
 @objective("functionality")
 @positive
@@ -250,7 +250,7 @@ def test_nothing_appears_under_the_final_name(completed):
     assert not completed.destination.exists()
 
 
-@code("SRC0034")
+@code("SA00037")
 @category("repository")
 @objective("functionality")
 @positive
@@ -260,7 +260,7 @@ def test_missing_folders_are_created(completed):
     assert completed.destination.parent.is_dir()
 
 
-@code("SRC0035")
+@code("SA00038")
 @category("repository")
 @objective("functionality")
 @positive
@@ -277,7 +277,7 @@ def test_leftover_part_file_is_replaced(tmp_path, server):
     assert leftover.read_bytes() == b"".join(CHUNKS)
 
 
-@code("SRC0036")
+@code("SA00039")
 @category("repository")
 @objective("functionality")
 @positive
@@ -287,7 +287,7 @@ def test_request_is_a_get_on_the_given_url(completed):
     assert completed.request["url"] == URL
 
 
-@code("SRC0037")
+@code("SA00040")
 @category("repository")
 @objective("functionality")
 @positive
@@ -297,7 +297,7 @@ def test_request_asks_to_follow_redirects(completed):
     assert completed.request["follow_redirects"] is True
 
 
-@code("SRC0038")
+@code("SA00041")
 @category("repository")
 @objective("functionality")
 @positive
@@ -306,7 +306,7 @@ def test_request_carries_the_module_timeout(completed):
     assert completed.request["timeout"] == fetch_file.TIMEOUT_SECONDS
 
 
-@code("SRC0039")
+@code("SA00042")
 @category("repository")
 @objective("functionality")
 @positive
@@ -323,7 +323,7 @@ def test_partial_path_adds_part_to_the_file_name():
 # download.
 
 
-@code("SRC0040")
+@code("SA00043")
 @category("repository")
 @objective("functionality")
 @negative
@@ -337,7 +337,7 @@ def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server)
     assert "404" in failed.message
 
 
-@code("SRC0041")
+@code("SA00044")
 @category("repository")
 @objective("functionality")
 @negative
@@ -349,7 +349,7 @@ def test_error_status_leaves_no_part_file(tmp_path, server):
     assert not partial_path(failed.destination).exists()
 
 
-@code("SRC0042")
+@code("SA00045")
 @category("repository")
 @objective("functionality")
 @negative
@@ -361,7 +361,7 @@ def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, se
     assert "name or service not known" in failed.message
 
 
-@code("SRC0043")
+@code("SA00046")
 @category("repository")
 @objective("functionality")
 @negative
@@ -371,7 +371,7 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
     assert not partial_path(failed.destination).exists()
 
 
-@code("SRC0116")
+@code("SA00047")
 @category("repository")
 @objective("functionality")
 @negative
@@ -385,7 +385,7 @@ def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, serve
     assert not partial_path(failed.destination).exists()
 
 
-@code("SRC0117")
+@code("SA00048")
 @category("repository")
 @objective("functionality")
 @negative
@@ -401,7 +401,7 @@ def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
     assert blocker.read_bytes() == b"not a folder"
 
 
-@code("SRC0118")
+@code("SA00049")
 @category("repository")
 @objective("functionality")
 @negative
@@ -418,7 +418,7 @@ def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkey
     assert "name or service not known" in failed.message
 
 
-@code("SRC0044")
+@code("SA00050")
 @category("repository")
 @objective("functionality")
 @negative
@@ -429,7 +429,7 @@ def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
     assert "connection reset" in failed.message
 
 
-@code("SRC0045")
+@code("SA00051")
 @category("repository")
 @objective("functionality")
 @negative

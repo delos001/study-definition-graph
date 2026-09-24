@@ -55,7 +55,7 @@ category = pytest.mark.category
 # is left as it is without an error.
 
 
-@code("SDG0001")
+@code("SA00239")
 @category("repository")
 @objective("functionality")
 @positive
@@ -68,7 +68,7 @@ def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
     assert stream.encoding == "utf-8"
 
 
-@code("SDG0002")
+@code("SA00240")
 @category("repository")
 @objective("functionality")
 @positive

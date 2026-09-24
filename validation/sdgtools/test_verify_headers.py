@@ -140,7 +140,7 @@ def complete(folder, capsys) -> Outcome:
 # folders pass the same run the pre-commit hook, .githooks/pre-commit, makes.
 
 
-@code("HRS0042")
+@code("SA00345")
 @category("repository")
 @objective("functionality")
 @positive
@@ -149,7 +149,7 @@ def test_complete_header_exits_0(complete):
     assert complete.exit_code == 0
 
 
-@code("HRS0043")
+@code("SA00346")
 @category("repository")
 @objective("functionality")
 @positive
@@ -158,7 +158,7 @@ def test_complete_header_prints_nothing(complete):
     assert complete.printed == ""
 
 
-@code("HRS0044")
+@code("SA00347")
 @category("repository")
 @objective("functionality")
 @positive
@@ -170,7 +170,7 @@ def test_init_file_is_skipped(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0045")
+@code("SA00348")
 @category("repository")
 @objective("functionality")
 @positive
@@ -191,7 +191,7 @@ def test_quiet_prints_nothing(folder, capsys):
 # file with no docstring at all, and a file that is not valid Python.
 
 
-@code("HRS0047")
+@code("SA00349")
 @category("repository")
 @objective("functionality")
 @negative
@@ -210,7 +210,7 @@ def test_missing_fields_exit_17(folder, capsys):
     assert "src/sdg/alpha.py: missing Outputs, Owner" in outcome.printed
 
 
-@code("HRS0048")
+@code("SA00350")
 @category("repository")
 @objective("functionality")
 @negative
@@ -228,7 +228,7 @@ def test_fields_out_of_order_exit_17(folder, capsys):
     assert "Owner, Date" in outcome.printed
 
 
-@code("HRS0049")
+@code("SA00351")
 @category("repository")
 @objective("functionality")
 @negative
@@ -243,7 +243,7 @@ def test_bad_date_exits_17(folder, capsys):
     )
 
 
-@code("HRS0050")
+@code("SA00352")
 @category("repository")
 @objective("functionality")
 @negative
@@ -256,7 +256,7 @@ def test_no_docstring_exits_17(folder, capsys):
     assert "src/sdg/alpha.py: no module docstring" in outcome.printed
 
 
-@code("HRS0051")
+@code("SA00353")
 @category("repository")
 @objective("functionality")
 @negative
@@ -269,7 +269,7 @@ def test_unparseable_file_exits_19(folder, capsys):
     assert "src/sdg/alpha.py: cannot parse" in outcome.printed
 
 
-@code("HRS0052")
+@code("SA00354")
 @category("repository")
 @objective("functionality")
 @negative
@@ -303,7 +303,7 @@ def with_codes(lines: str) -> str:
     return GOOD_HEADER.replace("Exit codes:  0   success", f"Exit codes:  {lines}")
 
 
-@code("HRS0080")
+@code("SA00355")
 @category("repository")
 @objective("functionality")
 @positive
@@ -313,7 +313,7 @@ def test_wording_from_the_table_passes(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0081")
+@code("SA00356")
 @category("repository")
 @objective("functionality")
 @positive
@@ -330,7 +330,7 @@ def test_a_bracketed_aside_is_allowed(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0082")
+@code("SA00357")
 @category("repository")
 @objective("functionality")
 @positive
@@ -348,7 +348,7 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0151")
+@code("SA00358")
 @category("repository")
 @objective("functionality")
 @positive
@@ -366,7 +366,7 @@ def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0083")
+@code("SA00359")
 @category("repository")
 @objective("functionality")
 @positive
@@ -383,7 +383,7 @@ def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0084")
+@code("SA00360")
 @category("repository")
 @objective("functionality")
 @negative
@@ -396,7 +396,7 @@ def test_a_code_the_table_lacks_exits_33(folder, capsys):
     assert "src/sdg/alpha.py: exit code 99 is not in" in outcome.printed
 
 
-@code("HRS0085")
+@code("SA00361")
 @category("repository")
 @objective("functionality")
 @negative
@@ -410,7 +410,7 @@ def test_different_wording_exits_33(folder, capsys):
     assert "a pinned file has not been downloaded" in outcome.printed
 
 
-@code("HRS0086")
+@code("SA00362")
 @category("repository")
 @objective("functionality")
 @negative
@@ -429,7 +429,7 @@ def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
     assert "exit code 99 is not in" in outcome.printed
 
 
-@code("HRS0087")
+@code("SA00363")
 @category("repository")
 @objective("functionality")
 @negative
@@ -443,7 +443,7 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
     assert "cannot be read" in outcome.printed
 
 
-@code("HRS0142")
+@code("SA00364")
 @category("repository")
 @objective("functionality")
 @negative
@@ -482,7 +482,7 @@ def with_main(returns: str, codes: str = "0   success") -> str:
     return header + "\n\ndef main(argv=None):\n" + returns + "\n"
 
 
-@code("HRS0088")
+@code("SA00365")
 @category("repository")
 @objective("functionality")
 @positive
@@ -492,7 +492,7 @@ def test_a_listed_return_passes(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0089")
+@code("SA00366")
 @category("repository")
 @objective("functionality")
 @positive
@@ -503,7 +503,7 @@ def test_a_return_of_a_call_is_passed_over(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0090")
+@code("SA00367")
 @category("repository")
 @objective("functionality")
 @positive
@@ -521,7 +521,7 @@ def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0140")
+@code("SA00368")
 @category("repository")
 @objective("functionality")
 @positive
@@ -538,7 +538,7 @@ def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0091")
+@code("SA00369")
 @category("repository")
 @objective("functionality")
 @negative
@@ -551,7 +551,7 @@ def test_an_unlisted_return_exits_34(folder, capsys):
     assert "exit code 8 is returned by main()" in outcome.printed
 
 
-@code("HRS0092")
+@code("SA00370")
 @category("repository")
 @objective("functionality")
 @pytest.mark.parametrize(
@@ -567,7 +567,7 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
     assert run(capsys).exit_code == 34
 
 
-@code("HRS0152")
+@code("SA00371")
 @category("repository")
 @objective("functionality")
 @negative
@@ -587,7 +587,7 @@ def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
     assert "exit code 8 is returned by main()" in outcome.printed
 
 
-@code("HRS0093")
+@code("SA00372")
 @category("repository")
 @objective("functionality")
 @negative
@@ -616,7 +616,7 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
 # the folders the rule names.
 
 
-@code("HRS0046")
+@code("SA00373")
 @category("repository")
 @objective("conformance")
 def test_real_headers_follow_the_rule():
@@ -633,7 +633,7 @@ def test_real_headers_follow_the_rule():
     assert {name: found for name, found in problems.items() if found} == {}
 
 
-@code("HRS0170")
+@code("SA00374")
 @category("repository")
 @objective("conformance")
 def test_real_exit_codes_agree_with_the_table_and_main():
@@ -650,7 +650,7 @@ def test_real_exit_codes_agree_with_the_table_and_main():
     assert {name: found for name, found in problems.items() if found} == {}
 
 
-@code("HRS0079")
+@code("SA00375")
 @category("repository")
 @objective("conformance")
 def test_all_four_code_folders_are_checked():

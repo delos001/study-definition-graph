@@ -120,7 +120,7 @@ def written(folder, capsys):
     return exit_code, text, capsys.readouterr().out
 
 
-@code("HRS0001")
+@code("SA00241")
 @category("repository")
 @objective("functionality")
 @positive
@@ -131,7 +131,7 @@ def test_writes_the_entry_from_the_header(written):
     assert EXPECTED_ENTRY in text
 
 
-@code("HRS0134")
+@code("SA00242")
 @category("repository")
 @objective("functionality")
 @positive
@@ -142,7 +142,7 @@ def test_the_second_paragraph_is_left_out(written):
     assert "second paragraph" not in text
 
 
-@code("HRS0135")
+@code("SA00243")
 @category("repository")
 @objective("functionality")
 @positive
@@ -153,7 +153,7 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
     assert text.startswith("# src/sdgtools/\n\n" + bi.GENERATED_NOTICE)
 
 
-@code("HRS0136")
+@code("SA00244")
 @category("repository")
 @objective("functionality")
 @positive
@@ -164,7 +164,7 @@ def test_the_index_ends_with_one_newline(written):
     assert text.endswith("```\n") and not text.endswith("\n\n")
 
 
-@code("HRS0145")
+@code("SA00245")
 @category("repository")
 @objective("functionality")
 @positive
@@ -180,7 +180,7 @@ def test_the_index_is_written_with_lf_line_endings(folder):
     assert b"\r" not in raw
 
 
-@code("HRS0137")
+@code("SA00246")
 @category("repository")
 @objective("functionality")
 @positive
@@ -192,7 +192,7 @@ def test_writing_reports_the_file_and_the_count(written):
     assert "src/sdgtools/README.md written, 1 script(s)" in printed
 
 
-@code("HRS0002")
+@code("SA00247")
 @category("repository")
 @objective("functionality")
 @positive
@@ -211,7 +211,7 @@ def test_scripts_are_listed_in_name_order(folder):
 ### --check, the pre-commit hook ###
 
 
-@code("HRS0003")
+@code("SA00248")
 @category("repository")
 @objective("functionality")
 @positive
@@ -226,7 +226,7 @@ def test_check_passes_when_index_is_current(folder, capsys):
     assert "is current, 1 script(s)" in capsys.readouterr().out
 
 
-@code("HRS0004")
+@code("SA00249")
 @category("repository")
 @objective("functionality")
 @negative
@@ -239,7 +239,7 @@ def test_check_fails_when_index_is_missing(folder, capsys):
     assert "stale. Run: build_index" in capsys.readouterr().out
 
 
-@code("HRS0132")
+@code("SA00250")
 @category("repository")
 @objective("functionality")
 @negative
@@ -258,7 +258,7 @@ def test_check_fails_when_index_is_stale(folder, capsys):
     assert "stale. Run: build_index" in capsys.readouterr().out
 
 
-@code("HRS0005")
+@code("SA00251")
 @category("repository")
 @objective("functionality")
 @positive
@@ -274,7 +274,7 @@ def test_quiet_prints_nothing(folder, capsys):
 ### Refusing a bad header, one exit code each ###
 
 
-@code("HRS0006")
+@code("SA00252")
 @category("repository")
 @objective("functionality")
 @negative
@@ -295,7 +295,7 @@ def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
     assert "Index not written" in out
 
 
-@code("HRS0007")
+@code("SA00253")
 @category("repository")
 @objective("functionality")
 @negative
@@ -307,7 +307,7 @@ def test_no_docstring_exits_17(folder, capsys):
     assert "alpha.py: no module docstring" in capsys.readouterr().out
 
 
-@code("HRS0008")
+@code("SA00254")
 @category("repository")
 @objective("functionality")
 @negative
@@ -321,7 +321,7 @@ def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
     assert "beta.py: no module docstring" in out
 
 
-@code("HRS0009")
+@code("SA00255")
 @category("repository")
 @objective("functionality")
 @negative
@@ -336,7 +336,7 @@ def test_no_scripts_exits_20(folder, capsys):
 ### The real src/sdgtools/ folder ###
 
 
-@code("HRS0010")
+@code("SA00256")
 @category("repository")
 @objective("correctness")
 def test_real_index_is_current():

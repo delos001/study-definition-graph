@@ -108,7 +108,7 @@ def plain_file(tmp_path) -> Path:
 # A .part file is placed under its final name, or deleted, as asked.
 
 
-@code("SRC0046")
+@code("SA00052")
 @category("repository")
 @objective("correctness")
 @positive
@@ -118,7 +118,7 @@ def test_place_puts_the_file_under_its_final_name(placed):
     assert staged.final.read_bytes() == CONTENT
 
 
-@code("SRC0047")
+@code("SA00053")
 @category("repository")
 @objective("functionality")
 @positive
@@ -128,7 +128,7 @@ def test_place_hands_back_the_final_path(placed):
     assert result == staged.final
 
 
-@code("SRC0048")
+@code("SA00054")
 @category("repository")
 @objective("functionality")
 @positive
@@ -138,7 +138,7 @@ def test_place_removes_the_part_name(placed):
     assert not staged.partial.exists()
 
 
-@code("SRC0049")
+@code("SA00055")
 @category("repository")
 @objective("functionality")
 @positive
@@ -156,7 +156,7 @@ def test_discard_deletes_the_part_file(part_file):
 # discarded.
 
 
-@code("SRC0050")
+@code("SA00056")
 @category("repository")
 @objective("functionality")
 @negative
@@ -169,7 +169,7 @@ def test_place_refuses_when_the_final_name_is_taken(blocked):
     assert "acquire_sources" in message
 
 
-@code("SRC0051")
+@code("SA00057")
 @category("repository")
 @objective("functionality")
 @negative
@@ -180,7 +180,7 @@ def test_refused_place_leaves_the_existing_file_untouched(blocked):
     assert staged.final.read_bytes() == EXISTING
 
 
-@code("SRC0052")
+@code("SA00058")
 @category("repository")
 @objective("functionality")
 @negative
@@ -191,7 +191,7 @@ def test_refused_place_leaves_the_part_file_where_it_was(blocked):
     assert staged.partial.read_bytes() == CONTENT
 
 
-@code("SRC0053")
+@code("SA00059")
 @category("repository")
 @objective("functionality")
 @negative
@@ -204,7 +204,7 @@ def test_place_refuses_a_missing_part_file(tmp_path):
     assert str(partial) in str(caught.value)
 
 
-@code("SRC0054")
+@code("SA00060")
 @category("repository")
 @objective("functionality")
 @negative
@@ -215,7 +215,7 @@ def test_place_refuses_a_name_without_the_part_suffix(plain_file):
         place(plain_file)
 
 
-@code("SRC0055")
+@code("SA00061")
 @category("repository")
 @objective("functionality")
 @negative
@@ -226,7 +226,7 @@ def test_place_leaves_a_file_it_refused_untouched(plain_file):
     assert plain_file.read_bytes() == CONTENT
 
 
-@code("SRC0056")
+@code("SA00062")
 @category("repository")
 @objective("functionality")
 @negative
@@ -239,7 +239,7 @@ def test_discard_refuses_a_missing_part_file(tmp_path):
     assert str(partial) in str(caught.value)
 
 
-@code("SRC0057")
+@code("SA00063")
 @category("repository")
 @objective("functionality")
 @negative
@@ -250,7 +250,7 @@ def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
         discard(plain_file)
 
 
-@code("SRC0058")
+@code("SA00064")
 @category("repository")
 @objective("functionality")
 @negative

@@ -152,7 +152,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 # changing the exit code.
 
 
-@code("HRS0068")
+@code("SA00257")
 @category("repository")
 @objective("functionality")
 @positive
@@ -161,7 +161,7 @@ def test_working_key_exits_0(working):
     assert working.exit_code == 0
 
 
-@code("HRS0069")
+@code("SA00258")
 @category("repository")
 @objective("functionality")
 @positive
@@ -171,7 +171,7 @@ def test_working_key_reports_the_reply(working):
     assert REPLY in working.printed
 
 
-@code("HRS0070")
+@code("SA00259")
 @category("repository")
 @objective("functionality")
 @positive
@@ -180,7 +180,7 @@ def test_the_key_is_never_printed(working):
     assert KEY not in working.printed
 
 
-@code("HRS0071")
+@code("SA00260")
 @category("repository")
 @objective("functionality")
 @positive
@@ -191,7 +191,7 @@ def test_quoted_key_is_read(repo, monkeypatch, capsys):
     assert script.read_key(repo / ".env") == KEY
 
 
-@code("HRS0072")
+@code("SA00261")
 @category("repository")
 @objective("functionality")
 @positive
@@ -201,7 +201,7 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     assert run(capsys, "--quiet").printed == ""
 
 
-@code("HRS0073")
+@code("SA00262")
 @category("repository")
 @objective("functionality")
 @positive
@@ -218,7 +218,7 @@ def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
 # that names the cause and what to do about it. One thing is broken per check.
 
 
-@code("HRS0074")
+@code("SA00263")
 @category("repository")
 @objective("functionality")
 @negative
@@ -231,7 +231,7 @@ def test_missing_env_file_is_refused(repo, capsys):
     assert "Copy-Item .env.example .env" in outcome.printed
 
 
-@code("HRS0075")
+@code("SA00264")
 @category("repository")
 @objective("functionality")
 @negative
@@ -245,7 +245,7 @@ def test_empty_key_is_refused(repo, capsys):
     assert "paste your key" in outcome.printed
 
 
-@code("HRS0076")
+@code("SA00265")
 @category("repository")
 @objective("functionality")
 @negative
@@ -268,7 +268,7 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
     assert "console.anthropic.com" in outcome.printed
 
 
-@code("HRS0148")
+@code("SA00266")
 @category("repository")
 @objective("functionality")
 @negative
@@ -295,7 +295,7 @@ def test_key_without_access_is_reported_as_an_account_problem(
     assert "paste it again" not in outcome.printed
 
 
-@code("HRS0077")
+@code("SA00267")
 @category("repository")
 @objective("functionality")
 @negative
@@ -311,7 +311,7 @@ def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
     assert "check the network" in outcome.printed
 
 
-@code("HRS0139")
+@code("SA00268")
 @category("repository")
 @objective("functionality")
 @negative
@@ -338,7 +338,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
     assert "check the network" not in outcome.printed
 
 
-@code("HRS0078")
+@code("SA00269")
 @category("repository")
 @objective("functionality")
 @negative
@@ -408,7 +408,7 @@ def stand_in_for_the_client(monkeypatch, blocks) -> dict:
     return sent
 
 
-@code("HRS0184")
+@code("SA00270")
 @category("repository")
 @objective("functionality")
 @positive
@@ -424,7 +424,7 @@ def test_the_request_carries_the_key_the_pinned_model_and_the_prompt(monkeypatch
     assert sent["messages"] == [{"role": "user", "content": script.PROMPT}]
 
 
-@code("HRS0185")
+@code("SA00271")
 @category("repository")
 @objective("functionality")
 @positive
@@ -436,7 +436,7 @@ def test_the_reply_is_the_text_with_surrounding_spaces_removed(monkeypatch):
     assert script.call_api(KEY) == REPLY
 
 
-@code("HRS0186")
+@code("SA00272")
 @category("repository")
 @objective("functionality")
 @positive
@@ -449,7 +449,7 @@ def test_a_block_that_is_not_text_is_passed_over(monkeypatch):
     assert script.call_api(KEY) == REPLY
 
 
-@code("HRS0187")
+@code("SA00273")
 @category("repository")
 @objective("functionality")
 @positive

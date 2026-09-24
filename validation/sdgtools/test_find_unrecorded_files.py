@@ -123,7 +123,7 @@ def stray_quiet(repo, capsys) -> Outcome:
 # mistaken for pinned ones, and --quiet leaves the exit code to speak.
 
 
-@code("HRS0032")
+@code("SA00331")
 @category("repository")
 @objective("functionality")
 @positive
@@ -132,7 +132,7 @@ def test_recorded_files_only_exits_0(clean):
     assert clean.exit_code == 0
 
 
-@code("HRS0033")
+@code("SA00332")
 @category("repository")
 @objective("functionality")
 @positive
@@ -141,7 +141,7 @@ def test_recorded_files_only_prints_nothing(clean):
     assert clean.printed == ""
 
 
-@code("HRS0021")
+@code("SA00333")
 @category("repository")
 @objective("functionality")
 @positive
@@ -151,7 +151,7 @@ def test_quiet_prints_nothing(stray_quiet):
     assert stray_quiet.printed == ""
 
 
-@code("HRS0034")
+@code("SA00334")
 @category("repository")
 @objective("functionality")
 @positive
@@ -160,7 +160,7 @@ def test_quiet_keeps_the_exit_code(stray_quiet):
     assert stray_quiet.exit_code == 10
 
 
-@code("HRS0035")
+@code("SA00335")
 @category("repository")
 @objective("functionality")
 @positive
@@ -172,7 +172,7 @@ def test_own_files_are_not_reported(repo, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0036")
+@code("SA00336")
 @category("repository")
 @objective("functionality")
 @positive
@@ -183,7 +183,7 @@ def test_lock_file_is_not_reported(repo, capsys):
     assert run(capsys).exit_code == 0
 
 
-@code("HRS0037")
+@code("SA00337")
 @category("repository")
 @objective("functionality")
 @positive
@@ -206,7 +206,7 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 # package not running from its repo.
 
 
-@code("HRS0038")
+@code("SA00338")
 @category("repository")
 @objective("functionality")
 @negative
@@ -215,7 +215,7 @@ def test_unrecorded_file_exits_10(stray):
     assert stray.exit_code == 10
 
 
-@code("HRS0039")
+@code("SA00339")
 @category("repository")
 @objective("functionality")
 @negative
@@ -224,7 +224,7 @@ def test_unrecorded_file_is_listed_by_path(stray):
     assert "inputs/set_a/stray.txt" in stray.printed
 
 
-@code("HRS0040")
+@code("SA00340")
 @category("repository")
 @objective("functionality")
 @negative
@@ -235,7 +235,7 @@ def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
     assert "cannot be restored" in stray.printed
 
 
-@code("HRS0041")
+@code("SA00341")
 @category("repository")
 @objective("functionality")
 @negative
@@ -248,7 +248,7 @@ def test_part_file_is_reported(repo, capsys):
     assert "inputs/set_a/other.txt.part" in outcome.printed
 
 
-@code("HRS0028")
+@code("SA00342")
 @category("repository")
 @objective("functionality")
 @negative
@@ -261,7 +261,7 @@ def test_unreadable_manifest_exits_3(repo, capsys):
     assert "broken.json: cannot read" in outcome.printed
 
 
-@code("HRS0029")
+@code("SA00343")
 @category("repository")
 @objective("functionality")
 @negative
@@ -275,7 +275,7 @@ def test_no_manifests_exits_3(repo, capsys):
     assert "git checkout" in outcome.printed
 
 
-@code("HRS0030")
+@code("SA00344")
 @category("repository")
 @objective("functionality")
 @negative

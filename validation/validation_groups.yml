@@ -6,16 +6,16 @@
 pinned:
   purpose: Every check that reads a real pinned file. Run it after a file is re-pinned or newly fetched.
   ids:
-    - SRC0128
-    - USD0027
-    - USD0029
-    - USD0030
-    - HRS0018
+    - SA00106
+    - SA00153
+    - SA00154
+    - SA00155
+    - SA00283
 
 hook:
   purpose: The checks that reproduce what the pre-commit hook enforces. Run it when the hook refuses a commit and the reason is wanted as a report.
   ids:
-    - HRS0010
-    - HRS0060
-    - HRS0046
-    - HRS0170
+    - SA00256
+    - SA00391
+    - SA00373
+    - SA00374

@@ -467,7 +467,7 @@ def pytest_configure(config):
         "the right reason",
     )
     # The code is the check's short, permanent id in validation/validation_inventory.csv:
-    # a type prefix and four digits, such as SRC0042, assigned once and never
+    # S, a suite letter and five digits, such as SA00042, assigned once and never
     # reused.
     config.addinivalue_line(
         "markers", "code(id): the check's id in validation/validation_inventory.csv"

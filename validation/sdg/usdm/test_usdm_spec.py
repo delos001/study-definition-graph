@@ -127,7 +127,7 @@ def variant(tmp_path):
 ### Reading a well-formed file ###
 
 
-@code("USD0001")
+@code("SA00124")
 @category("processing")
 @objective("functionality")
 @positive
@@ -137,7 +137,7 @@ def test_lists_every_class_sorted(three):
     assert usdm_spec.class_names(three) == sorted(FIXTURE_CLASSES)
 
 
-@code("USD0002")
+@code("SA00125")
 @category("processing")
 @objective("functionality")
 @positive
@@ -148,7 +148,7 @@ def test_abstract_flag_comes_from_modifier(three):
     assert usdm_spec.is_abstract(three, "StudyIdentifier") is False
 
 
-@code("USD0003")
+@code("SA00126")
 @category("processing")
 @objective("functionality")
 @positive
@@ -168,7 +168,7 @@ def test_attributes_keep_file_order_and_inheritance(three):
     assert "Inherited From" not in attrs["instanceType"]
 
 
-@code("USD0004")
+@code("SA00127")
 @category("processing")
 @objective("functionality")
 @positive
@@ -187,7 +187,7 @@ def test_targets_unwraps_one_and_many(three):
     )
 
 
-@code("USD0005")
+@code("SA00128")
 @category("processing")
 @objective("functionality")
 @negative
@@ -208,7 +208,7 @@ def test_unknown_class_raises_keyerror_naming_it(three):
 # promise SpecShapeError exists to keep.
 
 
-@code("USD0006")
+@code("SA00129")
 @category("processing")
 @objective("functionality")
 @negative
@@ -221,7 +221,7 @@ def test_empty_file_is_refused(tmp_path):
         usdm_spec.load(empty, verify=False)
 
 
-@code("USD0007")
+@code("SA00130")
 @category("processing")
 @objective("functionality")
 @negative
@@ -235,7 +235,7 @@ def test_class_without_modifier_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0008")
+@code("SA00131")
 @category("processing")
 @objective("functionality")
 @negative
@@ -247,7 +247,7 @@ def test_unexpected_modifier_value_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0009")
+@code("SA00132")
 @category("processing")
 @objective("functionality")
 @negative
@@ -261,7 +261,7 @@ def test_attributes_not_a_mapping_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0010")
+@code("SA00133")
 @category("processing")
 @objective("functionality")
 @negative
@@ -282,7 +282,7 @@ def test_attribute_missing_a_key_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0011")
+@code("SA00134")
 @category("processing")
 @objective("functionality")
 @negative
@@ -302,7 +302,7 @@ def test_attribute_missing_several_keys_lists_them(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0012")
+@code("SA00135")
 @category("processing")
 @objective("functionality")
 @negative
@@ -319,7 +319,7 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0013")
+@code("SA00136")
 @category("processing")
 @objective("functionality")
 @negative
@@ -336,7 +336,7 @@ def test_empty_type_list_is_refused(variant):
         usdm_spec.load(broken, verify=False)
 
 
-@code("USD0014")
+@code("SA00137")
 @category("processing")
 @objective("functionality")
 @negative
@@ -364,7 +364,7 @@ def test_inherited_from_without_ref_is_named(variant):
 # whose fingerprint differs, are refused through load() with the same messages.
 
 
-@code("USD0015")
+@code("SA00138")
 @category("processing")
 @objective("functionality")
 @negative
@@ -376,7 +376,7 @@ def test_missing_file_raises_filenotfound(tmp_path):
     assert "nope.yml" in str(caught.value)
 
 
-@code("USD0016")
+@code("SA00139")
 @category("processing")
 @objective("functionality")
 @negative
@@ -390,7 +390,7 @@ def test_unrecorded_file_is_refused_through_load():
     assert "acquire_sources" not in message
 
 
-@code("USD0017")
+@code("SA00140")
 @category("processing")
 @objective("functionality")
 @negative
@@ -413,7 +413,7 @@ def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_rec
 # a temporary file for the duration of the test.
 
 
-@code("USD0018")
+@code("SA00141")
 @category("processing")
 @objective("functionality")
 @negative
@@ -425,7 +425,7 @@ def test_cli_no_mode_exits_2():
     assert caught.value.code == 2
 
 
-@code("USD0019")
+@code("SA00142")
 @category("processing")
 @objective("functionality")
 @negative
@@ -439,7 +439,7 @@ def test_cli_missing_spec_exits_8(monkeypatch, capsys):
     assert "acquire_sources" in capsys.readouterr().err
 
 
-@code("USD0020")
+@code("SA00143")
 @category("processing")
 @objective("functionality")
 @negative
@@ -451,7 +451,7 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
     assert "no manifest entry records it" in capsys.readouterr().err
 
 
-@code("USD0032")
+@code("SA00144")
 @category("processing")
 @objective("functionality")
 @negative
@@ -467,7 +467,7 @@ def test_cli_fingerprint_mismatch_exits_9(
     assert "manifest says 0000" in err and "--allow-unpinned" in err
 
 
-@code("USD0033")
+@code("SA00145")
 @category("processing")
 @objective("functionality")
 @negative
@@ -481,7 +481,7 @@ def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
     assert "cdisc_usdm_v4.json" in err and "cannot read" in err
 
 
-@code("USD0021")
+@code("SA00146")
 @category("processing")
 @objective("functionality")
 @pytest.mark.parametrize(
@@ -505,7 +505,7 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
     assert "pip install -e ." in err and "acquire_sources" not in err
 
 
-@code("USD0022")
+@code("SA00147")
 @category("processing")
 @objective("functionality")
 @negative
@@ -518,7 +518,7 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     assert "'Condition'" in capsys.readouterr().err
 
 
-@code("USD0031")
+@code("SA00148")
 @category("processing")
 @objective("functionality")
 @negative
@@ -536,7 +536,7 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
     assert "close the program holding the file" in capsys.readouterr().err
 
 
-@code("USD0023")
+@code("SA00149")
 @category("processing")
 @objective("functionality")
 @negative
@@ -553,7 +553,7 @@ def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
     assert "StudyIdentifier.scopeId: Type is not a list" in capsys.readouterr().err
 
 
-@code("USD0024")
+@code("SA00150")
 @category("processing")
 @objective("functionality")
 @positive
@@ -571,7 +571,7 @@ def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
     assert "3 classes (2 concrete, 1 abstract)" in err
 
 
-@code("USD0025")
+@code("SA00151")
 @category("processing")
 @objective("functionality")
 @positive
@@ -586,7 +586,7 @@ def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
     assert "cardinality 0..*" in out
 
 
-@code("USD0026")
+@code("SA00152")
 @category("processing")
 @objective("functionality")
 @negative
@@ -606,7 +606,7 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 # checks that need inputs/ downloaded.
 
 
-@code("USD0027")
+@code("SA00153")
 @category("sources")
 @objective("conformance")
 @needs_pinned_file
@@ -617,7 +617,7 @@ def test_pinned_file_is_shaped_the_way_the_loader_expects():
     assert usdm_spec.load(verify=False)
 
 
-@code("USD0029")
+@code("SA00154")
 @category("sources")
 @objective("conformance")
 @needs_pinned_file
@@ -644,7 +644,7 @@ def test_pinned_file_types_are_classes_or_five_primitives():
     ]
 
 
-@code("USD0030")
+@code("SA00155")
 @category("repository")
 @objective("correctness")
 @needs_pinned_file

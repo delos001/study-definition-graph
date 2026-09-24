@@ -44,7 +44,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 ### `id`
 - Identifies the check permanently. A validation report joins to the inventory on it.
 - Read by the generator from the `@code` marker.
-- Holds three capital letters and four digits, such as `SRC0042`, unique across the inventory. The letters are one of the prefixes below. The generator refuses an id that breaks any of those three rules.
+- Holds `S`, a suite letter and five digits, such as `SA00042`, unique across the inventory. The two letters are one of the suites below. The generator refuses an id that breaks any of those three rules.
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
@@ -81,19 +81,13 @@ Every row is one check. A column about the check itself has a bare name. The two
 - Typed by hand in the CSV.
 - Holds one sentence, only when the status is inactive or retired.
 
-## Id prefixes
+## Suites
 
-The three letters name the folder of the covered file when the check was first filed. They are part of the id and never change, whatever later happens to the check's category, objective or file, because a filed report joins to the inventory on the id. A new check takes its folder's prefix and the next unused number. A new folder takes a new prefix, added to `ID_PREFIXES` in `repo_tools/build_inventory.py` and to the list below.
+An id is a plain unique key. It says nothing about where a check lives, what it covers or what it asks, because those are columns of their own and stay right when they change. The id never changes and is never reused, because a filed report joins to the inventory on it. A new check takes its suite's next unused number.
 
-Choosing the prefix that fits the folder is done by hand and stays that way. The generator confirms that the letters are one of the prefixes below, and no more than that. It cannot confirm that a prefix still fits, because a check that moves keeps the id it was filed under, and nothing records when each check was filed, so a prefix that no longer fits cannot be told from one that was wrong to begin with.
+The two letters name the suite the check belongs to. A suite is created once and never changes, so its letters cannot go stale. A new suite is added to `SUITES` in `src/sdgval/build_inventory.py` and to the list below.
 
-- `SRC`: `src/sdg/sources/`
-- `USD`: `src/sdg/usdm/`
-- `VIW`: `src/sdg/view/`
-- `SDG`: the top of `src/sdg/`
-- `HRS`: `repo_tools/`
-- `CCH`: `.claude/hooks/`
-- `TST`: `validation/` itself, such as `conftest.py` and `select_checks.py`
+- `SA`: suite A, every check under `validation/`
 
 ## Categories
 
@@ -143,7 +137,7 @@ A check asks one question. Which question it asks is its objective, and which as
 
 Correctness and conformance are the pair that gets confused, because in ordinary speech a thing that follows a rule is often called correct. One test separates them. Can the expected answer change without any rule changing? If it can, something outside holds the true value and the question is correctness: a file's sha256 changes when the file changes, and a blood pressure is implausible whatever any specification says. If it cannot, the rule is the only authority and the question is conformance: a header has eight fields in order only because the rule says eight and that order.
 
-The question decides, not the material the check reads. HRS0046 reads a file's header fields and asks whether they follow the rule that defines a header, so it is conformance. A check reading the same fields to ask whether a count stated elsewhere matches the number actually present would be correctness.
+The question decides, not the material the check reads. SA00373 reads a file's header fields and asks whether they follow the rule that defines a header, so it is conformance. A check reading the same fields to ask whether a count stated elsewhere matches the number actually present would be correctness.
 
 Several of these objectives carry no checks yet. They are written down because the questions they name will be asked once there is extraction, a graph and a running pipeline, and because working out where such a check belongs is easier to do once than to redo each time.
 

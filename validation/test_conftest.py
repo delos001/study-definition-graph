@@ -185,7 +185,7 @@ def passing(pytester, monkeypatch):
     return result, the_report(out)
 
 
-@code("TST0001")
+@code("SA00433")
 @category("repository")
 @objective("functionality")
 @positive
@@ -199,7 +199,7 @@ def test_passing_run_is_recorded_as_pass(passing):
     assert {r["exit_meaning"] for r in rows} == {"all tests passed"}
 
 
-@code("TST0007")
+@code("SA00434")
 @category("repository")
 @objective("functionality")
 @positive
@@ -216,7 +216,7 @@ def test_a_passing_check_gets_a_row_with_its_details(passing):
     assert adds["outcome"] == "passed"
 
 
-@code("TST0008")
+@code("SA00435")
 @category("repository")
 @objective("functionality")
 @positive
@@ -263,7 +263,7 @@ def parametrized(pytester, monkeypatch):
     return the_report(out)
 
 
-@code("TST0019")
+@code("SA00436")
 @category("repository")
 @objective("functionality")
 @positive
@@ -278,7 +278,7 @@ def test_a_parametrized_check_gets_one_row_per_value_with_the_value_in_its_own_c
     assert [r["parameter"] for r in rows] == ["first", "second"]
 
 
-@code("TST0020")
+@code("SA00437")
 @category("repository")
 @objective("functionality")
 @positive
@@ -287,7 +287,7 @@ def test_a_check_without_parameters_has_an_empty_parameter(parametrized):
     assert row_for(parametrized, "test_plain")["parameter"] == ""
 
 
-@code("TST0002")
+@code("SA00438")
 @category("repository")
 @objective("functionality")
 @positive
@@ -310,7 +310,7 @@ def test_no_flag_writes_nothing(pytester, monkeypatch):
 # would miss, and asserts the report says FAIL because pytest's exit status did.
 
 
-@code("TST0003")
+@code("SA00439")
 @category("repository")
 @objective("functionality")
 @negative
@@ -344,7 +344,7 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
     assert "passed" not in {r["outcome"] for r in rows}
 
 
-@code("TST0039")
+@code("SA00440")
 @category("repository")
 @objective("functionality")
 @negative
@@ -377,7 +377,7 @@ def test_a_failure_is_kept_when_the_clean_up_breaks_too(pytester, monkeypatch):
     )
 
 
-@code("TST0004")
+@code("SA00441")
 @category("repository")
 @objective("functionality")
 @negative
@@ -402,7 +402,7 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
     assert row["outcome_reason"].startswith("assert")
 
 
-@code("TST0005")
+@code("SA00442")
 @category("repository")
 @objective("functionality")
 @negative
@@ -429,7 +429,7 @@ def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
     assert row_for(rows, "test_never_runs")["outcome"] == "error"
 
 
-@code("TST0006")
+@code("SA00443")
 @category("repository")
 @objective("functionality")
 @negative
@@ -456,7 +456,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
 # earlier report, what was selected, who ran it, and the exact fixture files.
 
 
-@code("TST0009")
+@code("SA00444")
 @category("repository")
 @objective("functionality")
 @positive
@@ -473,7 +473,7 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
     assert (out / f"{first.stem}-2.csv").is_file()
 
 
-@code("TST0032")
+@code("SA00445")
 @category("repository")
 @objective("functionality")
 @positive
@@ -488,7 +488,7 @@ def test_run_id_is_the_report_file_name(pytester, monkeypatch):
             assert {r["run_id"] for r in csv.DictReader(fh)} == {path.stem}
 
 
-@code("TST0010")
+@code("SA00446")
 @category("repository")
 @objective("functionality")
 @positive
@@ -515,7 +515,7 @@ def test_the_selection_column_records_what_was_selected(
     assert {r["selection"] for r in the_report(out)} == {expected}
 
 
-@code("TST0040")
+@code("SA00447")
 @category("repository")
 @objective("functionality")
 @positive
@@ -529,7 +529,7 @@ def test_the_counts_match_when_every_check_ran(pytester, monkeypatch):
     assert len(rows) == 2
 
 
-@code("TST0041")
+@code("SA00448")
 @category("repository")
 @objective("functionality")
 @positive
@@ -549,7 +549,7 @@ def test_a_dropped_check_is_counted_but_not_reported(pytester, monkeypatch):
     assert {r["checks_reported"] for r in rows} == {"1"}
 
 
-@code("TST0042")
+@code("SA00449")
 @category("repository")
 @objective("functionality")
 @negative
@@ -567,7 +567,7 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(
     assert {r["selection"] for r in rows} == {"all"}
 
 
-@code("TST0011")
+@code("SA00450")
 @category("repository")
 @objective("functionality")
 @positive
@@ -583,7 +583,7 @@ def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
     assert {r["run_by"] for r in the_report(out)} == {"Staged Tester"}
 
 
-@code("TST0013")
+@code("SA00451")
 @category("repository")
 @objective("functionality")
 @positive
@@ -598,7 +598,7 @@ def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(passin
     assert row["target_file_name"] == "suite.py (not found at run time)"
 
 
-@code("TST0014")
+@code("SA00452")
 @category("repository")
 @objective("functionality")
 @positive
@@ -613,7 +613,7 @@ def test_check_file_sha256_is_the_hash_of_the_check_file(passing, pytester):
     assert row["check_file_sha256"] == expected
 
 
-@code("TST0012")
+@code("SA00453")
 @category("repository")
 @objective("functionality")
 @positive
@@ -705,7 +705,7 @@ def gated(pytester, monkeypatch):
     return result, the_report(out)
 
 
-@code("TST0015")
+@code("SA00454")
 @category("repository")
 @objective("functionality")
 @positive
@@ -716,7 +716,7 @@ def test_a_check_whose_pinned_file_matches_runs(gated):
     assert row_for(rows, "test_reads_good")["outcome"] == "passed"
 
 
-@code("TST0016")
+@code("SA00455")
 @category("repository")
 @objective("functionality")
 @negative
@@ -733,7 +733,7 @@ def test_a_check_whose_pinned_file_changed_is_blocked(gated):
     assert result.ret == 0
 
 
-@code("TST0017")
+@code("SA00456")
 @category("repository")
 @objective("functionality")
 @negative
@@ -758,7 +758,7 @@ UNMATCHED_SUITE = '''
     '''
 
 
-@code("TST0018")
+@code("SA00457")
 @category("repository")
 @objective("functionality")
 @negative
@@ -828,7 +828,7 @@ def committed_repo(pytester, monkeypatch, test_source: str) -> str:
     ).stdout.strip()
 
 
-@code("TST0036")
+@code("SA00458")
 @category("repository")
 @objective("functionality")
 @positive
@@ -841,7 +841,7 @@ def test_a_listing_run_writes_no_report(pytester, monkeypatch):
     assert not out.exists()
 
 
-@code("TST0033")
+@code("SA00459")
 @category("repository")
 @objective("functionality")
 @negative
@@ -865,7 +865,7 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(
     assert not out.exists()
 
 
-@code("TST0034")
+@code("SA00460")
 @category("repository")
 @objective("functionality")
 @positive
@@ -878,7 +878,7 @@ def test_a_report_on_a_clean_folder_names_its_commit(pytester, monkeypatch):
     assert {r["commit"] for r in the_report(out)} == {commit}
 
 
-@code("TST0035")
+@code("SA00461")
 @category("repository")
 @objective("functionality")
 @positive

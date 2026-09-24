@@ -133,7 +133,7 @@ def refused_with(error, target=LOCAL) -> str:
 # skipped as blocked by validation/conftest.py.
 
 
-@code("SRC0128")
+@code("SA00106")
 @category("sources")
 @objective("stability")
 @pytest.mark.parametrize("local", pinned_locals())
@@ -152,7 +152,7 @@ def test_pinned_file_is_unchanged(local):
 # A recorded file that matches its entry comes back with its identity and reads.
 
 
-@code("SRC0100")
+@code("SA00107")
 @category("repository")
 @objective("correctness")
 @positive
@@ -166,7 +166,7 @@ def test_recorded_file_carries_its_identity(recorded_file):
     assert got.manifest == "set_a.json"
 
 
-@code("SRC0101")
+@code("SA00108")
 @category("repository")
 @objective("correctness")
 @positive
@@ -178,7 +178,7 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
     assert got.path == recorded_file
 
 
-@code("SRC0102")
+@code("SA00109")
 @category("repository")
 @objective("correctness")
 @positive
@@ -187,7 +187,7 @@ def test_recorded_file_content_reads(recorded_file):
     assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
 
 
-@code("SRC0103")
+@code("SA00110")
 @category("repository")
 @objective("functionality")
 @positive
@@ -208,7 +208,7 @@ def test_staged_record_is_the_same_by_string_or_path(recorded_file):
 # or to edit a manifest that is not the problem.
 
 
-@code("SRC0104")
+@code("SA00111")
 @category("repository")
 @objective("functionality")
 @negative
@@ -221,7 +221,7 @@ def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
     assert "pip install -e ." in refused_with(NotInRepoError)
 
 
-@code("SRC0105")
+@code("SA00112")
 @category("repository")
 @objective("functionality")
 @negative
@@ -236,7 +236,7 @@ def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
     assert str(fake_repo.root / LOCAL) in message
 
 
-@code("SRC0127")
+@code("SA00113")
 @category("repository")
 @objective("functionality")
 @negative
@@ -265,7 +265,7 @@ def test_locked_file_passes_the_operating_systems_error_through(
     assert str(recorded_file) in message
 
 
-@code("SRC0106")
+@code("SA00114")
 @category("repository")
 @objective("functionality")
 @negative
@@ -278,7 +278,7 @@ def test_unrecorded_file_is_refused_as_unrecorded(recorded_file, fake_repo):
     assert "add its manifest entry" in message
 
 
-@code("SRC0107")
+@code("SA00115")
 @category("repository")
 @objective("functionality")
 @negative
@@ -291,7 +291,7 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
     assert "acquire_sources" not in message
 
 
-@code("SRC0108")
+@code("SA00116")
 @category("repository")
 @objective("functionality")
 @negative
@@ -305,7 +305,7 @@ def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0109")
+@code("SA00117")
 @category("repository")
 @objective("functionality")
 @negative
@@ -317,7 +317,7 @@ def test_unreadable_manifest_does_not_get_the_mismatch_remedy(fake_repo):
     assert "manifest says" not in refused_with(ManifestError)
 
 
-@code("SRC0110")
+@code("SA00118")
 @category("repository")
 @objective("functionality")
 @negative
@@ -330,7 +330,7 @@ def test_no_manifests_is_reported_as_none_found(fake_repo):
     assert "git checkout" in message
 
 
-@code("SRC0111")
+@code("SA00119")
 @category("repository")
 @objective("functionality")
 @negative
@@ -344,7 +344,7 @@ def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
     assert "repair that entry" in message
 
 
-@code("SRC0112")
+@code("SA00120")
 @category("repository")
 @objective("functionality")
 @negative
@@ -356,7 +356,7 @@ def test_mismatch_shows_both_sha256_values(mismatch_message):
     assert f"manifest says {SHA256[:16]}" in mismatch_message
 
 
-@code("SRC0113")
+@code("SA00121")
 @category("repository")
 @objective("functionality")
 @negative
@@ -365,7 +365,7 @@ def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
     assert "(recorded in set_a.json)" in mismatch_message
 
 
-@code("SRC0114")
+@code("SA00122")
 @category("repository")
 @objective("functionality")
 @negative
@@ -377,7 +377,7 @@ def test_mismatch_offers_the_three_ways_back(mismatch_message):
     assert "re-pin" in mismatch_message
 
 
-@code("SRC0115")
+@code("SA00123")
 @category("repository")
 @objective("functionality")
 @negative

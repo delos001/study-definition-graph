@@ -99,7 +99,7 @@ def fact(tmp_path, monkeypatch):
 ### Comparing a figure to the documents ###
 
 
-@code("HRS0011")
+@code("SA00274")
 @category("repository")
 @objective("functionality")
 @positive
@@ -113,7 +113,7 @@ def test_matching_figure_exits_0(fact, capsys):
     assert "1 fact(s) checked, 0 drifted, 0 asserted nowhere." in out
 
 
-@code("HRS0012")
+@code("SA00275")
 @category("repository")
 @objective("functionality")
 @negative
@@ -127,7 +127,7 @@ def test_drifted_figure_exits_14(fact, capsys):
     assert "1 drifted" in out
 
 
-@code("HRS0013")
+@code("SA00276")
 @category("repository")
 @objective("functionality")
 @negative
@@ -139,7 +139,7 @@ def test_every_occurrence_is_checked(fact, capsys):
     assert "says 5, actual 3" in capsys.readouterr().out
 
 
-@code("HRS0014")
+@code("SA00277")
 @category("repository")
 @objective("functionality")
 @positive
@@ -154,7 +154,7 @@ def test_unasserted_fact_is_reported_but_passes(fact, capsys):
     assert "1 asserted nowhere" in out
 
 
-@code("HRS0015")
+@code("SA00278")
 @category("repository")
 @objective("functionality")
 @positive
@@ -167,7 +167,7 @@ def test_number_written_as_a_word_is_read(fact):
     assert cf.main([]) == 0
 
 
-@code("HRS0143")
+@code("SA00279")
 @category("repository")
 @objective("functionality")
 @positive
@@ -183,7 +183,7 @@ def test_a_date_is_compared_as_text(fact):
     assert cf.main([]) == 0
 
 
-@code("HRS0144")
+@code("SA00280")
 @category("repository")
 @objective("functionality")
 @negative
@@ -204,7 +204,7 @@ def test_a_drifted_date_exits_14(fact, capsys):
 ### When a measurement cannot be made, one exit code per cause ###
 
 
-@code("HRS0016")
+@code("SA00281")
 @category("repository")
 @objective("functionality")
 @pytest.mark.parametrize(
@@ -257,7 +257,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
     assert f"{word}" in out and str(raised) in out
 
 
-@code("HRS0017")
+@code("SA00282")
 @category("repository")
 @objective("functionality")
 @negative
@@ -280,7 +280,7 @@ def test_package_not_installed_exits_7_before_measuring(fact, monkeypatch, capsy
 ### The real corpus ###
 
 
-@code("HRS0018")
+@code("SA00283")
 @category("repository")
 @objective("correctness")
 @needs_pinned_file
