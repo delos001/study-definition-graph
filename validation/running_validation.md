@@ -1,6 +1,6 @@
 # Running validation
 
-This document says how to choose which checks run and how to file a validation report. What each column of the inventory and of a report means is not here; that is in [validation_inventory_dictionary.md](validation_inventory_dictionary.md) and [validation_report_dictionary.md](validation_report_dictionary.md). How to write a check is in `.claude/rules/writing_python_files.md`.
+This document says how to choose which checks run and how to file a validation report. What each column of the inventory and of a report means is not here; that is in [validation_inventory_dictionary.md](validation_inventory_dictionary.md) and [reports/validation_report_dictionary.md](reports/validation_report_dictionary.md). How to write a check is in `.claude/rules/writing_python_files.md`.
 
 Run every command from the repo root, in the `sdg` environment.
 

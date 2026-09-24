@@ -233,7 +233,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
 ):
     """A measurement that raises is reported under a label naming the cause,
     with the exception's own message, and the run exits with that cause's
-    number from validation/exit_codes.csv: 8 not downloaded, 13 cannot read, 42 unexpected
+    number from docs/exit_codes.csv: 8 not downloaded, 13 cannot read, 42 unexpected
     shape, 3 bad manifest, 10 unrecorded, 9 mismatch, 4 wrong shape, 6 not in repo."""
 
     def measure():

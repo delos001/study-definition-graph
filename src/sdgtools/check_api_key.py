@@ -39,7 +39,7 @@ Exit codes:  0   success (the key works)
                  key is real, and the account it belongs to is not allowed to
                  use the model)
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-15
 Owner:       Jason Delosh

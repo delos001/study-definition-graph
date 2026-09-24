@@ -8,6 +8,7 @@ These documents are kept by hand. A document lives here when it cuts across more
 | --- | --- |
 | `sources_index.md` | Which pinned file answers which question, how to open it, and which files were reviewed and not taken. |
 | `standards_read_record.md` | What has been read from each pinned standard and what it established, so a claim about a standard can be told from an inference. |
+| `exit_codes.csv` | What each exit code means, one row per code, used by every script in the repo. |
 | `draft/` | Work in progress. Nothing here is linked to or relied on. |
 
 Prose is one paragraph per line, never hard-wrapped, so a phrase can be found with `grep`.

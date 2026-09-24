@@ -35,7 +35,7 @@ run_tool build_index --check || {
 
 # Every Python file under src/, validation/ and .claude/hooks/ opens with the header
 # block .claude/rules/writing_python_files.md requires, and its exit codes agree
-# with validation/exit_codes.csv. A file that falls short is refused here so the
+# with docs/exit_codes.csv. A file that falls short is refused here so the
 # rule holds whoever made the edit.
 run_tool verify_headers || {
   echo "pre-commit: fix the header blocks named above, then commit again"

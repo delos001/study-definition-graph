@@ -43,7 +43,7 @@ Exit codes:  0   success
              26  no workbook under inputs/ matches the name given
              46  the named header row is past the end of the sheet
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-08-17
 Owner:       Jason Delosh

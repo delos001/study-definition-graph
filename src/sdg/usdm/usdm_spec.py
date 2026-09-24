@@ -60,7 +60,7 @@ Exit codes:  0   success
              13  a file on disk cannot be read (another program has the pinned
                  file locked)
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-03
 Owner:       Jason Delosh

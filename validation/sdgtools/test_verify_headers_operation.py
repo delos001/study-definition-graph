@@ -308,7 +308,7 @@ def with_codes(lines: str) -> str:
 @objective("functionality")
 @positive
 def test_wording_from_the_table_passes(folder, capsys):
-    """An entry written with the wording in validation/exit_codes.csv for its number passes."""
+    """An entry written with the wording in docs/exit_codes.csv for its number passes."""
     folder({"alpha.py": with_codes("8   a pinned file has not been downloaded")})
     assert run(capsys).exit_code == 0
 
@@ -318,7 +318,7 @@ def test_wording_from_the_table_passes(folder, capsys):
 @objective("functionality")
 @positive
 def test_a_bracketed_aside_is_allowed(folder, capsys):
-    """An entry may add a bracketed aside after the wording in validation/exit_codes.csv, saying what the
+    """An entry may add a bracketed aside after the wording in docs/exit_codes.csv, saying what the
     cause means in that file."""
     folder(
         {
@@ -355,7 +355,7 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
 def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
     """An entry that wraps and is the last thing in the field keeps its second line,
     so a header holding one long entry and no closing prose is not refused as
-    wording that disagrees with validation/exit_codes.csv."""
+    wording that disagrees with docs/exit_codes.csv."""
     folder(
         {
             "alpha.py": with_codes(
@@ -372,7 +372,7 @@ def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
 @positive
 def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
     """The sentence a field ends with is not mistaken for an entry, so it is never
-    compared with validation/exit_codes.csv."""
+    compared with docs/exit_codes.csv."""
     folder(
         {
             "alpha.py": with_codes(
@@ -388,7 +388,7 @@ def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
 @objective("functionality")
 @negative
 def test_a_code_the_table_lacks_exits_33(folder, capsys):
-    """An entry for a number validation/exit_codes.csv does not hold makes the run exit 33, and the
+    """An entry for a number docs/exit_codes.csv does not hold makes the run exit 33, and the
     problem line names the file and the number."""
     folder({"alpha.py": with_codes("99  something nobody agreed on")})
     outcome = run(capsys)
@@ -402,7 +402,7 @@ def test_a_code_the_table_lacks_exits_33(folder, capsys):
 @negative
 def test_different_wording_exits_33(folder, capsys):
     """An entry giving a number a second meaning makes the run exit 33, and the problem
-    line prints what the header says beside what validation/exit_codes.csv says."""
+    line prints what the header says beside what docs/exit_codes.csv says."""
     folder({"alpha.py": with_codes("8   the file is missing somehow")})
     outcome = run(capsys)
     assert outcome.exit_code == 33
@@ -434,7 +434,7 @@ def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
 @objective("functionality")
 @negative
 def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
-    """With validation/exit_codes.csv missing, the run exits 13 and says the file cannot
+    """With docs/exit_codes.csv missing, the run exits 13 and says the file cannot
     be read, rather than reporting every file as disagreeing with nothing."""
     folder({"alpha.py": GOOD_HEADER})
     monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
@@ -448,7 +448,7 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
 @objective("functionality")
 @negative
 def test_a_table_with_a_code_that_is_not_a_number_exits_13(folder, capsys):
-    """With a row of validation/exit_codes.csv holding a code that is not a number, the run
+    """With a row of docs/exit_codes.csv holding a code that is not a number, the run
     exits 13 and says that file cannot be read, naming it, rather than ending in a
     traceback."""
     folder({"alpha.py": GOOD_HEADER})

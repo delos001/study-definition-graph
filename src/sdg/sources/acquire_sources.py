@@ -46,7 +46,7 @@ Exit codes:  0   success (every entry's file is on disk and matches its entry)
              12  a downloaded file does not match its manifest entry (discarded)
              13  a file on disk cannot be read (left alone)
              The numbers are the repo-wide table in
-             validation/exit_codes.csv. Every problem is reported;
+             docs/exit_codes.csv. Every problem is reported;
              the exit code is the worst one seen, in the order 11, 12, 8, 9,
              13, because a corpus with a file missing is worse than one whose
              files are all present but one has changed. So --dry-run --quiet

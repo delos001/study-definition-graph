@@ -29,7 +29,7 @@ Exit codes:  0   success (every tool passed)
              22  a tool could not be run at all (neither on the path nor
                  through conda)
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh

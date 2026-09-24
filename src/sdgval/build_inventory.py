@@ -71,7 +71,7 @@ Exit codes:  0   success (the inventory was written, or a check found it in orde
              19 outranks 20, 20 outranks 18, 18 outranks 47, and 47 outranks 45.
              Every problem is
              still named. The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh

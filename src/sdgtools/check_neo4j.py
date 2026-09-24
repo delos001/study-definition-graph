@@ -46,7 +46,7 @@ Exit codes:  0   success (the database answers and is the pinned version)
              44  the Neo4j address in .env is not a valid address (the driver
                  refused the NEO4J_URI line before trying to connect)
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-16
 Owner:       Jason Delosh

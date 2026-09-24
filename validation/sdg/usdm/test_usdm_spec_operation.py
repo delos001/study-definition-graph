@@ -28,7 +28,7 @@ Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only
                                                                    checks only)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
-             conftest.py writes validation/reports/ records when asked.
+             src/sdgval/report.py writes a report to validation/reports/ when asked.
 
 Usage:       pytest validation/sdg/usdm/test_usdm_spec_operation.py
                  run these checks

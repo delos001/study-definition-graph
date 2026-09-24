@@ -17,7 +17,7 @@ Each check is a repo tool, an installed command of the `sdg` environment. When t
 | Check inside `pre-commit` | What it does |
 | --- | --- |
 | `build_index --check` | Refuses the commit if `src/sdgtools/README.md` is out of date with the header blocks it is generated from. |
-| `verify_headers` | Refuses the commit if any Python file under `src/`, `validation/` or `.claude/hooks/` <br> - lacks the full header block, <br> - has its fields out of order, <br> - has a Date that is not a plain calendar date, or <br> - lists exit codes that disagree with `validation/exit_codes.csv` or with its own `main()`. |
+| `verify_headers` | Refuses the commit if any Python file under `src/`, `validation/` or `.claude/hooks/` <br> - lacks the full header block, <br> - has its fields out of order, <br> - has a Date that is not a plain calendar date, or <br> - lists exit codes that disagree with `docs/exit_codes.csv` or with its own `main()`. |
 | `build_inventory --check` | Refuses the commit if `validation/validation_inventory.csv` is out of date with the check files under `validation/` it is generated from. |
 | `check_python_files --quiet` | Refuses the commit if any Python file fails `ruff format --check`, `ruff check` or `mypy`, all configured in `pyproject.toml`. Each tool prints its own report, so the refusal names the file and the line. |
 

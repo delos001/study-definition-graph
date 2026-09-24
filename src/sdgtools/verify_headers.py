@@ -13,7 +13,7 @@ Description: Checks that every Python file in the three code folders, src/,
              disagree about what a header is.
 
              It also compares each header's Exit codes field with the
-             repo-wide table in validation/exit_codes.csv. An entry must open
+             repo-wide table in docs/exit_codes.csv. An entry must open
              with the table's wording for that number, and may then add a
              bracketed aside saying what the cause means in that file. That is
              what keeps one number meaning one cause everywhere, once a tool has
@@ -30,7 +30,7 @@ Description: Checks that every Python file in the three code folders, src/,
 
 Inputs:      src/**/*.py, validation/**/*.py and .claude/hooks/*.py
                                         (read-only, parsed rather than imported)
-             validation/exit_codes.csv  (read-only, the repo-wide table)
+             docs/exit_codes.csv  (read-only, the repo-wide table)
 
 Outputs:     Nothing on disk. Prints one line per problem, or nothing when
              every header is complete.
@@ -54,7 +54,7 @@ Exit codes:  0   success (every header is complete and in order)
              that cannot be read at all is worse than one missing a code, which is
              worse than one whose wording has drifted. Every problem is still named.
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-09
 Owner:       Jason Delosh
@@ -92,7 +92,7 @@ DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 # The repo-wide table of exit codes, one row per number. A header names only the
 # codes its file can return, each opening with the table's wording, so that one
 # number means one cause across the whole repo.
-EXIT_CODES_FILE = REPO_ROOT / "validation" / "exit_codes.csv"
+EXIT_CODES_FILE = REPO_ROOT / "docs" / "exit_codes.csv"
 
 # An entry in an Exit codes field opens with the number, then a run of spaces,
 # then the cause. Written without shorthand character classes so the pattern

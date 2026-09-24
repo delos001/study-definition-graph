@@ -2,9 +2,9 @@
 
 Defines every column of a validation report and every value a coded column may hold.
 
-A report is written by `pytest --validation-report` into `reports/`, one CSV file per run named `run_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `conftest.py`; nothing in a report is typed by hand.
+A report is written by `pytest --validation-report` into this folder, one CSV file per run named `run_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `src/sdgval/report.py`. Nothing in a report is typed by hand.
 
-The check columns carry the same names as `validation_inventory.csv`, so a row joins to the inventory by `id`. Their definitions are in `validation_inventory_dictionary.md` and are not repeated here.
+The check columns carry the same names as `validation/validation_inventory.csv`, so a row joins to the inventory by `id`. Their definitions are in `validation/validation_inventory_dictionary.md` and are not repeated here.
 
 ## Columns
 
@@ -44,7 +44,7 @@ The check columns carry the same names as `validation_inventory.csv`, so a row j
 - Holds one of the exit meanings below.
 
 ### `category`, `quality_aspect`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
-- Same as in the inventory, in the inventory's order, defined in `validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
+- Same as in the inventory, in the inventory's order, defined in `validation/validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
 - Read by the writer from the check's markers, docstring and file path at run time, not from the inventory. `quality_aspect` is looked up from the objective, the way the inventory fills it.
 - `expected_result` holds `(no docstring)` when the check has none, and `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
 

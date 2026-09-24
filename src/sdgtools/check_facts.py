@@ -50,7 +50,7 @@ Exit codes:  0   success (every stated figure matches the source it came from;
              42  a pinned file is not shaped the way a measurement expects (it
                  was read, but lacks what the measurement reaches for)
              The numbers are the repo-wide table in
-             validation/exit_codes.csv. A measurement stops at the
+             docs/exit_codes.csv. A measurement stops at the
              first file it cannot use, so the run reports one cause at a time.
 
 Date:        2026-08-18

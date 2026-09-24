@@ -64,7 +64,7 @@ def test_real_headers_follow_the_rule():
 @objective("conformance")
 def test_real_exit_codes_agree_with_the_table_and_main():
     """In every Python file in the real code folders, each exit code the header lists
-    opens with the wording validation/exit_codes.csv gives it, and each code main()
+    opens with the wording docs/exit_codes.csv gives it, and each code main()
     returns as a plain number is listed."""
     table = script.exit_code_table()
     problems = {

@@ -66,7 +66,7 @@ Exit codes:  0   success
              31  the list of lookup documents is missing or wrongly shaped
              32  the list of lookup documents names a file no manifest records
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-08-18
 Owner:       Jason Delosh

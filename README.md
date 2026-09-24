@@ -199,7 +199,7 @@ study-definition-graph/
     sdgval/                #   validation package, the plugins that run the checks
   validation/              # checks that prove the code works, mirroring src/
     claude_hooks/          #   validation for the hooks in .claude/hooks/
-    fixtures/              #   small stand-ins for the pinned files, read by staged checks
+    fixtures/              #   small stand-ins for real files a check should not read directly
     reports/               #   results of a full validation run, archived
     sdg/                   #   validation for src/sdg/, one folder per group of work
     sdgtools/              #   validation for src/sdgtools/

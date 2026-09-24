@@ -31,7 +31,7 @@ Exit codes:  0   success (every file under inputs/ is recorded)
              6   not running from inside the repo
              10  a file under inputs/ that no manifest records
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-09
 Owner:       Jason Delosh

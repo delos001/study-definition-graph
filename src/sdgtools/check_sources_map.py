@@ -54,7 +54,7 @@ Exit codes:  0   success (the map and the manifests agree)
              35 outranks 36, because a file nobody can find is worse than a
              heading pointing at an empty folder. Every problem is still named.
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-09-15
 Owner:       Jason Delosh

@@ -46,7 +46,7 @@ Exit codes:  0   success (the index was written, or --check found it current)
              from an incomplete header would be wrong rather than merely out
              of date.
              The numbers are the repo-wide table in
-             validation/exit_codes.csv.
+             docs/exit_codes.csv.
 
 Date:        2026-08-24
 Owner:       Jason Delosh
