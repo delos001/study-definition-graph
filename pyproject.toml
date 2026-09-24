@@ -18,6 +18,7 @@ check_api_key = "sdgtools.check_api_key:main"
 check_neo4j = "sdgtools.check_neo4j:main"
 find_unrecorded_files = "sdgtools.find_unrecorded_files:main"
 check_sources_map = "sdgtools.check_sources_map:main"
+check_facts = "sdgtools.check_facts:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

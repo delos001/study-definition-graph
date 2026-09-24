@@ -1,6 +1,6 @@
 """
 Script:      test_check_facts.py
-Description: Checks for repo_tools/check_facts.py, the hand-run script that
+Description: Checks for src/sdgtools/check_facts.py, the hand-run script that
              re-derives every figure stated in the project's documents, a count or
              a date, from the pinned files. The script is a list of measurements and a loop that
              compares each to what the documents say. The checks here replace
@@ -14,9 +14,9 @@ Inputs:      inputs/**  (read-only; the one real-corpus check only, skips if abs
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/repo_tools/test_check_facts.py
+Usage:       pytest validation/sdgtools/test_check_facts.py
                  run these checks
-             pytest validation/repo_tools/test_check_facts.py -v
+             pytest validation/sdgtools/test_check_facts.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -31,10 +31,10 @@ import json
 
 import pytest
 
-import check_facts as cf
 from sdg.sources.read_manifests import ManifestError, NotInRepoError
 from sdg.sources.verify_pinned import IntegrityError, UnrecordedFileError
 from sdg.usdm.usdm_spec import PINNED_LOCAL, SpecShapeError
+from sdgtools import check_facts as cf
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative

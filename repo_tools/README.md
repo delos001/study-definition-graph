@@ -37,17 +37,6 @@ python repo_tools/build_inventory.py --quiet
     print nothing; use the exit code
 ```
 
-## check_facts.py
-
-Recomputes every figure asserted in the project's markdown, a count or a date, and compares it against what the documents actually say.
-
-```
-python repo_tools/check_facts.py
-    check every fact, report drift
-python repo_tools/check_facts.py --verbose
-    also show facts that match
-```
-
 ## check_python_files.py
 
 Runs the three tool checks every Python file must pass, in order: ruff format in check mode, ruff check, and mypy. Each tool's own output is printed as it runs, so a failure names the file and the line. All three are configured in pyproject.toml; this script adds nothing to what they check.

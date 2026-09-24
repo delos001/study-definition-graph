@@ -27,9 +27,9 @@ Inputs:      inputs/**              (read-only, pinned, each verified through ve
 
 Outputs:     A report on stdout. Writes nothing to disk.
 
-Usage:       python repo_tools/check_facts.py
+Usage:       check_facts
                  check every fact, report drift
-             python repo_tools/check_facts.py --verbose
+             check_facts --verbose
                  also show facts that match
 
 Exit codes:  0   success (every stated figure matches the source it came from;
@@ -89,7 +89,7 @@ except ImportError as exc:
     # returns before any of the names above is used.
     SDG_MISSING = exc
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 STANDARDS = REPO_ROOT / "inputs" / "standards"
 EXAMPLES = REPO_ROOT / "inputs" / "worked_examples"
 
