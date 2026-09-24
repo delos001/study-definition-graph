@@ -85,3 +85,14 @@ find_unrecorded_files
 find_unrecorded_files --quiet
     print nothing; use the exit code
 ```
+
+## verify_headers.py
+
+Checks that every Python file in the four code folders, src/sdg/, repo_tools/, validation/ and .claude/hooks/, opens with the full header block .claude/rules/writing_python_files.md requires, with the eight fields in the set order and a Date in YYYY-MM-DD form. It reports each file that falls short and names what is wrong.
+
+```
+verify_headers
+    check every file, report each problem
+verify_headers --quiet
+    print nothing; use the exit code
+```

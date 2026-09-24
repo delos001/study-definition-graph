@@ -21,6 +21,7 @@ check_sources_map = "sdgtools.check_sources_map:main"
 check_facts = "sdgtools.check_facts:main"
 check_python_files = "sdgtools.check_python_files:main"
 build_index = "sdgtools.build_index:main"
+verify_headers = "sdgtools.verify_headers:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

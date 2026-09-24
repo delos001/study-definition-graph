@@ -35,9 +35,9 @@ Inputs:      src/sdg/**/*.py, repo_tools/*.py, validation/**/*.py and
 Outputs:     Nothing on disk. Prints one line per problem, or nothing when
              every header is complete.
 
-Usage:       python repo_tools/verify_headers.py
+Usage:       verify_headers
                  check every file, report each problem
-             python repo_tools/verify_headers.py --quiet
+             verify_headers --quiet
                  print nothing; use the exit code
 
 Exit codes:  0   success (every header is complete and in order)
@@ -76,7 +76,7 @@ from sdgtools.build_index import FIELD_RE, REQUIRED_FIELDS, parse_header
 #######################################################################################
 ### Settings ###
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = Path(__file__).resolve().parents[2]
 CHECKED_FOLDERS = (
     REPO_ROOT / "src" / "sdg",
     REPO_ROOT / "repo_tools",

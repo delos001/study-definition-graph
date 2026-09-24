@@ -25,8 +25,8 @@ build_index --check || {
 # Every Python file under src/sdg/, repo_tools/, validation/ and .claude/hooks/
 # opens with the header block .claude/rules/writing_python_files.md requires, and its exit codes agree
 # with validation/exit_codes.csv. A file that falls short is refused here so the
-# rule holds whoever made the edit. This check uses only the standard library.
-python repo_tools/verify_headers.py || {
+# rule holds whoever made the edit.
+verify_headers || {
   echo "pre-commit: fix the header blocks named above, then commit again"
   exit 1
 }
