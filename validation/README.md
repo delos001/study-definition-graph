@@ -19,7 +19,7 @@ Support files are the records and settings the validation checks rely on.
 - `validation_inventory_dictionary.md`: Defines every column of the inventory and every value a coded column may hold.
 - `validation_report_dictionary.md`: Defines every column of a validation report and every value a coded column may hold.
 - `running_validation.md`: Says how to choose which checks run and how to file a validation report.
-- `validation_groups.yml`: Names the groups of checks that `pytest --group` can run, each with its purpose and its ids.
+- `validation_groups.yml`: Names the groups of checks that `pytest --group` can run, and holds the information about each group.
 - `exit_codes.csv`: Holds the repo-wide table of exit codes, one row per code.
 - `conftest.py`
   - Holds the fixtures the checks share, the setups a check asks for by name. pytest looks for a file with exactly this name.
@@ -46,8 +46,7 @@ Each folder of checks mirrors the code it validates, one folder per installed pa
   - The fixtures built on it are in `conftest.py`, because pytest finds a shared fixture only there.
 
 - `fixtures/`
-  - Holds small stand-ins for the pinned files under `inputs/` that are read by staged checks. Real pinned files are not touched.
-  - Holds `usdm_three_classes.yml`, three classes copied verbatim from the pinned `dataStructure.yml`, and no checks.
+  - Holds small files that stand in for real files a check should not read directly, such as pinned files. Its own README lists them.
 
 - `reports/`
   - Holds the validation reports, one CSV file per run.

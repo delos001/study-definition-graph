@@ -146,7 +146,7 @@ def groups(config: pytest.Config) -> dict[str, dict]:
         config: pytest's configuration for the run, which knows the root folder.
 
     Returns:
-        The groups by name, each with its purpose and its ids.
+        The groups by name, each as the file writes it.
 
     Raises:
         pytest.UsageError: The file is missing.

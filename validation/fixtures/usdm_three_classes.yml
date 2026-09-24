@@ -1,13 +1,22 @@
-# Three classes copied verbatim from the pinned USDM v4.0 dataStructure.yml
-# (DDF-RA commit aa303cb, manifest manifests/cdisc_usdm_v4.json).
-# Extracted 2026-09-04 with:
-#   awk '/^(Identifier|StudyIdentifier|Condition):/{p=1} p&&/^[A-Za-z]/&&!/^(Identifier|StudyIdentifier|Condition):/{p=0} p' dataStructure.yml
+# This file is a small copy of the USDM model, used by the checks of the model
+# loader, src/sdg/usdm/usdm_spec.py. It holds three classes copied unchanged from
+# the pinned dataStructure.yml.
 #
-# Why these three: Identifier is abstract, StudyIdentifier is its concrete child
-# with inherited attributes, and Condition holds the five-way reference
-# (appliesToIds). Together they exercise every shape the loader reads, in a file
-# small enough to read whole. test_usdm_spec_integrity.py proves each class is identical to
-# the pinned one, so this is a sample, not a stand-in. Do not edit the classes.
+# The checks use this copy because it is small enough to read whole, and because
+# they can make broken versions of it to confirm the loader refuses them. The
+# pinned file must never be altered, so it cannot serve that role.
+#
+# The three classes were chosen because together they hold every shape the
+# loader reads.
+# - Identifier is an abstract class, one that other classes build on.
+# - StudyIdentifier builds on Identifier and inherits its attributes.
+# - Condition has an attribute, appliesToIds, that can point at five different
+#   classes.
+#
+# Do not edit the classes. Check SA00155 confirms each one is identical to the
+# same class in the pinned file. If that check fails after a re-pin, copy the
+# three classes again from the new file.
+
 Condition:
   NCI C-Code: C25457
   Preferred Term: Condition

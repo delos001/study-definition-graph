@@ -1,12 +1,20 @@
-# Named groups of checks that pytest --group can run.  Each group exists for a set that
-# no folder, category or objective can name on its own.
-# An invalid id stops the run.
-
-# Each group has one sentence describing what it is for a list of check ids included
-# in the group. A
+# Named groups of checks that you can run using `pytest --group`.
+#
+# Each group exists for a set of checks that no folder, category, aspect or objective
+# can name on its own.
+#
+# When pytest is run with `--group`, every id in the group must belong to a check
+# found in the folders pytest uses. If not, pytest stops before running anything.
+#
+# Each group has three fields.
+# - The purpose describes in plain terms why the checks are in the group.
+# - The run describes when the checks should be run.
+# - The ids list the check ids that belong to the group.
+# See validation/validation_inventory.csv for what each check does.
 
 pinned:
-  purpose: Every check that reads a real pinned file. Run it after a file is re-pinned or newly fetched.
+  purpose: Every check that reads a real pinned file.
+  run: After a file is re-pinned or newly fetched.
   ids:
     - SA00106
     - SA00153
@@ -15,7 +23,8 @@ pinned:
     - SA00283
 
 hook:
-  purpose: The checks that reproduce what the pre-commit hook enforces. Run it when the hook refuses a commit and the reason is wanted as a report.
+  purpose: The checks that reproduce what the pre-commit hook enforces.
+  run: When the hook refuses a commit and the reason is wanted as a report.
   ids:
     - SA00256
     - SA00391
