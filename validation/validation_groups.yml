@@ -1,7 +1,9 @@
-# Named groups of checks that pytest --group can run. Each group has one sentence
-# saying what it is for and the ids of its checks, as validation_inventory.csv lists
-# them. A group exists for a set that no folder, category or objective can name on
-# its own. An id that no check carries stops the run.
+# Named groups of checks that pytest --group can run.  Each group exists for a set that
+# no folder, category or objective can name on its own.
+# An invalid id stops the run.
+
+# Each group has one sentence describing what it is for a list of check ids included
+# in the group. A
 
 pinned:
   purpose: Every check that reads a real pinned file. Run it after a file is re-pinned or newly fetched.
