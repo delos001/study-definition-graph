@@ -41,7 +41,6 @@ import pytest
 CONFTEST_SOURCE = (Path(__file__).resolve().parent / "conftest.py").read_text(
     encoding="utf-8"
 )
-REPO_ROOT = Path(__file__).resolve().parents[1]
 
 positive = pytest.mark.positive
 negative = pytest.mark.negative
@@ -63,33 +62,17 @@ category = pytest.mark.category
 # the report back as rows.
 
 
-def with_repo_root(monkeypatch) -> None:
-    """Put the repo root on the import path of the throwaway suite's process.
-
-    The copied conftest imports the selection plugin, validation/select_checks.py,
-    by its dotted name. The real run gets the repo root from pyproject.toml, which
-    the throwaway suite does not read. The inventory generator it also imports is
-    in the installed sdgval package, so it needs no path.
-
-    Args:
-        monkeypatch: pytest's patcher, which puts the variable back when the check ends.
-    """
-    monkeypatch.setenv("PYTHONPATH", str(REPO_ROOT))
-
-
-def run_suite(pytester, monkeypatch, test_source: str, *extra_args: str):
+def run_suite(pytester, test_source: str, *extra_args: str):
     """Run pytest on one throwaway test file, with the real conftest.py beside it.
 
     Args:
         pytester: pytest's helper for running a separate suite.
-        monkeypatch: pytest's patcher, for the import path of the separate process.
         test_source: The source of the one test file.
         *extra_args: Any further pytest arguments.
 
     Returns:
         pytest's result and the folder the report was written to.
     """
-    with_repo_root(monkeypatch)
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite=textwrap.dedent(test_source))
     out = pytester.path / "reports_out"
@@ -97,7 +80,7 @@ def run_suite(pytester, monkeypatch, test_source: str, *extra_args: str):
     # throwaway suite does not read, so it is named here.
     result = pytester.runpytest_subprocess(
         "-p",
-        "validation.select_checks",
+        "sdgval.select_checks",
         "--validation-report",
         "--validation-report-dir",
         str(out),
@@ -181,7 +164,7 @@ STOPS_EARLY_SUITE = '''
 def passing(pytester, monkeypatch):
     """Run a suite whose one live check passes and whose other check is skipped, and
     hand back pytest's result and the report's rows."""
-    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    result, out = run_suite(pytester, PASSING_SUITE)
     return result, the_report(out)
 
 
@@ -258,7 +241,7 @@ PARAMETRIZED_SUITE = '''
 def parametrized(pytester, monkeypatch):
     """Run a suite with one parametrized check and one plain check, and hand back the
     report's rows."""
-    result, out = run_suite(pytester, monkeypatch, PARAMETRIZED_SUITE)
+    result, out = run_suite(pytester, PARAMETRIZED_SUITE)
     assert result.ret == 0
     return the_report(out)
 
@@ -294,7 +277,6 @@ def test_a_check_without_parameters_has_an_empty_parameter(parametrized):
 def test_no_flag_writes_nothing(pytester, monkeypatch):
     """Without --validation-report, a run writes no report at all, so development
     runs leave no trace."""
-    with_repo_root(monkeypatch)
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite="def test_ok():\n    assert True\n")
     result = pytester.runpytest_subprocess()
@@ -320,7 +302,6 @@ def test_cleanup_failure_is_recorded_as_fail(pytester, monkeypatch):
     with 'clean-up failed', never passed."""
     result, out = run_suite(
         pytester,
-        monkeypatch,
         '''
         import pytest
 
@@ -354,7 +335,6 @@ def test_a_failure_is_kept_when_the_clean_up_breaks_too(pytester, monkeypatch):
     later step cannot hide the failure."""
     result, out = run_suite(
         pytester,
-        monkeypatch,
         '''
         import pytest
 
@@ -386,7 +366,6 @@ def test_failing_assertion_is_recorded_as_fail(pytester, monkeypatch):
     the assertion message as its reason."""
     result, out = run_suite(
         pytester,
-        monkeypatch,
         '''
         def test_wrong():
             """Claims two and two make five."""
@@ -411,7 +390,6 @@ def test_setup_failure_is_recorded_as_error(pytester, monkeypatch):
     row says error."""
     result, out = run_suite(
         pytester,
-        monkeypatch,
         '''
         import pytest
 
@@ -438,7 +416,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(pytester, monkeypatch)
     pytest exits 2. A report is still written, says FAIL, and holds one row saying
     that no check ran, so a broken run cannot pass unnoticed by leaving no report
     behind."""
-    result, out = run_suite(pytester, monkeypatch, "def test_broken(:\n    pass\n")
+    result, out = run_suite(pytester, "def test_broken(:\n    pass\n")
     assert result.ret == 2
     rows = the_report(out)
     assert len(rows) == 1
@@ -465,10 +443,10 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(
 ):
     """A second report written on the same day at the same commit is given a numbered
     suffix, and the first report is left exactly as it was."""
-    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    _, out = run_suite(pytester, PASSING_SUITE)
     (first,) = out.glob("*.csv")
     before = first.read_bytes()
-    run_suite(pytester, monkeypatch, PASSING_SUITE)
+    run_suite(pytester, PASSING_SUITE)
     assert first.read_bytes() == before
     assert (out / f"{first.stem}-2.csv").is_file()
 
@@ -481,8 +459,8 @@ def test_run_id_is_the_report_file_name(pytester, monkeypatch):
     """Every row's run_id is the report's file name without .csv, so a second report on
     the same day and commit carries the numbered id its file has and two runs are
     never confused."""
-    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
-    run_suite(pytester, monkeypatch, PASSING_SUITE)
+    _, out = run_suite(pytester, PASSING_SUITE)
+    run_suite(pytester, PASSING_SUITE)
     for path in out.glob("*.csv"):
         with path.open(encoding="utf-8", newline="") as fh:
             assert {r["run_id"] for r in csv.DictReader(fh)} == {path.stem}
@@ -511,7 +489,7 @@ def test_the_selection_column_records_what_was_selected(
     line gave, or all when nothing narrowed the run. An option that changes how the
     run is reported rather than which checks it runs, such as --tb, leaves it at
     all."""
-    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE, *extra_args)
+    _, out = run_suite(pytester, PASSING_SUITE, *extra_args)
     assert {r["selection"] for r in the_report(out)} == {expected}
 
 
@@ -522,7 +500,7 @@ def test_the_selection_column_records_what_was_selected(
 def test_the_counts_match_when_every_check_ran(pytester, monkeypatch):
     """On a whole run, checks_collected and checks_reported are equal and both count
     every check, so a reader can see at a glance that nothing was left out."""
-    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    _, out = run_suite(pytester, PASSING_SUITE)
     rows = the_report(out)
     assert {r["checks_collected"] for r in rows} == {"2"}
     assert {r["checks_reported"] for r in rows} == {"2"}
@@ -539,7 +517,6 @@ def test_a_dropped_check_is_counted_but_not_reported(pytester, monkeypatch):
     than reading as a whole one."""
     _, out = run_suite(
         pytester,
-        monkeypatch,
         PASSING_SUITE,
         "--deselect",
         "test_suite.py::test_left_out",
@@ -559,7 +536,7 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(
     """A run told to stop at the first failure never reaches the checks after it, and
     checks_reported is lower than checks_collected, so a run cut short cannot read as
     one that covered the whole suite."""
-    result, out = run_suite(pytester, monkeypatch, STOPS_EARLY_SUITE, "-x")
+    result, out = run_suite(pytester, STOPS_EARLY_SUITE, "-x")
     assert result.ret == 1
     rows = the_report(out)
     assert {r["checks_collected"] for r in rows} == {"2"}
@@ -579,7 +556,7 @@ def test_run_by_carries_the_git_user_name(pytester, monkeypatch):
     monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
     monkeypatch.setenv("GIT_CONFIG_KEY_0", "user.name")
     monkeypatch.setenv("GIT_CONFIG_VALUE_0", "Staged Tester")
-    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    _, out = run_suite(pytester, PASSING_SUITE)
     assert {r["run_by"] for r in the_report(out)} == {"Staged Tester"}
 
 
@@ -625,7 +602,7 @@ def test_fixture_sha256s_names_each_fixture_file_with_its_hash(pytester, monkeyp
     fixtures.mkdir()
     (fixtures / "sample.txt").write_bytes(content)
     expected = f"validation/fixtures/sample.txt={hashlib.sha256(content).hexdigest()}"
-    _, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    _, out = run_suite(pytester, PASSING_SUITE)
     assert all(expected in r["fixture_sha256s"] for r in the_report(out))
 
 
@@ -701,7 +678,7 @@ GATED_SUITE = '''
 def gated(pytester, monkeypatch):
     """Run the suite with the staged pinned files and hand back pytest's result and
     the report's rows."""
-    result, out = run_suite(pytester, monkeypatch, GATED_SUITE)
+    result, out = run_suite(pytester, GATED_SUITE)
     return result, the_report(out)
 
 
@@ -766,7 +743,7 @@ def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch)
     """A check whose @needs_pinned names files no manifest records is a mistake in the
     check, so its set-up fails: the run fails, the row says error, and the terminal
     names the pattern and says to correct the marker."""
-    result, out = run_suite(pytester, monkeypatch, UNMATCHED_SUITE)
+    result, out = run_suite(pytester, UNMATCHED_SUITE)
     assert result.ret == 1
     row = row_for(the_report(out), "test_reads_unrecorded")
     assert row["outcome"] == "error"
@@ -787,7 +764,7 @@ def test_a_check_naming_a_file_no_manifest_records_errors(pytester, monkeypatch)
 # committed git repository first, then dirty it or not.
 
 
-def committed_repo(pytester, monkeypatch, test_source: str) -> str:
+def committed_repo(pytester, test_source: str) -> str:
     """Stage the throwaway suite and commit it as a git repository.
 
     pytest's own cache, the files pytester writes for itself and Python's bytecode
@@ -797,13 +774,11 @@ def committed_repo(pytester, monkeypatch, test_source: str) -> str:
 
     Args:
         pytester: pytest's helper for running a separate suite.
-        monkeypatch: pytest's patcher, for the import path of the separate process.
         test_source: The source of the one test file.
 
     Returns:
         The short hash of the commit.
     """
-    with_repo_root(monkeypatch)
     pytester.makeconftest(CONFTEST_SOURCE)
     pytester.makepyfile(test_suite=textwrap.dedent(test_source))
     (pytester.path / ".gitignore").write_text(
@@ -835,7 +810,7 @@ def committed_repo(pytester, monkeypatch, test_source: str) -> str:
 def test_a_listing_run_writes_no_report(pytester, monkeypatch):
     """With --collect-only, the run lists the checks it would run and writes no
     report, because nothing ran."""
-    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE, "--collect-only")
+    result, out = run_suite(pytester, PASSING_SUITE, "--collect-only")
     assert result.ret == 0
     assert "test_adds" in result.stdout.str()
     assert not out.exists()
@@ -852,10 +827,10 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(
     the run stops with pytest's usage error, exit 4, before any check runs, the
     message names the changed file and says to commit or stash, and no report is
     written."""
-    committed_repo(pytester, monkeypatch, PASSING_SUITE)
+    committed_repo(pytester, PASSING_SUITE)
     with (pytester.path / "notes.txt").open("a", encoding="utf-8") as fh:
         fh.write("an edit that is not committed\n")
-    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    result, out = run_suite(pytester, PASSING_SUITE)
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
     assert "no validation report was written" in printed
@@ -872,8 +847,8 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(
 def test_a_report_on_a_clean_folder_names_its_commit(pytester, monkeypatch):
     """With --validation-report and a working folder that matches its commit, the run
     goes ahead and every row's commit column is that commit's short hash."""
-    commit = committed_repo(pytester, monkeypatch, PASSING_SUITE)
-    result, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    commit = committed_repo(pytester, PASSING_SUITE)
+    result, out = run_suite(pytester, PASSING_SUITE)
     assert result.ret == 0
     assert {r["commit"] for r in the_report(out)} == {commit}
 
@@ -887,9 +862,9 @@ def test_an_earlier_report_not_yet_committed_does_not_count_as_a_change(
 ):
     """A report already in the reports folder, not yet committed, does not make the
     working folder dirty, so a second report can be written after the first."""
-    committed_repo(pytester, monkeypatch, PASSING_SUITE)
-    first, out = run_suite(pytester, monkeypatch, PASSING_SUITE)
-    second, _ = run_suite(pytester, monkeypatch, PASSING_SUITE)
+    committed_repo(pytester, PASSING_SUITE)
+    first, out = run_suite(pytester, PASSING_SUITE)
+    second, _ = run_suite(pytester, PASSING_SUITE)
     assert first.ret == 0
     assert second.ret == 0
     assert len(list(out.glob("*.csv"))) == 2

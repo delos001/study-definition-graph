@@ -87,7 +87,7 @@ Description: Supplies the conditions for the test_*.py files under validation/ t
              failure of every check that reads it.
 
              The selection options, --category, --objective, --id and --group,
-             are added by validation/select_checks.py, which pyproject.toml loads
+             are added by src/sdgval/select_checks.py, which pyproject.toml loads
              as a plugin at startup. The report's selection column records what
              they asked for.
 
@@ -117,7 +117,7 @@ Usage:       pytest
                  tests use this to write into a temporary folder)
              pytest --category sources --validation-report
                  run only some checks and write a report of them; the options
-                 are validation/select_checks.py's
+                 are src/sdgval/select_checks.py's
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed, 2 interrupted,
              3 internal error, 4 bad command line, 5 no tests collected
@@ -140,18 +140,18 @@ import time
 from pathlib import Path
 
 import pytest
-from validation.select_checks import (
+
+# The rule that says which code file a check file proves lives in the inventory
+# generator, src/sdgval/build_inventory.py, which fills the same column of the
+# inventory. Importing it means the inventory and a report can never disagree.
+from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
+from sdgval.select_checks import (
     SELECTORS,
     category_of,
     code_of,
     objective_of,
     wanted,
 )
-
-# The rule that says which code file a check file proves lives in the inventory
-# generator, src/sdgval/build_inventory.py, which fills the same column of the
-# inventory. Importing it means the inventory and a report can never disagree.
-from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 REPO_ROOT = VALIDATION_DIR.parent
@@ -851,7 +851,7 @@ _started_at = 0.0
 # How many checks were dropped before the run, counted from pytest's own hook rather
 # than from the options that did the dropping. pytest fires that hook for every
 # deselection whatever caused it, including its own --deselect, its -k and -m
-# filters, and the options validation/select_checks.py adds, so the count stays
+# filters, and the options src/sdgval/select_checks.py adds, so the count stays
 # right without this file knowing which options exist.
 _deselected = 0
 

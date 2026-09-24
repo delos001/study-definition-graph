@@ -1,6 +1,6 @@
 """
 Script:      test_select_checks.py
-Description: Checks for validation/select_checks.py, the plugin that selects checks
+Description: Checks for src/sdgval/select_checks.py, the plugin that selects checks
              by category, objective, id or named group. Each check runs one
              throwaway suite of four checks, which differ in category, objective
              and id, in a separate pytest process with the real conftest.py and
@@ -9,14 +9,14 @@ Description: Checks for validation/select_checks.py, the plugin that selects che
              ids say what was kept. The refusals are confirmed by exit code, by
              message and by the absence of a report.
 
-Inputs:      validation/conftest.py and validation/select_checks.py (read-only;
+Inputs:      validation/conftest.py and src/sdgval/select_checks.py (read-only;
              copied into, and loaded by, the throwaway suite's process)
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/test_select_checks.py
+Usage:       pytest validation/sdgval/test_select_checks.py
                  run these checks
-             pytest validation/test_select_checks.py -v
+             pytest validation/sdgval/test_select_checks.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -94,14 +94,13 @@ def selected(
 
     Args:
         pytester: pytest's helper for running a separate suite.
-        monkeypatch: pytest's patcher, for the import path of the separate process.
         *args: The selection options.
 
     Returns:
         pytest's exit code, the ids of the checks that got a report row, the rows,
         and everything pytest printed.
     """
-    result, out = run_suite(pytester, monkeypatch, SELECTION_SUITE, *args)
+    result, out = run_suite(pytester, SELECTION_SUITE, *args)
     rows = the_report(out) if out.exists() else []
     printed = result.stdout.str() + result.stderr.str()
     return result.ret, {r["id"] for r in rows}, rows, printed

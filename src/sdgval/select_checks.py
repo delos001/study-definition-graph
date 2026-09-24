@@ -25,7 +25,7 @@ Description: A pytest plugin that selects checks in the inventory's own terms.
              the command line before it loads a conftest below the root folder.
              An option a conftest adds is unknown at that moment, and its value is
              taken for a path. pyproject.toml loads this file at startup with
-             -p validation.select_checks, so the options are known from the start.
+             -p sdgval.select_checks, so the options are known from the start.
 
              It also holds the readers for the code, category and objective
              markers, which conftest.py uses when it writes the report, and the
