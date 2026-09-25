@@ -651,3 +651,7 @@ The aspect called `operation` is renamed `technical`, because operations has its
 - `utility` means only fitness for purpose in ITIL, the IT service management framework, which leaves out six of the seven objectives, and in code it usually means helper scripts.
 
 Every test file, check, inventory row and document was renamed at once. Entries above this one keep `operation`, because each records what was true when it was written.
+
+## An aspect's command writes its report only when asked, decided 2026-09-25
+
+The entry above said an aspect's command runs that aspect's checks and writes that aspect's report. The report is now written only when the command is given `--validation-report`. The command will bring in the checks of the scripts a selected script calls and run them first, which plain `pytest` never will, so it is also the way to run an aspect's checks during development, and a development run must leave no record. Without the flag, the command writes nothing and runs with uncommitted changes. No standard covered the question, so the choice is **unguided**.
