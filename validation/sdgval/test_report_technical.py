@@ -106,8 +106,8 @@ def test_passing_run_is_recorded_as_pass(passing):
     result, rows = passing
     assert result.ret == 0
     assert {r["run_verdict"] for r in rows} == {"PASS"}
-    assert {r["pytest_exit_status"] for r in rows} == {"0"}
-    assert {r["exit_meaning"] for r in rows} == {"all tests passed"}
+    assert {r["pytest_exit_code"] for r in rows} == {"0"}
+    assert {r["pytest_exit_cause"] for r in rows} == {"all tests passed"}
 
 
 @code("SA00434")
@@ -244,7 +244,7 @@ def test_cleanup_failure_is_recorded_as_fail(staged_suite):
     assert result.ret == 1
     rows = staged_suite.report(out)
     assert {r["run_verdict"] for r in rows} == {"FAIL"}
-    assert {r["pytest_exit_status"] for r in rows} == {"1"}
+    assert {r["pytest_exit_code"] for r in rows} == {"1"}
     row = staged_suite.row(rows, "test_checks_pass_but_cleanup_fails")
     assert row["outcome"] == "error"
     assert row["outcome_reason"] == "clean-up failed"
@@ -346,7 +346,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(staged_suite):
     rows = staged_suite.report(out)
     assert len(rows) == 1
     assert rows[0]["run_verdict"] == "FAIL"
-    assert rows[0]["exit_meaning"] == "the run was interrupted"
+    assert rows[0]["pytest_exit_cause"] == "the run was interrupted"
     assert rows[0]["outcome"] == "none"
     assert rows[0]["outcome_reason"].startswith("no check ran")
     assert next(out.glob("*.csv")).name.startswith("technical_")
@@ -406,6 +406,15 @@ def test_run_id_is_the_report_file_name(staged_suite):
         (("-m", "positive"), "-m positive"),
         (("--tb", "short"), "all"),
         (("-p", "no:cacheprovider"), "all"),
+    ],
+    ids=[
+        "nothing narrows the run",
+        "a file path",
+        "a -k filter",
+        "one check's node id",
+        "a -m filter",
+        "the --tb option",
+        "the -p option",
     ],
 )
 def test_the_selection_column_records_what_was_selected(

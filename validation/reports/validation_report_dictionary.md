@@ -33,15 +33,15 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Read by the writer from pytest's exit status.
 - Holds one of the verdicts below.
 
-### `pytest_exit_status`
-- Records pytest's exit number for the run.
+### `pytest_exit_code`
+- Records pytest's exit code for the run.
 - Read by the writer from pytest.
 - Holds a whole number from 0 to 5.
 
-### `exit_meaning`
-- Says what the exit number means.
-- Read by the writer from the table of exit meanings below.
-- Holds one of the exit meanings below.
+### `pytest_exit_cause`
+- Says what the exit code means.
+- Read by the writer from the table of exit causes below.
+- Holds one of the exit causes below.
 
 ### `category`, `quality_aspect`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
 - Same as in the inventory, in the inventory's order, defined in `validation/validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
@@ -61,9 +61,9 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 ### `outcome_reason`
 - Says why the outcome is not passed.
 - Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
-- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `exit_meaning` already carries it.
+- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `pytest_exit_cause` already carries it.
 
-### `started`
+### `run_started`
 - Records when the run began.
 - Read by the writer from the clock at the start of the run.
 - Holds a local timestamp with its zone, as `YYYY-MM-DD HH:MM:SS +HHMM`.
@@ -104,11 +104,11 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - `failed`: the check ran and an assertion did not hold.
 - `skipped`: the check did not run, by its own skip marker or because a pinned file it names was not downloaded or no longer matches its manifest entry.
 - `error`: the check's set-up or clean-up broke, whatever the check itself did.
-- `none`: no check ran at all. The report then has this one row, and `exit_meaning` says why nothing ran.
+- `none`: no check ran at all. The report then has this one row, and `pytest_exit_cause` says why nothing ran.
 
 A later step never makes a row better. A check whose assertions held but whose clean-up broke is `error`. A check that failed and then broke in its clean-up is `error` too, and `outcome_reason` keeps the failure alongside the clean-up, so the later step cannot hide the earlier one.
 
-## Exit meanings
+## Exit causes
 
 - `0`: all tests passed.
 - `1`: one or more tests failed or errored.

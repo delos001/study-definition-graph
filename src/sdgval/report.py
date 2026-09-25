@@ -44,7 +44,7 @@ Description: A pytest plugin that collects how each check ended and, when asked,
              Therefore the report can never say PASS when the terminal said otherwise.
              The rows are the detail; the exit status is the verdict. When no check
              ran at all, a report is still written, with one row saying so. Why no
-             check ran is in that row's exit_meaning, because the exit status is
+             check ran is in that row's pytest_exit_cause, because the exit status is
              all the writer knows about the cause.
 
              Every location is read from pytest's root folder, which is the repo
@@ -108,8 +108,8 @@ from sdgval.select_checks import SELECTORS, wanted
 REPORT_ASPECT = pytest.StashKey[str]()
 
 # pytest ends every run with a number that says how the run went. The report
-# prints that number together with its meaning, in these words.
-EXIT_MEANING = {
+# prints that number together with its cause, in these words.
+EXIT_CAUSE = {
     0: "all tests passed",
     1: "one or more tests failed or errored",
     2: "the run was interrupted",
@@ -492,8 +492,8 @@ REPORT_COLUMNS = (
     "checks_collected",
     "checks_reported",
     "run_verdict",
-    "pytest_exit_status",
-    "exit_meaning",
+    "pytest_exit_code",
+    "pytest_exit_cause",
     "category",
     "quality_aspect",
     "objective",
@@ -508,7 +508,7 @@ REPORT_COLUMNS = (
     "expected_result",
     "outcome",
     "outcome_reason",
-    "started",
+    "run_started",
     "commit",
     "run_by",
     "check_file_sha256",
@@ -619,9 +619,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     run = {
         "run_id": target.stem,
         "run_verdict": "PASS" if status == 0 else "FAIL",
-        "pytest_exit_status": status,
-        "exit_meaning": EXIT_MEANING.get(status, "unknown status"),
-        "started": f"{started:%Y-%m-%d %H:%M:%S %z}",
+        "pytest_exit_code": status,
+        "pytest_exit_cause": EXIT_CAUSE.get(status, "unknown status"),
+        "run_started": f"{started:%Y-%m-%d %H:%M:%S %z}",
         "commit": commit,
         "run_by": _git("config", "user.name", cwd=root),
         "selection": _selection(session.config),
@@ -677,7 +677,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 )
     else:
         # No outcome was collected, so no check ran. The row says only that. Why
-        # no check ran is already in the exit_meaning column, which is right for
+        # no check ran is already in the pytest_exit_cause column, which is right for
         # every exit number, and the writer cannot know more than the number.
         rows.append(
             {
