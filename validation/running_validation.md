@@ -64,7 +64,7 @@ validate_technical --validation-report --objective functionality
 validate_technical --validation-report --category sources
 ```
 
-A report is the formal record that the code was validated, so it is filed when the code is declared ready, not as part of the build loop. Each aspect of quality has its own command, and the command given `--validation-report` is the only way to file a report. `validate_technical` runs the technical checks and writes nothing, and adding `--validation-report` writes the technical report. Every option above except `--aspect` narrows its run the same way, and plain `pytest --validation-report` is refused. The conformance and integrity commands do not exist yet.
+A report is the formal record that the code was validated, so it is filed when a milestone is confirmed stable, not as part of the build loop. As more is added, a report is filed again before the new work is used for project work. Each aspect of quality has its own command, and the command given `--validation-report` is the only way to file a report. `validate_technical` runs the technical checks and writes nothing, and adding `--validation-report` writes the technical report. Every option above except `--aspect` narrows its run the same way, and plain `pytest --validation-report` is refused. The conformance and integrity commands do not exist yet.
 
 Three things govern a report.
 
