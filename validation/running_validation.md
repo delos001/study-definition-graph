@@ -59,12 +59,12 @@ A few checks run once for each value in a list, such as the fixity check, which 
 ## Filing a validation report
 
 ```powershell
-validate_technical
-validate_technical --objective functionality
-validate_technical --category sources
+validate_technical --validation-report
+validate_technical --validation-report --objective functionality
+validate_technical --validation-report --category sources
 ```
 
-A report is the formal record that the code was validated, so it is filed when the code is declared ready, not as part of the build loop. Each aspect of quality has its own command, and the command is the only way to file a report. `validate_technical` runs the technical checks and writes the technical report. Every option above except `--aspect` narrows its run the same way, and plain `pytest --validation-report` is refused. The conformance and integrity commands do not exist yet.
+A report is the formal record that the code was validated, so it is filed when the code is declared ready, not as part of the build loop. Each aspect of quality has its own command, and the command given `--validation-report` is the only way to file a report. `validate_technical` runs the technical checks and writes nothing, and adding `--validation-report` writes the technical report. Every option above except `--aspect` narrows its run the same way, and plain `pytest --validation-report` is refused. The conformance and integrity commands do not exist yet.
 
 Three things govern a report.
 
@@ -91,5 +91,6 @@ Three things govern a report.
 | What the pre-commit hook enforces, after it refuses a commit | `pytest --group hook` |
 | A listing of what a selection would run | `pytest --aspect integrity --collect-only -q` |
 | One value of a check that runs once per pinned file | copy its line from that listing and give it as the path |
-| A filed report of every technical check | `validate_technical` |
-| A filed report of one narrowed technical run | `validate_technical --category sources` |
+| Every technical check, writing nothing | `validate_technical` |
+| A filed report of every technical check | `validate_technical --validation-report` |
+| A filed report of one narrowed technical run | `validate_technical --validation-report --category sources` |

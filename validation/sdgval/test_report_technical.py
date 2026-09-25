@@ -553,7 +553,7 @@ def test_a_report_asked_of_plain_pytest_is_refused_before_any_check_runs(
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
     assert "a report comes only from the command for one aspect" in printed
-    assert "Run validate_technical instead" in printed
+    assert "Run validate_technical --validation-report instead" in printed
     assert "test_adds" not in result.stdout.str()
     assert not staged_suite.report_dir.exists()
 

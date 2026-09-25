@@ -1,13 +1,16 @@
 """
 Script:      validate_technical.py
-Description: Runs the technical checks and writes the technical report. It is the
-             one way to file a report on how the project's scripts run.
+Description: Runs the technical checks, and with --validation-report writes the
+             technical report. It is the one way to file a report on how the
+             project's scripts run.
 
-             It hands pytest the person's arguments with two more added: --aspect
-             technical, so only technical checks run, and --validation-report, so
-             the report is written by src/sdgval/report.py. Every other way of
-             narrowing a run works as it does for pytest, such as --objective,
-             --category, --id, --group, a test file or a list of test files.
+             It hands pytest the person's arguments with --aspect technical added,
+             so only technical checks run. With --validation-report, the report is
+             written by src/sdgval/report.py. Without it, the run writes nothing,
+             which is how the technical checks are run during development. Every
+             other way of narrowing a run works as it does for pytest, such as
+             --objective, --category, --id, --group, a test file or a list of test
+             files.
 
              A run given --aspect is refused before any check runs, because the
              aspect is this command's own and a second one would mix aspects in
@@ -15,10 +18,13 @@ Description: Runs the technical checks and writes the technical report. It is th
 
 Inputs:      validation/**/test_*.py (read-only; the checks it runs)
 
-Outputs:     One report in validation/reports/, written by src/sdgval/report.py and
-             named technical_<YYYY-MM-DD>_<commit>.csv.
+Outputs:     Nothing, unless --validation-report is given. Then one report in
+             validation/reports/, written by src/sdgval/report.py and named
+             technical_<YYYY-MM-DD>_<commit>.csv.
 
 Usage:       validate_technical
+                 run every technical check and write nothing
+             validate_technical --validation-report
                  run every technical check and write the report
              validate_technical --objective functionality
                  run only the technical checks with that objective
@@ -96,7 +102,7 @@ class AspectRun:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Run the technical checks with a report, passing the person's arguments on.
+    """Run the technical checks, passing the person's arguments on.
 
     Args:
         argv: The command-line arguments, or None to read them from the command
@@ -108,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
     args = sys.argv[1:] if argv is None else argv
     return int(
         pytest.main(
-            ["--aspect", ASPECT, "--validation-report", *args],
+            ["--aspect", ASPECT, *args],
             plugins=[AspectRun()],
         )
     )

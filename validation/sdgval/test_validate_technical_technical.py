@@ -71,18 +71,21 @@ MIXED_SUITE = '''
     '''
 
 
-def run_command(staged_suite, pytester, *args):
+def run_command(staged_suite, pytester, *args, report=True):
     """Write the mixed suite and run the command on it in a separate process.
 
     Args:
         staged_suite: The throwaway suite to write.
         pytester: pytest's helper for running a separate process.
         *args: The arguments a person would type after the command.
+        report: Whether --validation-report is given.
 
     Returns:
         The result of the run and the folder the report was written to.
     """
     staged_suite.write(MIXED_SUITE)
+    if report:
+        args = ("--validation-report", *args)
     result = pytester.run(
         sys.executable,
         "-m",
@@ -122,6 +125,21 @@ def test_options_after_the_command_narrow_the_run(staged_suite, pytester):
     assert result.ret == 0
     ids = {row["id"] for row in staged_suite.report(out)}
     assert ids == {"XYZ0103"}
+
+
+@code("SA00486")
+@category("repository")
+@objective("functionality")
+@positive
+def test_without_the_report_flag_the_checks_run_and_nothing_is_written(
+    staged_suite, pytester
+):
+    """Without --validation-report, the command runs the technical checks, exits 0
+    and writes no report, so a development run leaves no record."""
+    result, out = run_command(staged_suite, pytester, "-v", report=False)
+    assert result.ret == 0
+    assert "test_runs PASSED" in result.stdout.str()
+    assert not out.exists()
 
 
 @code("SA00484")

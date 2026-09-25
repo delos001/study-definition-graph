@@ -63,10 +63,10 @@ Outputs:     Nothing, unless --validation-report is given. Then it writes one fi
              validated nothing, and neither does a listing run, --collect-only,
              because it ran nothing.
 
-Usage:       validate_technical
-                 an aspect's command loads this writer with --validation-report;
-                 plain pytest --validation-report is refused
-             validate_technical --validation-report-dir <folder>
+Usage:       validate_technical --validation-report
+                 an aspect's command runs its checks and this writer writes the
+                 report; plain pytest --validation-report is refused
+             validate_technical --validation-report --validation-report-dir <folder>
                  same, writing the report to another folder
 
 Exit codes:  None of its own. It runs inside pytest, and a report asked for without
@@ -464,7 +464,8 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         raise pytest.UsageError(
             "No checks were run and no validation report was written, because a "
             "report comes only from the command for one aspect of quality. Run "
-            "validate_technical instead of pytest --validation-report."
+            "validate_technical --validation-report instead of pytest "
+            "--validation-report."
         )
     report_dir = _report_dir(session.config)
     changes = uncommitted_changes(session.config.rootpath, report_dir)
