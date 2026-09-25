@@ -28,6 +28,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import json
 import sys
 
 import pytest
@@ -153,7 +154,7 @@ def test_the_report_is_named_for_its_aspect(staged_suite, pytester):
     it covers."""
     result, out = run_command(staged_suite, pytester)
     assert result.ret == 0
-    (report,) = out.glob("*.csv")
+    (report,) = (p for p in out.glob("*.csv") if not p.stem.endswith("_run"))
     assert report.name.startswith("technical_")
     assert {row["run_id"] for row in staged_suite.report(out)} == {report.stem}
 
@@ -163,13 +164,30 @@ def test_the_report_is_named_for_its_aspect(staged_suite, pytester):
 @objective("functionality")
 @positive
 def test_the_report_is_written_in_the_technical_folder(staged_suite, pytester):
-    """The report is written in a folder named technical inside the report folder,
-    and nothing is written in the report folder itself, so each aspect's reports are
-    kept apart."""
+    """The report and the run's own file are written in a folder named technical
+    inside the report folder, and nothing is written in the report folder itself, so
+    each aspect's reports are kept apart."""
     result, _ = run_command(staged_suite, pytester)
     assert result.ret == 0
-    assert len(list((staged_suite.report_dir / "technical").glob("*.csv"))) == 1
+    assert len(list((staged_suite.report_dir / "technical").glob("*.csv"))) == 2
     assert not list(staged_suite.report_dir.glob("*.csv"))
+
+
+@code("SA00490")
+@category("repository")
+@objective("functionality")
+@positive
+def test_each_way_of_narrowing_the_run_has_its_own_column(staged_suite, pytester):
+    """In the run's own file, each way the run was narrowed is written in its own
+    selection column, a list as JSON, and a way that was not used leaves its column
+    empty."""
+    result, out = run_command(staged_suite, pytester, "--id", "XYZ0103")
+    assert result.ret == 0
+    run = staged_suite.run_details(out)
+    assert json.loads(run["selection_aspect"]) == ["technical"]
+    assert json.loads(run["selection_id"]) == ["XYZ0103"]
+    assert run["selection_objective"] == ""
+    assert run["selection_keyword"] == ""
 
 
 #######################################################################################

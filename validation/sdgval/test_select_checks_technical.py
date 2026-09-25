@@ -28,6 +28,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import json
 import textwrap
 
 import pytest
@@ -203,14 +204,14 @@ def test_group_runs_the_ids_the_groups_file_lists(staged_suite):
 @objective("functionality")
 @positive
 def test_the_selection_column_records_the_options(staged_suite):
-    """The report's selection column records the selection options as given, so a
-    narrowed run cannot pass for a full one."""
+    """The report's selection column records the selection options as given, as JSON
+    with one key per option, so a narrowed run cannot pass for a full one."""
     _, _, rows, _ = selected(
         staged_suite, "--category", "repository", "--objective", "correctness"
     )
-    assert {r["selection"] for r in rows} == {
-        "--category repository --objective correctness"
-    }
+    assert [json.loads(s) for s in {r["selection"] for r in rows}] == [
+        {"category": ["repository"], "objective": ["correctness"]}
+    ]
 
 
 #######################################################################################

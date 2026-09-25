@@ -1,36 +1,71 @@
 # Validation report dictionary
 
-Defines every column of a validation report and every value a coded column may hold.
+Defines every column of a validation report and of the run's own file beside it, and every value a coded column may hold.
 
-A report is written by an aspect's command when it is given `--validation-report`, as in `validate_technical --validation-report`. It lands in the folder for its aspect inside this one, as `technical/` holds the technical reports. Each run writes one CSV file named `<aspect>_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `src/sdgval/report.py`. Nothing in a report is typed by hand.
+A report is written by an aspect's command when it is given `--validation-report`, as in `validate_technical --validation-report`. It lands in the folder for its aspect inside this one, as `technical/` holds the technical reports. Each run writes two CSV files. The report, named `<aspect>_<date>_<commit>.csv`, holds one row per check that ran. The run's own file, named the same with `_run` added, as in `<aspect>_<date>_<commit>_run.csv`, holds one row with the details that are the same for every check in the run. The two join on `run_id`. Every column is written by `src/sdgval/report.py`. Nothing in either file is typed by hand.
 
 The check columns carry the same names as `validation/validation_inventory.csv`, so a row joins to the inventory by `id`. Their definitions are in `validation/validation_inventory_dictionary.md` and are not repeated here.
 
-## Columns
+## Report columns
 
 ### `run_id`
-- Identifies the run.
+- Identifies the run, and joins each row to the run's own file.
 - Read by the writer from the report's own file name.
 - Holds the file name without `.csv`, such as `technical_2026-09-25_1286c8b`, with the numbered suffix a second run on the same day and commit gets, so the id in the rows and the file that holds them can never disagree.
 
+### `run_started`
+- Records when the run began, on every row, so results can be plotted over time without joining to the run's own file.
+- Read by the writer from the clock at the start of the run.
+- Holds a local timestamp with its zone, as `YYYY-MM-DD HH:MM:SS +HHMM`.
+
 ### `selection`
-- Records which checks the command line selected.
+- Records which checks the command line selected, kept on every row so a reader has it at hand.
 - Read by the writer from pytest's parsed arguments.
-- Holds `all` for the whole suite, or the paths, node ids, `-k` and `-m` filters and the `--category`, `--aspect`, `--objective`, `--id` and `--group` options that were given. It records what was asked for, which is what a reader needs to run the same thing again. Whether the run then covered everything it set out to is `checks_collected` against `checks_reported`.
+- Holds a JSON object with one key for each way the run was narrowed, using the keys listed under the run's own file's `selection_` columns. A key is present only when that way was used, and an empty object, `{}`, means nothing narrowed the run. The same selection, one column per key, is in the run's own file.
 
-### `checks_collected`
-- Says how many checks the run set out to cover.
-- Read by the writer from the checks pytest was left holding, plus every check dropped before the run, which pytest reports through a hook it fires for each one.
-- Holds a whole number. It is counted from what happened rather than from the options that were typed, because an option the writer knows nothing about narrows a run just the same. A file kept out of collection altogether, as `--ignore` does, is never seen by the run, so it cannot be counted here and `selection` is what records it.
+### `category`, `quality_aspect`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
+- Same as in the inventory, in the inventory's order, defined in `validation/validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
+- Read by the writer from the check's markers, docstring and file path at run time, not from the inventory. `quality_aspect` is looked up from the objective, the way the inventory fills it.
+- `expected_result` holds `(no docstring)` when the check has none, and `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
 
-### `checks_reported`
-- Says how many checks the report holds a row for.
-- Read by the writer from the outcomes it collected.
-- Holds a whole number. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so a run that covered part of the suite cannot read as one that covered all of it. It is 0 on the row written when no check ran.
+### `parameter`
+- Says which value a parametrized check ran with, since pytest runs such a check once per value and the report has one row per run.
+- Read by the writer from pytest's name for the run: the name the check gives it with `ids=`, or the value itself when it is a plain word, number or path. The full list of a check's values is the `@pytest.mark.parametrize` line above its function in the test file, or, when that line calls a function, whatever the function lists at run time.
+- Holds the run's name, such as `unlisted code first`, or nothing when the check has no parameters.
+
+### `outcome`
+- Says how the check ended.
+- Read by the writer from pytest's result for the check's set-up, run and clean-up.
+- Holds one of the outcomes below.
+
+### `outcome_reason`
+- Says why the outcome is not passed.
+- Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
+- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `pytest_exit_cause` in the run's own file already carries it.
+
+### `check_file_sha256`
+- Fingerprints the test file the check came from, the one `folder_path` and `file_name` name, as it was when the run read it.
+- Read by the writer by hashing the file's bytes.
+- Holds the sha256 as hex. It recognises a version but cannot produce one. Hash the file you hold and compare: a match means you are reading the check that ran, and a difference means the file was edited since the report. To get the version that ran, use `commit` in the run's own file.
+
+### `fixture_sha256s`
+- Fingerprints every file under `fixtures/`, the small stand-ins the staged checks read, as they were when the run read them.
+- Read by the writer by hashing each file's bytes.
+- Holds `validation/fixtures/<name>=<sha256>` for each file, separated by semicolons. Each is used the same way as `check_file_sha256`.
+
+## Run file columns
+
+### `run_id`, `run_started`
+- Same as in the report.
+
+### `run_by`
+- Records who ran the checks.
+- Read by the writer from git's configured user name.
+- Holds the name, or `(unknown)` when git did not answer.
 
 ### `run_verdict`
 - Says whether the run as a whole passed.
-- Read by the writer from pytest's exit status.
+- Read by the writer from pytest's exit code.
 - Holds one of the verdicts below.
 
 ### `pytest_exit_code`
@@ -43,55 +78,42 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Read by the writer from the table of exit causes below.
 - Holds one of the exit causes below.
 
-### `category`, `quality_aspect`, `objective`, `staged_case`, `folder_path`, `file_name`, `name`, `id`, `target_folder_path`, `target_file_name`, `expected_result`
-- Same as in the inventory, in the inventory's order, defined in `validation/validation_inventory_dictionary.md`. `parameter` sits between `name` and `id`.
-- Read by the writer from the check's markers, docstring and file path at run time, not from the inventory. `quality_aspect` is looked up from the objective, the way the inventory fills it.
-- `expected_result` holds `(no docstring)` when the check has none, and `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
+### `checks_collected`
+- Says how many checks the run set out to cover.
+- Read by the writer from the checks pytest was left holding, plus every check dropped before the run, which pytest reports through a hook it fires for each one.
+- Holds a whole number. It is counted from what happened rather than from the options that were typed, because an option the writer knows nothing about narrows a run just the same. A file kept out of collection altogether, as `--ignore` does, is never seen by the run, so it cannot be counted here.
 
-### `parameter`
-- Says which value a parametrized check ran with, since pytest runs such a check once per value and the report has one row per run.
-- Read by the writer from pytest's id for the value. The full list of a check's values is the `@pytest.mark.parametrize` line above its function in the test file, or, when that line calls a function, whatever the function lists at run time, as the fixity check lists every pinned file.
-- Holds the id, such as a pinned file's path for the fixity check, or nothing when the check has no parameters.
-
-### `outcome`
-- Says how the check ended.
-- Read by the writer from pytest's result for the check's set-up, run and clean-up.
-- Holds one of the outcomes below.
-
-### `outcome_reason`
-- Says why the outcome is not passed.
-- Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
-- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `pytest_exit_cause` already carries it.
-
-### `run_started`
-- Records when the run began.
-- Read by the writer from the clock at the start of the run.
-- Holds a local timestamp with its zone, as `YYYY-MM-DD HH:MM:SS +HHMM`.
+### `checks_reported`
+- Says how many checks the report holds a row for.
+- Read by the writer from the outcomes it collected.
+- Holds a whole number. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so a run that covered part of the suite cannot read as one that covered all of it. It is 0 when no check ran.
 
 ### `commit`
 - Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs. It is the one way to get back the exact code that ran, test files included, with `git show <commit>:<path>`.
 - Read by the writer from git.
 - Holds the short hash, or `(unknown)` when git did not answer.
 
-### `run_by`
-- Records who ran the checks.
-- Read by the writer from git's configured user name.
-- Holds the name, or `(unknown)` when git did not answer.
-
-### `check_file_sha256`
-- Fingerprints the test file the check came from, the one `folder_path` and `file_name` name, as it was when the run read it.
-- Read by the writer by hashing the file's bytes.
-- Holds the sha256 as hex. It recognises a version but cannot produce one. Hash the file you hold and compare: a match means you are reading the check that ran, and a difference means the file was edited since the report. To get the version that ran, use `commit`.
-
-### `fixture_sha256s`
-- Fingerprints every file under `fixtures/`, the small stand-ins the staged checks read, as they were when the run read them.
-- Read by the writer by hashing each file's bytes.
-- Holds `validation/fixtures/<name>=<sha256>` for each file, separated by semicolons. Each is used the same way as `check_file_sha256`.
-
 ### `python_version`, `pytest_version`, `platform`
 - Record the Python version, the pytest version and the operating system the run used.
 - Read by the writer from the running interpreter.
 - Hold the versions and the platform string as the tools report them.
+
+### `selection_aspect`, `selection_category`, `selection_objective`, `selection_id`, `selection_group`
+- Record the values given to `--aspect`, `--category`, `--objective`, `--id` and `--group`, the options of `src/sdgval/select_checks.py`.
+- Read by the writer from pytest's parsed arguments.
+- Each holds a JSON list of the values given, such as `["technical"]`, or nothing when the option was not used. An aspect's command always gives its own aspect.
+
+### `selection_keyword`, `selection_marker`
+- Record the expression given to pytest's `-k` filter, which selects checks by words in their names, and to its `-m` filter, which selects them by their labels.
+- Read by the writer from pytest's parsed arguments.
+- Each holds the expression as typed, or nothing when the filter was not used.
+
+### `selection_paths`
+- Records the files, folders or single checks the person typed.
+- Read by the writer from pytest's parsed arguments. A path pytest filled in from its own configuration is not recorded, because the person did not narrow the run with it.
+- Holds a JSON list of the paths, or nothing when none was typed.
+
+The selection columns come last, so a new way of narrowing a run adds a column at the right and every other column keeps its place.
 
 ## Verdicts
 
@@ -104,7 +126,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - `failed`: the check ran and an assertion did not hold.
 - `skipped`: the check did not run, by its own skip marker or because a pinned file it names was not downloaded or no longer matches its manifest entry.
 - `error`: the check's set-up or clean-up broke, whatever the check itself did.
-- `none`: no check ran at all. The report then has this one row, and `pytest_exit_cause` says why nothing ran.
+- `none`: no check ran at all. The report then has this one row, and `pytest_exit_cause` in the run's own file says why nothing ran.
 
 A later step never makes a row better. A check whose assertions held but whose clean-up broke is `error`. A check that failed and then broke in its clean-up is `error` too, and `outcome_reason` keeps the failure alongside the clean-up, so the later step cannot hide the earlier one.
 

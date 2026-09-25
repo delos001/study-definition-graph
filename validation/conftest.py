@@ -416,6 +416,9 @@ class StagedSuite:
         self.validation = pytester.path / "validation"
         self.test_file = self.validation / "test_suite.py"
         self.report_dir = pytester.path / "reports_out"
+        # The writer puts each report in a folder named for its aspect, and the
+        # staged runs all leave the technical aspect.
+        self.technical_dir = self.report_dir / "technical"
 
     def write(self, test_source: str) -> Path:
         """Write the suite's one test file into its validation/ folder.
@@ -461,11 +464,11 @@ class StagedSuite:
             str(self.report_dir),
             *extra_args,
         )
-        return result, self.report_dir / "technical"
+        return result, self.technical_dir
 
     @staticmethod
     def report(folder: Path) -> list[dict[str, str]]:
-        """Read the one report a run wrote.
+        """Read the one report a run wrote, the file with one row per check.
 
         Args:
             folder: Where the report was written.
@@ -473,10 +476,27 @@ class StagedSuite:
         Returns:
             The report's rows, one record per check, each a dict keyed by column name.
         """
-        reports = list(folder.glob("*.csv"))
+        reports = [p for p in folder.glob("*.csv") if not p.stem.endswith("_run")]
         assert len(reports) == 1, [r.name for r in reports]
         with reports[0].open(encoding="utf-8", newline="") as fh:
             return list(csv.DictReader(fh))
+
+    @staticmethod
+    def run_details(folder: Path) -> dict[str, str]:
+        """Read the one run's own file a run wrote, beside its report.
+
+        Args:
+            folder: Where the report was written.
+
+        Returns:
+            The file's one row, a dict keyed by column name.
+        """
+        files = list(folder.glob("*_run.csv"))
+        assert len(files) == 1, [f.name for f in files]
+        with files[0].open(encoding="utf-8", newline="") as fh:
+            rows = list(csv.DictReader(fh))
+        assert len(rows) == 1, rows
+        return rows[0]
 
     @staticmethod
     def row(rows: list[dict[str, str]], check_name: str) -> dict[str, str]:

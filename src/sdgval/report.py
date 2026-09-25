@@ -1,38 +1,43 @@
 """
 Script:      report.py
 Description: A pytest plugin that collects how each check ended and, when asked,
-             writes a validation report: one CSV file per run, one row per check.
+             writes a validation report of the run: two CSV files, the report with
+             one row per check and the run's own file with one row for the run.
 
-             A report is meant to be auditable, so it identifies what was tested, how,
-             when, by whom, and with what outcome. The run's own details are repeated
-             on every row, so each file is complete on its own and any row can be
-             joined to validation/validation_inventory.csv by its check's id.
-               - What was tested is the target file, the file of checks and its sha256,
-                 the fixture files and their sha256s, and the code commit. The
-                 working folder must match that commit
-                 exactly, so a run asked for a report refuses to start when there
-                 are uncommitted changes, before any check runs, and says which
-                 files they are. The commit it would have named would not have
-                 described the code that ran.
-               - How is which checks were selected, how many the run set out to
-                 cover and how many it reports on, and, at the far right of each
-                 row, the Python and pytest versions and the operating system. The
-                 two counts differ when checks were dropped or the run stopped
-                 early, so a partial run cannot read as a whole one. They are
-                 counted from what happened rather than from the options typed,
-                 because an option this file does not know about narrows a run
-                 just the same.
-               - When is the local timestamp with its zone, and by whom is the git user
-                 name.
-               - The outcome is the run's verdict, from pytest's own exit status, and
-                 one row per check. A row holds the check's id, its name, its
-                 parameter when it has one, its category, its aspect of quality,
-                 its objective, its case when it staged its own situation, its
-                 expected result, which is its docstring's first paragraph, its own
-                 outcome, and the reason when that is not passed: the assertion
-                 message, the step that broke, or why it was skipped. A check that
-                 goes wrong twice, failing and then breaking in its clean-up,
-                 keeps both reasons in the order the steps ran.
+             A report is meant to be auditable, so the two files together identify
+             what was tested, how, when, by whom, and with what outcome. Each row of
+             the report carries the run's id, which joins it to the run's own file,
+             and its check's id, which joins it to
+             validation/validation_inventory.csv.
+               - What was tested is the target file, the file of checks and its
+                 sha256 and the fixture files and their sha256s, on each row, and
+                 the code commit, in the run's own file. The working folder must
+                 match that commit exactly, so a run asked for a report refuses to
+                 start when there are uncommitted changes, before any check runs,
+                 and says which files they are. The commit it would have named
+                 would not have described the code that ran.
+               - How is which checks were selected, as JSON on each row and one
+                 column per way of narrowing in the run's own file, and, in the
+                 run's own file, how many checks the run set out to cover and how
+                 many it reports on, and the Python and pytest versions and the
+                 operating system. The two counts differ when checks were dropped
+                 or the run stopped early, so a partial run cannot read as a whole
+                 one. They are counted from what happened rather than from the
+                 options typed, because an option this file does not know about
+                 narrows a run just the same.
+               - When is the local timestamp with its zone, on each row and in the
+                 run's own file, and by whom is the git user name, in the run's own
+                 file.
+               - The outcome is the run's verdict, from pytest's own exit status, in
+                 the run's own file, and one row per check in the report. A row
+                 holds the check's id, its name, its parameter when it has one, its
+                 category, its aspect of quality, its objective, its case when it
+                 staged its own situation, its expected result, which is its
+                 docstring's first paragraph, its own outcome, and the reason when
+                 that is not passed: the assertion message, the step that broke, or
+                 why it was skipped. A check that goes wrong twice, failing and then
+                 breaking in its clean-up, keeps both reasons in the order the steps
+                 ran.
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
@@ -44,8 +49,8 @@ Description: A pytest plugin that collects how each check ended and, when asked,
              Therefore the report can never say PASS when the terminal said otherwise.
              The rows are the detail; the exit status is the verdict. When no check
              ran at all, a report is still written, with one row saying so. Why no
-             check ran is in that row's pytest_exit_cause, because the exit status is
-             all the writer knows about the cause.
+             check ran is in the run's pytest_exit_cause, because the exit status
+             is all the writer knows about the cause.
 
              Every location is read from pytest's root folder, which is the repo
              root for a real run and a temporary folder for this plugin's own
@@ -54,9 +59,11 @@ Description: A pytest plugin that collects how each check ended and, when asked,
 Inputs:      git (for the commit hash and user name; read-only)
              validation/**/test_*.py and validation/fixtures/* (read-only; hashed)
 
-Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
-             validation/reports/<aspect>/<aspect>_<YYYY-MM-DD>_<commit>.csv, with one row per
-             check. The aspect is the one an aspect's command, such as
+Outputs:     Nothing, unless --validation-report is given. Then it writes two files
+             in validation/reports/<aspect>/: the report,
+             <aspect>_<YYYY-MM-DD>_<commit>.csv, with one row per check, and beside
+             it the run's own file, the same name ending _run.csv, with one row.
+             The aspect is the one an aspect's command, such as
              src/sdgval/validate_technical.py, leaves in pytest's stash.
              An existing name is never overwritten; it gets a numeric suffix. A run
              whose command line pytest refused writes nothing, because it
@@ -82,6 +89,7 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import hashlib
+import json
 import platform
 import subprocess
 import time
@@ -485,19 +493,16 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         )
 
 
-# The columns of a report, in the order they are written: which run, what it
-# covered and how it went, then the inventory's columns in the inventory's own
-# order with the parameter beside the name, then how the check ended, then the
-# details a reader needs only to reproduce a failure. The inventory's columns
-# carry its names, so a row joins to it by id.
+# The columns of a report, one row per check, in the order they are written: the
+# run the row belongs to, when it started and what it selected, then the inventory's
+# columns in the inventory's own order with the parameter beside the name, then how
+# the check ended, then the fingerprints a reader needs only to reproduce a failure.
+# The inventory's columns carry its names, so a row joins to it by id, and run_id
+# joins it to the run's own file.
 REPORT_COLUMNS = (
     "run_id",
+    "run_started",
     "selection",
-    "checks_collected",
-    "checks_reported",
-    "run_verdict",
-    "pytest_exit_code",
-    "pytest_exit_cause",
     "category",
     "quality_aspect",
     "objective",
@@ -512,47 +517,78 @@ REPORT_COLUMNS = (
     "expected_result",
     "outcome",
     "outcome_reason",
-    "run_started",
-    "commit",
-    "run_by",
     "check_file_sha256",
     "fixture_sha256s",
+)
+
+# The ways a run can be narrowed, in the order the run's file writes them. The first
+# five are the options of src/sdgval/select_checks.py, keyword and marker are
+# pytest's -k and -m filters, and paths are the files, folders or single checks the
+# person typed.
+SELECTION_KEYS = (
+    "aspect",
+    "category",
+    "objective",
+    "id",
+    "group",
+    "keyword",
+    "marker",
+    "paths",
+)
+
+# The columns of the run's own file, which holds one row: the details that are the
+# same for every check in the run. The selection comes last, one column per way of
+# narrowing a run, so a new way adds a column at the right and every other column
+# keeps its place.
+RUN_COLUMNS = (
+    "run_id",
+    "run_started",
+    "run_by",
+    "run_verdict",
+    "pytest_exit_code",
+    "pytest_exit_cause",
+    "checks_collected",
+    "checks_reported",
+    "commit",
     "python_version",
     "pytest_version",
     "platform",
+    *(f"selection_{key}" for key in SELECTION_KEYS),
 )
 
 
-def _selection(config: pytest.Config) -> str:
-    """Say which checks the command line selected.
+def _selection(config: pytest.Config) -> dict[str, list[str] | str]:
+    """Say which checks the command line selected, one entry per way it was narrowed.
 
     The answer is read from pytest's own parsing rather than from the raw command
     line, so a node id, a path, or the value of any option is recorded for what it is.
-    The paths and node ids count only when the person typed them; when pytest filled
-    them in from its configured test paths, the whole suite was selected.
+    The paths count only when the person typed them; when pytest filled them in from
+    its configured test paths, no path narrowed the run.
 
     Args:
         config: pytest's configuration for the run.
 
     Returns:
-        The paths and node ids typed, the -k or -m filters given, and the
-        --category, --objective, --id and --group options given, joined with
-        spaces, or all when the whole suite was selected.
+        Each way the run was narrowed, keyed as in SELECTION_KEYS. The options and
+        the paths hold a list, because each can hold several values, and the -k and
+        -m filters hold their expression. A way that was not used has no entry.
     """
-    kept: list[str] = []
-    if config.args_source == pytest.Config.ArgsSource.ARGS:
-        kept.extend(config.args)
-    keyword = config.getoption("keyword")
-    if keyword:
-        kept.append(f"-k {keyword}")
-    markexpr = config.getoption("markexpr")
-    if markexpr:
-        kept.append(f"-m {markexpr}")
+    chosen: dict[str, list[str] | str] = {}
     for name in SELECTORS:
         values = wanted(config, name)
         if values:
-            kept.append(f"--{name} {','.join(values)}")
-    return " ".join(kept) or "all"
+            chosen[name] = values
+    keyword = config.getoption("keyword")
+    if keyword:
+        chosen["keyword"] = keyword
+    markexpr = config.getoption("markexpr")
+    if markexpr:
+        chosen["marker"] = markexpr
+    if config.args_source == pytest.Config.ArgsSource.ARGS and config.args:
+        chosen["paths"] = list(config.args)
+    # The entries are put in the order of SELECTION_KEYS, so the JSON on every row
+    # reads the same way whatever order the options were typed in.
+    return {key: chosen[key] for key in SELECTION_KEYS if key in chosen}
 
 
 def _target_of(test_file: Path, root: Path) -> tuple[str, str]:
@@ -578,12 +614,13 @@ def _target_of(test_file: Path, root: Path) -> tuple[str, str]:
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
-    """Write the report after the whole run, if asked.
+    """Write the report and the run's own file after the whole run, if asked.
 
-    Nothing is written unless --validation-report was given. One CSV file is written
-    per run, one row per check, with the run's own details repeated on every row so
-    the file is complete on its own. The verdict is PASS only when pytest's own exit
-    number is 0.
+    Nothing is written unless --validation-report was given. Two CSV files are
+    written per run. The report holds one row per check, carrying the run's id, when
+    it started and what it selected. The run's own file holds one row with the
+    details that are the same for every check, and joins to the report on run_id.
+    The verdict is PASS only when pytest's own exit number is 0.
 
     Args:
         session: The pytest run.
@@ -600,8 +637,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if session.config.getoption("collectonly"):
         return
 
-    # Everything the report states about the run is gathered once here and
-    # written on every row.
+    # Everything the two files state about the run is gathered once here.
     now = dt.datetime.now().astimezone()
     started = now - dt.timedelta(seconds=time.monotonic() - _started_at)
     status = int(exitstatus)
@@ -620,28 +656,45 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     report_dir = _report_dir(session.config) / aspect
     report_dir.mkdir(parents=True, exist_ok=True)
     target = _unique(report_dir / f"{aspect}_{now:%Y-%m-%d}_{commit}.csv")
+    run_target = target.with_name(f"{target.stem}_run.csv")
+    selection = _selection(session.config)
+    # What every row of the report repeats about its run: the id that joins it to
+    # the run's own file, the start that lets results be plotted over time, and the
+    # selection as JSON for a reader who wants it at hand.
     run = {
         "run_id": target.stem,
+        "run_started": f"{started:%Y-%m-%d %H:%M:%S %z}",
+        "selection": json.dumps(selection),
+        "fixture_sha256s": "; ".join(
+            f"validation/fixtures/{p.name}={_sha256(p)}" for p in fixtures
+        ),
+    }
+    # The run's own row. A selection column holds JSON when its way of narrowing
+    # can hold several values, the -k or -m expression as typed, and nothing when
+    # that way was not used.
+    run_row: dict[str, object] = {
+        "run_id": run["run_id"],
+        "run_started": run["run_started"],
+        "run_by": _git("config", "user.name", cwd=root),
         "run_verdict": "PASS" if status == 0 else "FAIL",
         "pytest_exit_code": status,
         "pytest_exit_cause": EXIT_CAUSE.get(status, "unknown status"),
-        "run_started": f"{started:%Y-%m-%d %H:%M:%S %z}",
-        "commit": commit,
-        "run_by": _git("config", "user.name", cwd=root),
-        "selection": _selection(session.config),
         # What the run set out to cover, against what it ended up reporting on. The
         # two differ when checks were dropped or the run stopped early, so a run
         # that covered part of the suite cannot read as one that covered all of it,
         # whatever narrowed it.
         "checks_collected": len(session.items) + _deselected,
         "checks_reported": len(_outcomes),
+        "commit": commit,
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
         "platform": platform.platform(),
-        "fixture_sha256s": "; ".join(
-            f"validation/fixtures/{p.name}={_sha256(p)}" for p in fixtures
-        ),
     }
+    for key in SELECTION_KEYS:
+        value = selection.get(key, "")
+        run_row[f"selection_{key}"] = (
+            json.dumps(value) if isinstance(value, list) else value
+        )
 
     rows: list[dict] = []
     if _outcomes:
@@ -681,8 +734,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 )
     else:
         # No outcome was collected, so no check ran. The row says only that. Why
-        # no check ran is already in the pytest_exit_cause column, which is right for
-        # every exit number, and the writer cannot know more than the number.
+        # no check ran is in the pytest_exit_cause column of the run's own file,
+        # which is right for every exit number, and the writer cannot know more
+        # than the number.
         rows.append(
             {
                 **run,
@@ -708,7 +762,12 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         writer = csv.DictWriter(fh, fieldnames=REPORT_COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
+    with run_target.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=RUN_COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerow(run_row)
 
     terminal = session.config.pluginmanager.get_plugin("terminalreporter")
     if terminal is not None:
         terminal.write_line(f"validation report written: {target.as_posix()}")
+        terminal.write_line(f"run details written: {run_target.as_posix()}")

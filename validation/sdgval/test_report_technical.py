@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import json
 
 import pytest
 
@@ -100,14 +101,15 @@ def passing(staged_suite):
 @category("repository")
 @objective("functionality")
 @positive
-def test_passing_run_is_recorded_as_pass(passing):
-    """A suite whose tests all pass gets a report saying PASS, with pytest's exit
-    status 0 and its meaning on every row."""
-    result, rows = passing
+def test_passing_run_is_recorded_as_pass(passing, staged_suite):
+    """A suite whose tests all pass gets a run's own file saying PASS, with pytest's
+    exit code 0 and its cause."""
+    result, _ = passing
     assert result.ret == 0
-    assert {r["run_verdict"] for r in rows} == {"PASS"}
-    assert {r["pytest_exit_code"] for r in rows} == {"0"}
-    assert {r["pytest_exit_cause"] for r in rows} == {"all tests passed"}
+    run = staged_suite.run_details(staged_suite.technical_dir)
+    assert run["run_verdict"] == "PASS"
+    assert run["pytest_exit_code"] == "0"
+    assert run["pytest_exit_cause"] == "all tests passed"
 
 
 @code("SA00434")
@@ -243,8 +245,9 @@ def test_cleanup_failure_is_recorded_as_fail(staged_suite):
     )
     assert result.ret == 1
     rows = staged_suite.report(out)
-    assert {r["run_verdict"] for r in rows} == {"FAIL"}
-    assert {r["pytest_exit_code"] for r in rows} == {"1"}
+    run = staged_suite.run_details(out)
+    assert run["run_verdict"] == "FAIL"
+    assert run["pytest_exit_code"] == "1"
     row = staged_suite.row(rows, "test_checks_pass_but_cleanup_fails")
     assert row["outcome"] == "error"
     assert row["outcome_reason"] == "clean-up failed"
@@ -300,7 +303,7 @@ def test_failing_assertion_is_recorded_as_fail(staged_suite):
     )
     assert result.ret == 1
     rows = staged_suite.report(out)
-    assert {r["run_verdict"] for r in rows} == {"FAIL"}
+    assert staged_suite.run_details(out)["run_verdict"] == "FAIL"
     row = staged_suite.row(rows, "test_wrong")
     assert row["expected_result"] == "Claims two and two make five."
     assert row["outcome"] == "failed"
@@ -328,7 +331,7 @@ def test_setup_failure_is_recorded_as_error(staged_suite):
     )
     assert result.ret == 1
     rows = staged_suite.report(out)
-    assert {r["run_verdict"] for r in rows} == {"FAIL"}
+    assert staged_suite.run_details(out)["run_verdict"] == "FAIL"
     assert staged_suite.row(rows, "test_never_runs")["outcome"] == "error"
 
 
@@ -344,12 +347,12 @@ def test_file_that_will_not_load_still_gets_a_fail_report(staged_suite):
     result, out = staged_suite.run("def test_broken(:\n    pass\n")
     assert result.ret == 2
     rows = staged_suite.report(out)
+    run = staged_suite.run_details(out)
     assert len(rows) == 1
-    assert rows[0]["run_verdict"] == "FAIL"
-    assert rows[0]["pytest_exit_cause"] == "the run was interrupted"
+    assert run["run_verdict"] == "FAIL"
+    assert run["pytest_exit_cause"] == "the run was interrupted"
     assert rows[0]["outcome"] == "none"
     assert rows[0]["outcome_reason"].startswith("no check ran")
-    assert next(out.glob("*.csv")).name.startswith("technical_")
 
 
 #######################################################################################
@@ -367,7 +370,7 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(staged_
     """A second report written on the same day at the same commit is given a numbered
     suffix, and the first report is left exactly as it was."""
     _, out = staged_suite.run(PASSING_SUITE)
-    (first,) = out.glob("*.csv")
+    (first,) = (p for p in out.glob("*.csv") if not p.stem.endswith("_run"))
     before = first.read_bytes()
     staged_suite.run(PASSING_SUITE)
     assert first.read_bytes() == before
@@ -384,9 +387,57 @@ def test_run_id_is_the_report_file_name(staged_suite):
     never confused."""
     _, out = staged_suite.run(PASSING_SUITE)
     staged_suite.run(PASSING_SUITE)
-    for path in out.glob("*.csv"):
+    for path in (p for p in out.glob("*.csv") if not p.stem.endswith("_run")):
         with path.open(encoding="utf-8", newline="") as fh:
             assert {r["run_id"] for r in csv.DictReader(fh)} == {path.stem}
+
+
+@code("SA00488")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_runs_own_file_sits_beside_the_report_and_shares_its_run_id(staged_suite):
+    """Beside each report is the run's own file, named as the report with _run added,
+    and its one row carries the same run_id as every row of the report, so the two
+    join."""
+    _, out = staged_suite.run(PASSING_SUITE)
+    (report,) = (p for p in out.glob("*.csv") if not p.stem.endswith("_run"))
+    assert (out / f"{report.stem}_run.csv").is_file()
+    run_ids = {r["run_id"] for r in staged_suite.report(out)}
+    assert run_ids == {staged_suite.run_details(out)["run_id"]}
+
+
+@code("SA00489")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_runs_own_file_holds_the_run_columns_in_order(staged_suite):
+    """The run's own file holds the run's details in this order, with one selection
+    column per way of narrowing a run at the end, so a new way adds a column at the
+    right."""
+    _, out = staged_suite.run(PASSING_SUITE)
+    assert list(staged_suite.run_details(out)) == [
+        "run_id",
+        "run_started",
+        "run_by",
+        "run_verdict",
+        "pytest_exit_code",
+        "pytest_exit_cause",
+        "checks_collected",
+        "checks_reported",
+        "commit",
+        "python_version",
+        "pytest_version",
+        "platform",
+        "selection_aspect",
+        "selection_category",
+        "selection_objective",
+        "selection_id",
+        "selection_group",
+        "selection_keyword",
+        "selection_marker",
+        "selection_paths",
+    ]
 
 
 @code("SA00446")
@@ -396,16 +447,16 @@ def test_run_id_is_the_report_file_name(staged_suite):
 @pytest.mark.parametrize(
     ("extra_args", "expected"),
     [
-        ((), "all"),
-        (("validation/test_suite.py",), "validation/test_suite.py"),
-        (("-k", "adds"), "-k adds"),
+        ((), {}),
+        (("validation/test_suite.py",), {"paths": ["validation/test_suite.py"]}),
+        (("-k", "adds"), {"keyword": "adds"}),
         (
             ("validation/test_suite.py::test_adds",),
-            "validation/test_suite.py::test_adds",
+            {"paths": ["validation/test_suite.py::test_adds"]},
         ),
-        (("-m", "positive"), "-m positive"),
-        (("--tb", "short"), "all"),
-        (("-p", "no:cacheprovider"), "all"),
+        (("-m", "positive"), {"marker": "positive"}),
+        (("--tb", "short"), {}),
+        (("-p", "no:cacheprovider"), {}),
     ],
     ids=[
         "nothing narrows the run",
@@ -420,12 +471,13 @@ def test_run_id_is_the_report_file_name(staged_suite):
 def test_the_selection_column_records_what_was_selected(
     staged_suite, extra_args, expected
 ):
-    """The selection column records the paths and the -k or -m filters the command
-    line gave, or all when nothing narrowed the run. An option that changes how the
-    run is reported rather than which checks it runs, such as --tb, leaves it at
-    all."""
+    """The selection column records, as JSON, the paths and the -k or -m filters the
+    command line gave, each under its own key, and holds an empty JSON object when
+    nothing narrowed the run. An option that changes how the run is reported rather
+    than which checks it runs, such as --tb, adds nothing to it."""
     _, out = staged_suite.run(PASSING_SUITE, *extra_args)
-    assert {r["selection"] for r in staged_suite.report(out)} == {expected}
+    selections = {r["selection"] for r in staged_suite.report(out)}
+    assert [json.loads(s) for s in selections] == [expected]
 
 
 @code("SA00447")
@@ -433,13 +485,14 @@ def test_the_selection_column_records_what_was_selected(
 @objective("functionality")
 @positive
 def test_the_counts_match_when_every_check_ran(staged_suite):
-    """On a whole run, checks_collected and checks_reported are equal and both count
-    every check, so a reader can see at a glance that nothing was left out."""
+    """On a whole run, checks_collected and checks_reported in the run's own file are
+    equal and both count every check, so a reader can see at a glance that nothing
+    was left out."""
     _, out = staged_suite.run(PASSING_SUITE)
-    rows = staged_suite.report(out)
-    assert {r["checks_collected"] for r in rows} == {"2"}
-    assert {r["checks_reported"] for r in rows} == {"2"}
-    assert len(rows) == 2
+    run = staged_suite.run_details(out)
+    assert run["checks_collected"] == "2"
+    assert run["checks_reported"] == "2"
+    assert len(staged_suite.report(out)) == 2
 
 
 @code("SA00448")
@@ -455,9 +508,9 @@ def test_a_dropped_check_is_counted_but_not_reported(staged_suite):
         "--deselect",
         "validation/test_suite.py::test_left_out",
     )
-    rows = staged_suite.report(out)
-    assert {r["checks_collected"] for r in rows} == {"2"}
-    assert {r["checks_reported"] for r in rows} == {"1"}
+    run = staged_suite.run_details(out)
+    assert run["checks_collected"] == "2"
+    assert run["checks_reported"] == "1"
 
 
 @code("SA00449")
@@ -470,10 +523,10 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(staged_su
     one that covered the whole suite."""
     result, out = staged_suite.run(STOPS_EARLY_SUITE, "-x")
     assert result.ret == 1
-    rows = staged_suite.report(out)
-    assert {r["checks_collected"] for r in rows} == {"2"}
-    assert {r["checks_reported"] for r in rows} == {"1"}
-    assert {r["selection"] for r in rows} == {"all"}
+    run = staged_suite.run_details(out)
+    assert run["checks_collected"] == "2"
+    assert run["checks_reported"] == "1"
+    assert {r["selection"] for r in staged_suite.report(out)} == {"{}"}
 
 
 @code("SA00450")
@@ -481,15 +534,15 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(staged_su
 @objective("functionality")
 @positive
 def test_run_by_carries_the_git_user_name(staged_suite, monkeypatch):
-    """The run_by column carries the user name git is configured with, so a report
-    says who ran it."""
+    """The run_by column of the run's own file carries the user name git is
+    configured with, so a report says who ran it."""
     # git reads these three variables as one more configuration entry, which
     # stages a user name without touching this machine's git settings.
     monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
     monkeypatch.setenv("GIT_CONFIG_KEY_0", "user.name")
     monkeypatch.setenv("GIT_CONFIG_VALUE_0", "Staged Tester")
     _, out = staged_suite.run(PASSING_SUITE)
-    assert {r["run_by"] for r in staged_suite.report(out)} == {"Staged Tester"}
+    assert staged_suite.run_details(out)["run_by"] == "Staged Tester"
 
 
 @code("SA00451")
@@ -616,11 +669,12 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(staged
 @positive
 def test_a_report_on_a_clean_folder_names_its_commit(staged_suite):
     """With --validation-report and a working folder that matches its commit, the run
-    goes ahead and every row's commit column is that commit's short hash."""
+    goes ahead and the commit column of the run's own file is that commit's short
+    hash."""
     commit = staged_suite.commit(PASSING_SUITE)
     result, out = staged_suite.run(PASSING_SUITE)
     assert result.ret == 0
-    assert {r["commit"] for r in staged_suite.report(out)} == {commit}
+    assert staged_suite.run_details(out)["commit"] == commit
 
 
 @code("SA00461")
@@ -635,4 +689,4 @@ def test_an_earlier_report_not_yet_committed_does_not_count_as_a_change(staged_s
     second, _ = staged_suite.run(PASSING_SUITE)
     assert first.ret == 0
     assert second.ret == 0
-    assert len(list(out.glob("*.csv"))) == 2
+    assert len([p for p in out.glob("*.csv") if not p.stem.endswith("_run")]) == 2

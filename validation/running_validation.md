@@ -69,8 +69,8 @@ A report is the formal record that the code was validated, so it is filed when t
 Three things govern a report.
 
 - The run refuses to start when the working folder holds changes that are not committed, and names them. A report records the commit it validated, and uncommitted work belongs to no commit. Commit or stash, then run.
-- The report records what the selection asked for in its `selection` column, and how much of the suite it actually covered in `checks_collected` against `checks_reported`. Those two differ when checks were dropped or the run stopped early, so a partial run cannot read as a whole one.
-- One CSV file lands in the folder for its aspect inside [reports/](reports/), such as `reports/technical/`, named for the aspect, the date and the commit, as in `technical_2026-09-25_1286c8b.csv`. Commit that file.
+- The run records what the selection asked for, and how much of the suite it actually covered in `checks_collected` against `checks_reported`. Those two differ when checks were dropped or the run stopped early, so a partial run cannot read as a whole one.
+- Two CSV files land in the folder for its aspect inside [reports/](reports/), such as `reports/technical/`. The report, named for the aspect, the date and the commit, as in `technical_2026-09-25_1286c8b.csv`, holds one row per check. The run's own file beside it, `technical_2026-09-25_1286c8b_run.csv`, holds one row with the run's details. Commit both files. [reports/validation_report_dictionary.md](reports/validation_report_dictionary.md) defines every column.
 
 ## Worked examples
 
