@@ -50,7 +50,7 @@ Script:      alpha.py
 Description: Does the first thing.
 Inputs:      nothing
 Outputs:     nothing
-Usage:       python repo_tools/alpha.py
+Usage:       alpha
 Exit codes:  0   success
 Date:        2026-09-04
 Owner:       Jason Delosh

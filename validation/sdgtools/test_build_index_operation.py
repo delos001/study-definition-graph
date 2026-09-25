@@ -53,9 +53,9 @@ Description: Does the first thing,
 
 Inputs:      nothing
 Outputs:     nothing
-Usage:       python repo_tools/alpha.py
+Usage:       alpha
                  run it
-             python repo_tools/alpha.py --flag
+             alpha --flag
                  run it with a flag
 Exit codes:  0 fine
 Date:        2026-09-04
@@ -68,9 +68,9 @@ EXPECTED_ENTRY = """## alpha.py
 Does the first thing, continued on a second line.
 
 ```
-python repo_tools/alpha.py
+alpha
     run it
-python repo_tools/alpha.py --flag
+alpha --flag
     run it with a flag
 ```
 """
@@ -85,8 +85,8 @@ def folder(tmp_path, monkeypatch):
     """Produces a function that takes {filename: source} and writes those
     scripts to a temporary folder the generator is pointed at, with the index
     path beside them, and hands back that folder."""
-    scripts = tmp_path / "repo_tools"
-    scripts.mkdir()
+    scripts = tmp_path / "src" / "sdgtools"
+    scripts.mkdir(parents=True)
     monkeypatch.setattr(bi, "SCRIPTS_DIR", scripts)
     monkeypatch.setattr(bi, "INDEX_PATH", scripts / "README.md")
 
