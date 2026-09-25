@@ -88,16 +88,6 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Read by the writer by hashing each file's bytes.
 - Holds `validation/fixtures/<name>=<sha256>` for each file, separated by semicolons. Each is used the same way as `check_file_sha256`.
 
-### `pinned_usdm_sha256`
-- Records which version of the pinned USDM model file the run was against.
-- Read by the writer from the manifest entry for `inputs/standards/cdisc/usdm_v4/dataStructure.yml`.
-- Holds the recorded sha256, or `(manifest entry not readable)`.
-
-### `pinned_usdm_present`
-- Says whether that pinned file was on the machine.
-- Read by the writer from the file system.
-- Holds `present` or `absent`.
-
 ### `python_version`, `pytest_version`, `platform`
 - Record the Python version, the pytest version and the operating system the run used.
 - Read by the writer from the running interpreter.

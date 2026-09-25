@@ -8,9 +8,8 @@ Description: A pytest plugin that collects how each check ended and, when asked,
              on every row, so each file is complete on its own and any row can be
              joined to validation/validation_inventory.csv by its check's id.
                - What was tested is the target file, the file of checks and its sha256,
-                 the fixture files and their sha256s, the code commit, and the pinned
-                 USDM data version (the manifest's recorded sha256, and whether the
-                 file was present). The working folder must match that commit
+                 the fixture files and their sha256s, and the code commit. The
+                 working folder must match that commit
                  exactly, so a run asked for a report refuses to start when there
                  are uncommitted changes, before any check runs, and says which
                  files they are. The commit it would have named would not have
@@ -53,7 +52,6 @@ Description: A pytest plugin that collects how each check ended and, when asked,
              checks, so a staged suite reports on itself rather than on the repo.
 
 Inputs:      git (for the commit hash and user name; read-only)
-             manifests/cdisc_usdm_v4.json (read-only; the pinned data version)
              validation/**/test_*.py and validation/fixtures/* (read-only; hashed)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
@@ -84,7 +82,6 @@ from __future__ import annotations
 import csv
 import datetime as dt
 import hashlib
-import json
 import platform
 import subprocess
 import time
@@ -103,13 +100,6 @@ from sdgval.select_checks import SELECTORS, wanted
 
 #######################################################################################
 ### Settings ###
-
-# These two lines name the pinned model file and the manifest that records it,
-# relative to the repo root. They are written here as literals rather than imported
-# from the loader, src/sdg/usdm/usdm_spec.py, so the report does not depend on a
-# module the checks themselves are meant to prove.
-PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
-MANIFEST_LOCAL = "manifests/cdisc_usdm_v4.json"
 
 # Where an aspect's command leaves its aspect for this writer, in pytest's stash,
 # the store pytest gives each run for plugins to share values. The report's file
@@ -411,30 +401,6 @@ def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _pinned_data_version(root: Path) -> tuple[str, str]:
-    """Say which version of the pinned model file was on the machine at run time.
-
-    The recorded sha256 identifies the version. If the manifest cannot be read, the
-    first value says so instead, and the report is still written.
-
-    Args:
-        root: pytest's root folder.
-
-    Returns:
-        The recorded sha256, and whether the file was present.
-    """
-    present = "present" if (root / PINNED_LOCAL).exists() else "absent"
-    # The manifest is read directly here rather than through the sdg package, so a
-    # broken package cannot stop the report from being written.
-    try:
-        manifest = root / MANIFEST_LOCAL
-        entries = json.loads(manifest.read_text(encoding="utf-8")).get("files", [])
-        entry = next(e for e in entries if e.get("local") == PINNED_LOCAL)
-        return entry.get("sha256", "?"), present
-    except (OSError, ValueError, StopIteration):
-        return "(manifest entry not readable)", present
-
-
 def _unique(path: Path) -> Path:
     """Find a file name that is not in use yet.
 
@@ -546,8 +512,6 @@ REPORT_COLUMNS = (
     "run_by",
     "check_file_sha256",
     "fixture_sha256s",
-    "pinned_usdm_sha256",
-    "pinned_usdm_present",
     "python_version",
     "pytest_version",
     "platform",
@@ -638,7 +602,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     status = int(exitstatus)
     root = session.config.rootpath
     commit = _git("rev-parse", "--short", "HEAD", cwd=root)
-    sha256, present = _pinned_data_version(root)
     validation_dir = _validation_dir(session.config)
     fixture_dir = validation_dir / "fixtures"
     fixtures = (
@@ -670,8 +633,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
         "platform": platform.platform(),
-        "pinned_usdm_sha256": sha256,
-        "pinned_usdm_present": present,
         "fixture_sha256s": "; ".join(
             f"validation/fixtures/{p.name}={_sha256(p)}" for p in fixtures
         ),
