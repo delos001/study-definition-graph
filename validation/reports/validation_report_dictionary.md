@@ -2,7 +2,7 @@
 
 Defines every column of a validation report and every value a coded column may hold.
 
-A report is written into this folder by the command for one aspect when it is given `--validation-report`, such as `validate_technical --validation-report`, one CSV file per run named `<aspect>_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `src/sdgval/report.py`. Nothing in a report is typed by hand.
+A report is written by an aspect's command when it is given `--validation-report`, as in `validate_technical --validation-report`. It lands in the folder for its aspect inside this one, as `technical/` holds the technical reports. Each run writes one CSV file named `<aspect>_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `src/sdgval/report.py`. Nothing in a report is typed by hand.
 
 The check columns carry the same names as `validation/validation_inventory.csv`, so a row joins to the inventory by `id`. Their definitions are in `validation/validation_inventory_dictionary.md` and are not repeated here.
 

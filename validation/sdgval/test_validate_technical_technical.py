@@ -81,7 +81,8 @@ def run_command(staged_suite, pytester, *args, report=True):
         report: Whether --validation-report is given.
 
     Returns:
-        The result of the run and the folder the report was written to.
+        The result of the run and the technical folder inside the report folder,
+        where the report is written.
     """
     staged_suite.write(MIXED_SUITE)
     if report:
@@ -94,7 +95,7 @@ def run_command(staged_suite, pytester, *args, report=True):
         str(staged_suite.report_dir),
         *args,
     )
-    return result, staged_suite.report_dir
+    return result, staged_suite.report_dir / "technical"
 
 
 #######################################################################################
@@ -155,6 +156,20 @@ def test_the_report_is_named_for_its_aspect(staged_suite, pytester):
     (report,) = out.glob("*.csv")
     assert report.name.startswith("technical_")
     assert {row["run_id"] for row in staged_suite.report(out)} == {report.stem}
+
+
+@code("SA00487")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_report_is_written_in_the_technical_folder(staged_suite, pytester):
+    """The report is written in a folder named technical inside the report folder,
+    and nothing is written in the report folder itself, so each aspect's reports are
+    kept apart."""
+    result, _ = run_command(staged_suite, pytester)
+    assert result.ret == 0
+    assert len(list((staged_suite.report_dir / "technical").glob("*.csv"))) == 1
+    assert not list(staged_suite.report_dir.glob("*.csv"))
 
 
 #######################################################################################

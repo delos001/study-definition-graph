@@ -450,7 +450,8 @@ class StagedSuite:
             *extra_args: Any further pytest arguments.
 
         Returns:
-            pytest's result and the folder the report was written to.
+            pytest's result and the technical folder inside the report folder, where
+            the report is written.
         """
         self.write(test_source)
         (self.root / "conftest.py").write_text(self.ASPECT_CONFTEST, encoding="utf-8")
@@ -460,7 +461,7 @@ class StagedSuite:
             str(self.report_dir),
             *extra_args,
         )
-        return result, self.report_dir
+        return result, self.report_dir / "technical"
 
     @staticmethod
     def report(folder: Path) -> list[dict[str, str]]:

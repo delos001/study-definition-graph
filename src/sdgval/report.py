@@ -55,7 +55,7 @@ Inputs:      git (for the commit hash and user name; read-only)
              validation/**/test_*.py and validation/fixtures/* (read-only; hashed)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
-             validation/reports/<aspect>_<YYYY-MM-DD>_<commit>.csv, with one row per
+             validation/reports/<aspect>/<aspect>_<YYYY-MM-DD>_<commit>.csv, with one row per
              check. The aspect is the one an aspect's command, such as
              src/sdgval/validate_technical.py, leaves in pytest's stash.
              An existing name is never overwritten; it gets a numeric suffix. A run
@@ -132,7 +132,11 @@ def _validation_dir(config: pytest.Config) -> Path:
 
 
 def _report_dir(config: pytest.Config) -> Path:
-    """Name the folder the report goes in.
+    """Name the folder that holds every aspect's reports.
+
+    Each report goes in a folder named for its aspect inside this one. The whole
+    folder is left out when the working folder is looked at for uncommitted changes,
+    so a report of any aspect never stops the next run.
 
     Args:
         config: pytest's configuration for the run.
@@ -612,9 +616,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     )
     # The file is named first, so the id in every row is the file's own name and
     # the two can never disagree, numbered suffix included.
-    report_dir = _report_dir(session.config)
-    report_dir.mkdir(parents=True, exist_ok=True)
     aspect = session.config.stash[REPORT_ASPECT]
+    report_dir = _report_dir(session.config) / aspect
+    report_dir.mkdir(parents=True, exist_ok=True)
     target = _unique(report_dir / f"{aspect}_{now:%Y-%m-%d}_{commit}.csv")
     run = {
         "run_id": target.stem,
