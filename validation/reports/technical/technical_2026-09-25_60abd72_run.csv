@@ -1,0 +1,2 @@
+run_id,run_started,run_by,run_verdict,pytest_exit_code,pytest_exit_cause,checks_collected,checks_reported,commit,python_version,pytest_version,platform,selection_aspect,selection_category,selection_objective,selection_id,selection_group,selection_keyword,selection_marker,selection_paths
+technical_2026-09-25_60abd72,2026-09-25 16:09:56 -0400,Jason Delosh,PASS,0,all tests passed,556,494,60abd72,3.12.13,9.1.1,Windows-11-10.0.26200-SP0,"[""technical""]",,,,,,,

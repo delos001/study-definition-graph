@@ -37,6 +37,9 @@ objective = pytest.mark.objective
 # Every check carries a @category line: what kind of thing the check confirms, one
 # of the categories validation/validation_inventory_dictionary.md defines.
 category = pytest.mark.category
+# A check that reads a file in validation/fixtures/ names it with @needs_fixture, and
+# a validation report records that file's version on the check's row.
+needs_fixture = pytest.mark.needs_fixture
 
 
 #######################################################################################
@@ -47,6 +50,7 @@ category = pytest.mark.category
 @category("repository")
 @objective("correctness")
 @needs_pinned_file
+@needs_fixture("usdm_three_classes.yml")
 def test_fixture_classes_are_identical_to_pinned():
     """Each class in the small fixture file is identical, key for key, to the same
     class in the pinned model, so the checks that ran on the fixture ran on real

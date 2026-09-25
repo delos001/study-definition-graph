@@ -2,7 +2,8 @@
 Script:      labels.py
 Description: A pytest plugin that declares the labels a check may carry and reads
              them off a check. A label is what pytest calls a marker: @code,
-             @category, @objective, @positive, @negative and @needs_pinned.
+             @category, @objective, @positive, @negative, @needs_pinned and
+             @needs_fixture.
 
              pytest warns about a label it has not been told about, so each is
              declared here with a sentence saying what it means. The readers are
@@ -77,6 +78,11 @@ def pytest_configure(config: pytest.Config) -> None:
         "needs_pinned(*paths): the real pinned files the check reads, each written as "
         "a manifest writes it, where * stands for any run of characters",
     )
+    config.addinivalue_line(
+        "markers",
+        "needs_fixture(*names): the files in validation/fixtures/ the check reads, "
+        "each written as its name inside that folder",
+    )
 
 
 #######################################################################################
@@ -144,6 +150,20 @@ def aspect_of(item: pytest.Item) -> str:
         knows.
     """
     return ASPECT_OF.get(objective_of(item), "")
+
+
+def fixtures_of(item: pytest.Item) -> list[str]:
+    """Read the fixture files a check names with its needs_fixture label.
+
+    Args:
+        item: The check.
+
+    Returns:
+        Each name as written, relative to validation/fixtures/, or an empty list when
+        the check carries no such label.
+    """
+    marker = item.get_closest_marker("needs_fixture")
+    return [str(name) for name in marker.args] if marker else []
 
 
 def case_of(item: pytest.Item) -> str:

@@ -9,9 +9,11 @@ Description: A pytest plugin that collects how each check ended and, when asked,
              the report carries the run's id, which joins it to the run's own file,
              and its check's id, which joins it to
              validation/validation_inventory.csv.
-               - What was tested is the target file, the file of checks and its
-                 sha256 and the fixture files and their sha256s, on each row, and
-                 the code commit, in the run's own file. The working folder must
+               - What was tested is, on each row, the target file, the file of
+                 checks and the fixture files the check names with @needs_fixture,
+                 each with the date and id of its last change in git, and, in the
+                 run's own file, the code commit and every installed package with
+                 its version. The working folder must
                  match that commit exactly, so a run asked for a report refuses to
                  start when there are uncommitted changes, before any check runs,
                  and says which files they are. The commit it would have named
@@ -56,8 +58,9 @@ Description: A pytest plugin that collects how each check ended and, when asked,
              root for a real run and a temporary folder for this plugin's own
              checks, so a staged suite reports on itself rather than on the repo.
 
-Inputs:      git (for the commit hash and user name; read-only)
-             validation/**/test_*.py and validation/fixtures/* (read-only; hashed)
+Inputs:      git (for the commit, the user name and each file's last change;
+                 read-only)
+             the installed packages' own records of their versions (read-only)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes two files
              in validation/reports/<aspect>/: the report,
@@ -88,12 +91,12 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
-import hashlib
 import json
 import platform
 import subprocess
 import time
 from collections.abc import Generator
+from importlib import metadata
 from pathlib import Path
 
 import pluggy
@@ -103,7 +106,7 @@ import pytest
 # generator, src/sdgval/build_inventory.py, which fills the same column of the
 # inventory. Importing it means the inventory and a report can never disagree.
 from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
-from sdgval.labels import case_of, category_of, code_of, objective_of
+from sdgval.labels import case_of, category_of, code_of, fixtures_of, objective_of
 from sdgval.select_checks import SELECTORS, wanted
 
 #######################################################################################
@@ -248,6 +251,7 @@ def pytest_runtest_makereport(
             "category": category_of(item),
             "objective": objective_of(item),
             "case": case_of(item),
+            "fixtures": fixtures_of(item),
             "expected_result": _first_paragraph(
                 function.__doc__ if function is not None else None
             ),
@@ -398,19 +402,48 @@ def uncommitted_changes(root: Path, report_dir: Path) -> list[str] | None:
     return changes
 
 
-def _sha256(path: Path) -> str:
-    """Measure a file's sha256.
+def _last_change(path: str, root: Path) -> tuple[str, str]:
+    """Say when a file last changed in git, and the id of that change.
 
-    The report names the exact bytes of the test code and fixtures it ran on, and this
-    is how.
+    A report run starts only on a folder that matches its commit, so the file's last
+    change is the version that ran. The date says roughly when, and the id says
+    exactly which version, without a reader having to search the history.
 
     Args:
-        path: The file to measure.
+        path: The file, relative to the repository's root folder.
+        root: The repository's root folder.
 
     Returns:
-        The sha256 as hex.
+        The date of the change, as YYYY-MM-DD, and its short id. Both are
+        (not committed) when git has no change for the file, and (unknown) when git
+        did not answer.
     """
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    answer = _git("log", "-1", "--format=%cs %h", "--", path, cwd=root)
+    if answer == "(unknown)":
+        return "(unknown)", "(unknown)"
+    if not answer:
+        return "(not committed)", "(not committed)"
+    date, change_id = answer.split(" ", 1)
+    return date, change_id
+
+
+def _installed_packages() -> str:
+    """List every package installed where the run ran, with its version.
+
+    environment.yml fixes no package's version, so a package can change between two
+    runs without anything in the repository changing. A package the project never
+    imports can still break it through a package that does, so every installed
+    package is listed, not only the ones the project names.
+
+    Returns:
+        A JSON object of package name to version, in name order.
+    """
+    versions = {
+        dist.metadata["Name"]: dist.version
+        for dist in metadata.distributions()
+        if dist.metadata["Name"]
+    }
+    return json.dumps(dict(sorted(versions.items(), key=lambda kv: kv[0].lower())))
 
 
 def _unique(path: Path) -> Path:
@@ -496,7 +529,8 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 # The columns of a report, one row per check, in the order they are written: the
 # run the row belongs to, when it started and what it selected, then the inventory's
 # columns in the inventory's own order with the parameter beside the name, then how
-# the check ended, then the fingerprints a reader needs only to reproduce a failure.
+# the check ended, then which version of the script, the test file and each fixture
+# the check ran.
 # The inventory's columns carry its names, so a row joins to it by id, and run_id
 # joins it to the run's own file.
 REPORT_COLUMNS = (
@@ -517,8 +551,11 @@ REPORT_COLUMNS = (
     "expected_result",
     "outcome",
     "outcome_reason",
-    "check_file_sha256",
-    "fixture_sha256s",
+    "target_last_changed",
+    "target_change_id",
+    "check_file_last_changed",
+    "check_file_change_id",
+    "fixtures",
 )
 
 # The ways a run can be narrowed, in the order the run's file writes them. The first
@@ -553,6 +590,7 @@ RUN_COLUMNS = (
     "python_version",
     "pytest_version",
     "platform",
+    "installed_packages",
     *(f"selection_{key}" for key in SELECTION_KEYS),
 )
 
@@ -644,12 +682,15 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     root = session.config.rootpath
     commit = _git("rev-parse", "--short", "HEAD", cwd=root)
     validation_dir = _validation_dir(session.config)
-    fixture_dir = validation_dir / "fixtures"
-    fixtures = (
-        sorted(p for p in fixture_dir.glob("*") if p.is_file())
-        if fixture_dir.exists()
-        else []
-    )
+    # A file's last change is asked of git once, however many rows name the file.
+    changes: dict[str, tuple[str, str]] = {}
+
+    def last_change(path: str) -> tuple[str, str]:
+        """Give a file's last change, asking git only the first time."""
+        if path not in changes:
+            changes[path] = _last_change(path, root)
+        return changes[path]
+
     # The file is named first, so the id in every row is the file's own name and
     # the two can never disagree, numbered suffix included.
     aspect = session.config.stash[REPORT_ASPECT]
@@ -665,9 +706,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         "run_id": target.stem,
         "run_started": f"{started:%Y-%m-%d %H:%M:%S %z}",
         "selection": json.dumps(selection),
-        "fixture_sha256s": "; ".join(
-            f"validation/fixtures/{p.name}={_sha256(p)}" for p in fixtures
-        ),
     }
     # The run's own row. A selection column holds JSON when its way of narrowing
     # can hold several values, the -k or -m expression as typed, and nothing when
@@ -689,6 +727,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
         "platform": platform.platform(),
+        "installed_packages": _installed_packages(),
     }
     for key in SELECTION_KEYS:
         value = selection.get(key, "")
@@ -704,22 +743,39 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         for outcome in _outcomes.values():
             by_file.setdefault(outcome["file"], []).append(outcome)
         for file, outcomes in by_file.items():
-            validation_folder, validation_file = split_path(
-                f"validation/{file.relative_to(validation_dir).as_posix()}"
-            )
+            check_path = f"validation/{file.relative_to(validation_dir).as_posix()}"
+            validation_folder, validation_file = split_path(check_path)
             target_folder, target_file = _target_of(file, root)
+            _, target_path = code_folder_and_target(file, validation_dir)
+            # A script that was not found at run time has no version to record.
+            target_date, target_id = (
+                last_change(target_path) if (root / target_path).exists() else ("", "")
+            )
+            check_date, check_id = last_change(check_path)
             per_file = {
                 "folder_path": validation_folder,
                 "file_name": validation_file,
-                "check_file_sha256": _sha256(file),
                 "target_folder_path": target_folder,
                 "target_file_name": target_file,
+                "target_last_changed": target_date,
+                "target_change_id": target_id,
+                "check_file_last_changed": check_date,
+                "check_file_change_id": check_id,
             }
             for outcome in outcomes:
+                # Only the fixtures the check names are recorded, each with the
+                # same two details as the script and the test file.
+                fixtures = []
+                for name in outcome["fixtures"]:
+                    date, change_id = last_change(f"validation/fixtures/{name}")
+                    fixtures.append(
+                        {"name": name, "last_changed": date, "change_id": change_id}
+                    )
                 rows.append(
                     {
                         **run,
                         **per_file,
+                        "fixtures": json.dumps(fixtures) if fixtures else "",
                         "id": outcome["code"],
                         "name": outcome["name"],
                         "parameter": outcome["parameter"],
@@ -742,7 +798,6 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 **run,
                 "folder_path": "",
                 "file_name": "",
-                "check_file_sha256": "",
                 "target_folder_path": "",
                 "target_file_name": "",
                 "id": "",

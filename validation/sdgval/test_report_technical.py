@@ -30,8 +30,8 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import csv
-import hashlib
 import json
+import re
 
 import pytest
 
@@ -429,6 +429,7 @@ def test_the_runs_own_file_holds_the_run_columns_in_order(staged_suite):
         "python_version",
         "pytest_version",
         "platform",
+        "installed_packages",
         "selection_aspect",
         "selection_category",
         "selection_objective",
@@ -562,33 +563,100 @@ def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(
     assert row["target_file_name"] == "suite.py (not found at run time)"
 
 
-@code("SA00452")
+#######################################################################################
+### Which version of each file a check ran ###
+#
+# A staged suite is committed as a git repository with the script it covers and one
+# fixture, so every file has a last change for the report to record. One check names
+# the fixture and one does not.
+
+FIXTURE_SUITE = '''
+    import pytest
+
+    @pytest.mark.objective("functionality")
+    @pytest.mark.needs_fixture("sample.txt")
+    def test_reads_sample():
+        """Reads the sample fixture."""
+
+    @pytest.mark.objective("functionality")
+    def test_reads_nothing():
+        """Reads no fixture."""
+    '''
+
+# A date as git writes it with --format=%cs.
+DATE = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
+
+
+@pytest.fixture
+def committed(staged_suite):
+    """Commit a suite with its covered script and one fixture, run it with a report,
+    and hand back the commit's short id and the report's rows."""
+    (staged_suite.validation / "fixtures").mkdir(parents=True)
+    (staged_suite.validation / "fixtures" / "sample.txt").write_text(
+        "fixture\n", encoding="utf-8"
+    )
+    (staged_suite.validation / "suite.py").write_text("", encoding="utf-8")
+    commit = staged_suite.commit(FIXTURE_SUITE)
+    result, out = staged_suite.run(FIXTURE_SUITE)
+    assert result.ret == 0
+    return commit, staged_suite.report(out)
+
+
+@code("SA00491")
 @category("repository")
 @objective("functionality")
 @positive
-def test_check_file_sha256_is_the_hash_of_the_check_file(passing, staged_suite):
-    """The check_file_sha256 column is the sha256 of the check file's bytes as they
-    were when the run started, so a report names the exact test code it ran."""
-    _, rows = passing
-    row = staged_suite.row(rows, "test_adds")
-    expected = hashlib.sha256(staged_suite.test_file.read_bytes()).hexdigest()
-    assert row["check_file_sha256"] == expected
+def test_the_script_under_test_is_recorded_by_its_last_change(committed, staged_suite):
+    """target_last_changed and target_change_id hold the date and id of the last
+    change in git to the script the check covers, so a report says which version of
+    the script ran."""
+    commit, rows = committed
+    row = staged_suite.row(rows, "test_reads_sample")
+    assert row["target_change_id"] == commit
+    assert DATE.fullmatch(row["target_last_changed"])
 
 
-@code("SA00453")
+@code("SA00492")
 @category("repository")
 @objective("functionality")
 @positive
-def test_fixture_sha256s_names_each_fixture_file_with_its_hash(staged_suite):
-    """The fixture_sha256s column names each file in validation/fixtures/ with its
-    sha256, so a report says the exact bytes the checks ran on."""
-    content = b"fixture bytes\n"
-    fixtures = staged_suite.validation / "fixtures"
-    fixtures.mkdir(parents=True)
-    (fixtures / "sample.txt").write_bytes(content)
-    expected = f"validation/fixtures/sample.txt={hashlib.sha256(content).hexdigest()}"
+def test_the_test_file_is_recorded_by_its_last_change(committed, staged_suite):
+    """check_file_last_changed and check_file_change_id hold the date and id of the
+    last change in git to the test file the check sits in, so a report says which
+    version of the check ran."""
+    commit, rows = committed
+    row = staged_suite.row(rows, "test_reads_sample")
+    assert row["check_file_change_id"] == commit
+    assert DATE.fullmatch(row["check_file_last_changed"])
+
+
+@code("SA00493")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_named_fixture_is_recorded_on_its_checks_row_only(committed, staged_suite):
+    """A check that names a fixture with @needs_fixture has that fixture in its
+    fixtures column, as JSON with the date and id of its last change, and a check
+    that names none has the column empty."""
+    commit, rows = committed
+    (fixture,) = json.loads(staged_suite.row(rows, "test_reads_sample")["fixtures"])
+    assert fixture["name"] == "sample.txt"
+    assert fixture["change_id"] == commit
+    assert DATE.fullmatch(fixture["last_changed"])
+    assert staged_suite.row(rows, "test_reads_nothing")["fixtures"] == ""
+
+
+@code("SA00494")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_runs_own_file_lists_the_installed_packages(staged_suite):
+    """The installed_packages column of the run's own file holds every installed
+    package with its version as JSON, so a report says which pytest, among the rest,
+    the run used."""
     _, out = staged_suite.run(PASSING_SUITE)
-    assert all(expected in r["fixture_sha256s"] for r in staged_suite.report(out))
+    packages = json.loads(staged_suite.run_details(out)["installed_packages"])
+    assert packages["pytest"] == pytest.__version__
 
 
 #######################################################################################

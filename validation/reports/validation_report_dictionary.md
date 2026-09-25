@@ -43,15 +43,20 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
 - Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `pytest_exit_cause` in the run's own file already carries it.
 
-### `check_file_sha256`
-- Fingerprints the test file the check came from, the one `folder_path` and `file_name` name, as it was when the run read it.
-- Read by the writer by hashing the file's bytes.
-- Holds the sha256 as hex. It recognises a version but cannot produce one. Hash the file you hold and compare: a match means you are reading the check that ran, and a difference means the file was edited since the report. To get the version that ran, use `commit` in the run's own file.
+### `target_last_changed`, `target_change_id`
+- Record which version of the script the check covers ran, the one `target_folder_path` and `target_file_name` name. A report run starts only on a working folder that matches its commit, so the script's last change is the version that ran.
+- Read by the writer from git's history of the file.
+- Hold the date of the last change, as `YYYY-MM-DD`, and its short id. Comparing the id across two reports shows whether the script changed between them. Both are empty when the script was not found at run time, `(not committed)` when git has no change for it, and `(unknown)` when git did not answer.
 
-### `fixture_sha256s`
-- Fingerprints every file under `fixtures/`, the small stand-ins the staged checks read, as they were when the run read them.
-- Read by the writer by hashing each file's bytes.
-- Holds `validation/fixtures/<name>=<sha256>` for each file, separated by semicolons. Each is used the same way as `check_file_sha256`.
+### `check_file_last_changed`, `check_file_change_id`
+- Record which version of the test file the check sits in ran, the one `folder_path` and `file_name` name. A check edited to test less can pass where the earlier one failed, and these show that the test file changed.
+- Read by the writer from git's history of the file.
+- Hold the same values as the two target columns.
+
+### `fixtures`
+- Records which version of each fixture the check read. A fixture is a small stand-in file in `validation/fixtures/`, and a check names the ones it reads with the `@needs_fixture` label.
+- Read by the writer from the check's label and git's history of each file.
+- Holds a JSON list with one entry per fixture, each with its `name` inside `validation/fixtures/`, its `last_changed` date and its `change_id`, or nothing when the check names no fixture.
 
 ## Run file columns
 
@@ -97,6 +102,11 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Record the Python version, the pytest version and the operating system the run used.
 - Read by the writer from the running interpreter.
 - Hold the versions and the platform string as the tools report them.
+
+### `installed_packages`
+- Records every package installed where the run ran, with its version. `environment.yml` fixes no package's version, so a package can change between two runs without anything in the repository changing, and a package the project never imports can still break it through one that does.
+- Read by the writer from each installed package's own record of its version.
+- Holds a JSON object of package name to version, in name order.
 
 ### `selection_aspect`, `selection_category`, `selection_objective`, `selection_id`, `selection_group`
 - Record the values given to `--aspect`, `--category`, `--objective`, `--id` and `--group`, the options of `src/sdgval/select_checks.py`.

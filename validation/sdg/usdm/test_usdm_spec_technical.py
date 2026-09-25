@@ -64,6 +64,9 @@ objective = pytest.mark.objective
 # Every check carries a @category line: what kind of thing the check confirms, one
 # of the categories validation/validation_inventory_dictionary.md defines.
 category = pytest.mark.category
+# A check that reads a file in validation/fixtures/ names it with @needs_fixture, and
+# a validation report records that file's version on the check's row.
+needs_fixture = pytest.mark.needs_fixture
 
 
 #######################################################################################
@@ -122,6 +125,7 @@ def variant(tmp_path):
 @category("processing")
 @objective("functionality")
 @positive
+@needs_fixture("usdm_three_classes.yml")
 def test_lists_every_class_sorted(three):
     """A well-formed file loads, and class_names() gives every class in
     alphabetical order, so a listing is stable from run to run."""
@@ -132,6 +136,7 @@ def test_lists_every_class_sorted(three):
 @category("processing")
 @objective("functionality")
 @positive
+@needs_fixture("usdm_three_classes.yml")
 def test_abstract_flag_comes_from_modifier(three):
     """is_abstract() reports USDM's own Modifier, so Identifier, a parent never used
     on its own, is abstract, and StudyIdentifier, its concrete child, is not."""
@@ -143,6 +148,7 @@ def test_abstract_flag_comes_from_modifier(three):
 @category("processing")
 @objective("functionality")
 @positive
+@needs_fixture("usdm_three_classes.yml")
 def test_attributes_keep_file_order_and_inheritance(three):
     """attributes() hands back a class's attributes in the order the file lists
     them, including the ones copied down from its parent, and each inherited one
@@ -163,6 +169,7 @@ def test_attributes_keep_file_order_and_inheritance(three):
 @category("processing")
 @objective("functionality")
 @positive
+@needs_fixture("usdm_three_classes.yml")
 def test_targets_unwraps_one_and_many(three):
     """targets() turns USDM's '$ref: #/X' wrapping into plain names, for an
     attribute with one target and for the five-way one (Condition.appliesToIds)."""
@@ -182,6 +189,7 @@ def test_targets_unwraps_one_and_many(three):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_unknown_class_raises_keyerror_naming_it(three):
     """Asking for a class that is not in the file raises KeyError carrying that
     name, so a typo is reported rather than answered with an empty result."""
@@ -216,6 +224,7 @@ def test_empty_file_is_refused(tmp_path):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_class_without_modifier_is_named(variant):
     """Deleting Modifier from one class is refused with a message naming that
     class."""
@@ -230,6 +239,7 @@ def test_class_without_modifier_is_named(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_unexpected_modifier_value_is_named(variant):
     """A Modifier other than Concrete or Abstract is refused, quoting the
     unexpected value, so a new USDM vocabulary cannot pass unnoticed."""
@@ -242,6 +252,7 @@ def test_unexpected_modifier_value_is_named(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_attributes_not_a_mapping_is_named(variant):
     """Turning a class's Attributes into a list is refused with a message naming
     the class, before any reading function could trip over it."""
@@ -256,6 +267,7 @@ def test_attributes_not_a_mapping_is_named(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_attribute_missing_a_key_is_named(variant):
     """Renaming 'Relationship Type' on one attribute is refused with a message
     naming Class.attribute and the missing key, rather than surfacing later as a
@@ -277,6 +289,7 @@ def test_attribute_missing_a_key_is_named(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_attribute_missing_several_keys_lists_them(variant):
     """When more than one key is missing from an attribute, the message lists all
     of them, so one read of the error shows the whole problem."""
@@ -297,6 +310,7 @@ def test_attribute_missing_several_keys_lists_them(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_type_that_is_not_a_reference_list_is_named(variant):
     """A Type holding a plain word instead of a list of '$ref' entries is refused,
     naming Class.attribute and the field, rather than failing later inside the
@@ -314,6 +328,7 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_empty_type_list_is_refused(variant):
     """An attribute whose Type list is empty is refused with a message naming the
     attribute, because an attribute with no type is not a shape usdm_spec.py can
@@ -331,6 +346,7 @@ def test_empty_type_list_is_refused(variant):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_inherited_from_without_ref_is_named(variant):
     """An Inherited From entry lacking its '$ref' is refused, naming the
     attribute and the field, so the attribute printer in usdm_spec.py never indexes a missing key."""
@@ -371,6 +387,7 @@ def test_missing_file_raises_filenotfound(tmp_path):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_unrecorded_file_is_refused_through_load():
     """A file no manifest entry records is refused by load() with the pinned-file
     check's message saying exactly that, not with the fingerprint-mismatch remedy."""
@@ -385,6 +402,7 @@ def test_unrecorded_file_is_refused_through_load():
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_recording):
     """A file whose recorded sha256 differs is refused by load() with both values
     and the recovery paths, including --allow-unpinned."""
@@ -434,6 +452,7 @@ def test_cli_missing_spec_exits_8(monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
     """When the file is present but no manifest entry records it, the command
     exits 10 and prints the cause."""
@@ -446,6 +465,7 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_fingerprint_mismatch_exits_9(
     manifest_dir, manifest_recording, monkeypatch, capsys
 ):
@@ -462,6 +482,7 @@ def test_cli_fingerprint_mismatch_exits_9(
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
     """When a manifest is not valid JSON, the command exits 3 and names the manifest
     as the thing that cannot be read, rather than blaming the pinned file."""
@@ -500,6 +521,7 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
     """When the file passes (or skips) verification but is not shaped like USDM,
     the command exits 4 and names the broken class."""
@@ -513,6 +535,7 @@ def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
     """When the pinned file is on disk but another program has it locked, the command
     exits 13 and says to close that program, rather than ending in a traceback."""
@@ -531,6 +554,7 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
     """A file whose Type values are not reference lists makes --attributes exit 4
     with the attribute named, not crash with a traceback while printing."""
@@ -548,6 +572,7 @@ def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @positive
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
     """With the allow-unpinned option, the manifest check is skipped and a file no
     manifest records is read in place, listing its classes and exiting 0."""
@@ -566,6 +591,7 @@ def test_cli_allow_unpinned_reads_the_file(monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @positive
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
     """The attributes listing prints each attribute's type, cardinality and
     kind, marks inherited ones with their parent, and exits 0."""
@@ -581,6 +607,7 @@ def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @negative
+@needs_fixture("usdm_three_classes.yml")
 def test_cli_unknown_class_exits_5(monkeypatch, capsys):
     """The attributes listing for a class that does not exist exits 5 and points
     at the class listing, rather than ending in a traceback."""
