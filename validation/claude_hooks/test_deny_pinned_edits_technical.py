@@ -1,5 +1,5 @@
 """
-Script:      test_deny_pinned_edits_operation.py
+Script:      test_deny_pinned_edits_technical.py
 Description: Checks for .claude/hooks/deny_pinned_edits.py, the Claude Code hook
              that refuses a Write or Edit to a pinned file or a hand-written
              manifest. Each check builds the message Claude Code would send,
@@ -17,9 +17,9 @@ Inputs:      Nothing real. The repo root is pytest's own temporary folder, and t
 
 Outputs:     Writes nothing to disk.
 
-Usage:       pytest validation/claude_hooks/test_deny_pinned_edits_operation.py
+Usage:       pytest validation/claude_hooks/test_deny_pinned_edits_technical.py
                  run these checks
-             pytest validation/claude_hooks/test_deny_pinned_edits_operation.py -v
+             pytest validation/claude_hooks/test_deny_pinned_edits_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

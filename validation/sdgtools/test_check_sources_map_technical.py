@@ -1,5 +1,5 @@
 """
-Script:      test_check_sources_map_operation.py
+Script:      test_check_sources_map_technical.py
 Description: Checks for src/sdgtools/check_sources_map.py, the hand-run tool that
              compares docs/sources_index.md with the manifests. Each check stages
              a throwaway repo holding one recorded file and a map written one way,
@@ -15,9 +15,9 @@ Inputs:      Nothing real. The map and the manifests are written to pytest's own
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdgtools/test_check_sources_map_operation.py
+Usage:       pytest validation/sdgtools/test_check_sources_map_technical.py
                  run these checks
-             pytest validation/sdgtools/test_check_sources_map_operation.py -v
+             pytest validation/sdgtools/test_check_sources_map_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

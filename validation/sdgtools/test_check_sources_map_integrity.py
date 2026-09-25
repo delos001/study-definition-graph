@@ -1,7 +1,7 @@
 """
 Script:      test_check_sources_map_integrity.py
-Description: The integrity checks for src/sdgtools/check_sources_map.py. The operation checks are
-             in test_check_sources_map_operation.py, beside this file.
+Description: The integrity checks for src/sdgtools/check_sources_map.py. The technical checks are
+             in test_check_sources_map_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

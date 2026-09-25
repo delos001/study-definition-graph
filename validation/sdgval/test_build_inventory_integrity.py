@@ -1,7 +1,7 @@
 """
 Script:      test_build_inventory_integrity.py
-Description: The integrity checks for src/sdgval/build_inventory.py. The operation checks are
-             in test_build_inventory_operation.py, beside this file.
+Description: The integrity checks for src/sdgval/build_inventory.py. The technical checks are
+             in test_build_inventory_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

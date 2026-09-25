@@ -1,5 +1,5 @@
 """
-Script:      test_read_pdf_operation.py
+Script:      test_read_pdf_technical.py
 Description: Checks for src/sdg/view/read_pdf.py, the command that prints part of
              a pinned PDF. They cover the list of lookup documents: that a
              well-formed list becomes the documents the command offers, that each
@@ -16,9 +16,9 @@ Inputs:      Nothing real. The list of documents, the manifests and the files ar
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/view/test_read_pdf_operation.py
+Usage:       pytest validation/sdg/view/test_read_pdf_technical.py
                  run these checks
-             pytest validation/sdg/view/test_read_pdf_operation.py -v
+             pytest validation/sdg/view/test_read_pdf_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

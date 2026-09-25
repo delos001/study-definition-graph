@@ -1,5 +1,5 @@
 """
-Script:      test_report_operation.py
+Script:      test_report_technical.py
 Description: Checks for src/sdgval/report.py, the plugin that writes a validation
              report. A report is the proof that the code was validated, so the
              writer itself has to be proven: above all, that it can never say
@@ -16,9 +16,9 @@ Inputs:      Nothing real. Each staged suite is written to pytest's own temporar
 
 Outputs:     Writes nothing to disk outside pytest's temporary folder.
 
-Usage:       pytest validation/sdgval/test_report_operation.py
+Usage:       pytest validation/sdgval/test_report_technical.py
                  run these checks
-             pytest validation/sdgval/test_report_operation.py -v
+             pytest validation/sdgval/test_report_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

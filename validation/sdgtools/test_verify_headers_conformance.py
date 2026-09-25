@@ -1,7 +1,7 @@
 """
 Script:      test_verify_headers_conformance.py
-Description: The conformance checks for src/sdgtools/verify_headers.py. The operation checks are
-             in test_verify_headers_operation.py, beside this file.
+Description: The conformance checks for src/sdgtools/verify_headers.py. The technical checks are
+             in test_verify_headers_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

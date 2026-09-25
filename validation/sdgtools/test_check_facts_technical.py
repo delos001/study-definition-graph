@@ -1,5 +1,5 @@
 """
-Script:      test_check_facts_operation.py
+Script:      test_check_facts_technical.py
 Description: Checks for src/sdgtools/check_facts.py, the hand-run script that
              re-derives every figure stated in the project's documents, a count or
              a date, from the pinned files. The script is a list of measurements and a loop that
@@ -14,9 +14,9 @@ Inputs:      inputs/**  (read-only; the one real-corpus check only, skips if abs
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdgtools/test_check_facts_operation.py
+Usage:       pytest validation/sdgtools/test_check_facts_technical.py
                  run these checks
-             pytest validation/sdgtools/test_check_facts_operation.py -v
+             pytest validation/sdgtools/test_check_facts_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

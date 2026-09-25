@@ -1,5 +1,5 @@
 """
-Script:      test_usdm_spec_operation.py
+Script:      test_usdm_spec_technical.py
 Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              the pinned USDM model. Each check sets up a situation, runs the
              loader, and compares what happened to what the loader's own
@@ -30,9 +30,9 @@ Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              src/sdgval/report.py writes a report to validation/reports/ when asked.
 
-Usage:       pytest validation/sdg/usdm/test_usdm_spec_operation.py
+Usage:       pytest validation/sdg/usdm/test_usdm_spec_technical.py
                  run these checks
-             pytest validation/sdg/usdm/test_usdm_spec_operation.py -v
+             pytest validation/sdg/usdm/test_usdm_spec_technical.py -v
                  one line per check with its result
              pytest --validation-report
                  also write the validation record (see conftest.py)
@@ -350,7 +350,7 @@ def test_inherited_from_without_ref_is_named(variant):
 ### Refusing a file that cannot be trusted (exits 9 and 10) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
-# validation/sdg/sources/test_verify_pinned_operation.py. These prove the module is
+# validation/sdg/sources/test_verify_pinned_technical.py. These prove the module is
 # wired to it: a file no manifest records, and a file whose fingerprint differs, are
 # refused through load() with the same messages.
 

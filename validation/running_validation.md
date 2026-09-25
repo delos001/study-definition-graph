@@ -20,7 +20,7 @@ Four of the five options are spelled as the column they select on, so what you t
 | Option | The column it selects on | What it takes |
 | --- | --- | --- |
 | `--category` | `category` | `repository`, `sources`, `processing` or `products` |
-| `--aspect` | `quality_aspect` | `conformance`, `integrity` or `operation` |
+| `--aspect` | `quality_aspect` | `conformance`, `integrity` or `technical` |
 | `--objective` | `objective` | any objective the dictionary lists under those aspects |
 | `--id` | `id` | a check's permanent id, such as `SA00106` |
 | `--group` | none | a group named in [validation_groups.yml](validation_groups.yml) |
@@ -78,7 +78,7 @@ Three things govern it.
 | --- | --- |
 | Everything | `pytest` |
 | Everything, with each check named | `pytest -v` |
-| One file's checks | `pytest validation/sdg/sources/test_fetch_file_operation.py` |
+| One file's checks | `pytest validation/sdg/sources/test_fetch_file_technical.py` |
 | One folder's checks | `pytest validation/sdgtools` |
 | Every check whose name mentions manifests | `pytest -k manifest` |
 | Every check on the repository's own machinery | `pytest --category repository` |

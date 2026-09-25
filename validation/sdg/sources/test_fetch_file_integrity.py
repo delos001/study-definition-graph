@@ -1,7 +1,7 @@
 """
 Script:      test_fetch_file_integrity.py
-Description: The integrity checks for src/sdg/sources/fetch_file.py. The operation checks are
-             in test_fetch_file_operation.py, beside this file.
+Description: The integrity checks for src/sdg/sources/fetch_file.py. The technical checks are
+             in test_fetch_file_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

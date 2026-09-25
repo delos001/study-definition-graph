@@ -1,5 +1,5 @@
 """
-Script:      test_finalize_file_operation.py
+Script:      test_finalize_file_technical.py
 Description: Automated checks for src/sdg/sources/finalize_file.py, the step
              that brings a finished download to its final name, or deletes a
              download that did not match. Each check proves one promise from
@@ -11,9 +11,9 @@ Inputs:      none from the repo
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_finalize_file_operation.py
+Usage:       pytest validation/sdg/sources/test_finalize_file_technical.py
                  run these checks
-             pytest validation/sdg/sources/test_finalize_file_operation.py -v
+             pytest validation/sdg/sources/test_finalize_file_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

@@ -1,7 +1,7 @@
 """
 Script:      test_usdm_spec_integrity.py
-Description: The integrity checks for src/sdg/usdm/usdm_spec.py. The operation checks are
-             in test_usdm_spec_operation.py, beside this file.
+Description: The integrity checks for src/sdg/usdm/usdm_spec.py. The technical checks are
+             in test_usdm_spec_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

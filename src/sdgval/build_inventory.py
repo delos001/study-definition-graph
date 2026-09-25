@@ -132,7 +132,7 @@ CATEGORIES = ("repository", "sources", "processing", "products")
 OBJECTIVES_BY_ASPECT = {
     "conformance": ("conformance",),
     "integrity": ("correctness", "completeness", "stability", "consistency"),
-    "operation": (
+    "technical": (
         "functionality",
         "performance",
         "reliability",
@@ -256,7 +256,7 @@ def code_folder_and_target(
 
     validation/ mirrors src/, one folder per installed package. A test file at
     validation/<package>/<path> tests the file of the same name at
-    src/<package>/<path>, so validation/sdg/sources/test_fetch_file_operation.py
+    src/<package>/<path>, so validation/sdg/sources/test_fetch_file_technical.py
     tests src/sdg/sources/fetch_file.py. Two places are exceptions. A test file in
     validation/claude_hooks/ tests the hook of the same name in .claude/hooks/, which
     cannot be mirrored by name because pytest does not look inside a folder whose name
@@ -264,7 +264,7 @@ def code_folder_and_target(
     the same name in validation/ itself, as the checks for conftest.py do.
 
     A test file's name ends with the aspect of quality its checks belong to, as in
-    test_build_index_operation.py, and the aspect is left out of the name of the
+    test_build_index_technical.py, and the aspect is left out of the name of the
     file it tests. A name with no aspect is kept whole, and read_checks() reports it.
 
     Args:

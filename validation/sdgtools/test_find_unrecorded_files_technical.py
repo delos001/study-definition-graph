@@ -1,5 +1,5 @@
 """
-Script:      test_find_unrecorded_files_operation.py
+Script:      test_find_unrecorded_files_technical.py
 Description: Checks for src/sdgtools/find_unrecorded_files.py, the hand-run script
              that lists every file under inputs/ that no manifest records. Each
              check stages one state of a throwaway repo, the fake_repo fixture
@@ -12,9 +12,9 @@ Inputs:      Nothing real. Every file and manifest is written to pytest's own
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdgtools/test_find_unrecorded_files_operation.py
+Usage:       pytest validation/sdgtools/test_find_unrecorded_files_technical.py
                  run these checks
-             pytest validation/sdgtools/test_find_unrecorded_files_operation.py -v
+             pytest validation/sdgtools/test_find_unrecorded_files_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

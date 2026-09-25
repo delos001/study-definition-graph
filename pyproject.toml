@@ -23,6 +23,7 @@ check_python_files = "sdgtools.check_python_files:main"
 build_index = "sdgtools.build_index:main"
 verify_headers = "sdgtools.verify_headers:main"
 build_inventory = "sdgval.build_inventory:main"
+validate_technical = "sdgval.validate_technical:main"
 
 # The validation package's plugins, which pytest loads on its own wherever the
 # project is installed, including the separate pytest processes the report's own

@@ -1,5 +1,5 @@
 """
-Script:      test_check_python_files_operation.py
+Script:      test_check_python_files_technical.py
 Description: Checks for src/sdgtools/check_python_files.py, the tool the pre-commit
              hook runs to hold every Python file to ruff format, ruff check and
              mypy. Each check stands in for the two things the tool reaches
@@ -17,9 +17,9 @@ Inputs:      Nothing real. The tool search and the command runner are replaced b
 
 Outputs:     Writes nothing to disk.
 
-Usage:       pytest validation/sdgtools/test_check_python_files_operation.py
+Usage:       pytest validation/sdgtools/test_check_python_files_technical.py
                  run these checks
-             pytest validation/sdgtools/test_check_python_files_operation.py -v
+             pytest validation/sdgtools/test_check_python_files_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

@@ -1,5 +1,5 @@
 """
-Script:      test_build_inventory_operation.py
+Script:      test_build_inventory_technical.py
 Description: Checks for src/sdgval/build_inventory.py, the hand-run script that
              generates validation/validation_inventory.csv from the checks in the
              test files and, under --check, is the pre-commit hook that refuses
@@ -16,9 +16,9 @@ Inputs:      validation/**/test_*.py and validation/validation_inventory.csv
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/sdgval/test_build_inventory_operation.py
+Usage:       pytest validation/sdgval/test_build_inventory_technical.py
                  run these checks
-             pytest validation/sdgval/test_build_inventory_operation.py -v
+             pytest validation/sdgval/test_build_inventory_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -1032,7 +1032,7 @@ def test_a_file_with_no_aspect_in_its_name_exits_47(tests_folder, capsys):
     assert outcome.exit_code == 47
     assert (
         "validation/sdgtools/test_alpha.py has no aspect in its name; it must end "
-        "with one of _conformance, _integrity, _operation" in outcome.printed
+        "with one of _conformance, _integrity, _technical" in outcome.printed
     )
 
 

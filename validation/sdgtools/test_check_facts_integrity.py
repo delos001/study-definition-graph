@@ -1,7 +1,7 @@
 """
 Script:      test_check_facts_integrity.py
-Description: The integrity checks for src/sdgtools/check_facts.py. The operation checks are
-             in test_check_facts_operation.py, beside this file.
+Description: The integrity checks for src/sdgtools/check_facts.py. The technical checks are
+             in test_check_facts_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

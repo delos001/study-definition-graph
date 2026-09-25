@@ -1,7 +1,7 @@
 """
 Script:      test_read_manifests_conformance.py
-Description: The conformance checks for src/sdg/sources/read_manifests.py. The operation checks are
-             in test_read_manifests_operation.py, beside this file.
+Description: The conformance checks for src/sdg/sources/read_manifests.py. The technical checks are
+             in test_read_manifests_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

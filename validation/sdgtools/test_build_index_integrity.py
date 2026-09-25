@@ -1,7 +1,7 @@
 """
 Script:      test_build_index_integrity.py
-Description: The integrity checks for src/sdgtools/build_index.py. The operation checks are
-             in test_build_index_operation.py, beside this file.
+Description: The integrity checks for src/sdgtools/build_index.py. The technical checks are
+             in test_build_index_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.

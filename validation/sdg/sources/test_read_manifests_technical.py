@@ -1,5 +1,5 @@
 """
-Script:      test_read_manifests_operation.py
+Script:      test_read_manifests_technical.py
 Description: Automated checks for src/sdg/sources/read_manifests.py, the step that
              reads the manifests and hands back what they say. Each check proves
              one promise from that module's header or docstrings: one fact about
@@ -16,9 +16,9 @@ Inputs:      manifests/*.json   (read-only; the checks against the real repo)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_read_manifests_operation.py
+Usage:       pytest validation/sdg/sources/test_read_manifests_technical.py
                  run these checks
-             pytest validation/sdg/sources/test_read_manifests_operation.py -v
+             pytest validation/sdg/sources/test_read_manifests_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

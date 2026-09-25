@@ -1,6 +1,6 @@
 """
-Script:      test_fingerprint_file_operation.py
-Description: The operation checks for src/sdg/sources/fingerprint_file.py, the step
+Script:      test_fingerprint_file_technical.py
+Description: The technical checks for src/sdg/sources/fingerprint_file.py, the step
              that measures a file's size and sha256 and says whether the file
              matches its manifest entry. Each check proves one promise from that
              module's header: one measurement, one comparison result, or one
@@ -14,9 +14,9 @@ Inputs:      none from the repo
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
-Usage:       pytest validation/sdg/sources/test_fingerprint_file_operation.py
+Usage:       pytest validation/sdg/sources/test_fingerprint_file_technical.py
                  run these checks
-             pytest validation/sdg/sources/test_fingerprint_file_operation.py -v
+             pytest validation/sdg/sources/test_fingerprint_file_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

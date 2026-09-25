@@ -1,5 +1,5 @@
 """
-Script:      test_console_output_operation.py
+Script:      test_console_output_technical.py
 Description: Checks for src/sdg/console_output.py, the one function every command
              calls before its first print so that characters from the pinned
              standards come out intact on Windows. The function switches standard
@@ -15,9 +15,9 @@ Inputs:      Nothing real.
 
 Outputs:     Writes nothing to disk.
 
-Usage:       pytest validation/sdg/test_console_output_operation.py
+Usage:       pytest validation/sdg/test_console_output_technical.py
                  run these checks
-             pytest validation/sdg/test_console_output_operation.py -v
+             pytest validation/sdg/test_console_output_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

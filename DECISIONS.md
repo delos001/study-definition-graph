@@ -632,3 +632,22 @@ Three other arrangements were weighed and rejected.
 - One helper file per script under test would organise shared code by who uses it, so the count would grow with every script.
 
 A test file named without its aspect, or holding a check of another aspect, is refused by `src/sdgval/build_inventory.py` with exit code 47. It is a cause of its own, rather than part of 18, because its fix is to rename the file or move the check, not to correct a label.
+
+## Each aspect of quality is validated by its own module and command, and the operation aspect is renamed technical, decided 2026-09-25
+
+Technical, conformance and integrity validation differ in what they read, what they record and what a reviewer needs from them. Handling all of them in one run with one report would make that single module carry every difference, and it would grow more complex with each new aspect. No standard covered the question, so the choice is **unguided**.
+
+- Each aspect has its own module in `src/sdgval/` and its own command. A person runs the command for one aspect, and it runs that aspect's checks and writes that aspect's report.
+- The commands are `validate_technical`, `validate_conformance` and `validate_integrity`, each with the name of its module, as every command in the repo has.
+- Machinery that every aspect uses stays shared: selecting checks, reading their labels, skipping checks whose downloaded file is missing or changed, and collecting outcomes.
+- A new aspect, such as clinical validation, is a new module and a new command, and the existing ones do not change. Each module can take its objectives from whichever framework suits its aspect, so the frameworks never have to be merged into one list.
+- The rule from 2026-09-23 that a report run must name its aspect with `--aspect` is withdrawn, because a report now comes only from its aspect's command.
+- A development run of plain `pytest` may still hold checks from several aspects, and it still runs them in the order technical, conformance, integrity. Nothing is filed from such a run.
+
+The aspect called `operation` is renamed `technical`, because operations has its own meaning in clinical research, and a later aspect may cover clinical operations. `technical` names a kind of quality, how systems and software run, and it pairs with `clinical`. Its objectives are unchanged and still come from ISO/IEC 25010. The naming is **unguided**. Three other names were weighed and rejected.
+
+- `software` names the thing examined rather than the kind of quality, and conformance checks examine software too, so it would sort checks by the wrong question. ISO's own word for the model, product, is already one of the check categories.
+- `iso` names the publisher, and the integrity aspect also draws on ISO, through ISO/IEC 25012.
+- `utility` means only fitness for purpose in ITIL, the IT service management framework, which leaves out six of the seven objectives, and in code it usually means helper scripts.
+
+Every test file, check, inventory row and document was renamed at once. Entries above this one keep `operation`, because each records what was true when it was written.

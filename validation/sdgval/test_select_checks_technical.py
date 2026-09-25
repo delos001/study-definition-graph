@@ -1,5 +1,5 @@
 """
-Script:      test_select_checks_operation.py
+Script:      test_select_checks_technical.py
 Description: Checks for src/sdgval/select_checks.py, the plugin that selects checks
              by category, objective, id or named group. Each check runs one
              throwaway suite of four checks, which differ in category, objective
@@ -15,9 +15,9 @@ Inputs:      Nothing real. The throwaway suite is written to pytest's own
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/sdgval/test_select_checks_operation.py
+Usage:       pytest validation/sdgval/test_select_checks_technical.py
                  run these checks
-             pytest validation/sdgval/test_select_checks_operation.py -v
+             pytest validation/sdgval/test_select_checks_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
@@ -344,5 +344,5 @@ def test_an_aspect_not_in_the_list_stops_the_run(staged_suite):
     pytest's usage error, exit 4, and the message names the value and the aspects."""
     ret, ids, _, printed = selected(staged_suite, "--aspect", "quality")
     assert ret == 4
-    assert "--aspect quality: not one of conformance, integrity, operation" in printed
+    assert "--aspect quality: not one of conformance, integrity, technical" in printed
     assert ids == set()

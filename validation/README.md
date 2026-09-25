@@ -64,7 +64,7 @@ Validation is broken into quality aspects, which can impact process order. Each 
   - `stability`: have values changed from their earlier recorded or accepted version by more than the allowed amount?
   - `consistency`: do the values or events occur in the correct sequence?
 
-- `operation`: evaluates whether something runs as it is intended or does what it was designed to do.
+- `technical`: evaluates whether something runs as it is intended or does what it was designed to do.
   - `functionality`: does the target do what it was built to do?
   - `performance`: does the target run fast enough and light enough on a realistic input?
   - `reliability`: does the target keep working, and recover when something fails?

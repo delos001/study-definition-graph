@@ -1,5 +1,5 @@
 """
-Script:      test_verify_headers_operation.py
+Script:      test_verify_headers_technical.py
 Description: Checks for src/sdgtools/verify_headers.py, the hand-run script the
              pre-commit hook runs to refuse a commit whose Python files lack
              the full header block. Each check writes one or two small files to
@@ -13,9 +13,9 @@ Inputs:      src/**/*.py, validation/**/*.py and .claude/hooks/*.py  (read-only;
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
-Usage:       pytest validation/sdgtools/test_verify_headers_operation.py
+Usage:       pytest validation/sdgtools/test_verify_headers_technical.py
                  run these checks
-             pytest validation/sdgtools/test_verify_headers_operation.py -v
+             pytest validation/sdgtools/test_verify_headers_technical.py -v
                  one line per check with its result
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed

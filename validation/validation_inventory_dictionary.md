@@ -23,7 +23,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 - Allowed values:
   - `conformance`
   - `integrity`
-  - `operation`
+  - `technical`
 
 
 ### `objective`
@@ -40,7 +40,7 @@ Every row is one check. A column about the check itself has a bare name. The two
     - `stability`
     - `consistency`
 
-  - `operation`:
+  - `technical`:
     - `functionality`
     - `performance`
     - `reliability`

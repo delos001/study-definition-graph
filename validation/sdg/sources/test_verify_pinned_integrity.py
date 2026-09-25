@@ -1,7 +1,7 @@
 """
 Script:      test_verify_pinned_integrity.py
-Description: The integrity checks for src/sdg/sources/verify_pinned.py. The operation checks are
-             in test_verify_pinned_operation.py, beside this file.
+Description: The integrity checks for src/sdg/sources/verify_pinned.py. The technical checks are
+             in test_verify_pinned_technical.py, beside this file.
 
 Inputs:      See each check. A check that reads a real pinned file names it with
              @needs_pinned.
@@ -49,7 +49,7 @@ def pinned_locals() -> list[str]:
     """List every file the real manifests record, when the checks are collected.
 
     A manifest that cannot be read gives no files here. The checks of the manifest
-    reader, in validation/sdg/sources/test_read_manifests_operation.py, report that
+    reader, in validation/sdg/sources/test_read_manifests_technical.py, report that
     problem.
 
     Returns:
