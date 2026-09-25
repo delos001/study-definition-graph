@@ -57,22 +57,23 @@ Inputs:      git (for the commit hash and user name; read-only)
              validation/**/test_*.py and validation/fixtures/* (read-only; hashed)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes one file,
-             validation/reports/run_<YYYY-MM-DD>_<commit>.csv, with one row per check.
+             validation/reports/<aspect>_<YYYY-MM-DD>_<commit>.csv, with one row per
+             check. The aspect is the one an aspect's command, such as
+             src/sdgval/validate_technical.py, leaves in pytest's stash.
              An existing name is never overwritten; it gets a numeric suffix. A run
              whose command line pytest refused writes nothing, because it
              validated nothing, and neither does a listing run, --collect-only,
              because it ran nothing.
 
-Usage:       pytest --validation-report
-                 run every test and write the report to validation/reports/
-             pytest --validation-report --validation-report-dir <folder>
-                 same, writing to another folder
-             pytest --category sources --validation-report
-                 run only some checks and write a report of them; the options
-                 are src/sdgval/select_checks.py's
+Usage:       validate_technical
+                 an aspect's command loads this writer with --validation-report;
+                 plain pytest --validation-report is refused
+             validate_technical --validation-report-dir <folder>
+                 same, writing the report to another folder
 
-Exit codes:  None of its own. It runs inside pytest, and a report on uncommitted
-             changes is refused with pytest's own 4, a bad command line.
+Exit codes:  None of its own. It runs inside pytest, and a report asked for without
+             an aspect's command, or on uncommitted changes, is refused with
+             pytest's own 4, a bad command line.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -109,6 +110,12 @@ from sdgval.select_checks import SELECTORS, wanted
 # module the checks themselves are meant to prove.
 PINNED_LOCAL = "inputs/standards/cdisc/usdm_v4/dataStructure.yml"
 MANIFEST_LOCAL = "manifests/cdisc_usdm_v4.json"
+
+# Where an aspect's command leaves its aspect for this writer, in pytest's stash,
+# the store pytest gives each run for plugins to share values. The report's file
+# name starts with the aspect, and a report asked for with no aspect left there is
+# refused, because a report comes only from an aspect's command.
+REPORT_ASPECT = pytest.StashKey[str]()
 
 # pytest ends every run with a number that says how the run went. The report
 # prints that number together with its meaning, in these words.
@@ -469,23 +476,30 @@ def pytest_deselected(items: list[pytest.Item]) -> None:
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
-    """Note the moment the run started, and refuse a report on uncommitted changes.
+    """Note the moment the run started, and refuse a report that cannot be written.
 
-    The refusal happens here, before any check is collected, so a dirty working
-    folder costs seconds rather than the whole run. A report names the commit it
-    validated, and a folder with uncommitted changes matches no commit.
+    Both refusals happen here, before any check is collected, so they cost seconds
+    rather than the whole run. A report comes only from an aspect's command, which
+    leaves its aspect in pytest's stash before the run starts. A report also names
+    the commit it validated, and a folder with uncommitted changes matches no commit.
 
     Args:
         session: The pytest run.
 
     Raises:
-        pytest.UsageError: A report was asked for and the working folder has changes
-            that are not committed.
+        pytest.UsageError: A report was asked for, and no aspect's command started
+            the run, or the working folder has changes that are not committed.
     """
     global _started_at
     _started_at = time.monotonic()
     if not session.config.getoption("--validation-report"):
         return
+    if REPORT_ASPECT not in session.config.stash:
+        raise pytest.UsageError(
+            "No checks were run and no validation report was written, because a "
+            "report comes only from the command for one aspect of quality. Run "
+            "validate_technical instead of pytest --validation-report."
+        )
     report_dir = _report_dir(session.config)
     changes = uncommitted_changes(session.config.rootpath, report_dir)
     if changes:
@@ -636,7 +650,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     # the two can never disagree, numbered suffix included.
     report_dir = _report_dir(session.config)
     report_dir.mkdir(parents=True, exist_ok=True)
-    target = _unique(report_dir / f"run_{now:%Y-%m-%d}_{commit}.csv")
+    aspect = session.config.stash[REPORT_ASPECT]
+    target = _unique(report_dir / f"{aspect}_{now:%Y-%m-%d}_{commit}.csv")
     run = {
         "run_id": target.stem,
         "run_verdict": "PASS" if status == 0 else "FAIL",

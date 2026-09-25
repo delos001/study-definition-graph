@@ -59,18 +59,18 @@ A few checks run once for each value in a list, such as the fixity check, which 
 ## Filing a validation report
 
 ```powershell
-pytest --validation-report
-pytest --aspect integrity --validation-report
-pytest --category sources --objective stability --validation-report
+validate_technical
+validate_technical --objective functionality
+validate_technical --category sources
 ```
 
-A report is the formal record that the code was validated, so it is filed when the code is declared ready, not as part of the build loop. Adding `--validation-report` to any run above covers exactly the checks that ran and changes nothing else about the run.
+A report is the formal record that the code was validated, so it is filed when the code is declared ready, not as part of the build loop. Each aspect of quality has its own command, and the command is the only way to file a report. `validate_technical` runs the technical checks and writes the technical report. Every option above except `--aspect` narrows its run the same way, and plain `pytest --validation-report` is refused. The conformance and integrity commands do not exist yet.
 
-Three things govern it.
+Three things govern a report.
 
 - The run refuses to start when the working folder holds changes that are not committed, and names them. A report records the commit it validated, and uncommitted work belongs to no commit. Commit or stash, then run.
 - The report records what the selection asked for in its `selection` column, and how much of the suite it actually covered in `checks_collected` against `checks_reported`. Those two differ when checks were dropped or the run stopped early, so a partial run cannot read as a whole one.
-- One CSV file lands in [reports/](reports/), named for the date and the commit. Commit that file.
+- One CSV file lands in [reports/](reports/), named for the aspect, the date and the commit, as in `technical_2026-09-25_1286c8b.csv`. Commit that file.
 
 ## Worked examples
 
@@ -91,5 +91,5 @@ Three things govern it.
 | What the pre-commit hook enforces, after it refuses a commit | `pytest --group hook` |
 | A listing of what a selection would run | `pytest --aspect integrity --collect-only -q` |
 | One value of a check that runs once per pinned file | copy its line from that listing and give it as the path |
-| A filed report of the whole suite | `pytest --validation-report` |
-| A filed report of one narrowed run | `pytest --category sources --validation-report` |
+| A filed report of every technical check | `validate_technical` |
+| A filed report of one narrowed technical run | `validate_technical --category sources` |

@@ -15,7 +15,8 @@ Description: Runs the technical checks and writes the technical report. It is th
 
 Inputs:      validation/**/test_*.py (read-only; the checks it runs)
 
-Outputs:     One report in validation/reports/, written by src/sdgval/report.py.
+Outputs:     One report in validation/reports/, written by src/sdgval/report.py and
+             named technical_<YYYY-MM-DD>_<commit>.csv.
 
 Usage:       validate_technical
                  run every technical check and write the report
@@ -41,6 +42,7 @@ import sys
 
 import pytest
 
+from sdgval.report import REPORT_ASPECT
 from sdgval.select_checks import wanted
 
 #######################################################################################
@@ -51,16 +53,25 @@ ASPECT = "technical"
 
 
 #######################################################################################
-### Refusing a second aspect ###
+### Naming the report and refusing a second aspect ###
 
 
-class OneAspectOnly:
-    """A pytest plugin, handed to this run alone, that refuses any aspect but its own.
+class AspectRun:
+    """A pytest plugin, handed to this run alone, that holds the run to its aspect.
 
-    The refusal is raised inside pytest as its usage error, so the run ends with
-    pytest's own exit status 4 and nothing runs, the same way the report writer
-    refuses a report on uncommitted changes.
+    It tells the report writer the aspect, so the report's name starts with it, and
+    it refuses any aspect but its own. The refusal is raised inside pytest as its
+    usage error, so the run ends with pytest's own exit status 4 and nothing runs,
+    the same way the report writer refuses a report on uncommitted changes.
     """
+
+    def pytest_configure(self, config: pytest.Config) -> None:
+        """Leave the aspect in pytest's stash, where the report writer reads it.
+
+        Args:
+            config: pytest's configuration for the run.
+        """
+        config.stash[REPORT_ASPECT] = ASPECT
 
     def pytest_sessionstart(self, session: pytest.Session) -> None:
         """Refuse the run when the person named an aspect of their own.
@@ -98,7 +109,7 @@ def main(argv: list[str] | None = None) -> int:
     return int(
         pytest.main(
             ["--aspect", ASPECT, "--validation-report", *args],
-            plugins=[OneAspectOnly()],
+            plugins=[AspectRun()],
         )
     )
 

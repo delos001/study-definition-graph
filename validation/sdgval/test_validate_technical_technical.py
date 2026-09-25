@@ -124,6 +124,21 @@ def test_options_after_the_command_narrow_the_run(staged_suite, pytester):
     assert ids == {"XYZ0103"}
 
 
+@code("SA00484")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_report_is_named_for_its_aspect(staged_suite, pytester):
+    """The report's file name starts with technical, and every row's run_id is that
+    name without .csv, so a report copied out of its folder still says which aspect
+    it covers."""
+    result, out = run_command(staged_suite, pytester)
+    assert result.ret == 0
+    (report,) = out.glob("*.csv")
+    assert report.name.startswith("technical_")
+    assert {row["run_id"] for row in staged_suite.report(out)} == {report.stem}
+
+
 #######################################################################################
 ### Refusing a second aspect ###
 

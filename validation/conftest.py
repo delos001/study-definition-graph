@@ -430,8 +430,20 @@ class StagedSuite:
         self.test_file.write_text(textwrap.dedent(test_source), encoding="utf-8")
         return self.test_file
 
+    # A report is written only when an aspect's command has left its aspect in
+    # pytest's stash. The report writer's own checks run plain pytest, so the suite
+    # carries this conftest, which leaves the aspect the way the command does.
+    ASPECT_CONFTEST = (
+        "from sdgval.report import REPORT_ASPECT\n\n\n"
+        "def pytest_configure(config):\n"
+        '    config.stash[REPORT_ASPECT] = "technical"\n'
+    )
+
     def run(self, test_source: str, *extra_args: str):
         """Write the suite and run it with a report asked for.
+
+        The suite's root gets a conftest that leaves the technical aspect in pytest's
+        stash, standing in for the aspect's command.
 
         Args:
             test_source: The source of the test file.
@@ -441,6 +453,7 @@ class StagedSuite:
             pytest's result and the folder the report was written to.
         """
         self.write(test_source)
+        (self.root / "conftest.py").write_text(self.ASPECT_CONFTEST, encoding="utf-8")
         result = self.pytester.runpytest_subprocess(
             "--validation-report",
             "--validation-report-dir",
@@ -494,6 +507,9 @@ class StagedSuite:
             The short hash of the commit.
         """
         self.write(test_source)
+        # The conftest run() writes is committed too, so writing it again unchanged
+        # does not count as an uncommitted change.
+        (self.root / "conftest.py").write_text(self.ASPECT_CONFTEST, encoding="utf-8")
         (self.root / ".gitignore").write_text(
             ".pytest_cache/\n__pycache__/\nrunpytest-*\nstdout\nstderr\n",
             encoding="utf-8",

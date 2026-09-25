@@ -2,7 +2,7 @@
 
 Defines every column of a validation report and every value a coded column may hold.
 
-A report is written by `pytest --validation-report` into this folder, one CSV file per run named `run_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `src/sdgval/report.py`. Nothing in a report is typed by hand.
+A report is written into this folder by the command for one aspect, such as `validate_technical`, one CSV file per run named `<aspect>_<date>_<commit>.csv`, with one row per check that ran. The run's own details are repeated on every row, so a report is complete on its own. Every column is written by `src/sdgval/report.py`. Nothing in a report is typed by hand.
 
 The check columns carry the same names as `validation/validation_inventory.csv`, so a row joins to the inventory by `id`. Their definitions are in `validation/validation_inventory_dictionary.md` and are not repeated here.
 
@@ -11,7 +11,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 ### `run_id`
 - Identifies the run.
 - Read by the writer from the report's own file name.
-- Holds the file name without `.csv`, such as `run_2026-09-21_1286c8b`, with the numbered suffix a second run on the same day and commit gets, so the id in the rows and the file that holds them can never disagree.
+- Holds the file name without `.csv`, such as `technical_2026-09-25_1286c8b`, with the numbered suffix a second run on the same day and commit gets, so the id in the rows and the file that holds them can never disagree.
 
 ### `selection`
 - Records which checks the command line selected.

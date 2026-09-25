@@ -34,8 +34,8 @@ Usage:       pytest validation/sdg/usdm/test_usdm_spec_technical.py
                  run these checks
              pytest validation/sdg/usdm/test_usdm_spec_technical.py -v
                  one line per check with its result
-             pytest --validation-report
-                 also write the validation record (see conftest.py)
+             validate_technical validation/sdg/usdm/test_usdm_spec_technical.py
+                 run these checks and write a technical report of them
 
 Exit codes:  pytest's own: 0 all passed, 1 some failed
 

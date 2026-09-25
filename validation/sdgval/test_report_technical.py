@@ -349,7 +349,7 @@ def test_file_that_will_not_load_still_gets_a_fail_report(staged_suite):
     assert rows[0]["exit_meaning"] == "the run was interrupted"
     assert rows[0]["outcome"] == "none"
     assert rows[0]["outcome_reason"].startswith("no check ran")
-    assert next(out.glob("*.csv")).name.startswith("run_")
+    assert next(out.glob("*.csv")).name.startswith("technical_")
 
 
 #######################################################################################
@@ -527,6 +527,35 @@ def test_fixture_sha256s_names_each_fixture_file_with_its_hash(staged_suite):
     expected = f"validation/fixtures/sample.txt={hashlib.sha256(content).hexdigest()}"
     _, out = staged_suite.run(PASSING_SUITE)
     assert all(expected in r["fixture_sha256s"] for r in staged_suite.report(out))
+
+
+#######################################################################################
+### Where a report may come from ###
+
+
+@code("SA00485")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_asked_of_plain_pytest_is_refused_before_any_check_runs(
+    staged_suite, pytester
+):
+    """With --validation-report and no aspect's command starting the run, the run
+    stops with pytest's usage error, exit 4, before any check runs, the message says
+    a report comes only from an aspect's command and names validate_technical, and
+    no report is written.
+
+    The suite is written without the conftest that stands in for the command."""
+    staged_suite.write(PASSING_SUITE)
+    result = pytester.runpytest_subprocess(
+        "--validation-report", "--validation-report-dir", str(staged_suite.report_dir)
+    )
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "a report comes only from the command for one aspect" in printed
+    assert "Run validate_technical instead" in printed
+    assert "test_adds" not in result.stdout.str()
+    assert not staged_suite.report_dir.exists()
 
 
 #######################################################################################
