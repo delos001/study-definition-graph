@@ -93,7 +93,7 @@ def refused_with(error, *args) -> str:
 
 
 #######################################################################################
-### Positive checks against the real repo ###
+### Checks against the real repo ###
 #
 # These checks read the real manifests/ folder as it is.
 
@@ -101,7 +101,6 @@ def refused_with(error, *args) -> str:
 @code("SA00076")
 @category("repository")
 @objective("functionality")
-@positive
 def test_repo_root_is_the_folder_holding_pyproject():
     """require_repo() gives back the folder that holds pyproject.toml."""
     root = require_repo()
@@ -112,7 +111,6 @@ def test_repo_root_is_the_folder_holding_pyproject():
 @code("SA00077")
 @category("repository")
 @objective("functionality")
-@positive
 def test_every_entry_names_the_manifest_it_came_from(real_manifests):
     """Every entry remembers which manifest file it was read from."""
     for manifest in real_manifests:

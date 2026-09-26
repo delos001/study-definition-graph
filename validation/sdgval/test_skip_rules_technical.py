@@ -151,8 +151,23 @@ def test_a_check_whose_pinned_file_is_not_downloaded_is_skipped(gated, staged_su
     )
 
 
+# The manifest reader is pointed at a small staged repo with one manifest, so the
+# suite never reads the real manifests.
 UNMATCHED_SUITE = '''
+    import json
+    from pathlib import Path
+
     import pytest
+
+    from sdg.sources import read_manifests
+
+    ROOT = Path(__file__).parent / "staged_repo"
+    (ROOT / "manifests" / "study_documents").mkdir(parents=True, exist_ok=True)
+    (ROOT / "pyproject.toml").write_text('name = "sdg"', encoding="utf-8")
+    (ROOT / "manifests/set.json").write_text(json.dumps({"files": []}), encoding="utf-8")
+    read_manifests.REPO_ROOT = ROOT
+    read_manifests.MANIFEST_DIR = ROOT / "manifests"
+    read_manifests.STUDY_MANIFEST_DIR = ROOT / "manifests" / "study_documents"
 
 
     @pytest.mark.needs_pinned("inputs/no_such_folder/*.txt")

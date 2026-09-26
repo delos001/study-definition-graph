@@ -108,8 +108,8 @@ def stray_quiet(repo, capsys) -> Outcome:
 #######################################################################################
 ### Positive checks ###
 #
-# The right thing works: a recorded corpus passes, the project's own files are not
-# mistaken for pinned ones, and --quiet leaves the exit code to speak.
+# The right thing works: a recorded corpus passes, and the project's own files are
+# not mistaken for pinned ones.
 
 
 @code("SA00331")
@@ -128,25 +128,6 @@ def test_recorded_files_only_exits_0(clean):
 def test_recorded_files_only_prints_nothing(clean):
     """When every file under inputs/ is recorded, nothing is printed."""
     assert clean.printed == ""
-
-
-@code("SA00333")
-@category("repository")
-@objective("functionality")
-@positive
-def test_quiet_prints_nothing(stray_quiet):
-    """With the quiet option, nothing at all is printed, even when a file is
-    unrecorded."""
-    assert stray_quiet.printed == ""
-
-
-@code("SA00334")
-@category("repository")
-@objective("functionality")
-@positive
-def test_quiet_keeps_the_exit_code(stray_quiet):
-    """With the quiet option, the exit code still reports the unrecorded file."""
-    assert stray_quiet.exit_code == 10
 
 
 @code("SA00335")
@@ -184,6 +165,9 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
     fake_repo.manifest(
         "set_a", [fake_repo.entry(RECORDED, bytes=len(CONTENT), sha256="0" * 64)]
     )
+    # The fake repo always makes an inputs/ folder, so it is removed here to stage a
+    # fresh clone. It is empty, so nothing else is lost.
+    (fake_repo.root / "inputs").rmdir()
     assert run(capsys).exit_code == 0
 
 
@@ -193,6 +177,27 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 # The wrong thing is refused, and the message names the cause: an unrecorded file,
 # an unfinished download, a manifest that cannot be read, no manifests at all, and a
 # package not running from its repo.
+# With the quiet option, a refusal prints nothing and its exit code still names the
+# cause.
+
+
+@code("SA00333")
+@category("repository")
+@objective("functionality")
+@negative
+def test_quiet_prints_nothing(stray_quiet):
+    """With the quiet option, nothing at all is printed, even when a file is
+    unrecorded."""
+    assert stray_quiet.printed == ""
+
+
+@code("SA00334")
+@category("repository")
+@objective("functionality")
+@negative
+def test_quiet_keeps_the_exit_code(stray_quiet):
+    """With the quiet option, the exit code still reports the unrecorded file."""
+    assert stray_quiet.exit_code == 10
 
 
 @code("SA00338")

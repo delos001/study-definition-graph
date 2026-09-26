@@ -160,8 +160,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 #
 # The right thing works: a database that answers with the pinned version is reported
 # as matching, the password never reaches the screen, the settings and the pin are
-# read as written, and the quiet option silences the report without changing the
-# exit code.
+# read as written, and the quiet option silences the report.
 
 
 @code("SA00284")
@@ -215,10 +214,34 @@ def test_the_pin_is_read_from_the_image_tag(repo):
     assert script.read_pinned_release(repo / "docker-compose.yml") == PINNED
 
 
-@code("SA00289")
+@code("SA00507")
 @category("repository")
 @objective("functionality")
 @positive
+def test_quiet_prints_nothing_when_the_database_matches(repo, monkeypatch, capsys):
+    """With the quiet option, a database that answers with the pinned version exits 0
+    and nothing at all is printed."""
+    write_env(repo)
+    write_compose(repo)
+    answer(monkeypatch)
+    outcome = run(capsys, "--quiet")
+    assert outcome.exit_code == 0
+    assert outcome.printed == ""
+
+
+#######################################################################################
+### Negative checks ###
+#
+# The wrong thing is refused, and each refusal is its own exit code with a message
+# that names the cause and what to do about it. One thing is broken per check.
+# With the quiet option, a refusal prints nothing and its exit code still names the
+# cause.
+
+
+@code("SA00289")
+@category("repository")
+@objective("functionality")
+@negative
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     """With the quiet option, nothing at all is printed."""
     write_env(repo, "NEO4J_URI=\n")
@@ -228,18 +251,11 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 @code("SA00290")
 @category("repository")
 @objective("functionality")
-@positive
+@negative
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
     """With the quiet option, the exit code still reports the missing settings."""
     write_env(repo, "NEO4J_URI=\n")
     assert run(capsys, "--quiet").exit_code == 37
-
-
-#######################################################################################
-### Negative checks ###
-#
-# The wrong thing is refused, and each refusal is its own exit code with a message
-# that names the cause and what to do about it. One thing is broken per check.
 
 
 @code("SA00291")

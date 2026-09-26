@@ -94,7 +94,7 @@ def inputs(tmp_path, monkeypatch):
     folder = root / "inputs"
     write_workbook(
         folder / "standards" / "Example_Terms.xlsx",
-        {"terms": ROWS, "notes": [["A"], ["B"]]},
+        {"terms": ROWS, "notes": [["Remark"], ["kept apart"]]},
     )
     write_workbook(folder / "examples" / "Example_Study.xlsx", {"study": ROWS})
     monkeypatch.setattr(read_xlsx, "INPUTS_DIR", folder)
@@ -131,8 +131,12 @@ def run(capsys, *argv):
 @positive
 def test_a_name_fragment_finds_the_workbook(inputs, capsys):
     """A fragment of a filename finds the one workbook it matches, so a nested path
-    never has to be typed."""
-    assert run(capsys, "Terms").exit_code == 0
+    never has to be typed. The listing printed is that workbook's own, with its name
+    and its notes sheet."""
+    outcome = run(capsys, "Terms")
+    assert outcome.exit_code == 0
+    assert "Example_Terms.xlsx" in outcome.printed
+    assert "notes" in outcome.printed
 
 
 @code("SA00210")
@@ -193,8 +197,10 @@ def test_a_sheet_prints_as_a_table(inputs, capsys):
 @positive
 def test_a_sheet_name_matches_whatever_the_case(inputs, capsys):
     """A sheet name is matched whatever its case, so mainTimeline answers to
-    maintimeline."""
-    assert run(capsys, "Example_Terms", "--sheet", "TERMS").exit_code == 0
+    maintimeline. The sheet printed is the one named, not the first sheet."""
+    outcome = run(capsys, "Example_Terms", "--sheet", "NOTES")
+    assert outcome.exit_code == 0
+    assert "kept apart" in outcome.printed
 
 
 @code("SA00214")
@@ -363,8 +369,12 @@ def test_no_workbook_named_is_a_usage_mistake(inputs, capsys):
 @objective("functionality")
 @positive
 def test_a_full_path_finds_the_workbook(inputs, capsys):
-    """A workbook named by its full path is opened."""
-    assert run(capsys, str(inputs / "standards" / "Example_Terms.xlsx")).exit_code == 0
+    """A workbook named by its full path is opened, and the listing printed is that
+    workbook's own."""
+    outcome = run(capsys, str(inputs / "standards" / "Example_Terms.xlsx"))
+    assert outcome.exit_code == 0
+    assert "Example_Terms.xlsx" in outcome.printed
+    assert "notes" in outcome.printed
 
 
 @code("SA00227")
@@ -373,11 +383,14 @@ def test_a_full_path_finds_the_workbook(inputs, capsys):
 @positive
 def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tmp_path):
     """A workbook named by its path from the repo root is opened, whichever folder the
-    command was started from."""
+    command was started from, and the listing printed is that workbook's own."""
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
     monkeypatch.chdir(elsewhere)
-    assert run(capsys, "inputs/standards/Example_Terms.xlsx").exit_code == 0
+    outcome = run(capsys, "inputs/standards/Example_Terms.xlsx")
+    assert outcome.exit_code == 0
+    assert "Example_Terms.xlsx" in outcome.printed
+    assert "notes" in outcome.printed
 
 
 @code("SA00228")
@@ -385,8 +398,12 @@ def test_a_repo_relative_path_finds_the_workbook(inputs, capsys, monkeypatch, tm
 @objective("functionality")
 @positive
 def test_a_filename_is_matched_whatever_its_case(inputs, capsys):
-    """A filename typed in the wrong case finds the workbook."""
-    assert run(capsys, "example_terms.XLSX").exit_code == 0
+    """A filename typed in the wrong case finds the workbook, and the listing printed
+    is that workbook's own."""
+    outcome = run(capsys, "example_terms.XLSX")
+    assert outcome.exit_code == 0
+    assert "Example_Terms.xlsx" in outcome.printed
+    assert "notes" in outcome.printed
 
 
 #######################################################################################

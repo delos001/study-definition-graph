@@ -326,7 +326,7 @@ def quiet_with_a_forgotten_file(repo, fake_repo, capsys):
 @code("SA00328")
 @category("repository")
 @objective("functionality")
-@positive
+@negative
 def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
     """With the quiet option, nothing is printed even when a recorded file has no
     heading in the map."""
@@ -336,7 +336,7 @@ def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
 @code("SA00329")
 @category("repository")
 @objective("functionality")
-@positive
+@negative
 def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
     """With the quiet option, the exit code still reports the recorded file that has
     no heading in the map."""

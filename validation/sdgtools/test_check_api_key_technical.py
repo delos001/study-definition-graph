@@ -137,8 +137,7 @@ def working(repo, monkeypatch, capsys) -> Outcome:
 ### Positive checks ###
 #
 # The right thing works: a key that the API answers is reported as working, the key
-# itself never reaches the screen, and the quiet option silences the report without
-# changing the exit code.
+# itself never reaches the screen, and the quiet option silences the report.
 
 
 @code("SA00257")
@@ -180,10 +179,33 @@ def test_quoted_key_is_read(repo, monkeypatch, capsys):
     assert script.read_key(repo / ".env") == KEY
 
 
-@code("SA00261")
+@code("SA00506")
 @category("repository")
 @objective("functionality")
 @positive
+def test_quiet_prints_nothing_when_the_key_works(repo, monkeypatch, capsys):
+    """With the quiet option, a key the API answers exits 0 and nothing at all is
+    printed."""
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    answer(monkeypatch)
+    outcome = run(capsys, "--quiet")
+    assert outcome.exit_code == 0
+    assert outcome.printed == ""
+
+
+#######################################################################################
+### Negative checks ###
+#
+# The wrong thing is refused, and each refusal is its own exit code with a message
+# that names the cause and what to do about it. One thing is broken per check.
+# With the quiet option, a refusal prints nothing and its exit code still names the
+# cause.
+
+
+@code("SA00261")
+@category("repository")
+@objective("functionality")
+@negative
 def test_quiet_prints_nothing(repo, monkeypatch, capsys):
     """With the quiet option, nothing at all is printed."""
     write_env(repo, "ANTHROPIC_API_KEY=")
@@ -193,18 +215,11 @@ def test_quiet_prints_nothing(repo, monkeypatch, capsys):
 @code("SA00262")
 @category("repository")
 @objective("functionality")
-@positive
+@negative
 def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
     """With the quiet option, the exit code still reports the missing key."""
     write_env(repo, "ANTHROPIC_API_KEY=")
     assert run(capsys, "--quiet").exit_code == 28
-
-
-#######################################################################################
-### Negative checks ###
-#
-# The wrong thing is refused, and each refusal is its own exit code with a message
-# that names the cause and what to do about it. One thing is broken per check.
 
 
 @code("SA00263")
@@ -443,8 +458,7 @@ def test_a_block_that_is_not_text_is_passed_over(monkeypatch):
 @objective("functionality")
 @positive
 def test_a_reply_with_no_text_gives_an_empty_answer(monkeypatch):
-    """A reply carrying no text block at all gives back an empty string rather than
-    raising, so the tool reports an unusable answer through its own message instead of
-    stopping with a Python error."""
+    """A reply with no text in it gives back an empty string instead of stopping with
+    a Python error."""
     stand_in_for_the_client(monkeypatch, [FakeBlock("thinking", "aside")])
     assert script.call_api(KEY) == ""

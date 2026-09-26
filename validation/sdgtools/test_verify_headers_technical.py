@@ -125,8 +125,8 @@ def complete(folder, capsys) -> Outcome:
 ### Positive checks ###
 #
 # The right thing works: complete headers pass silently, a package marker file is
-# not held to the header rule, --quiet leaves the exit code to speak, and the real
-# folders pass the same run the pre-commit hook, .githooks/pre-commit, makes.
+# not held to the header rule, and the real folders pass the same run the pre-commit
+# hook, .githooks/pre-commit, makes.
 
 
 @code("SA00345")
@@ -159,10 +159,20 @@ def test_init_file_is_skipped(folder, capsys):
     assert run(capsys).exit_code == 0
 
 
+#######################################################################################
+### Negative checks ###
+#
+# The wrong thing is refused, and the problem line names the file and the cause: a
+# missing field, fields out of order, a Date that is not a plain calendar date, a
+# file with no docstring at all, and a file that is not valid Python.
+# With the quiet option, a refusal prints nothing and its exit code still names the
+# cause.
+
+
 @code("SA00348")
 @category("repository")
 @objective("functionality")
-@positive
+@negative
 def test_quiet_prints_nothing(folder, capsys):
     """With the quiet option, nothing is printed even when a header is incomplete;
     the exit code is the whole report."""
@@ -170,14 +180,6 @@ def test_quiet_prints_nothing(folder, capsys):
     outcome = run(capsys, "--quiet")
     assert outcome.exit_code == 17
     assert outcome.printed == ""
-
-
-#######################################################################################
-### Negative checks ###
-#
-# The wrong thing is refused, and the problem line names the file and the cause: a
-# missing field, fields out of order, a Date that is not a plain calendar date, a
-# file with no docstring at all, and a file that is not valid Python.
 
 
 @code("SA00349")

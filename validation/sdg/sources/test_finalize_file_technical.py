@@ -163,8 +163,9 @@ def test_place_refuses_a_missing_part_file(tmp_path):
 def test_place_refuses_a_name_without_the_part_suffix(plain_file):
     """place() raises ValueError naming the path when the name does not end in
     .part."""
-    with pytest.raises(ValueError, match=r"not a \.part file"):
+    with pytest.raises(ValueError, match=r"not a \.part file") as caught:
         place(plain_file)
+    assert str(plain_file) in str(caught.value)
 
 
 @code("SA00061")
@@ -198,8 +199,9 @@ def test_discard_refuses_a_missing_part_file(tmp_path):
 def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
     """discard() raises ValueError naming the path when the name does not end
     in .part."""
-    with pytest.raises(ValueError, match=r"not a \.part file"):
+    with pytest.raises(ValueError, match=r"not a \.part file") as caught:
         discard(plain_file)
+    assert str(plain_file) in str(caught.value)
 
 
 @code("SA00064")

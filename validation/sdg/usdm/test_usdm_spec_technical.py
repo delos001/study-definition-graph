@@ -373,9 +373,13 @@ def test_missing_file_raises_filenotfound(tmp_path):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_unrecorded_file_is_refused_through_load():
+def test_unrecorded_file_is_refused_through_load(manifest_dir):
     """A file no manifest entry records is refused by load() with the pinned-file
-    check's message saying exactly that, not with the fingerprint-mismatch remedy."""
+    check's message saying exactly that, not with the fingerprint-mismatch remedy.
+
+    The manifests are staged, holding no entry, so a broken real manifest cannot make
+    this check fail for a reason of its own."""
+    manifest_dir('{"files": []}')
     with pytest.raises(usdm_spec.UnrecordedFileError) as caught:
         usdm_spec.load(FIXTURE)
     message = str(caught.value)
@@ -438,9 +442,13 @@ def test_cli_missing_spec_exits_8(monkeypatch, capsys):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys):
+def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys, manifest_dir):
     """When the file is present but no manifest entry records it, the command
-    exits 10 and prints the cause."""
+    exits 10 and prints the cause.
+
+    The manifests are staged, holding no entry, so a broken real manifest cannot make
+    this check fail for a reason of its own."""
+    manifest_dir('{"files": []}')
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes"]) == 10
     assert "no manifest entry records it" in capsys.readouterr().err

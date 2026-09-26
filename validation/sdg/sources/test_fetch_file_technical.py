@@ -79,19 +79,25 @@ class Failed:
     destination: Path  # the final name fetch() was given
 
 
-def attempt(server, tmp_path, behavior) -> Failed:
+def attempt(server, tmp_path, behavior, leftover: bool = False) -> Failed:
     """Stage the given server behaviour, try one download, and expect it to fail.
 
     Args:
         server: The function that stages the fake server.
         tmp_path: pytest's temporary folder, where the destination is placed.
         behavior: What the fake server does, a FakeResponse or an error.
+        leftover: Whether a .part file from an earlier run that was killed part way
+            is already at the destination. A download that fails before it writes
+            anything leaves no .part file of its own, so only a leftover shows
+            whether the failure cleans up.
 
     Returns:
         The FetchError's message and the destination, as a Failed.
     """
     server(behavior)
     destination = tmp_path / "file.pdf"
+    if leftover:
+        partial_path(destination).write_bytes(b"left by an earlier run")
     with pytest.raises(FetchError) as caught:
         fetch(URL, destination)
     return Failed(str(caught.value), destination)
@@ -217,9 +223,13 @@ def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server)
 @objective("functionality")
 @negative
 def test_error_status_leaves_no_part_file(tmp_path, server):
-    """After an error status, no .part file is left on disk."""
+    """After an error status, no .part file is left on disk, not even one an earlier
+    run left behind."""
     failed = attempt(
-        server, tmp_path, FakeResponse(CHUNKS, status_error=error_status())
+        server,
+        tmp_path,
+        FakeResponse(CHUNKS, status_error=error_status()),
+        leftover=True,
     )
     assert not partial_path(failed.destination).exists()
 
@@ -241,8 +251,14 @@ def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, se
 @objective("functionality")
 @negative
 def test_unreachable_server_leaves_no_part_file(tmp_path, server):
-    """After a failed connection, no .part file is left on disk."""
-    failed = attempt(server, tmp_path, httpx.ConnectError("name or service not known"))
+    """After a failed connection, no .part file is left on disk, not even one an
+    earlier run left behind."""
+    failed = attempt(
+        server,
+        tmp_path,
+        httpx.ConnectError("name or service not known"),
+        leftover=True,
+    )
     assert not partial_path(failed.destination).exists()
 
 
@@ -253,8 +269,11 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
 def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, server):
     """A url the HTTP library cannot parse makes fetch() raise FetchError, and the
     message names the url and the cause, so acquire_sources counts it and carries on
-    rather than stopping with a traceback."""
-    failed = attempt(server, tmp_path, httpx.InvalidURL("Invalid IPv6 URL"))
+    rather than stopping with a traceback. No .part file is left, not even one an
+    earlier run left behind."""
+    failed = attempt(
+        server, tmp_path, httpx.InvalidURL("Invalid IPv6 URL"), leftover=True
+    )
     assert URL in failed.message
     assert "Invalid IPv6 URL" in failed.message
     assert not partial_path(failed.destination).exists()
