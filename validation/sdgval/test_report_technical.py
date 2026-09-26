@@ -32,6 +32,7 @@ from __future__ import annotations
 import csv
 import json
 import re
+import sys
 
 import pytest
 
@@ -657,6 +658,60 @@ def test_the_runs_own_file_lists_the_installed_packages(staged_suite):
     _, out = staged_suite.run(PASSING_SUITE)
     packages = json.loads(staged_suite.run_details(out)["installed_packages"])
     assert packages["pytest"] == pytest.__version__
+
+
+#######################################################################################
+### Two runs in one process ###
+#
+# A command that runs several aspects in order may start more than one pytest run in
+# the same process. Each run's report must hold that run alone.
+
+TWO_TECHNICAL_CHECKS = '''
+    import pytest
+
+    @pytest.mark.code("XYZ0301")
+    @pytest.mark.objective("functionality")
+    def test_first():
+        """A technical check."""
+
+    @pytest.mark.code("XYZ0302")
+    @pytest.mark.objective("functionality")
+    def test_second():
+        """A second technical check."""
+    '''
+
+# Two runs of the shared code in one process: the first narrowed to one check, the
+# second covering both, each writing its report to its own folder.
+TWO_RUNS_IN_ONE_PROCESS = (
+    "import sys\n"
+    "from sdgval.aspect_run import run_aspect\n"
+    "first = run_aspect('technical', ['--validation-report', "
+    "'--validation-report-dir', sys.argv[1], '--id', 'XYZ0301'])\n"
+    "second = run_aspect('technical', ['--validation-report', "
+    "'--validation-report-dir', sys.argv[2]])\n"
+    "sys.exit(first or second)\n"
+)
+
+
+@code("SA00496")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_second_run_in_the_same_process_reports_on_itself_alone(
+    staged_suite, pytester
+):
+    """When two runs happen in one process, the second run's own file counts only
+    its own checks, so nothing the first run dropped or ran is carried into it."""
+    staged_suite.write(TWO_TECHNICAL_CHECKS)
+    first_dir = staged_suite.root / "first_reports"
+    second_dir = staged_suite.root / "second_reports"
+    result = pytester.run(
+        sys.executable, "-c", TWO_RUNS_IN_ONE_PROCESS, str(first_dir), str(second_dir)
+    )
+    assert result.ret == 0
+    second = staged_suite.run_details(second_dir / "technical")
+    assert second["checks_collected"] == "2"
+    assert second["checks_reported"] == "2"
 
 
 #######################################################################################

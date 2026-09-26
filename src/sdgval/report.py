@@ -96,6 +96,7 @@ import platform
 import subprocess
 import time
 from collections.abc import Generator
+from dataclasses import dataclass, field
 from importlib import metadata
 from pathlib import Path
 
@@ -201,8 +202,38 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 # whether the run passed. That verdict comes from pytest's own exit number, in
 # pytest_sessionfinish below.
 
-# One row per test, keyed by the id pytest gives the test.
-_outcomes: dict[str, dict] = {}
+
+@dataclass
+class RunState:
+    """What one run gathers as it goes, for the report written at its end.
+
+    It is kept in pytest's stash, the store pytest gives each run, rather than in
+    variables of this file, so two runs in one process never mix their results.
+    """
+
+    # One row per test, keyed by the id pytest gives the test.
+    outcomes: dict[str, dict] = field(default_factory=dict)
+    # The moment the run started, so the report can say when the run began.
+    started_at: float = 0.0
+    # How many checks of the run's aspect were dropped before the run. It is counted
+    # from pytest's own hook rather than from the options that did the dropping,
+    # because pytest fires that hook for every deselection whatever caused it,
+    # including its own --deselect, its -k and -m filters, and the options
+    # src/sdgval/select_checks.py adds.
+    deselected: int = 0
+
+
+# Where each run's state is kept in pytest's stash.
+RUN_STATE = pytest.StashKey[RunState]()
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Give the run a fresh state of its own, before anything is collected.
+
+    Args:
+        config: pytest's configuration for the run.
+    """
+    config.stash[RUN_STATE] = RunState()
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -238,7 +269,7 @@ def pytest_runtest_makereport(
         outcome = "error"
 
     function = getattr(item, "obj", None)
-    row = _outcomes.setdefault(
+    row = item.config.stash[RUN_STATE].outcomes.setdefault(
         item.nodeid,
         {
             "file": Path(str(item.fspath)),
@@ -465,25 +496,17 @@ def _unique(path: Path) -> Path:
     return candidate
 
 
-# The moment the run started, so the report can say when the run began.
-_started_at = 0.0
-
-# How many checks were dropped before the run, counted from pytest's own hook rather
-# than from the options that did the dropping. pytest fires that hook for every
-# deselection whatever caused it, including its own --deselect, its -k and -m
-# filters, and the options src/sdgval/select_checks.py adds, so the count stays
-# right without this file knowing which options exist.
-_deselected = 0
-
-
 def pytest_deselected(items: list[pytest.Item]) -> None:
     """Count checks dropped from the run before it started.
+
+    pytest hands this hook the dropped checks alone, so the run's state is reached
+    through the first of them.
 
     Args:
         items: The checks being dropped.
     """
-    global _deselected
-    _deselected += len(items)
+    if items:
+        items[0].config.stash[RUN_STATE].deselected += len(items)
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
@@ -501,8 +524,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         pytest.UsageError: A report was asked for, and no aspect's command started
             the run, or the working folder has changes that are not committed.
     """
-    global _started_at
-    _started_at = time.monotonic()
+    session.config.stash[RUN_STATE].started_at = time.monotonic()
     if not session.config.getoption("--validation-report"):
         return
     if REPORT_ASPECT not in session.config.stash:
@@ -676,8 +698,9 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         return
 
     # Everything the two files state about the run is gathered once here.
+    state = session.config.stash[RUN_STATE]
     now = dt.datetime.now().astimezone()
-    started = now - dt.timedelta(seconds=time.monotonic() - _started_at)
+    started = now - dt.timedelta(seconds=time.monotonic() - state.started_at)
     status = int(exitstatus)
     root = session.config.rootpath
     commit = _git("rev-parse", "--short", "HEAD", cwd=root)
@@ -721,8 +744,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         # two differ when checks were dropped or the run stopped early, so a run
         # that covered part of the suite cannot read as one that covered all of it,
         # whatever narrowed it.
-        "checks_collected": len(session.items) + _deselected,
-        "checks_reported": len(_outcomes),
+        "checks_collected": len(session.items) + state.deselected,
+        "checks_reported": len(state.outcomes),
         "commit": commit,
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
@@ -736,11 +759,11 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         )
 
     rows: list[dict] = []
-    if _outcomes:
+    if state.outcomes:
         # Rows keep the order the checks ran in, grouped by test file. The
         # per-file values are worked out once per file, not once per row.
         by_file: dict[Path, list[dict]] = {}
-        for outcome in _outcomes.values():
+        for outcome in state.outcomes.values():
             by_file.setdefault(outcome["file"], []).append(outcome)
         for file, outcomes in by_file.items():
             check_path = f"validation/{file.relative_to(validation_dir).as_posix()}"
