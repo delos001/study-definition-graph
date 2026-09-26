@@ -437,9 +437,9 @@ class StagedSuite:
     # pytest's stash. The report writer's own checks run plain pytest, so the suite
     # carries this conftest, which leaves the aspect the way the command does.
     ASPECT_CONFTEST = (
-        "from sdgval.report import REPORT_ASPECT\n\n\n"
+        "from sdgval.select_checks import RUN_ASPECT\n\n\n"
         "def pytest_configure(config):\n"
-        '    config.stash[REPORT_ASPECT] = "technical"\n'
+        '    config.stash[RUN_ASPECT] = "technical"\n'
     )
 
     def run(self, test_source: str, *extra_args: str):

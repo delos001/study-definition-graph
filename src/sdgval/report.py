@@ -119,16 +119,11 @@ from sdgval.labels import (
     fixtures_of,
     objective_of,
 )
-from sdgval.select_checks import SELECTORS, wanted
+from sdgval.select_checks import RUN_ASPECT, SELECTORS, wanted
 
 #######################################################################################
 ### Settings ###
 
-# Where an aspect's command leaves its aspect for this writer, in pytest's stash,
-# the store pytest gives each run for plugins to share values. The report's file
-# name starts with the aspect, and a report asked for with no aspect left there is
-# refused, because a report comes only from an aspect's command.
-REPORT_ASPECT = pytest.StashKey[str]()
 
 # pytest ends every run with a number that says how the run went. The report
 # prints that number together with its cause, in these words.
@@ -549,7 +544,9 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     session.config.stash[RUN_STATE].started_at = time.monotonic()
     if not session.config.getoption("--validation-report"):
         return
-    if REPORT_ASPECT not in session.config.stash:
+    # A report comes only from an aspect's command, which leaves its aspect in
+    # pytest's stash under RUN_ASPECT. The report's file name starts with it.
+    if RUN_ASPECT not in session.config.stash:
         raise pytest.UsageError(
             "No checks were run and no validation report was written, because a "
             "report comes only from the command for one aspect of quality. Run "
@@ -785,7 +782,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
     # The file is named first, so the id in every row is the file's own name and
     # the two can never disagree, numbered suffix included.
-    aspect = session.config.stash[REPORT_ASPECT]
+    aspect = session.config.stash[RUN_ASPECT]
     report_dir = _report_dir(session.config) / aspect
     report_dir.mkdir(parents=True, exist_ok=True)
     target = _unique(report_dir / f"{aspect}_{now:%Y-%m-%d}_{commit}.csv")

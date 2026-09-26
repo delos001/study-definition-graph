@@ -240,11 +240,54 @@ def test_a_category_not_in_the_list_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_an_id_no_collected_check_carries_stops_the_run(staged_suite):
-    """An --id that no collected check carries stops the run with exit 4 rather than
-    running nothing, so a typo cannot pass for a clean run."""
+    """An --id that no check has stops the run with exit 4 rather than running
+    nothing, and the message says no check has it and where every id is listed, so a
+    typo cannot pass for a clean run."""
     ret, ids, _, printed = selected(staged_suite, "--id", "XYZ0099")
     assert ret == 4
-    assert "no collected check carries the id XYZ0099" in printed
+    assert (
+        "No check has the id XYZ0099. Every check's id is listed in "
+        "validation/validation_inventory.csv." in printed
+    )
+    assert ids == set()
+
+
+@code("SA00501")
+@category("repository")
+@objective("functionality")
+@negative
+def test_an_id_outside_the_files_given_stops_the_run(staged_suite):
+    """An --id that the inventory lists but that is not among the files the run was
+    given stops the run with exit 4, and the message says it is not in the files or
+    folders given, rather than that no check has it."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_inventory.csv").write_text(
+        "id\nXYZ0099\n", encoding="utf-8"
+    )
+    ret, ids, _, printed = selected(staged_suite, "--id", "XYZ0099")
+    assert ret == 4
+    assert "XYZ0099 is not in the files or folders given to this run." in printed
+    assert ids == set()
+
+
+@code("SA00502")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_group_listing_an_id_no_check_has_stops_the_run(staged_suite):
+    """A group that lists an id no check has stops the run with exit 4, and the
+    message names the group and the id and says to correct the groups file, since the
+    person never typed the id."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_groups.yml").write_text(
+        "stale:\n  purpose: A stale group.\n  ids: [XYZ0098]\n", encoding="utf-8"
+    )
+    ret, ids, _, printed = selected(staged_suite, "--group", "stale")
+    assert ret == 4
+    assert (
+        "The group stale lists XYZ0098, but no check has that id. Correct the group "
+        "in validation/validation_groups.yml." in printed
+    )
     assert ids == set()
 
 

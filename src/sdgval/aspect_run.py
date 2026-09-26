@@ -7,7 +7,8 @@ Description: Holds one pytest run to one aspect of quality. It is the part every
 
              It hands pytest the person's arguments with --aspect and the command's
              aspect added, so only that aspect's checks run. It leaves the aspect in
-             pytest's stash, where src/sdgval/report.py reads it to name the report.
+             pytest's stash, where src/sdgval/report.py reads it to name the report
+             and src/sdgval/select_checks.py reads it to word its refusals.
              A run given --aspect by the person is refused before any check runs,
              because the aspect is the command's own and a second one would mix
              aspects in one report.
@@ -32,8 +33,7 @@ from __future__ import annotations
 
 import pytest
 
-from sdgval.report import REPORT_ASPECT
-from sdgval.select_checks import wanted
+from sdgval.select_checks import RUN_ASPECT, wanted
 
 #######################################################################################
 ### Naming the report and refusing a second aspect ###
@@ -57,12 +57,12 @@ class AspectRun:
         self.aspect = aspect
 
     def pytest_configure(self, config: pytest.Config) -> None:
-        """Leave the aspect in pytest's stash, where the report writer reads it.
+        """Leave the aspect in pytest's stash, for the report writer and the refusals.
 
         Args:
             config: pytest's configuration for the run.
         """
-        config.stash[REPORT_ASPECT] = self.aspect
+        config.stash[RUN_ASPECT] = self.aspect
 
     def pytest_sessionstart(self, session: pytest.Session) -> None:
         """Refuse the run when the person named an aspect of their own.
@@ -76,9 +76,8 @@ class AspectRun:
         aspects = wanted(session.config, "aspect")
         if aspects != [self.aspect]:
             raise pytest.UsageError(
-                f"validate_{self.aspect} runs only {self.aspect} checks, and --aspect "
-                f"was given as well, naming {', '.join(aspects)}. Run it without "
-                "--aspect."
+                f"validate_{self.aspect} already runs only {self.aspect} checks, so "
+                "it does not accept --aspect. Run it without --aspect."
             )
 
 

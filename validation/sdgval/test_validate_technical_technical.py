@@ -201,12 +201,56 @@ def test_each_way_of_narrowing_the_run_has_its_own_column(staged_suite, pytester
 @negative
 def test_a_run_given_an_aspect_is_refused_before_any_check_runs(staged_suite, pytester):
     """A run given --aspect stops with pytest's usage error, exit 4, before any check
-    runs, the message says the command runs only technical checks and to run it
-    without --aspect, and no report is written."""
+    runs, the message says the command already runs only technical checks and does
+    not accept --aspect, and no report is written."""
     result, out = run_command(staged_suite, pytester, "--aspect", "integrity")
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
-    assert "validate_technical runs only technical checks" in printed
-    assert "Run it without --aspect." in printed
+    assert (
+        "validate_technical already runs only technical checks, so it does not "
+        "accept --aspect. Run it without --aspect." in printed
+    )
     assert "test_holds" not in result.stdout.str()
+    assert not out.exists()
+
+
+#######################################################################################
+### Saying why a selection matches no technical check ###
+
+
+@code("SA00503")
+@category("repository")
+@objective("functionality")
+@negative
+def test_options_matching_only_other_aspects_are_refused_plainly(
+    staged_suite, pytester
+):
+    """Options that match checks, none of them technical, stop the run with exit 4,
+    and the message gives how many checks the options match together and says none
+    are technical, without naming the --aspect the command added."""
+    result, out = run_command(staged_suite, pytester, "--id", "XYZ0102")
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert (
+        "No technical checks match the options given. The options match 1 check "
+        "together, but none of them are technical. Widen or drop an option." in printed
+    )
+    assert "--aspect matched" not in printed
+    assert not out.exists()
+
+
+@code("SA00504")
+@category("repository")
+@objective("functionality")
+@negative
+def test_an_objective_of_another_aspect_is_named_as_such(staged_suite, pytester):
+    """An --objective that belongs to another aspect stops the run with exit 4, and
+    the message names the aspect it belongs to and lists the technical objectives."""
+    result, out = run_command(staged_suite, pytester, "--objective", "correctness")
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert (
+        "correctness is an integrity objective, so validate_technical has none of "
+        "its checks. The technical objectives are functionality," in printed
+    )
     assert not out.exists()
