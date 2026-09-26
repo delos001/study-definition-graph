@@ -109,8 +109,8 @@ def test_the_report_holds_only_the_technical_checks(staged_suite, pytester):
 @objective("functionality")
 @positive
 def test_options_after_the_command_narrow_the_run(staged_suite, pytester):
-    """An option typed after the command, such as --id, narrows the run the way it
-    narrows pytest, so the report holds only the checks it selects."""
+    """An option typed after the command, such as the id option, narrows the run the way
+    it narrows pytest, so the report holds only the checks it selects."""
     result, out = run_command(staged_suite, pytester, "--id", "XYZ0103")
     assert result.ret == 0
     ids = {row["id"] for row in staged_suite.report(out)}
@@ -124,8 +124,8 @@ def test_options_after_the_command_narrow_the_run(staged_suite, pytester):
 def test_without_the_report_flag_the_checks_run_and_nothing_is_written(
     staged_suite, pytester
 ):
-    """Without --validation-report, the command runs the technical checks, exits 0
-    and writes no report, so a development run leaves no record."""
+    """Without the report option, the command runs the technical checks, exits 0 and
+    writes no report, so a development run leaves no record."""
     result, out = run_command(staged_suite, pytester, "-v", report=False)
     assert result.ret == 0
     assert "test_runs PASSED" in result.stdout.str()
@@ -137,9 +137,8 @@ def test_without_the_report_flag_the_checks_run_and_nothing_is_written(
 @objective("functionality")
 @positive
 def test_the_report_is_named_for_its_aspect(staged_suite, pytester):
-    """The report's file name starts with technical, and every row's run_id is that
-    name without .csv, so a report copied out of its folder still says which aspect
-    it covers."""
+    """The report's file name starts with technical, and every row's run id is that
+    name, so a report copied out of its folder still says which aspect it covers."""
     result, out = run_command(staged_suite, pytester)
     assert result.ret == 0
     (report,) = (p for p in out.glob("*.csv") if not p.stem.endswith("_run"))
@@ -166,9 +165,8 @@ def test_the_report_is_written_in_the_technical_folder(staged_suite, pytester):
 @objective("functionality")
 @positive
 def test_each_way_of_narrowing_the_run_has_its_own_column(staged_suite, pytester):
-    """In the run's own file, each way the run was narrowed is written in its own
-    selection column, a list as JSON, and a way that was not used leaves its column
-    empty."""
+    """In the run's own file, each way the run was narrowed has its own selection
+    column, and a way that was not used leaves its column empty."""
     result, out = run_command(staged_suite, pytester, "--id", "XYZ0103")
     assert result.ret == 0
     run = staged_suite.run_details(out)
@@ -187,9 +185,8 @@ def test_each_way_of_narrowing_the_run_has_its_own_column(staged_suite, pytester
 @objective("functionality")
 @negative
 def test_a_run_given_an_aspect_is_refused_before_any_check_runs(staged_suite, pytester):
-    """A run given --aspect stops with pytest's usage error, exit 4, before any check
-    runs, the message says the command already runs only technical checks and does
-    not accept --aspect, and no report is written."""
+    """A run given the aspect option stops with exit 4 before any check runs and writes
+    no report. The message says the command already runs only technical checks."""
     result, out = run_command(staged_suite, pytester, "--aspect", "integrity")
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
@@ -212,9 +209,9 @@ def test_a_run_given_an_aspect_is_refused_before_any_check_runs(staged_suite, py
 def test_options_matching_only_other_aspects_are_refused_plainly(
     staged_suite, pytester
 ):
-    """Options that match checks, none of them technical, stop the run with exit 4,
-    and the message gives how many checks the options match together and says none
-    are technical, without naming the --aspect the command added."""
+    """Options that match checks, none of them technical, stop the run with exit 4. The
+    message gives how many checks the options match together and says none are
+    technical."""
     result, out = run_command(staged_suite, pytester, "--id", "XYZ0102")
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
@@ -231,8 +228,8 @@ def test_options_matching_only_other_aspects_are_refused_plainly(
 @objective("functionality")
 @negative
 def test_an_objective_of_another_aspect_is_named_as_such(staged_suite, pytester):
-    """An --objective that belongs to another aspect stops the run with exit 4, and
-    the message names the aspect it belongs to and lists the technical objectives."""
+    """An objective that belongs to another aspect stops the run with exit 4. The
+    message names the aspect it belongs to and lists the technical objectives."""
     result, out = run_command(staged_suite, pytester, "--objective", "correctness")
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
@@ -248,9 +245,8 @@ def test_an_objective_of_another_aspect_is_named_as_such(staged_suite, pytester)
 @objective("functionality")
 @negative
 def test_options_matching_nothing_at_all_give_each_count(staged_suite, pytester):
-    """Options that match no check at all, of any aspect, stop the run with exit 4,
-    and the message gives each option's own count without naming the --aspect the
-    command added."""
+    """Options that match no check of any aspect stop the run with exit 4. The message
+    gives each option's own count and never names the aspect the command added."""
     result, out = run_command(staged_suite, pytester, "--category", "products")
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
@@ -267,9 +263,8 @@ def test_options_matching_nothing_at_all_give_each_count(staged_suite, pytester)
 @objective("functionality")
 @negative
 def test_several_objectives_of_other_aspects_are_named_together(staged_suite, pytester):
-    """Several --objective values that all belong to other aspects stop the run with
-    exit 4, and the message names them together as not technical and lists the
-    technical objectives."""
+    """Several objectives that all belong to other aspects stop the run with exit 4. The
+    message names them together as not technical and lists the technical objectives."""
     result, out = run_command(
         staged_suite, pytester, "--objective", "correctness,conformance"
     )

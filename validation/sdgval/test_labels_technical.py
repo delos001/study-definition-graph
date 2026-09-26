@@ -85,9 +85,8 @@ def collected(pytester) -> dict:
 @objective("functionality")
 @positive
 def test_each_label_is_read_off_a_check_that_carries_it(pytester):
-    """Each label a check carries is read as written: its id, its category, its
-    objective, the aspect that objective belongs to, its case and the fixtures it
-    names."""
+    """Each label a check carries is read as written. That covers its id, its category,
+    its objective, the aspect of that objective, its case and the fixtures it names."""
     item = collected(pytester)["test_labelled"]
     assert code_of(item) == "XYZ0501"
     assert category_of(item) == "sources"

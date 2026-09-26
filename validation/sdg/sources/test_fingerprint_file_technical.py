@@ -47,7 +47,7 @@ from validation.shared.staged_manifests import CONTENT, entry_for_bytes
 @objective("functionality")
 @positive
 def test_matching_file_compares_as_matched(file_on_disk):
-    """A file whose size and sha256 equal its entry's compares as matched."""
+    """A file whose size and fingerprint equal its entry's compares as matched."""
     assert compare(
         file_on_disk,
         entry_for_bytes(CONTENT),
@@ -84,7 +84,7 @@ def test_size_difference_is_reported_with_both_numbers(file_on_disk):
 @objective("functionality")
 @negative
 def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
-    """When the size differs, the sha256 is not computed at all."""
+    """When the size differs, the fingerprint is not worked out at all."""
 
     # compare() reaches fingerprint() through the module, so replacing it here
     # proves the hash step is never reached when the size already differs.
@@ -107,8 +107,8 @@ def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
 @objective("functionality")
 @negative
 def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
-    """When the size matches but the bytes differ, the result is not matched
-    and the detail shows the start of both sha256 values."""
+    """When the size matches but the bytes differ, the result is not matched, and the
+    detail shows the start of both fingerprints."""
     # These bytes have the same length as CONTENT, so only the sha256 differs.
     changed = b"PINNED bytes\n"
     path = tmp_path / "file.txt"
@@ -127,8 +127,8 @@ def test_same_size_different_bytes_is_reported_as_sha256_difference(tmp_path):
 @objective("functionality")
 @negative
 def test_fingerprint_refuses_a_missing_file(tmp_path):
-    """fingerprint() raises FileNotFoundError naming the path when the file
-    does not exist."""
+    """Working out the fingerprint of a file that does not exist is refused, and the
+    message names the path."""
     missing = tmp_path / "missing.txt"
     with pytest.raises(FileNotFoundError) as caught:
         fingerprint(missing)
@@ -140,8 +140,7 @@ def test_fingerprint_refuses_a_missing_file(tmp_path):
 @objective("functionality")
 @negative
 def test_compare_refuses_a_missing_file(tmp_path):
-    """compare() raises FileNotFoundError naming the path when the file does
-    not exist."""
+    """Comparing a file that does not exist is refused, and the message names the path."""
     missing = tmp_path / "missing.txt"
     with pytest.raises(FileNotFoundError) as caught:
         compare(
@@ -156,8 +155,8 @@ def test_compare_refuses_a_missing_file(tmp_path):
 @objective("functionality")
 @negative
 def test_fingerprint_refuses_a_folder(tmp_path):
-    """fingerprint() raises FileNotFoundError naming the path when a folder
-    sits at the path, because only a file can be measured."""
+    """Working out a fingerprint where a folder sits is refused, and the message names
+    the path, because only a file can be measured."""
     folder = tmp_path / "folder"
     folder.mkdir()
     with pytest.raises(FileNotFoundError) as caught:
@@ -170,8 +169,7 @@ def test_fingerprint_refuses_a_folder(tmp_path):
 @objective("functionality")
 @negative
 def test_compare_refuses_a_folder(tmp_path):
-    """compare() raises FileNotFoundError naming the path when a folder sits
-    at the path."""
+    """Comparing where a folder sits is refused, and the message names the path."""
     folder = tmp_path / "folder"
     folder.mkdir()
     with pytest.raises(FileNotFoundError) as caught:

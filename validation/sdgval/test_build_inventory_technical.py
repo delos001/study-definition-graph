@@ -317,8 +317,8 @@ def test_a_check_that_staged_nothing_has_an_empty_case(tests_folder, capsys):
 @objective("functionality")
 @positive
 def test_new_check_starts_active_at_version_1(generated):
-    """A check with no existing row starts active at version 1, with superseded_by and
-    status_reason empty."""
+    """A check with no row yet starts as active at version 1, with no replacing checks
+    and no reason recorded."""
     assert {
         (r["status"], r["superseded_by"], r["status_reason"], r["version"])
         for r in generated
@@ -330,8 +330,8 @@ def test_new_check_starts_active_at_version_1(generated):
 @objective("functionality")
 @positive
 def test_hand_kept_columns_are_carried_over_by_id(written, capsys):
-    """When the inventory already has a row for a check's id, its status,
-    superseded_by, status_reason and version are kept, whatever else changed."""
+    """When the inventory already has a row for a check's id, the four columns a person
+    keeps by hand are kept as they were, whatever else changed."""
     with_hand_kept(
         written,
         "SA99002",
@@ -450,8 +450,7 @@ def test_check_passes_when_inventory_is_current(tests_folder, capsys):
 @objective("functionality")
 @positive
 def test_quiet_prints_nothing(tests_folder, capsys):
-    """With the quiet option, nothing is printed; the exit code is the whole
-    report."""
+    """With the quiet option, nothing is printed. The exit code is the whole report."""
     tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS})
     outcome = run(capsys, "--quiet")
     assert outcome.exit_code == 0
@@ -472,9 +471,8 @@ def test_quiet_prints_nothing(tests_folder, capsys):
 def test_check_status_passes_a_superseded_check_with_an_active_successor(
     written, capsys
 ):
-    """With the check-status option, a removed check marked superseded, whose
-    superseded_by names an active check, passes: the run exits 0 and writes
-    nothing."""
+    """With the check-status option, a removed check marked superseded, naming an active
+    check that replaced it, passes. The run exits 0 and writes nothing."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99001"))
     write_rows(written, rows)
@@ -490,8 +488,8 @@ def test_check_status_passes_a_superseded_check_with_an_active_successor(
 @objective("functionality")
 @positive
 def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
-    """With the check-status option, a removed check marked retired, whose
-    status_reason says why, passes with exit 0."""
+    """With the check-status option, a removed check marked retired, with a reason
+    saying why, passes with exit 0."""
     rows = rows_of(written)
     rows.append(
         removed_row(
@@ -562,8 +560,8 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_check_without_id_exits_18(tests_folder, capsys):
-    """A check with no @code marker makes the run exit 18, naming the file and the
-    check, and the inventory is not written."""
+    """A check with no id label makes the run exit 18 and name the file and the check,
+    and the inventory is not written."""
     inventory = tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -585,8 +583,8 @@ def test_check_without_id_exits_18(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_check_without_objective_exits_18(tests_folder, capsys):
-    """A check with no @objective marker makes the run exit 18, naming the file and
-    the check, and the inventory is not written."""
+    """A check with no objective label makes the run exit 18 and name the file and the
+    check, and the inventory is not written."""
     inventory = tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -606,8 +604,8 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_check_without_category_exits_18(tests_folder, capsys):
-    """A check with no @category marker makes the run exit 18, naming the file and
-    the check, and the inventory is not written."""
+    """A check with no category label makes the run exit 18 and name the file and the
+    check, and the inventory is not written."""
     inventory = tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -626,7 +624,7 @@ def test_check_without_category_exits_18(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
-    """A check whose @category names no defined category makes the run exit 18, and the
+    """A check whose category label names no defined category makes the run exit 18. The
     message quotes the value and lists the categories."""
     tests_folder(
         {
@@ -649,8 +647,8 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
-    """A check whose @objective names no defined objective makes the run exit 18, and
-    the message quotes the value and lists the objectives."""
+    """A check whose objective label names no defined objective makes the run exit 18.
+    The message quotes the value and lists the objectives."""
     tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -672,9 +670,8 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
 @objective("functionality")
 @positive
 def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
-    """A check whose objective is not correctness may carry @positive or @negative,
-    and its row records that case, because the case says how the check was set up
-    rather than what question the check asks."""
+    """A check of any objective may be marked as staging a working or a broken
+    situation, and its row records that, because the mark says how the check was set up."""
     inventory = tests_folder(
         {
             "sdgtools/test_alpha_integrity.py": COMPLETENESS_CHECK.replace(
@@ -701,8 +698,8 @@ def test_a_first_sentence_starting_with_a_refused_character_exits_18(
     tests_folder, capsys, start
 ):
     """A check whose first sentence starts with a character a spreadsheet reads as a
-    formula makes the run exit 18, and the message names the character and says to
-    start with a letter or a digit."""
+    formula makes the run exit 18. The message names the character and says to start
+    with a letter or a digit."""
     inventory = tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -724,10 +721,9 @@ def test_a_first_sentence_starting_with_a_refused_character_exits_18(
 @objective("functionality")
 @positive
 def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, capsys):
-    """A check whose docstring opens with a tab or a newline is accepted, and its row
-    holds the sentence with that whitespace gone, because the generator strips a
-    docstring before it looks at the sentence. No entry in FORMULA_STARTS is needed
-    for whitespace, and one would never fire."""
+    """A check whose docstring opens with a tab or a new line is accepted, and its row
+    holds the sentence without that space, because the generator removes it before
+    looking at the sentence."""
     inventory = tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -848,8 +844,8 @@ def test_a_status_not_in_the_list_exits_45(written, capsys):
 @negative
 @pytest.mark.parametrize("status", ["inactive", "retired"])
 def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, status):
-    """A removed check marked inactive or retired with status_reason empty makes the
-    check-status run exit 45, saying the reason is missing."""
+    """A removed check marked inactive or retired with no reason recorded makes the
+    check-status run exit 45 and say the reason is missing."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status=status))
     write_rows(written, rows)
@@ -865,8 +861,8 @@ def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, stat
 @objective("functionality")
 @negative
 def test_superseded_without_a_successor_exits_45(written, capsys):
-    """A removed check marked superseded with superseded_by empty makes the
-    check-status run exit 45, saying no check is named."""
+    """A removed check marked superseded that names no replacing check makes the check-
+    status run exit 45 and say no check is named."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded"))
     write_rows(written, rows)
@@ -880,8 +876,8 @@ def test_superseded_without_a_successor_exits_45(written, capsys):
 @objective("functionality")
 @negative
 def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
-    """A row that names checks in superseded_by while its status is not superseded
-    makes the run exit 45."""
+    """A row that names replacing checks while its status is not superseded makes the
+    run exit 45."""
     with_hand_kept(written, "SA99002", superseded_by="SA99001")
     outcome = run(capsys)
     assert outcome.exit_code == 45
@@ -895,9 +891,9 @@ def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
 @objective("functionality")
 @negative
 def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
-    """A row carrying a status_reason while its status is neither inactive nor retired
-    makes the run exit 45, because a sentence saying why a check is switched off does
-    not belong on one that is running."""
+    """A row that carries a reason while its status is neither inactive nor retired
+    makes the run exit 45. A reason for switching a check off does not belong on a check
+    that is running."""
     with_hand_kept(
         written, "SA99002", status_reason="Switched off while the API moved."
     )
@@ -911,8 +907,8 @@ def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
 @objective("functionality")
 @negative
 def test_a_successor_that_is_not_active_exits_45(written, capsys):
-    """A superseded row whose superseded_by names a check that is not active in the
-    inventory makes the check-status run exit 45, naming that check."""
+    """A superseded row that names a replacing check which is not active makes the
+    check-status run exit 45 and name that check."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99404"))
     write_rows(written, rows)
@@ -970,8 +966,8 @@ def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, capsys):
-    """When one check has no @objective marker and another row has a status not in
-    the list, the run exits 18, and both problems are named."""
+    """When one check has no objective label and another row has a status not in the
+    list, the run exits 18 and names both problems."""
     with_hand_kept(written, "SA99001", status="archived")
     tests_folder(
         {
@@ -1014,9 +1010,9 @@ def test_a_file_with_no_aspect_in_its_name_exits_47(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_a_check_of_another_aspect_exits_47(tests_folder, capsys):
-    """A check whose objective belongs to another aspect than the one its file is
-    named for makes the run exit 47, and the message names the check, its objective,
-    the aspect that objective belongs to and the aspect the file is named for."""
+    """A check whose objective belongs to another aspect than the one its file is named
+    for makes the run exit 47. The message names the check, its objective, the
+    objective's aspect and the file's aspect."""
     tests_folder({"sdgtools/test_alpha_integrity.py": TWO_CHECKS})
     outcome = run(capsys)
     assert outcome.exit_code == 47
@@ -1053,9 +1049,9 @@ def test_the_aspect_is_left_out_of_the_covered_file(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_a_file_in_an_unlisted_code_folder_exits_48(tests_folder, capsys):
-    """A test file in a code folder that CODE_FOLDER_ORDER does not list makes the run
-    exit 48, and the message names the file and the folder and says to add the
-    folder to CODE_FOLDER_ORDER."""
+    """A test file in a code folder the inventory's folder order does not list makes the
+    run exit 48. The message names the file and the folder and says to add the folder to
+    that order."""
     tests_folder({"sdg/classify/test_alpha_conformance.py": TWO_CHECKS})
     outcome = run(capsys)
     assert outcome.exit_code == 48
@@ -1078,8 +1074,8 @@ def test_a_file_in_an_unlisted_code_folder_exits_48(tests_folder, capsys):
 @objective("functionality")
 @negative
 def test_check_status_on_a_file_that_will_not_parse_exits_19(tests_folder, capsys):
-    """With --check-status, a test file that is not valid Python makes the run exit
-    19 and names the file."""
+    """With the check-status option, a test file that is not valid Python makes the run
+    exit 19 and name the file."""
     tests_folder({"sdgtools/test_alpha_technical.py": "def broken(:\n"})
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 19
@@ -1093,8 +1089,8 @@ def test_check_status_on_a_file_that_will_not_parse_exits_19(tests_folder, capsy
 @objective("functionality")
 @negative
 def test_check_status_on_an_empty_folder_exits_20(tests_folder, capsys):
-    """With --check-status, a validation folder holding no test files makes the run
-    exit 20 and says no test files were found."""
+    """With the check-status option, a validation folder holding no test files makes the
+    run exit 20 and say no test files were found."""
     tests_folder({})
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 20

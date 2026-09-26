@@ -41,8 +41,8 @@ def test_every_manifest_lands_under_inputs(real_manifests):
 @category("repository")
 @objective("conformance")
 def test_every_entry_carries_the_five_required_fields(real_manifests):
-    """Every entry in every real manifest has a name, a url, a local path under
-    inputs/, a size above zero, and a 64-character sha256."""
+    """Every entry in every real manifest has a name, an address, a local path under
+    inputs/, a size above zero and a well-formed fingerprint."""
     for manifest in real_manifests:
         assert manifest.entries, manifest.name
         for entry in manifest.entries:

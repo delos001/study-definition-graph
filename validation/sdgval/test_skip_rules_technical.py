@@ -181,9 +181,9 @@ UNMATCHED_SUITE = '''
 @objective("functionality")
 @negative
 def test_a_check_naming_a_file_no_manifest_records_errors(staged_suite):
-    """A check whose @needs_pinned names files no manifest records is a mistake in the
-    check, so its set-up fails: the run fails, the row says error, and the terminal
-    names the pattern and says to correct the marker."""
+    """A check whose pinned-file label names files no manifest records fails at set-up,
+    because the label is a mistake. The run fails, the row says error, and the terminal
+    says to correct the label."""
     result, out = staged_suite.run(UNMATCHED_SUITE)
     assert result.ret == 1
     row = staged_suite.row(staged_suite.report(out), "test_reads_unrecorded")

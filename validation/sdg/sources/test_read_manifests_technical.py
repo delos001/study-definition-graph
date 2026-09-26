@@ -102,7 +102,7 @@ def refused_with(error, *args) -> str:
 @category("repository")
 @objective("functionality")
 def test_repo_root_is_the_folder_holding_pyproject():
-    """require_repo() gives back the folder that holds pyproject.toml."""
+    """The repo root found is the folder that holds pyproject.toml."""
     root = require_repo()
     assert root == read_manifests.REPO_ROOT
     assert (root / "pyproject.toml").is_file()
@@ -138,8 +138,8 @@ def test_every_entry_names_the_manifest_it_came_from(real_manifests):
 @objective("functionality")
 @positive
 def test_study_manifest_is_read_with_the_top_level_ones(top_level_and_study_sets):
-    """A manifest under manifests/study_documents/ is read in the same call as
-    the top-level manifests."""
+    """A manifest under manifests/study_documents/ is read along with the top-level
+    manifests."""
     assert "NCT1" in [manifest.name for manifest in manifests()]
 
 
@@ -185,8 +185,7 @@ def test_the_name_may_carry_the_json_suffix(three_sets):
 @objective("functionality")
 @positive
 def test_entry_for_finds_a_recorded_file(recorded_file):
-    """entry_for() gives back the entry that records a file, given the
-    repo-relative path a manifest writes."""
+    """Given the path a manifest writes, the entry that records that file is found."""
     found = entry_for(LOCAL)
     assert isinstance(found, Entry)
     assert found.local == LOCAL
@@ -234,8 +233,8 @@ def test_entry_for_gives_none_for_an_unrecorded_file(recorded_file, fake_repo):
 @objective("functionality")
 @positive
 def test_entry_named_finds_a_recorded_file_by_its_name(recorded_file):
-    """entry_named() gives back the entry whose file name is the one asked for, so
-    a caller holding only the name never writes the path down a second time."""
+    """Given a file name, the entry for that file is found, so a caller holding only the
+    name never writes the path down a second time."""
     found = entry_named("file.txt")
     assert isinstance(found, Entry)
     assert found.local == LOCAL
@@ -246,8 +245,7 @@ def test_entry_named_finds_a_recorded_file_by_its_name(recorded_file):
 @objective("functionality")
 @positive
 def test_entry_named_gives_none_for_a_name_no_manifest_records(recorded_file):
-    """A file name that no manifest records gives None from entry_named(), not an
-    error."""
+    """A file name that no manifest records finds nothing, and is not an error."""
     assert entry_named("nobody_recorded_this.txt") is None
 
 
@@ -272,8 +270,8 @@ def test_a_relative_path_is_read_from_the_repo_root(
 @objective("functionality")
 @positive
 def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
-    """A path outside the repo comes back from as_local() as its full path, so
-    a message about it can show where it is."""
+    """A path outside the repo is shown as its full path, so a message about it can show
+    where it is."""
     outside = tmp_path / "elsewhere" / "file.txt"
     assert as_local(outside) == str(outside.resolve())
 
@@ -291,8 +289,8 @@ def test_as_local_leaves_an_outside_path_unchanged(fake_repo, tmp_path):
 @objective("functionality")
 @negative
 def test_wrong_package_name_is_refused_with_the_install_command(fake_repo):
-    """When pyproject.toml does not name the sdg package, manifests() raises
-    NotInRepoError and the message gives the pip install -e . command."""
+    """When pyproject.toml does not name the sdg package, reading the manifests is
+    refused, and the message gives the command to install from the repo."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"
     )
@@ -355,9 +353,8 @@ def test_unknown_manifest_name_is_refused_by_name(fake_repo):
 @objective("functionality")
 @negative
 def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
-    """A manifest that is not valid JSON stops the whole read, even when
-    another manifest is fine, with an error naming the bad file and the git
-    restore remedy."""
+    """A manifest that is not valid JSON stops the whole read, even when another
+    manifest is fine. The message names the bad file and says to restore it from git."""
     fake_repo.manifest("good", [])
     fake_repo.manifest("broken", "{ not json")
     message = refused_with(ManifestError)
@@ -370,9 +367,8 @@ def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
 @objective("functionality")
 @negative
 def test_manifest_that_is_a_list_is_refused_naming_the_file(fake_repo):
-    """A manifest whose JSON is valid but is a list rather than an object is refused
-    as unreadable, naming the file and the git restore remedy, rather than failing
-    inside the entry reader."""
+    """A manifest whose JSON is a list rather than an object is refused as unreadable.
+    The message names the file and says to restore it from git."""
     fake_repo.manifest("broken", "[1, 2, 3]")
     message = refused_with(ManifestError)
     assert message.startswith("broken.json: cannot read")
@@ -427,8 +423,8 @@ def test_size_that_is_not_a_whole_number_is_quoted_as_written(fake_repo):
 @objective("functionality")
 @negative
 def test_sha256_that_is_not_lowercase_hex_is_quoted_as_written(fake_repo):
-    """A sha256 in uppercase is refused as not 64 lowercase hex characters,
-    quoting the value as written, with the repair remedy."""
+    """A fingerprint written in capitals is refused as not well formed, and the message
+    quotes it as written and says how to repair it."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, sha256="A" * 64)])
     message = refused_with(ManifestError)

@@ -279,9 +279,9 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
 def test_key_without_access_is_reported_as_an_account_problem(
     repo, monkeypatch, capsys
 ):
-    """When the API knows the key but will not let it use the model, the run exits 43
-    and the message says the key is right and points at the account, rather than
-    telling the person to paste the key again."""
+    """When the API knows the key but will not let it use the model, the run exits 43.
+    The message says the key is right and points at the account, rather than saying to
+    paste the key again."""
     request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
         monkeypatch,
@@ -324,7 +324,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
 ):
     """When the API answers with an error that is neither a rejected key nor a failed
     connection, such as a retired model name, the run exits 41 and prints the API's own
-    message rather than telling the person to check the network."""
+    message."""
     request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
         monkeypatch,
@@ -417,9 +417,9 @@ def stand_in_for_the_client(monkeypatch, blocks) -> dict:
 @objective("functionality")
 @positive
 def test_the_request_carries_the_key_the_pinned_model_and_the_prompt(monkeypatch):
-    """The call authenticates with the key it was given and sends the pinned model
-    identifier, the prompt and the token ceiling the tool sets, so the answer proves
-    that key against that model rather than against whatever is newest."""
+    """The call uses the key it was given and sends the pinned model, the prompt and the
+    tool's reply limit. So the answer proves that key against that model, not against
+    whatever is newest."""
     sent = stand_in_for_the_client(monkeypatch, [FakeBlock("text", REPLY)])
     script.call_api(KEY)
     assert sent["api_key"] == KEY

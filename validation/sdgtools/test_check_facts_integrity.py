@@ -47,9 +47,7 @@ needs_pinned_file = pytest.mark.needs_pinned(
 @objective("correctness")
 @needs_pinned_file
 def test_real_documents_match_real_corpus():
-    """Against the pinned files and the committed documents, every stated figure
-    re-derives: exit 0. This is the same run the root README.md asks for after setup.
-    The pinned files it reads must match their manifest entries before a figure can
-    be trusted, so a changed one skips this check as blocked rather than failing
-    it."""
+    """Against the pinned files and the committed documents, every stated figure is
+    measured again and matches, and the run exits 0. It is skipped as blocked when a
+    pinned file it reads has changed."""
     assert cf.main([]) == 0

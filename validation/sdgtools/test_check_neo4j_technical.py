@@ -351,9 +351,9 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
 @objective("functionality")
 @negative
 def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
-    """When the driver fails with its general error rather than the service-unavailable
-    one, the run still exits 38 and says to start the container, because that class
-    is what the driver raises when a connection is lost part way."""
+    """When the database driver fails with its general error, the run still exits 38 and
+    says to start the container, because that is what the driver gives when a connection
+    drops part way."""
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.DriverError("connection lost"))
@@ -367,9 +367,9 @@ def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
 @objective("functionality")
 @negative
 def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsys):
-    """When the driver refuses the address before trying to connect, the run exits 44
-    and the message names the NEO4J_URI line, rather than saying the database is
-    off and telling the person to start the container."""
+    """When the driver refuses the database address before trying to connect, the run
+    exits 44 and the message names the address line in .env, rather than saying the
+    database is off."""
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.ConfigurationError("URI scheme missing"))
@@ -554,8 +554,8 @@ def test_connectivity_is_verified_before_the_query_is_sent(monkeypatch):
 @objective("functionality")
 @negative
 def test_the_connection_is_closed_even_when_the_query_fails(monkeypatch):
-    """A query that raises still leaves the connection closed, and the error reaches
-    the caller unchanged so main() can turn it into the right exit code."""
+    """A query that fails still leaves the connection closed, and its error reaches the
+    caller unchanged, so the tool can give the right exit code."""
     failure = neo4j.exceptions.ServiceUnavailable("nothing answered")
     driver = FakeDriver(fail_on_query=failure)
     stand_in_for_the_driver(monkeypatch, driver)

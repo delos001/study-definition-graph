@@ -121,8 +121,8 @@ def stage_groups(staged_suite) -> None:
 @objective("functionality")
 @positive
 def test_category_keeps_only_that_category(staged_suite):
-    """With --category, only the checks carrying that category run, and the others get
-    no report row."""
+    """With the category option, only the checks carrying that category run, and the
+    others get no report row."""
     ret, ids, _, _ = selected(staged_suite, "--category", "repository")
     assert ret == 0
     assert ids == {"XYZ0011", "XYZ0014"}
@@ -133,7 +133,7 @@ def test_category_keeps_only_that_category(staged_suite):
 @objective("functionality")
 @positive
 def test_objective_keeps_only_that_objective(staged_suite):
-    """With --objective, only the checks carrying that objective run."""
+    """With the objective option, only the checks carrying that objective run."""
     ret, ids, _, _ = selected(staged_suite, "--objective", "correctness")
     assert ret == 0
     assert ids == {"XYZ0011", "XYZ0013"}
@@ -144,7 +144,7 @@ def test_objective_keeps_only_that_objective(staged_suite):
 @objective("functionality")
 @positive
 def test_category_and_objective_narrow_each_other(staged_suite):
-    """With both --category and --objective, only the checks matching both run."""
+    """With both the category and objective options, only the checks matching both run."""
     ret, ids, _, _ = selected(
         staged_suite, "--category", "repository", "--objective", "correctness"
     )
@@ -168,7 +168,7 @@ def test_a_comma_separated_list_means_any_of_the_values(staged_suite):
 @objective("functionality")
 @positive
 def test_id_keeps_only_those_checks(staged_suite):
-    """With --id, only the checks carrying those ids run."""
+    """With the id option, only the checks carrying those ids run."""
     ret, ids, _, _ = selected(staged_suite, "--id", "XYZ0012,XYZ0014")
     assert ret == 0
     assert ids == {"XYZ0012", "XYZ0014"}
@@ -179,7 +179,7 @@ def test_id_keeps_only_those_checks(staged_suite):
 @objective("functionality")
 @positive
 def test_group_runs_the_ids_the_groups_file_lists(staged_suite):
-    """With --group, the checks whose ids the named group lists in
+    """With the group option, the checks the named group lists in
     validation/validation_groups.yml run, and no others."""
     stage_groups(staged_suite)
     ret, ids, _, _ = selected(staged_suite, "--group", "odd")
@@ -192,8 +192,8 @@ def test_group_runs_the_ids_the_groups_file_lists(staged_suite):
 @objective("functionality")
 @positive
 def test_the_selection_column_records_the_options(staged_suite):
-    """The report's selection column records the selection options as given, as JSON
-    with one key per option, so a narrowed run cannot pass for a full one."""
+    """The report's selection column records the selection options as given, one entry
+    per option, so a narrowed run cannot pass for a full one."""
     _, _, rows, _ = selected(
         staged_suite, "--category", "repository", "--objective", "correctness"
     )
@@ -214,9 +214,8 @@ def test_the_selection_column_records_the_options(staged_suite):
 @objective("functionality")
 @negative
 def test_a_category_not_in_the_list_stops_the_run(staged_suite):
-    """A --category value that is not a defined category stops the run with pytest's
-    usage error, exit 4, the message names the value and the categories, and no
-    report is written."""
+    """A category that is not a defined category stops the run with exit 4 and writes no
+    report, and the message names the value and the categories."""
     ret, ids, _, printed = selected(staged_suite, "--category", "machinery")
     assert ret == 4
     assert "--category machinery: not one of repository, sources, processing" in printed
@@ -228,9 +227,8 @@ def test_a_category_not_in_the_list_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_an_id_no_collected_check_carries_stops_the_run(staged_suite):
-    """An --id that no check has stops the run with exit 4 rather than running
-    nothing, and the message says no check has it and where every id is listed, so a
-    typo cannot pass for a clean run."""
+    """An id that no check has stops the run with exit 4 rather than running nothing.
+    The message says no check has it and where every id is listed."""
     ret, ids, _, printed = selected(staged_suite, "--id", "XYZ0099")
     assert ret == 4
     assert (
@@ -245,9 +243,8 @@ def test_an_id_no_collected_check_carries_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_an_id_outside_the_files_given_stops_the_run(staged_suite):
-    """An --id that the inventory lists but that is not among the files the run was
-    given stops the run with exit 4, and the message says it is not in the files or
-    folders given, rather than that no check has it."""
+    """An id the inventory lists that is not among the files the run was given stops the
+    run with exit 4. The message says the id is not in the files or folders given."""
     staged_suite.validation.mkdir(exist_ok=True)
     (staged_suite.validation / "validation_inventory.csv").write_text(
         "id\nXYZ0099\n", encoding="utf-8"
@@ -263,9 +260,8 @@ def test_an_id_outside_the_files_given_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_a_group_listing_an_id_no_check_has_stops_the_run(staged_suite):
-    """A group that lists an id no check has stops the run with exit 4, and the
-    message names the group and the id and says to correct the groups file, since the
-    person never typed the id."""
+    """A group that lists an id no check has stops the run with exit 4. The message
+    names the group and the id and says to correct the groups file."""
     staged_suite.validation.mkdir(exist_ok=True)
     (staged_suite.validation / "validation_groups.yml").write_text(
         "stale:\n  purpose: A stale group.\n  ids: [XYZ0098]\n", encoding="utf-8"
@@ -284,8 +280,8 @@ def test_a_group_listing_an_id_no_check_has_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_a_group_not_in_the_file_stops_the_run(staged_suite):
-    """A --group name that validation/validation_groups.yml does not define stops the
-    run with exit 4, naming the groups that do exist."""
+    """A group name that validation/validation_groups.yml does not define stops the run
+    with exit 4, and the message names the groups that do exist."""
     stage_groups(staged_suite)
     ret, ids, _, printed = selected(staged_suite, "--group", "even")
     assert ret == 4
@@ -299,8 +295,8 @@ def test_a_group_not_in_the_file_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_group_without_the_groups_file_stops_the_run(staged_suite):
-    """A --group when validation/validation_groups.yml is missing stops the run with
-    exit 4 and a message naming the file."""
+    """The group option with validation/validation_groups.yml missing stops the run with
+    exit 4, and the message names the file."""
     ret, ids, _, printed = selected(staged_suite, "--group", "odd")
     assert ret == 4
     assert "--group needs validation/validation_groups.yml" in printed
@@ -312,9 +308,9 @@ def test_group_without_the_groups_file_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_a_defined_value_matching_no_check_stops_the_run(staged_suite):
-    """A --category that is a defined category but that no collected check carries
-    stops the run with exit 4 rather than running nothing, and the message says the
-    option matched no check and what to do about it."""
+    """A defined category that no collected check carries stops the run with exit 4
+    rather than running nothing. The message says the option matched no check and what
+    to do."""
     ret, ids, _, printed = selected(staged_suite, "--category", "products")
     assert ret == 4
     assert "no check matches every option given: --category matched 0" in printed
@@ -327,9 +323,9 @@ def test_a_defined_value_matching_no_check_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_options_that_together_match_nothing_stop_the_run(staged_suite):
-    """Two options that each match a check, but no one check, stop the run with exit
-    4 rather than running nothing, and the message gives each option's own count and
-    what to do, so the reader can see which one is the odd one out."""
+    """Two options that each match a check, but never the same check, stop the run with
+    exit 4. The message gives each option's own count, so the reader can see which one
+    to change."""
     ret, ids, _, printed = selected(
         staged_suite, "--category", "sources", "--id", "XYZ0011"
     )
@@ -346,8 +342,8 @@ def test_options_that_together_match_nothing_stop_the_run(staged_suite):
 @objective("functionality")
 @positive
 def test_aspect_keeps_only_the_checks_of_that_aspect(staged_suite):
-    """With --aspect, only the checks whose objective belongs to that aspect of
-    quality run, although no check carries the aspect itself."""
+    """With the aspect option, only the checks whose objective belongs to that aspect
+    run, although no check carries the aspect itself."""
     ret, ids, _, _ = selected(staged_suite, "--aspect", "conformance")
     assert ret == 0
     assert ids == {"XYZ0014"}
@@ -358,8 +354,8 @@ def test_aspect_keeps_only_the_checks_of_that_aspect(staged_suite):
 @objective("functionality")
 @positive
 def test_aspect_and_category_narrow_each_other(staged_suite):
-    """With both --aspect and --category, only the checks matching both run, so a run
-    can be aimed at one aspect of one kind of thing."""
+    """With both the aspect and category options, only the checks matching both run, so
+    a run can be aimed at one aspect of one kind of thing."""
     ret, ids, _, _ = selected(
         staged_suite, "--aspect", "integrity", "--category", "repository"
     )
@@ -372,8 +368,8 @@ def test_aspect_and_category_narrow_each_other(staged_suite):
 @objective("functionality")
 @negative
 def test_an_aspect_not_in_the_list_stops_the_run(staged_suite):
-    """An --aspect value that is not a defined aspect of quality stops the run with
-    pytest's usage error, exit 4, and the message names the value and the aspects."""
+    """An aspect that is not a defined aspect of quality stops the run with exit 4, and
+    the message names the value and the aspects."""
     ret, ids, _, printed = selected(staged_suite, "--aspect", "quality")
     assert ret == 4
     assert "--aspect quality: not one of conformance, integrity, technical" in printed
@@ -385,9 +381,8 @@ def test_an_aspect_not_in_the_list_stops_the_run(staged_suite):
 @objective("functionality")
 @negative
 def test_an_objective_not_in_the_list_stops_the_run(staged_suite):
-    """An --objective value that is not a defined objective stops the run with
-    pytest's usage error, exit 4, and the message names the value and the
-    objectives."""
+    """An objective that is not a defined objective stops the run with exit 4, and the
+    message names the value and the objectives."""
     ret, ids, _, printed = selected(staged_suite, "--objective", "speed")
     assert ret == 4
     assert "--objective speed: not one of conformance, correctness" in printed

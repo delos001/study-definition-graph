@@ -152,9 +152,8 @@ def test_complete_header_prints_nothing(complete):
 @objective("functionality")
 @positive
 def test_init_file_is_skipped(folder, capsys):
-    """An __init__.py with a one-paragraph docstring and no header block is not a
-    problem, since a package marker names the folder rather than describing a
-    script."""
+    """A package marker file with a one-paragraph docstring and no header block is not a
+    problem, since it names its folder rather than describing a script."""
     folder({"alpha.py": GOOD_HEADER, "__init__.py": '"""The package."""\n'})
     assert run(capsys).exit_code == 0
 
@@ -174,8 +173,8 @@ def test_init_file_is_skipped(folder, capsys):
 @objective("functionality")
 @negative
 def test_quiet_prints_nothing(folder, capsys):
-    """With the quiet option, nothing is printed even when a header is incomplete;
-    the exit code is the whole report."""
+    """With the quiet option, nothing is printed even when a header is incomplete. The
+    exit code is the whole report."""
     folder({"alpha.py": GOOD_HEADER.replace("Owner:       Jason Delosh\n", "")})
     outcome = run(capsys, "--quiet")
     assert outcome.exit_code == 17
@@ -239,8 +238,8 @@ def test_bad_date_exits_17(folder, capsys):
 @objective("functionality")
 @negative
 def test_no_docstring_exits_17(folder, capsys):
-    """A file with no module docstring has no header block at all: the run exits 17
-    and the problem line says so."""
+    """A file with no docstring at the top has no header block at all, and the run exits
+    17 with a problem line saying so."""
     folder({"alpha.py": "print('hello')\n"})
     outcome = run(capsys)
     assert outcome.exit_code == 17
@@ -344,9 +343,9 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
 @objective("functionality")
 @positive
 def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
-    """An entry that wraps and is the last thing in the field keeps its second line,
-    so a header holding one long entry and no closing prose is not refused as
-    wording that disagrees with docs/exit_codes.csv."""
+    """An entry that runs onto a second line and ends the field keeps its second line.
+    So a header holding one long entry is not refused as disagreeing with
+    docs/exit_codes.csv."""
     folder(
         {
             "alpha.py": with_codes(
@@ -439,9 +438,8 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
 @objective("functionality")
 @negative
 def test_a_table_with_a_code_that_is_not_a_number_exits_13(folder, capsys):
-    """With a row of docs/exit_codes.csv holding a code that is not a number, the run
-    exits 13 and says that file cannot be read, naming it, rather than ending in a
-    traceback."""
+    """A row of docs/exit_codes.csv holding a code that is not a number makes the run
+    exit 13 and say that file cannot be read, rather than ending in a Python error."""
     folder({"alpha.py": GOOD_HEADER})
     script.EXIT_CODES_FILE.write_text(
         "code,cause\n0,success\nthirteen,a file on disk cannot be read\n",
@@ -478,7 +476,7 @@ def with_main(returns: str, codes: str = "0   success") -> str:
 @objective("functionality")
 @positive
 def test_a_listed_return_passes(folder, capsys):
-    """A code main() returns and the header lists is no problem."""
+    """An exit code that the tool can return and that its header lists passes."""
     folder({"alpha.py": with_main("    return 0")})
     assert run(capsys).exit_code == 0
 
@@ -499,8 +497,8 @@ def test_a_return_of_a_call_is_passed_over(folder, capsys):
 @objective("functionality")
 @positive
 def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
-    """A header may list a code main() does not return as a plain number, because the
-    check only looks for codes a header forgot."""
+    """A header may list a code the tool never returns as a plain number, because only
+    codes a header forgot are looked for."""
     folder(
         {
             "alpha.py": with_main(
@@ -517,8 +515,8 @@ def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
 @objective("functionality")
 @positive
 def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
-    """A number returned by a helper function defined inside main() is the helper's,
-    not main()'s, so a header that does not list it is not refused."""
+    """A number returned by a helper inside the tool's main function belongs to the
+    helper, so a header that does not list it is not refused."""
     folder(
         {
             "alpha.py": with_main(
@@ -534,7 +532,7 @@ def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
 @objective("functionality")
 @negative
 def test_an_unlisted_return_exits_34(folder, capsys):
-    """A code main() returns that the header does not list makes the run exit 34, and
+    """A code the tool returns that the header does not list makes the run exit 34, and
     the problem line names the file and the number."""
     folder({"alpha.py": with_main("    return 8")})
     outcome = run(capsys)
@@ -563,9 +561,9 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
 @objective("functionality")
 @negative
 def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
-    """When one file has no header and another forgets a code its main() returns, the
-    run exits 17, because a header that cannot be read is the worse problem, and
-    both problems are named."""
+    """When one file has no header and another forgets a code it returns, the run exits
+    17, because a header that cannot be read is the worse problem. Both problems are
+    named."""
     folder(
         {
             "alpha.py": "print('no header')\n",

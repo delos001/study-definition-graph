@@ -35,9 +35,8 @@ from validation.shared.usdm_model import FIXTURE, FIXTURE_CLASSES, needs_pinned_
 @needs_pinned_file
 @needs_fixture("usdm_three_classes.yml")
 def test_fixture_classes_are_identical_to_pinned():
-    """Each class in the small fixture file is identical, key for key, to the same
-    class in the pinned model, so the checks that ran on the fixture ran on real
-    USDM shapes and not on an approximation of them."""
+    """Each class in the small fixture file matches the same class in the pinned model
+    entry for entry, so the checks that ran on the fixture ran on real USDM shapes."""
     pinned = usdm_spec.load()
     sample = usdm_spec.load(FIXTURE, verify=False)
     for name in FIXTURE_CLASSES:

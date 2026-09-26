@@ -46,8 +46,8 @@ from sdgval.labels import category, code, objective, positive
 @objective("functionality")
 @positive
 def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
-    """When standard output is Python's real text-file class, use_utf8_output()
-    switches its encoding to UTF-8 for the rest of the run."""
+    """When standard output is a normal text stream, it is switched to UTF-8 for the
+    rest of the run."""
     stream = io.TextIOWrapper(io.BytesIO(), encoding="cp1252")
     monkeypatch.setattr(sys, "stdout", stream)
     use_utf8_output()
@@ -59,9 +59,8 @@ def test_a_real_text_stream_is_switched_to_utf8(monkeypatch):
 @objective("functionality")
 @positive
 def test_a_captured_stream_is_left_alone_without_error(monkeypatch):
-    """When standard output is not Python's real text-file class, as when another
-    program has captured it, use_utf8_output() returns without an error and leaves
-    the stream as it was."""
+    """When standard output is not a normal text stream, as when another program has
+    captured it, it is left as it was and no error is raised."""
     stream = io.StringIO()
     monkeypatch.setattr(sys, "stdout", stream)
     use_utf8_output()

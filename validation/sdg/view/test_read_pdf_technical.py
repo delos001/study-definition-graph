@@ -137,7 +137,8 @@ def run(write_list, monkeypatch, capsys, text, *argv):
 @objective("functionality")
 @positive
 def test_every_row_becomes_a_document(repo, write_list):
-    """Each row in lookup_documents.yml becomes one document, keyed by the key a person types."""
+    """Each row in the lookup document list becomes one document, known by the key a
+    person types."""
     documents, _ = load_registry(write_list(LIST_TEXT))
     assert sorted(documents) == ["guide", "plain"]
 
@@ -147,8 +148,8 @@ def test_every_row_becomes_a_document(repo, write_list):
 @objective("functionality")
 @positive
 def test_the_path_comes_from_the_manifest(repo, write_list):
-    """A document's path is taken from its manifest entry, so lookup_documents.yml never states
-    where a file lives."""
+    """A document's path is taken from its manifest entry, so the lookup document list
+    never says where a file lives."""
     documents, _ = load_registry(write_list(LIST_TEXT))
     assert documents["guide"].path == repo.root / GUIDE
 
@@ -191,7 +192,8 @@ def test_an_empty_boilerplate_list_strips_nothing(repo, write_list):
 @objective("functionality")
 @positive
 def test_the_default_is_the_one_the_list_names(repo, write_list):
-    """The key used when --doc is absent is the one lookup_documents.yml names as its default."""
+    """The document used when none is named is the one the lookup document list names as
+    its default."""
     _, default = load_registry(write_list(LIST_TEXT))
     assert default == "guide"
 
@@ -201,7 +203,7 @@ def test_the_default_is_the_one_the_list_names(repo, write_list):
 @objective("functionality")
 @positive
 def test_docs_names_every_document(repo, write_list, monkeypatch, capsys):
-    """With every listed document on disk, --docs names each one."""
+    """With every listed document on disk, the docs option names each one."""
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
     assert "Example Guide v1" in outcome.printed
     assert "Plain Document" in outcome.printed
@@ -214,7 +216,7 @@ def test_docs_names_every_document(repo, write_list, monkeypatch, capsys):
 def test_docs_exits_0_when_every_document_is_present(
     repo, write_list, monkeypatch, capsys
 ):
-    """With every listed document on disk, --docs exits 0."""
+    """With every listed document on disk, the docs option exits 0."""
     assert run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs").exit_code == 0
 
 
@@ -230,8 +232,8 @@ def test_docs_exits_0_when_every_document_is_present(
 @objective("functionality")
 @negative
 def test_a_missing_list_is_refused(repo, tmp_path):
-    """With no list of lookup documents on disk, loading raises RegistryError naming
-    the path and saying to restore it from git."""
+    """With no lookup document list on disk, loading is refused, and the message names
+    the path and says to restore it from git."""
     with pytest.raises(RegistryError) as raised:
         load_registry(tmp_path / "gone.yml")
     assert "gone.yml" in str(raised.value)
@@ -243,8 +245,8 @@ def test_a_missing_list_is_refused(repo, tmp_path):
 @objective("functionality")
 @negative
 def test_a_list_that_is_not_yaml_is_refused(repo, write_list):
-    """A list that is not valid YAML raises RegistryError saying so, rather than failing
-    later with a shape error."""
+    """A lookup document list that is not valid YAML is refused with a message saying
+    so, rather than failing later on its shape."""
     with pytest.raises(RegistryError) as raised:
         load_registry(write_list("documents: [\n  - key: broken\n"))
     assert "not valid YAML" in str(raised.value)
@@ -255,8 +257,8 @@ def test_a_list_that_is_not_yaml_is_refused(repo, write_list):
 @objective("functionality")
 @negative
 def test_a_list_with_no_documents_is_refused(repo, write_list):
-    """A file with no documents list raises RegistryError saying which part is
-    absent."""
+    """A lookup document list with no documents in it is refused, and the message says
+    which part is missing."""
     with pytest.raises(RegistryError) as raised:
         load_registry(write_list("default: guide\n"))
     assert "no documents list" in str(raised.value)
@@ -267,8 +269,7 @@ def test_a_list_with_no_documents_is_refused(repo, write_list):
 @objective("functionality")
 @negative
 def test_a_row_missing_a_field_is_refused(repo, write_list):
-    """A row without its label raises RegistryError naming the field that is
-    missing."""
+    """A row without its label is refused, and the message names the missing field."""
     text = LIST_TEXT.replace("    label: Example Guide v1\n", "")
     with pytest.raises(RegistryError) as raised:
         load_registry(write_list(text))
@@ -280,8 +281,8 @@ def test_a_row_missing_a_field_is_refused(repo, write_list):
 @objective("functionality")
 @negative
 def test_a_row_that_is_not_a_set_of_fields_is_refused(repo, write_list):
-    """A row that is a bare value rather than a set of fields raises RegistryError
-    quoting the value, rather than crashing on the field lookup."""
+    """A row that is a single value rather than a set of fields is refused, and the
+    message quotes the value."""
     plain_row = "\n".join(
         [
             "  - key: plain",
@@ -307,9 +308,8 @@ def test_a_row_that_is_not_a_set_of_fields_is_refused(repo, write_list):
 )
 @negative
 def test_a_boilerplate_that_is_not_a_list_is_refused(repo, write_list, written):
-    """A boilerplate written as anything but a list, a lone pattern string or an
-    empty-looking value, raises RegistryError naming the row, rather than reading
-    the string one character at a time or silently taking it as no patterns."""
+    """Boilerplate patterns written as anything but a list are refused, and the message
+    names the row. A single pattern or an empty-looking value is never read wrongly."""
     text = LIST_TEXT.replace(
         "    boilerplate:\n      - '^ *Page [0-9]+ *$'\n",
         f"    boilerplate: {written}\n",
@@ -324,8 +324,8 @@ def test_a_boilerplate_that_is_not_a_list_is_refused(repo, write_list, written):
 @objective("functionality")
 @negative
 def test_a_file_no_manifest_records_is_refused(repo, write_list):
-    """A row naming a file that no manifest records raises UnknownFileError naming the
-    file and saying to correct the name or record the file."""
+    """A row naming a file that no manifest records is refused, and the message names
+    the file and says to correct the name or record the file."""
     text = LIST_TEXT.replace("Example_Guide.pdf", "Nobody_Recorded_This.pdf")
     with pytest.raises(UnknownFileError) as raised:
         load_registry(write_list(text))
@@ -338,8 +338,8 @@ def test_a_file_no_manifest_records_is_refused(repo, write_list):
 @objective("functionality")
 @negative
 def test_a_default_that_is_not_listed_is_refused(repo, write_list):
-    """A default naming a key lookup_documents.yml does not hold raises RegistryError, rather than
-    leaving --doc with a default it cannot accept."""
+    """A default naming a key the lookup document list does not hold is refused, so the
+    document option never has a default it cannot accept."""
     text = LIST_TEXT.replace("default: guide", "default: nowhere")
     with pytest.raises(RegistryError) as raised:
         load_registry(write_list(text))
@@ -351,8 +351,8 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
 @objective("functionality")
 @negative
 def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
-    """When lookup_documents.yml is missing, the command exits 31 and says where the file
-    was expected and how to get it back, rather than raising."""
+    """When the lookup document list is missing, the command exits 31 and says where the
+    file was expected and how to get it back."""
     monkeypatch.setattr(read_pdf, "REGISTRY_FILE", tmp_path / "gone.yml")
     assert read_pdf.main(["--docs"]) == 31
     printed = capsys.readouterr().err
@@ -365,8 +365,8 @@ def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
 @objective("functionality")
 @negative
 def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, capsys):
-    """When lookup_documents.yml names a file no manifest records, the command exits 32, a
-    different cause from a list that cannot be read."""
+    """When the lookup document list names a file no manifest records, the command exits
+    32, a different cause from a list that cannot be read."""
     text = LIST_TEXT.replace("Example_Guide.pdf", "Nobody_Recorded_This.pdf")
     outcome = run(write_list, monkeypatch, capsys, text, "--docs")
     assert outcome.exit_code == 32
@@ -395,8 +395,8 @@ def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys
 @objective("functionality")
 @negative
 def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
-    """When a manifest is not valid JSON, the command exits 3 and names that manifest
-    as the thing that cannot be read, rather than blaming lookup_documents.yml or a document."""
+    """When a manifest is not valid JSON, the command exits 3 and names that manifest as
+    what cannot be read, rather than blaming the document list or a document."""
     (repo.root / "manifests" / "broken.json").write_text("{ not json", encoding="utf-8")
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
     assert outcome.exit_code == 3
@@ -410,8 +410,8 @@ def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
 def test_docs_exits_8_when_a_document_is_not_downloaded(
     fake_repo, write_list, monkeypatch, capsys
 ):
-    """With a listed document recorded but not on disk, --docs exits 8 and says to run
-    acquire_sources."""
+    """When a listed document is recorded but not on disk, listing the documents exits 8
+    and says to run acquire_sources."""
     fake_repo.manifest(
         "example",
         [
@@ -590,8 +590,8 @@ def test_page_furniture_is_stripped(readable, capsys):
 @objective("functionality")
 @positive
 def test_raw_keeps_the_page_furniture(readable, capsys):
-    """With --raw the boilerplate is kept, for a session that needs the page exactly
-    as it is."""
+    """With the raw option the boilerplate is kept, for a session that needs the page
+    exactly as it is."""
     assert "Page 1" in read(capsys, "--pages", "1", "--raw").printed
 
 
@@ -840,8 +840,8 @@ def page_with_table():
 @objective("functionality")
 @positive
 def test_a_page_with_a_picture_gets_the_not_shown_note():
-    """A page holding a picture gets the NOT SHOWN note counting one image, so the gap
-    in the text is visible."""
+    """A page holding a picture gets a note saying one image is not shown, so the gap in
+    the text is visible."""
     note = read_pdf.describe_lost_content(page_with_picture())
     assert "NOT SHOWN IN TEXT" in note
     assert "1 image(s)" in note
@@ -852,7 +852,7 @@ def test_a_page_with_a_picture_gets_the_not_shown_note():
 @objective("functionality")
 @positive
 def test_a_page_with_a_table_gets_the_not_shown_note():
-    """A page holding a ruled table gets the NOT SHOWN note counting one table."""
+    """A page holding a ruled table gets a note saying one table is not shown."""
     note = read_pdf.describe_lost_content(page_with_table())
     assert "NOT SHOWN IN TEXT" in note
     assert "1 table(s)" in note
@@ -966,10 +966,9 @@ def headingless(fake_repo, write_list, monkeypatch):
 def test_a_section_whose_own_heading_is_missing_warns_that_it_may_open_mid_section(
     headingless, capsys
 ):
-    """When a section's own heading is not on the page its bookmark points at, the
-    page is shown whole and a warning names the section and the page and says the
-    extract may open mid-section, so a reader is never handed a silently wrong
-    start."""
+    """When a section's own heading is not on the page its bookmark points at, the page
+    is shown whole. A warning names the section and the page and says the extract may
+    open mid-section."""
     outcome = read(capsys, "1")
     assert outcome.exit_code == 0
     assert "could not locate the heading for 1 on page 1" in outcome.printed
@@ -983,9 +982,9 @@ def test_a_section_whose_own_heading_is_missing_warns_that_it_may_open_mid_secti
 def test_a_next_sections_missing_heading_warns_that_it_may_run_past_the_section(
     headingless, capsys
 ):
-    """When the next section's heading is not on the page a section ends on, the page
-    is shown whole and a warning names that section and the page and says the extract
-    may run past its end."""
+    """When the next section's heading is not on the page a section ends on, the page is
+    shown whole. A warning names that section and the page and says the extract may run
+    past its end."""
     outcome = read(capsys, "1")
     assert outcome.exit_code == 0
     assert "could not locate the heading for 2 on page 1" in outcome.printed
@@ -1016,8 +1015,8 @@ def test_the_warning_is_kept_out_of_the_extracted_text(headingless, capsys):
 def test_an_extracted_page_carries_the_note_about_what_it_lost(
     fake_repo, write_list, monkeypatch, capsys
 ):
-    """A page holding a picture carries the NOT SHOWN note inside its own block, so
-    the gap sits beside the text it belongs to rather than at the end of the run."""
+    """A page holding a picture carries its not-shown note inside its own block, so the
+    gap sits beside the text it belongs to."""
     path = fake_repo.root / GUIDE
     path.parent.mkdir(parents=True, exist_ok=True)
     document = fitz.open()
@@ -1042,9 +1041,9 @@ def test_an_extracted_page_carries_the_note_about_what_it_lost(
 def test_a_page_whose_tables_cannot_be_read_still_extracts(
     readable, monkeypatch, capsys
 ):
-    """When the table finder raises on a page, the page's text is still extracted and
-    the note counts no tables, because a picture or table that cannot be counted must
-    not stop a person reading the page.
+    """When the table finder fails on a page, the page's text is still extracted and the
+    note counts no tables. A table that cannot be counted must not stop a person reading
+    the page.
 
     The failure is staged by replacing the table finder, since a PDF that reliably
     breaks it cannot be built by hand."""

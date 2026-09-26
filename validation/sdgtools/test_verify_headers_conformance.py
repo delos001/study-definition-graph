@@ -50,8 +50,8 @@ def test_real_headers_follow_the_rule():
 @objective("conformance")
 def test_real_exit_codes_agree_with_the_table_and_main():
     """In every Python file in the real code folders, each exit code the header lists
-    opens with the wording docs/exit_codes.csv gives it, and each code main()
-    returns as a plain number is listed."""
+    opens with the wording docs/exit_codes.csv gives it, and each code the tool returns
+    is listed."""
     table = script.exit_code_table()
     problems = {
         path.relative_to(script.REPO_ROOT).as_posix(): script.problems_in(path, table)[
@@ -66,9 +66,9 @@ def test_real_exit_codes_agree_with_the_table_and_main():
 @category("repository")
 @objective("conformance")
 def test_every_code_folder_is_checked():
-    """The checker covers the three folders .claude/rules/writing_python_files.md names,
-    so a file added under any of them is held to the header block like any other. The
-    check compares with its own copy of the three, not with the rule file itself."""
+    """The header tool covers the three folders .claude/rules/writing_python_files.md
+    names, so a file added under any of them is held to the header rule. The check holds
+    its own copy of the three."""
     covered = {
         folder.relative_to(script.REPO_ROOT).as_posix()
         for folder in script.CHECKED_FOLDERS

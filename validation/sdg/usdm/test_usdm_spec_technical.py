@@ -112,8 +112,8 @@ def variant(tmp_path):
 @positive
 @needs_fixture("usdm_three_classes.yml")
 def test_lists_every_class_sorted(three):
-    """A well-formed file loads, and class_names() gives every class in
-    alphabetical order, so a listing is stable from run to run."""
+    """A well-formed file loads, and its classes are listed in alphabetical order, so a
+    listing is the same from run to run."""
     assert usdm_spec.class_names(three) == sorted(FIXTURE_CLASSES)
 
 
@@ -123,8 +123,8 @@ def test_lists_every_class_sorted(three):
 @positive
 @needs_fixture("usdm_three_classes.yml")
 def test_abstract_flag_comes_from_modifier(three):
-    """is_abstract() reports USDM's own Modifier, so Identifier, a parent never used
-    on its own, is abstract, and StudyIdentifier, its concrete child, is not."""
+    """Whether a class is abstract comes from USDM's own Modifier field. So Identifier,
+    a parent never used on its own, is abstract, and StudyIdentifier, its child, is not."""
     assert usdm_spec.is_abstract(three, "Identifier") is True
     assert usdm_spec.is_abstract(three, "StudyIdentifier") is False
 
@@ -135,9 +135,8 @@ def test_abstract_flag_comes_from_modifier(three):
 @positive
 @needs_fixture("usdm_three_classes.yml")
 def test_attributes_keep_file_order_and_inheritance(three):
-    """attributes() hands back a class's attributes in the order the file lists
-    them, including the ones copied down from its parent, and each inherited one
-    still names that parent."""
+    """A class's attributes come back in the order the file lists them, including the
+    ones it takes from its parent, and each inherited one still names that parent."""
     attrs = usdm_spec.attributes(three, "StudyIdentifier")
     assert list(attrs) == [
         "id",
@@ -156,8 +155,8 @@ def test_attributes_keep_file_order_and_inheritance(three):
 @positive
 @needs_fixture("usdm_three_classes.yml")
 def test_targets_unwraps_one_and_many(three):
-    """targets() turns USDM's '$ref: #/X' wrapping into plain names, for an
-    attribute with one target and for the five-way one (Condition.appliesToIds)."""
+    """The types an attribute points at come back as plain class names, both for an
+    attribute with one type and for the one with five."""
     single = usdm_spec.attributes(three, "StudyIdentifier")["scopeId"]
     many = usdm_spec.attributes(three, "Condition")["appliesToIds"]
     assert usdm_spec.targets(single) == ("Organization",)
@@ -176,8 +175,8 @@ def test_targets_unwraps_one_and_many(three):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_unknown_class_raises_keyerror_naming_it(three):
-    """Asking for a class that is not in the file raises KeyError carrying that
-    name, so a typo is reported rather than answered with an empty result."""
+    """Asking for a class that is not in the file is refused with an error naming it, so
+    a typo is reported rather than answered with an empty result."""
     with pytest.raises(KeyError, match="Nope"):
         usdm_spec.attributes(three, "Nope")
     with pytest.raises(KeyError, match="Nope"):
@@ -226,8 +225,8 @@ def test_class_without_modifier_is_named(variant):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_unexpected_modifier_value_is_named(variant):
-    """A Modifier other than Concrete or Abstract is refused, quoting the
-    unexpected value, so a new USDM vocabulary cannot pass unnoticed."""
+    """A Modifier other than Concrete or Abstract is refused, and the message quotes the
+    unexpected value, so a new USDM word cannot pass unnoticed."""
     broken = variant(lambda d: d["Identifier"].__setitem__("Modifier", "Virtual"))
     with pytest.raises(usdm_spec.SpecShapeError, match="unexpected Modifier 'Virtual'"):
         usdm_spec.load(broken, verify=False)
@@ -254,9 +253,8 @@ def test_attributes_not_a_mapping_is_named(variant):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_attribute_missing_a_key_is_named(variant):
-    """Renaming 'Relationship Type' on one attribute is refused with a message
-    naming Class.attribute and the missing key, rather than surfacing later as a
-    KeyError traceback from the attribute printer in usdm_spec.py."""
+    """An attribute missing its Relationship Type field is refused, and the message
+    names the class, the attribute and the missing field."""
 
     def rename(d):
         """Rename one attribute's Relationship Type key, so the expected key is gone."""
@@ -315,9 +313,8 @@ def test_type_that_is_not_a_reference_list_is_named(variant):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_empty_type_list_is_refused(variant):
-    """An attribute whose Type list is empty is refused with a message naming the
-    attribute, because an attribute with no type is not a shape usdm_spec.py can
-    answer questions about."""
+    """An attribute with an empty list of types is refused, and the message names the
+    attribute, because an attribute with no type cannot be described."""
     broken = variant(
         lambda d: d["Condition"]["Attributes"]["name"].__setitem__("Type", [])
     )
@@ -333,8 +330,8 @@ def test_empty_type_list_is_refused(variant):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_inherited_from_without_ref_is_named(variant):
-    """An Inherited From entry lacking its '$ref' is refused, naming the
-    attribute and the field, so the attribute printer in usdm_spec.py never indexes a missing key."""
+    """An Inherited From entry that does not name its parent class is refused, and the
+    message names the attribute and the field."""
     broken = variant(
         lambda d: d["StudyIdentifier"]["Attributes"]["id"].__setitem__(
             "Inherited From", [{"ref": "x"}]
@@ -361,8 +358,8 @@ def test_inherited_from_without_ref_is_named(variant):
 @objective("functionality")
 @negative
 def test_missing_file_raises_filenotfound(tmp_path):
-    """A path that does not exist raises FileNotFoundError (exit 8 at the command
-    line), which is a different failure from a file that fails verification."""
+    """A path that does not exist is refused as a missing file, exit 8 at the command
+    line, which is a different failure from a file that fails its fingerprint."""
     with pytest.raises(FileNotFoundError) as caught:
         usdm_spec.load(tmp_path / "nope.yml")
     assert "nope.yml" in str(caught.value)
@@ -374,8 +371,8 @@ def test_missing_file_raises_filenotfound(tmp_path):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_unrecorded_file_is_refused_through_load(manifest_dir):
-    """A file no manifest entry records is refused by load() with the pinned-file
-    check's message saying exactly that, not with the fingerprint-mismatch remedy.
+    """A file no manifest entry records is refused when loaded, with a message saying
+    exactly that rather than the remedy for a changed file.
 
     The manifests are staged, holding no entry, so a broken real manifest cannot make
     this check fail for a reason of its own."""
@@ -393,8 +390,8 @@ def test_unrecorded_file_is_refused_through_load(manifest_dir):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_recording):
-    """A file whose recorded sha256 differs is refused by load() with both values
-    and the recovery paths, including --allow-unpinned."""
+    """A file whose fingerprint differs from its record is refused when loaded, and the
+    message shows both fingerprints and the ways to recover."""
     manifest_dir(manifest_recording(FIXTURE))  # sha256 is the all-zero placeholder
     with pytest.raises(usdm_spec.IntegrityError) as caught:
         usdm_spec.load(FIXTURE)
@@ -416,7 +413,7 @@ def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_rec
 @objective("functionality")
 @negative
 def test_cli_no_mode_exits_2():
-    """Running with no mode flag is a usage error: argparse prints usage and
+    """Running with no mode option is a usage error. The usage is printed and the run
     exits 2."""
     with pytest.raises(SystemExit) as caught:
         usdm_spec.main([])
@@ -428,8 +425,8 @@ def test_cli_no_mode_exits_2():
 @objective("functionality")
 @negative
 def test_cli_missing_spec_exits_8(monkeypatch, capsys):
-    """When the pinned file is not downloaded, the command exits 8 and tells the
-    user to run acquire_sources."""
+    """When the pinned file is not downloaded, the command exits 8 and says to run
+    acquire_sources."""
     # A path under the repo, because the message prints it relative to the repo
     # root, as it does for the real pinned path. Nothing is written there.
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE.with_name("nope.yml"))
@@ -462,8 +459,8 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys, manifest_dir):
 def test_cli_fingerprint_mismatch_exits_9(
     manifest_dir, manifest_recording, monkeypatch, capsys
 ):
-    """When the file is present but its sha256 differs from its manifest entry, the
-    command exits 9 and prints both values and the --allow-unpinned way round."""
+    """When the file is present but its fingerprint differs from its manifest entry, the
+    command exits 9 and prints both fingerprints and the way to proceed without the pin."""
     manifest_dir(manifest_recording(FIXTURE))  # sha256 is the all-zero placeholder
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes"]) == 9
@@ -477,8 +474,8 @@ def test_cli_fingerprint_mismatch_exits_9(
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
-    """When a manifest is not valid JSON, the command exits 3 and names the manifest
-    as the thing that cannot be read, rather than blaming the pinned file."""
+    """When a manifest is not valid JSON, the command exits 3 and names the manifest as
+    what cannot be read, rather than blaming the pinned file."""
     manifest_dir("{ not json")
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
     assert usdm_spec.main(["--list-classes"]) == 3
@@ -494,8 +491,9 @@ def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
 )
 @negative
 def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
-    """When the sdg package is not running from inside its repo, the command exits 6
-    and prints the install command, rather than reporting the spec as missing.
+    """When the sdg package is not running from inside its repo, the command exits 6 and
+    prints the install command. It runs twice, with and without the option that skips
+    the pinned-file record, because that option must not skip this refusal.
 
     Staged as it really happens: the root the sdg package takes to be the repo is a
     folder with no repo in it, and the spec path, which follows that root, does not
@@ -516,8 +514,8 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
-    """When the file passes (or skips) verification but is not shaped like USDM,
-    the command exits 4 and names the broken class."""
+    """When the file loads but is not shaped like USDM, the command exits 4 and names
+    the broken class."""
     broken = variant(lambda d: d["Condition"].pop("Attributes"))
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
     assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 4
@@ -549,8 +547,9 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
-    """A file whose Type values are not reference lists makes --attributes exit 4
-    with the attribute named, not crash with a traceback while printing."""
+    """A file whose type values are not lists of references makes the attributes option
+    exit 4 and name the attribute, rather than failing with a Python error while
+    printing."""
     broken = variant(
         lambda d: d["StudyIdentifier"]["Attributes"]["scopeId"].__setitem__(
             "Type", None

@@ -212,8 +212,8 @@ def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
 @objective("functionality")
 @negative
 def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
-    """When one tool reports a problem, the run exits 21 and that tool's verdict line
-    says FAILED while the others say passed."""
+    """When one tool reports a problem, the run exits 21, and that tool's line says
+    FAILED while the others say passed."""
     stage.failing = {"ruff check"}
     outcome = run_tool(capsys)
     assert outcome.exit_code == 21

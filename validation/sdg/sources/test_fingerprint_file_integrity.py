@@ -43,7 +43,7 @@ from validation.shared.staged_manifests import CONTENT
 @objective("correctness")
 @positive
 def test_fingerprint_measures_the_size(file_on_disk):
-    """fingerprint() gives back the file's size in bytes."""
+    """A file's fingerprint gives its size in bytes."""
     assert fingerprint(file_on_disk).bytes == len(CONTENT)
 
 
@@ -52,8 +52,8 @@ def test_fingerprint_measures_the_size(file_on_disk):
 @objective("correctness")
 @positive
 def test_fingerprint_measures_the_sha256(file_on_disk):
-    """fingerprint() gives back the file's sha256, the same as an independent
-    hash of the same bytes."""
+    """A file's fingerprint is the same as one worked out separately from the same
+    bytes."""
     assert fingerprint(file_on_disk).sha256 == hashlib.sha256(CONTENT).hexdigest()
 
 
@@ -62,8 +62,8 @@ def test_fingerprint_measures_the_sha256(file_on_disk):
 @objective("correctness")
 @positive
 def test_reading_in_pieces_loses_nothing(tmp_path):
-    """A file bigger than the piece fingerprint_file.py reads at a time hashes the same
-    as a hash of the whole file."""
+    """A file bigger than the piece read at a time has the same fingerprint as one
+    worked out from the whole file."""
     content = b"x" * (fingerprint_file.CHUNK_BYTES * 2 + 17)
     path = tmp_path / "big.bin"
     path.write_bytes(content)

@@ -118,8 +118,8 @@ def test_staged_record_is_the_same_by_string_or_path(recorded_file):
 @objective("functionality")
 @negative
 def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
-    """When the sdg package is not running from inside its repo, verify_pinned()
-    raises NotInRepoError with the install command, not an IntegrityError."""
+    """When the sdg package is not running from inside its repo, verifying a file is
+    refused with the install command, not reported as a mismatch."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"
     )
@@ -131,9 +131,9 @@ def test_not_in_repo_error_passes_through_unwrapped(recorded_file, fake_repo):
 @objective("functionality")
 @negative
 def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
-    """A file that a manifest records but that is not on disk raises
-    FileNotFoundError naming the path, a different failure from a file that
-    cannot be verified."""
+    """A file a manifest records that is not on disk is refused as missing, and the
+    message names the path. That is a different failure from a file that cannot be
+    verified."""
     fake_repo.manifest(
         "set_a", [fake_repo.entry(LOCAL, bytes=len(CONTENT), sha256=SHA256)]
     )
@@ -148,9 +148,8 @@ def test_recorded_but_absent_file_raises_file_not_found(fake_repo):
 def test_locked_file_passes_the_operating_systems_error_through(
     recorded_file, monkeypatch
 ):
-    """A recorded file that is on disk but cannot be opened raises PermissionError
-    unchanged, naming the path, rather than being wrapped as a mismatch or a missing
-    file.
+    """A recorded file on disk that cannot be opened is refused as not permitted, and
+    the message names the path. It is not reported as a mismatch or a missing file.
 
     The operating system's refusal is staged by replacing the file open, since a
     real lock cannot be made reliably inside a check."""
@@ -201,8 +200,8 @@ def test_unrecorded_file_does_not_get_the_mismatch_remedy(recorded_file, fake_re
 @objective("functionality")
 @negative
 def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
-    """A manifest that cannot be read is passed through as the manifest reader's
-    own error from src/sdg/sources/read_manifests.py, naming the manifest file and the git restore remedy."""
+    """A manifest that cannot be read is reported with the manifest reader's own
+    message, naming the manifest file and saying to restore it from git."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", "{ not json")
     message = refused_with(ManifestError)
@@ -240,8 +239,8 @@ def test_no_manifests_is_reported_as_none_found(fake_repo):
 @objective("functionality")
 @negative
 def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
-    """An entry with no sha256 is refused as lacking that field, with the
-    repair remedy, so a person repairs the entry rather than re-downloading."""
+    """An entry with no fingerprint is refused as missing that field, and the message
+    says to repair the entry rather than download the file again."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, sha256=None)])
     message = refused_with(ManifestError)
@@ -254,8 +253,8 @@ def test_entry_missing_sha256_is_reported_as_lacking_it(fake_repo):
 @objective("functionality")
 @negative
 def test_mismatch_shows_both_sha256_values(mismatch_message):
-    """When the bytes differ from the entry at the same size, the message shows
-    the start of the file's sha256 and of the manifest's."""
+    """When a file is the right size but its contents differ from its record, the
+    message shows the start of both fingerprints."""
     changed = hashlib.sha256(b"PINNED bytes\n").hexdigest()
     assert mismatch_message.startswith(f"{LOCAL}: sha256 {changed[:16]}")
     assert f"manifest says {SHA256[:16]}" in mismatch_message
@@ -275,8 +274,8 @@ def test_mismatch_names_the_manifest_that_records_the_file(mismatch_message):
 @objective("functionality")
 @negative
 def test_mismatch_offers_the_three_ways_back(mismatch_message):
-    """The mismatch message offers the three ways back: re-fetch, read
-    unverified once, or re-pin."""
+    """The mismatch message offers three ways back. They are to fetch the file again,
+    read it once unverified, or pin it again."""
     assert "acquire_sources" in mismatch_message
     assert "--allow-unpinned" in mismatch_message
     assert "re-pin" in mismatch_message

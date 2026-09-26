@@ -107,8 +107,8 @@ def test_every_group_lists_only_ids_the_inventory_holds():
 @category("repository")
 @objective("conformance")
 def test_the_pinned_group_lists_every_check_that_reads_a_pinned_file():
-    """The pinned group lists every check that carries the needs_pinned label, and the
-    stability check, and nothing else, so a new check that reads a pinned file cannot
-    be left out of it."""
+    """The pinned group lists every check that carries the pinned-file label, and the
+    stability check, and nothing else. A new check that reads a pinned file cannot be
+    left out of it."""
     listed = set(map(str, groups()["pinned"]["ids"]))
     assert listed == needs_pinned_ids() | {STABILITY_CHECK}

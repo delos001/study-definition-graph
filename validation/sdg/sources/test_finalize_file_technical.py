@@ -75,7 +75,7 @@ def plain_file(tmp_path) -> Path:
 @objective("functionality")
 @positive
 def test_place_hands_back_the_final_path(placed):
-    """place() gives back the final path."""
+    """Placing a file gives back its final path."""
     result, staged = placed
     assert result == staged.final
 
@@ -85,7 +85,7 @@ def test_place_hands_back_the_final_path(placed):
 @objective("functionality")
 @positive
 def test_place_removes_the_part_name(placed):
-    """After place(), nothing is left under the .part name."""
+    """After a file is placed, nothing is left under its .part name."""
     _, staged = placed
     assert not staged.partial.exists()
 
@@ -95,7 +95,7 @@ def test_place_removes_the_part_name(placed):
 @objective("functionality")
 @positive
 def test_discard_deletes_the_part_file(part_file):
-    """discard() deletes the .part file and gives back nothing."""
+    """Discarding a .part file deletes it and gives back nothing."""
     assert discard(part_file.partial) is None
     assert not part_file.partial.exists()
 
@@ -113,9 +113,8 @@ def test_discard_deletes_the_part_file(part_file):
 @objective("functionality")
 @negative
 def test_place_refuses_when_the_final_name_is_taken(blocked):
-    """When a file already sits at the final name, place() raises
-    FileExistsError, and the message names that file and says to run
-    acquire_sources again after dealing with it."""
+    """When a file already sits at the final name, placing is refused. The message names
+    that file and says to run acquire_sources again after dealing with it."""
     message, staged = blocked
     assert str(staged.final) in message
     assert "acquire_sources" in message
@@ -148,8 +147,8 @@ def test_refused_place_leaves_the_part_file_where_it_was(blocked):
 @objective("functionality")
 @negative
 def test_place_refuses_a_missing_part_file(tmp_path):
-    """place() raises FileNotFoundError naming the path when the .part file
-    does not exist."""
+    """Placing a .part file that does not exist is refused, and the message names the
+    path."""
     partial = partial_path(tmp_path / "file.pdf")
     with pytest.raises(FileNotFoundError) as caught:
         place(partial)
@@ -161,8 +160,8 @@ def test_place_refuses_a_missing_part_file(tmp_path):
 @objective("functionality")
 @negative
 def test_place_refuses_a_name_without_the_part_suffix(plain_file):
-    """place() raises ValueError naming the path when the name does not end in
-    .part."""
+    """Placing a file whose name does not end in .part is refused, and the message names
+    the path."""
     with pytest.raises(ValueError, match=r"not a \.part file") as caught:
         place(plain_file)
     assert str(plain_file) in str(caught.value)
@@ -173,7 +172,7 @@ def test_place_refuses_a_name_without_the_part_suffix(plain_file):
 @objective("functionality")
 @negative
 def test_place_leaves_a_file_it_refused_untouched(plain_file):
-    """A file place() refused for its name keeps its bytes."""
+    """A file refused for its name when placing keeps its bytes."""
     with pytest.raises(ValueError):
         place(plain_file)
     assert plain_file.read_bytes() == CONTENT
@@ -184,8 +183,8 @@ def test_place_leaves_a_file_it_refused_untouched(plain_file):
 @objective("functionality")
 @negative
 def test_discard_refuses_a_missing_part_file(tmp_path):
-    """discard() raises FileNotFoundError naming the path when the .part file
-    does not exist."""
+    """Discarding a .part file that does not exist is refused, and the message names the
+    path."""
     partial = partial_path(tmp_path / "file.pdf")
     with pytest.raises(FileNotFoundError) as caught:
         discard(partial)
@@ -197,8 +196,8 @@ def test_discard_refuses_a_missing_part_file(tmp_path):
 @objective("functionality")
 @negative
 def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
-    """discard() raises ValueError naming the path when the name does not end
-    in .part."""
+    """Discarding a file whose name does not end in .part is refused, and the message
+    names the path."""
     with pytest.raises(ValueError, match=r"not a \.part file") as caught:
         discard(plain_file)
     assert str(plain_file) in str(caught.value)
@@ -209,8 +208,8 @@ def test_discard_refuses_a_name_without_the_part_suffix(plain_file):
 @objective("functionality")
 @negative
 def test_discard_leaves_a_file_it_refused_in_place(plain_file):
-    """A file discard() refused for its name is not deleted, so a pinned file
-    can never be discarded by mistake."""
+    """A file refused for its name when discarding is not deleted, so a pinned file can
+    never be discarded by mistake."""
     with pytest.raises(ValueError):
         discard(plain_file)
     assert plain_file.read_bytes() == CONTENT

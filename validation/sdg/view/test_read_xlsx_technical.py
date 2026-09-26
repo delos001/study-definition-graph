@@ -267,8 +267,8 @@ def test_find_with_no_hits_says_so_and_exits_0(inputs, capsys):
 @objective("functionality")
 @positive
 def test_all_searches_every_workbook(inputs, capsys):
-    """With --all the search covers every workbook under the inputs folder, not just
-    one."""
+    """With the all option the search covers every workbook under the inputs folder, not
+    just one."""
     printed = run(capsys, "--all", "--find", "Blood sample").printed
     assert "Example_Terms.xlsx" in printed
     assert "Example_Study.xlsx" in printed
@@ -299,8 +299,8 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 @objective("functionality")
 @negative
 def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
-    """Naming a sheet the workbook does not hold exits 25 and says to run without
-    --sheet to list them."""
+    """Naming a sheet the workbook does not hold exits 25 and says to run without the
+    sheet option to list them."""
     outcome = run(capsys, "Example_Terms", "--sheet", "nowhere")
     assert outcome.exit_code == 25
     assert "Run without --sheet" in outcome.printed
@@ -336,8 +336,8 @@ def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
 @objective("functionality")
 @negative
 def test_all_without_find_is_a_usage_mistake(inputs, capsys):
-    """Asking for --all without --find exits 2, the argument parser's own code, because
-    it is a mistake in the command line rather than a failure to read anything."""
+    """Asking for the all option without the find option exits 2, the argument parser's
+    own code, because it is a mistake in the command line."""
     with pytest.raises(SystemExit) as raised:
         run(capsys, "--all")
     assert raised.value.code == 2
@@ -483,8 +483,9 @@ def test_a_search_hit_cuts_a_long_cell_short(inputs):
 @objective("functionality")
 @positive
 def test_header_row_makes_the_named_row_the_column_names(inputs, capsys):
-    """With --header-row the named row supplies the column names and the lines above
-    it are left out, so a sheet carrying a title prints as a table of its real data."""
+    """With the header-row option, the named row supplies the column names and the lines
+    above it are left out, so a sheet carrying a title prints as a table of its real
+    data."""
     write_workbook(
         inputs / "standards" / "Prefaced.xlsx",
         {"terms": [["Codelist Name: <Attribute>"], ["*a legend"], *ROWS]},
@@ -500,10 +501,8 @@ def test_header_row_makes_the_named_row_the_column_names(inputs, capsys):
 @objective("functionality")
 @positive
 def test_header_row_counts_the_sheets_own_rows_including_blank_ones(inputs, capsys):
-    """Rows are counted the way the sheet counts them, so a blank row above the column
-    names still takes a number. That is the number a search reports and the number a
-    spreadsheet program shows, and it is not the row's position once empty rows have
-    been dropped."""
+    """Rows are numbered the way the sheet numbers them, so a blank row above the column
+    names still takes a number. That is the number a spreadsheet program shows."""
     write_workbook(
         inputs / "standards" / "Gapped.xlsx",
         {"terms": [["A title"], [None], *ROWS]},
@@ -532,8 +531,8 @@ def test_the_heading_says_which_row_the_reading_started_at(inputs, capsys):
 @objective("functionality")
 @positive
 def test_without_the_option_the_first_row_is_the_column_names(inputs, capsys):
-    """Left out, --header-row reads from the first row and the heading says nothing
-    about a starting row, so the ordinary sheet is unaffected by the option."""
+    """Without the header-row option, reading starts at the first row and the heading
+    says nothing about a starting row, so an ordinary sheet is unaffected."""
     printed = run(capsys, "Example_Terms", "--sheet", "terms").printed
     assert "from row" not in printed
     assert "Visit" in printed
@@ -544,9 +543,8 @@ def test_without_the_option_the_first_row_is_the_column_names(inputs, capsys):
 @objective("functionality")
 @negative
 def test_a_header_row_past_the_end_of_the_sheet_is_refused(inputs, capsys):
-    """A row number beyond the sheet's last row is refused with its own exit code and
-    a message naming the sheet and the number, rather than printing an empty table
-    that would read as an empty sheet."""
+    """A row number beyond the sheet's last row is refused with its own exit code, and
+    the message names the sheet and the number."""
     outcome = run(capsys, "Example_Terms", "--sheet", "terms", "--header-row", "99")
     assert outcome.exit_code == 46
     assert "no rows at or below row 99" in outcome.printed
@@ -606,8 +604,8 @@ def test_a_row_with_every_cell_blank_is_left_out(inputs, capsys):
 @objective("functionality")
 @positive
 def test_all_names_only_the_workbooks_with_hits(inputs, capsys):
-    """With --all, a workbook that holds no match is not named in the output, so the
-    listing shows only where the term was found."""
+    """With the all option, a workbook that holds no match is not named, so the listing
+    shows only where the term was found."""
     write_workbook(inputs / "examples" / "Other_Book.xlsx", {"other": [["Nothing"]]})
     printed = run(capsys, "--all", "--find", "predose").printed
     assert "Example_Terms.xlsx" in printed

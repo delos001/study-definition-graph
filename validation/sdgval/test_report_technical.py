@@ -195,8 +195,8 @@ def test_a_check_without_parameters_has_an_empty_parameter(parametrized, staged_
 @objective("functionality")
 @positive
 def test_no_flag_writes_nothing(staged_suite, pytester):
-    """Without --validation-report, a run writes no report at all, so development
-    runs leave no trace."""
+    """Without the report option, a run writes no report at all, so development runs
+    leave no trace."""
     staged_suite.write("def test_ok():\n    assert True\n")
     result = pytester.runpytest_subprocess()
     assert result.ret == 0
@@ -216,9 +216,8 @@ def test_no_flag_writes_nothing(staged_suite, pytester):
 @objective("functionality")
 @negative
 def test_cleanup_failure_is_recorded_as_fail(staged_suite):
-    """A test whose own checks pass but whose clean-up step raises an error is a failed
-    run to pytest (exit 1). The report says FAIL, and that test's row says error
-    with 'clean-up failed', never passed."""
+    """A test whose own checks pass but whose clean-up breaks makes pytest exit 1. The
+    report says FAIL, and that test's row says error with the reason clean-up failed."""
     result, out = staged_suite.run(
         '''
         import pytest
@@ -305,8 +304,8 @@ def test_failing_assertion_is_recorded_as_fail(staged_suite):
 @objective("functionality")
 @negative
 def test_setup_failure_is_recorded_as_error(staged_suite):
-    """A test whose set-up step raises an error never runs; the report says FAIL and the
-    row says error."""
+    """A test whose set-up breaks never runs. The report says FAIL and the row says
+    error."""
     result, out = staged_suite.run(
         '''
         import pytest
@@ -330,10 +329,9 @@ def test_setup_failure_is_recorded_as_error(staged_suite):
 @objective("functionality")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_report(staged_suite):
-    """When a test file cannot even be loaded (a syntax error), no test runs and
-    pytest exits 2. A report is still written, says FAIL, and holds one row saying
-    that no check ran, so a broken run cannot pass unnoticed by leaving no report
-    behind."""
+    """When a test file cannot even be loaded, no test runs and pytest exits 2. A report
+    is still written, says FAIL and holds one row saying no check ran, so a broken run
+    cannot go unnoticed."""
     result, out = staged_suite.run("def test_broken(:\n    pass\n")
     assert result.ret == 2
     rows = staged_suite.report(out)
@@ -372,9 +370,8 @@ def test_a_second_report_on_the_same_day_and_commit_gets_a_numbered_name(staged_
 @objective("functionality")
 @positive
 def test_run_id_is_the_report_file_name(staged_suite):
-    """Every row's run_id is the report's file name without .csv, so a second report on
-    the same day and commit carries the numbered id its file has and two runs are
-    never confused."""
+    """Every row's run id is the report's file name, so a second report on the same day
+    and commit carries its own numbered id and two runs are never confused."""
     _, out = staged_suite.run(PASSING_SUITE)
     staged_suite.run(PASSING_SUITE)
     for path in (p for p in out.glob("*.csv") if not p.stem.endswith("_run")):
@@ -387,9 +384,8 @@ def test_run_id_is_the_report_file_name(staged_suite):
 @objective("functionality")
 @positive
 def test_the_runs_own_file_sits_beside_the_report_and_shares_its_run_id(staged_suite):
-    """Beside each report is the run's own file, named as the report with _run added,
-    and its one row carries the same run_id as every row of the report, so the two
-    join."""
+    """Beside each report is the run's own file, named like the report with run added,
+    and its one row carries the same run id as the report's rows, so the two join."""
     _, out = staged_suite.run(PASSING_SUITE)
     (report,) = (p for p in out.glob("*.csv") if not p.stem.endswith("_run"))
     assert (out / f"{report.stem}_run.csv").is_file()
@@ -462,10 +458,9 @@ def test_the_runs_own_file_holds_the_run_columns_in_order(staged_suite):
 def test_the_selection_column_records_what_was_selected(
     staged_suite, extra_args, expected
 ):
-    """The selection column records, as JSON, the paths and the -k or -m filters the
-    command line gave, each under its own key, and holds an empty JSON object when
-    nothing narrowed the run. An option that changes how the run is reported rather
-    than which checks it runs, such as --tb, adds nothing to it."""
+    """The selection column records the paths and the keyword and marker filters the
+    command line gave, each under its own entry. It is empty when nothing narrowed the
+    run, and an option that changes only how results are shown adds nothing."""
     _, out = staged_suite.run(PASSING_SUITE, *extra_args)
     selections = {r["selection"] for r in staged_suite.report(out)}
     assert [json.loads(s) for s in selections] == [expected]
@@ -476,9 +471,9 @@ def test_the_selection_column_records_what_was_selected(
 @objective("functionality")
 @positive
 def test_the_counts_match_when_every_check_ran(staged_suite):
-    """On a whole run, checks_collected and checks_reported in the run's own file are
-    equal and both count every check, so a reader can see at a glance that nothing
-    was left out."""
+    """On a whole run, the collected and reported counts in the run's own file are equal
+    and both count every check, so a reader can see at a glance that nothing was left
+    out."""
     _, out = staged_suite.run(PASSING_SUITE)
     run = staged_suite.run_details(out)
     assert run["checks_collected"] == "2"
@@ -491,9 +486,8 @@ def test_the_counts_match_when_every_check_ran(staged_suite):
 @objective("functionality")
 @positive
 def test_a_dropped_check_is_counted_but_not_reported(staged_suite):
-    """A check dropped from the run before it started still counts in
-    checks_collected, so a narrowed run shows a gap between the two counts rather
-    than reading as a whole one."""
+    """A check dropped before the run started still counts as collected, so a narrowed
+    run shows a gap between the two counts rather than reading as a whole one."""
     _, out = staged_suite.run(
         PASSING_SUITE,
         "--deselect",
@@ -510,8 +504,8 @@ def test_a_dropped_check_is_counted_but_not_reported(staged_suite):
 @negative
 def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(staged_suite):
     """A run told to stop at the first failure never reaches the checks after it, and
-    checks_reported is lower than checks_collected, so a run cut short cannot read as
-    one that covered the whole suite."""
+    its reported count is lower than its collected count, so a run cut short cannot read
+    as a whole one."""
     result, out = staged_suite.run(STOPS_EARLY_SUITE, "-x")
     assert result.ret == 1
     run = staged_suite.run_details(out)
@@ -547,9 +541,9 @@ TECHNICAL_AND_INTEGRITY_SUITE = '''
 @objective("functionality")
 @positive
 def test_other_aspects_are_not_counted_as_collected(staged_suite, pytester):
-    """On a whole run of an aspect's command, checks_collected and checks_reported
-    are equal, because the checks of other aspects that the command drops were never
-    part of what the run set out to cover."""
+    """On a whole run of an aspect's command, the collected and reported counts are
+    equal, because the checks of other aspects the command drops were never part of what
+    it set out to cover."""
     staged_suite.commit(TECHNICAL_AND_INTEGRITY_SUITE, aspect_conftest=False)
     result = pytester.run(
         sys.executable,
@@ -570,8 +564,7 @@ def test_other_aspects_are_not_counted_as_collected(staged_suite, pytester):
 @objective("functionality")
 @positive
 def test_run_by_carries_the_git_user_name(staged_suite, monkeypatch):
-    """The run_by column of the run's own file carries the user name git is
-    configured with, so a report says who ran it."""
+    """The run's own file names the git user who ran it, so a report says who ran it."""
     # git reads these three variables as one more configuration entry, which
     # stages a user name without touching this machine's git settings.
     monkeypatch.setenv("GIT_CONFIG_COUNT", "1")
@@ -588,10 +581,9 @@ def test_run_by_carries_the_git_user_name(staged_suite, monkeypatch):
 def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(
     passing, staged_suite
 ):
-    """The target_folder_path and target_file_name columns name the code file the
-    check file mirrors, by the same rule the inventory uses, and the file name is
-    marked when that file is not there, so a check file that mirrors nothing shows as
-    a gap rather than as a target."""
+    """The target columns name the code file the check file mirrors, by the same rule
+    the inventory uses. When that file is not there its name is marked, so the gap
+    shows."""
     _, rows = passing
     row = staged_suite.row(rows, "test_adds")
     assert row["target_folder_path"] == "validation"
@@ -642,9 +634,8 @@ def committed(staged_suite):
 @objective("functionality")
 @positive
 def test_the_script_under_test_is_recorded_by_its_last_change(committed, staged_suite):
-    """target_last_changed and target_change_id hold the date and id of the last
-    change in git to the script the check covers, so a report says which version of
-    the script ran."""
+    """Each row holds the date and id of the last change in git to the script the check
+    covers, so a report says which version of the script ran."""
     commit, rows = committed
     row = staged_suite.row(rows, "test_reads_sample")
     assert row["target_change_id"] == commit
@@ -656,9 +647,8 @@ def test_the_script_under_test_is_recorded_by_its_last_change(committed, staged_
 @objective("functionality")
 @positive
 def test_the_test_file_is_recorded_by_its_last_change(committed, staged_suite):
-    """check_file_last_changed and check_file_change_id hold the date and id of the
-    last change in git to the test file the check sits in, so a report says which
-    version of the check ran."""
+    """Each row holds the date and id of the last change in git to the test file the
+    check sits in, so a report says which version of the check ran."""
     commit, rows = committed
     row = staged_suite.row(rows, "test_reads_sample")
     assert row["check_file_change_id"] == commit
@@ -670,9 +660,8 @@ def test_the_test_file_is_recorded_by_its_last_change(committed, staged_suite):
 @objective("functionality")
 @positive
 def test_a_named_fixture_is_recorded_on_its_checks_row_only(committed, staged_suite):
-    """A check that names a fixture with @needs_fixture has that fixture in its
-    fixtures column, as JSON with the date and id of its last change, and a check
-    that names none has the column empty."""
+    """A check that names a fixture has that fixture in its fixtures column, with the
+    date and id of its last change. A check that names none leaves the column empty."""
     commit, rows = committed
     (fixture,) = json.loads(staged_suite.row(rows, "test_reads_sample")["fixtures"])
     assert fixture["name"] == "sample.txt"
@@ -686,9 +675,8 @@ def test_a_named_fixture_is_recorded_on_its_checks_row_only(committed, staged_su
 @objective("functionality")
 @positive
 def test_the_runs_own_file_lists_the_installed_packages(staged_suite):
-    """The installed_packages column of the run's own file holds every installed
-    package with its version as JSON, so a report says which pytest, among the rest,
-    the run used."""
+    """The run's own file lists every installed package with its version, so a report
+    says which versions the run used."""
     _, out = staged_suite.run(PASSING_SUITE)
     packages = json.loads(staged_suite.run_details(out)["installed_packages"])
     assert packages["pytest"] == pytest.__version__
@@ -756,10 +744,9 @@ def test_a_second_run_in_the_same_process_reports_on_itself_alone(
 def test_a_report_asked_of_plain_pytest_is_refused_before_any_check_runs(
     staged_suite, pytester
 ):
-    """With --validation-report and no aspect's command starting the run, the run
-    stops with pytest's usage error, exit 4, before any check runs, the message says
-    a report comes only from an aspect's command and names validate_technical, and
-    no report is written.
+    """A report asked of plain pytest, with no aspect's command starting the run, stops
+    with exit 4 before any check runs and writes no report. The message says a report
+    comes only from an aspect's command.
 
     The suite is written without the conftest that stands in for the command."""
     staged_suite.write(PASSING_SUITE)
@@ -779,9 +766,9 @@ def test_a_report_asked_of_plain_pytest_is_refused_before_any_check_runs(
 @objective("functionality")
 @negative
 def test_a_report_run_emptied_by_a_keyword_filter_is_refused(staged_suite):
-    """A report run whose -k filter removes every check stops with pytest's usage
-    error, exit 4, the message says -k or -m removed every check and to widen or drop
-    it, and no report is written."""
+    """A report run whose keyword filter removes every check stops with exit 4 and
+    writes no report. The message says the filter removed every check and to widen or
+    drop it."""
     result, out = staged_suite.run(PASSING_SUITE, "-k", "no_check_has_this_name")
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
@@ -839,7 +826,7 @@ def test_a_report_folder_outside_the_repo_is_written(staged_suite):
 @objective("functionality")
 @positive
 def test_a_listing_run_writes_no_report(staged_suite):
-    """With --collect-only, the run lists the checks it would run and writes no
+    """With the collect-only option, the run lists the checks it would run and writes no
     report, because nothing ran."""
     result, out = staged_suite.run(PASSING_SUITE, "--collect-only")
     assert result.ret == 0
@@ -852,10 +839,9 @@ def test_a_listing_run_writes_no_report(staged_suite):
 @objective("functionality")
 @negative
 def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(staged_suite):
-    """With --validation-report and a working folder that has an uncommitted change,
-    the run stops with pytest's usage error, exit 4, before any check runs, the
-    message names the changed file and says to commit or stash, and no report is
-    written."""
+    """A report run on a working folder with an uncommitted change stops with exit 4
+    before any check runs and writes no report. The message names the changed file and
+    says to commit or stash it."""
     staged_suite.commit(PASSING_SUITE)
     with (staged_suite.root / "notes.txt").open("a", encoding="utf-8") as fh:
         fh.write("an edit that is not committed\n")
@@ -876,9 +862,9 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(staged
 def test_a_report_git_cannot_answer_for_is_refused_before_any_check_runs(
     staged_suite, pytester, monkeypatch
 ):
-    """With --validation-report in a folder where git does not answer, the run stops
-    with pytest's usage error, exit 4, before any check runs, the message says git
-    did not answer and a report needs it, and no report is written.
+    """A report run in a folder where git does not answer stops with exit 4 before any
+    check runs and writes no report. The message says git did not answer and a report
+    needs it.
 
     The suite is written without being committed, so its folder is not a git
     repository, and git is told not to look in the folders above it."""
@@ -903,9 +889,8 @@ def test_a_report_git_cannot_answer_for_is_refused_before_any_check_runs(
 @objective("functionality")
 @positive
 def test_a_report_on_a_clean_folder_names_its_commit(staged_suite):
-    """With --validation-report and a working folder that matches its commit, the run
-    goes ahead and the commit column of the run's own file is that commit's short
-    hash."""
+    """A report run on a working folder that matches its commit goes ahead, and the
+    run's own file records that commit's short id."""
     commit = staged_suite.commit(PASSING_SUITE)
     result, out = staged_suite.run(PASSING_SUITE)
     assert result.ret == 0

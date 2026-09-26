@@ -83,10 +83,9 @@ def pinned_locals() -> list[str | object]:
 @objective("stability")
 @pytest.mark.parametrize("local", pinned_locals())
 def test_pinned_file_is_unchanged(local):
-    """A pinned file on disk has the size and sha256 its manifest entry records, so it
-    is unchanged since it was pinned. It runs once for each file the manifests
-    record. A file not downloaded is skipped, and manifests that cannot be read make
-    it fail once with the reason."""
+    """A pinned file on disk has the size and fingerprint its manifest entry records, so
+    it is unchanged since it was pinned. It runs once for each file the manifests
+    record."""
     if isinstance(local, ManifestsUnreadable):
         pytest.fail(local.message, pytrace=False)
     try:
@@ -100,7 +99,7 @@ def test_pinned_file_is_unchanged(local):
 @objective("correctness")
 @positive
 def test_recorded_file_carries_its_identity(recorded_file):
-    """A file whose entry is correct comes back with the sha256, url and
+    """A file whose entry is correct comes back with the fingerprint, address and
     manifest name its entry records."""
     got = verify_pinned(LOCAL)
     assert isinstance(got, PinnedFile)
@@ -126,7 +125,7 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
 @objective("correctness")
 @positive
 def test_recorded_file_content_reads(recorded_file):
-    """read_text() on a verified file gives its content."""
+    """A verified file's content can be read."""
     assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
 
 

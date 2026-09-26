@@ -126,8 +126,8 @@ def test_download_is_written_under_the_part_name(completed):
 @objective("functionality")
 @positive
 def test_nothing_appears_under_the_final_name(completed):
-    """A completed download does not create the final name; that is the place
-    step's job."""
+    """A completed download does not create the final name, because placing the file is
+    a separate step."""
     assert not completed.destination.exists()
 
 
@@ -163,7 +163,7 @@ def test_leftover_part_file_is_replaced(tmp_path, server):
 @objective("functionality")
 @positive
 def test_request_is_a_get_on_the_given_url(completed):
-    """The request is a GET on the url fetch() was given."""
+    """The download asks the server for the address it was given."""
     assert completed.request["method"] == "GET"
     assert completed.request["url"] == URL
 
@@ -173,8 +173,7 @@ def test_request_is_a_get_on_the_given_url(completed):
 @objective("functionality")
 @positive
 def test_request_asks_to_follow_redirects(completed):
-    """The request asks the HTTP library to follow a redirect, so a file the
-    server has moved is still found."""
+    """The download follows a redirect, so a file the server has moved is still found."""
     assert completed.request["follow_redirects"] is True
 
 
@@ -183,7 +182,7 @@ def test_request_asks_to_follow_redirects(completed):
 @objective("functionality")
 @positive
 def test_request_carries_the_module_timeout(completed):
-    """The request gives up after the number of seconds fetch_file.py sets."""
+    """The download gives up after the number of seconds the download step sets."""
     assert completed.request["timeout"] == fetch_file.TIMEOUT_SECONDS
 
 
@@ -192,7 +191,7 @@ def test_request_carries_the_module_timeout(completed):
 @objective("functionality")
 @positive
 def test_partial_path_adds_part_to_the_file_name():
-    """partial_path() adds .part to the file name and keeps the folder."""
+    """The temporary name adds .part to the file name and keeps the folder."""
     assert partial_path(Path("a/b/c.pdf")) == Path("a/b/c.pdf.part")
 
 
@@ -209,8 +208,8 @@ def test_partial_path_adds_part_to_the_file_name():
 @objective("functionality")
 @negative
 def test_error_status_raises_fetch_error_naming_url_and_status(tmp_path, server):
-    """A server that answers with an error status makes fetch() raise
-    FetchError, and the message names the url and the status."""
+    """A server that answers with an error status makes the download fail, and the
+    message names the address and the status."""
     failed = attempt(
         server, tmp_path, FakeResponse(CHUNKS, status_error=error_status())
     )
@@ -239,8 +238,8 @@ def test_error_status_leaves_no_part_file(tmp_path, server):
 @objective("functionality")
 @negative
 def test_unreachable_server_raises_fetch_error_naming_url_and_cause(tmp_path, server):
-    """A connection that cannot be made makes fetch() raise FetchError, and the
-    message names the url and the cause."""
+    """A connection that cannot be made makes the download fail, and the message names
+    the address and the cause."""
     failed = attempt(server, tmp_path, httpx.ConnectError("name or service not known"))
     assert URL in failed.message
     assert "name or service not known" in failed.message
@@ -267,10 +266,9 @@ def test_unreachable_server_leaves_no_part_file(tmp_path, server):
 @objective("functionality")
 @negative
 def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, server):
-    """A url the HTTP library cannot parse makes fetch() raise FetchError, and the
-    message names the url and the cause, so acquire_sources counts it and carries on
-    rather than stopping with a traceback. No .part file is left, not even one an
-    earlier run left behind."""
+    """An address the download cannot parse makes it fail with a message naming the
+    address and the cause, so acquire_sources counts it and carries on. No .part file is
+    left, not even one an earlier run left behind."""
     failed = attempt(
         server, tmp_path, httpx.InvalidURL("Invalid IPv6 URL"), leftover=True
     )
@@ -284,8 +282,8 @@ def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, serve
 @objective("functionality")
 @negative
 def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
-    """A plain file sitting where the destination's folder should be makes fetch()
-    raise FetchError naming the url, and the file is left as it was."""
+    """A plain file sitting where the destination's folder should be makes the download
+    fail with a message naming the address, and the file is left as it was."""
     server(FakeResponse(CHUNKS))
     blocker = tmp_path / "folder"
     blocker.write_bytes(b"not a folder")
@@ -300,8 +298,8 @@ def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
 @objective("functionality")
 @negative
 def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkeypatch):
-    """When the .part file cannot be removed after a failed download, fetch() still
-    raises FetchError for the download, not the removal's own error."""
+    """When the .part file cannot be removed after a failed download, the error reported
+    is the download's, not the removal's."""
 
     def refuse(self, missing_ok=False):
         """Stand in for removing a file with a refusal, as a locked file gives."""
@@ -317,8 +315,8 @@ def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkey
 @objective("functionality")
 @negative
 def test_broken_transfer_raises_fetch_error_naming_the_cause(tmp_path, server):
-    """A transfer that breaks after the first chunk makes fetch() raise
-    FetchError, and the message names the cause."""
+    """A transfer that breaks after the first piece makes the download fail, and the
+    message names the cause."""
     failed = attempt(server, tmp_path, FakeResponse(CHUNKS, break_after=1))
     assert "connection reset" in failed.message
 

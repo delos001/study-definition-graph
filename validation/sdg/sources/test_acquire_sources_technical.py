@@ -366,7 +366,7 @@ def test_set_fetches_only_that_manifests_files(fake_repo, network, capsys):
 @objective("functionality")
 @positive
 def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
-    """With --set, a manifest that was not named is not even read: an
+    """With the set option, a manifest that was not named is not read at all, so an
     unreadable one does not stop the run."""
     fake_repo.manifest("set_a", [recorded(fake_repo, "inputs/set_a/a.txt", CONTENT)])
     fake_repo.manifest("set_b", "{ not json")
@@ -389,8 +389,8 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 @objective("functionality")
 @negative
 def test_changed_file_is_reported_as_a_mismatch(changed):
-    """A file on disk that no longer matches its entry is reported as a
-    MISMATCH on its sha256 and as left alone."""
+    """A file on disk that no longer matches its entry is reported as a mismatch on its
+    fingerprint, and as left alone."""
     assert f"MISMATCH  {LOCAL}: sha256" in changed.out
     assert "left alone" in changed.out
 
@@ -400,8 +400,7 @@ def test_changed_file_is_reported_as_a_mismatch(changed):
 @objective("functionality")
 @negative
 def test_changed_file_is_left_alone(changed, fake_repo):
-    """A changed file is neither replaced nor deleted; its bytes are as they
-    were."""
+    """A changed file is neither replaced nor deleted, and its bytes are as they were."""
     assert (fake_repo.root / LOCAL).read_bytes() == CHANGED
 
 
@@ -421,8 +420,8 @@ def test_changed_file_exits_9(changed):
 @objective("functionality")
 @negative
 def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
-    """A download whose bytes do not match the entry is reported as DISCARDED
-    and appears under neither the final name nor the .part name."""
+    """A download whose bytes do not match the entry is reported as discarded, and it is
+    under neither its final name nor its temporary name."""
     final = fake_repo.root / LOCAL
     assert "DISCARDED" in wrong_hash.out
     assert not final.exists()
@@ -445,7 +444,7 @@ def test_wrong_hash_download_exits_12(wrong_hash):
 @objective("functionality")
 @negative
 def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
-    """A url that cannot be fetched is reported as FAILED with the cause."""
+    """An address that cannot be fetched is reported as failed, with the cause."""
     assert "FAILED" in failed_fetch.out
     assert "no such host" in failed_fetch.out
 
@@ -487,8 +486,8 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
 @objective("functionality")
 @negative
 def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
-    """In a dry run too, a file that would need fetching outranks a changed
-    file: both are reported and the exit code is 8, not 9."""
+    """In a dry run too, a file that would need fetching outranks a changed file. Both
+    are reported and the exit code is 8, not 9."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
         "set_a",
@@ -509,9 +508,9 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
 @objective("functionality")
 @negative
 def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
-    """With one file changed on disk and another whose download does not match
-    its entry, both are reported and the exit code is 12, not 9, because a file
-    still missing is worse than a changed one."""
+    """With one file changed on disk and another whose download does not match its
+    entry, both are reported and the exit code is 12, not 9. A file still missing is
+    worse than a changed one."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
         "set_a",
@@ -532,10 +531,9 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
 @objective("functionality")
 @negative
 def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
-    """With one file that cannot be fetched and another whose download does not
-    match its entry, both are reported and the exit code is 11, not 12, because
-    a file nothing could be downloaded for is worse than one whose download was
-    discarded."""
+    """With one file that cannot be fetched and another whose download does not match
+    its entry, both are reported and the exit code is 11, not 12. A file nothing could
+    be downloaded for is worse."""
     fake_repo.manifest(
         "set_a",
         [
@@ -578,9 +576,8 @@ def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
 @objective("functionality")
 @negative
 def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
-    """A recorded file that cannot be opened is reported as CANNOT READ with
-    the cause and as left alone, rather than ending the run with a
-    traceback."""
+    """A recorded file that cannot be opened is reported as unreadable with the cause,
+    and as left alone, rather than ending the run with a Python error."""
     assert "CANNOT READ" in locked.out
     assert "locked by another program" in locked.out
     assert "left alone" in locked.out
@@ -600,8 +597,8 @@ def test_locked_file_exits_13(locked):
 @objective("functionality")
 @negative
 def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
-    """A folder where a recorded file should be is reported as CANNOT READ, a
-    folder not a file, and as left alone."""
+    """A folder where a recorded file should be is reported as unreadable, a folder not
+    a file, and as left alone."""
     assert "CANNOT READ" in folder.out
     assert "a folder, not a file" in folder.out
     assert "left alone" in folder.out
@@ -636,8 +633,8 @@ def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, caps
 @objective("functionality")
 @negative
 def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys):
-    """A manifest that is not valid JSON stops the run with exit 3, and the
-    message names the file."""
+    """A manifest that is not valid JSON stops the run with exit 3, and the message
+    names the file."""
     fake_repo.manifest("set_a", "{ not json")
     network(None)
     outcome = run(capsys)

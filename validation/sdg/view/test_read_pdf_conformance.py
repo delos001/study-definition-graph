@@ -37,9 +37,8 @@ from sdgval.labels import category, code, objective
 @category("sources")
 @objective("conformance")
 def test_every_listed_document_is_recorded_by_a_manifest():
-    """Every file src/sdg/view/lookup_documents.yml lists is recorded by a manifest,
-    as the list's own rules require, so read_pdf never meets an entry it cannot
-    find."""
+    """Every file src/sdg/view/lookup_documents.yml lists is recorded by a manifest, as
+    the list's own rules require, so read_pdf never meets an entry it cannot find."""
     listed = yaml.safe_load(read_pdf.REGISTRY_FILE.read_text(encoding="utf-8"))
     recorded = {
         entry.name

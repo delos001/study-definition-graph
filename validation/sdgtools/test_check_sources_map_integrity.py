@@ -32,8 +32,7 @@ from sdgval.labels import category, code, objective
 @category("repository")
 @objective("completeness")
 def test_the_real_map_and_manifests_agree():
-    """Nothing is absent from either side of the repo's own sources map,
-    docs/sources_index.md: no file a manifest records is left without a heading that
-    covers it, and no location the map names is one that no manifest records a file
-    in. Either way something that should be accounted for is not."""
+    """Nothing is missing from either side of the repo's sources map,
+    docs/sources_index.md. Every file a manifest records has a heading that covers it,
+    and every location the map names holds a recorded file."""
     assert script.main(["--quiet"]) == 0

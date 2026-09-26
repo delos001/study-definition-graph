@@ -303,7 +303,7 @@ def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
 @negative
 def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
     """When a manifest is not valid JSON, the run exits 3 and names that manifest as
-    the thing that cannot be read, instead of comparing a map against nothing."""
+    what cannot be read, instead of comparing a map against nothing."""
     (fake_repo.root / "manifests" / "broken.json").write_text(
         "{ not json", encoding="utf-8"
     )
@@ -370,8 +370,8 @@ def test_every_refusal_is_silent_under_quiet(
     repo, fake_repo, tmp_path, monkeypatch, capsys, refusal
 ):
     """With the quiet option, a refusal prints nothing and still exits with its own
-    code. It runs once each for an install outside the repo, a manifest that cannot
-    be read, and a map that cannot be read."""
+    code. It runs once each for an install outside the repo, an unreadable manifest and
+    an unreadable map."""
     from sdg.sources import read_manifests
 
     if refusal == "outside the repo":

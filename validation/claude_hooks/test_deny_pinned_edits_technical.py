@@ -169,8 +169,8 @@ def test_a_nested_gitkeep_under_inputs_is_allowed(repo, monkeypatch, capsys):
 @objective("functionality")
 @positive
 def test_a_study_manifest_is_allowed(repo, monkeypatch, capsys):
-    """A manifest under manifests/study_documents/ is allowed, because the pipeline
-    stage that downloads a study, not yet written, is meant to write those."""
+    """A manifest under manifests/study_documents/ is allowed, because the stage that
+    downloads a study will write those."""
     path = repo / "manifests" / "study_documents" / "NCT00000000.json"
     assert not edit(monkeypatch, capsys, str(path)).denied
 
@@ -220,7 +220,8 @@ def test_the_project_dir_outranks_the_message_cwd(
 def test_the_message_cwd_is_used_when_the_variable_is_absent(
     tmp_path, monkeypatch, capsys
 ):
-    """Without CLAUDE_PROJECT_DIR, the message's cwd stands in as the repo root."""
+    """Without the project folder setting, the folder the message was sent from stands
+    in as the repo root."""
     monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
     outcome = edit(
         monkeypatch, capsys, str(tmp_path / "inputs" / "x.pdf"), cwd=str(tmp_path)
@@ -233,7 +234,7 @@ def test_the_message_cwd_is_used_when_the_variable_is_absent(
 @objective("functionality")
 @positive
 def test_a_malformed_message_is_allowed(repo, monkeypatch, capsys):
-    """A message that is not the JSON Claude Code sends is allowed, with nothing
+    """A message that is not the kind Claude Code sends is allowed, with nothing
     printed, so a malformed message can never block ordinary work."""
     outcome = send(monkeypatch, capsys, "not json at all")
     assert outcome.exit_code == 0
@@ -259,8 +260,8 @@ def test_a_message_without_a_path_is_allowed(repo, monkeypatch, capsys):
 @objective("functionality")
 @positive
 def test_a_refusal_is_printed_in_the_form_claude_code_reads(repo, monkeypatch, capsys):
-    """A refusal is printed as the JSON Claude Code reads: a PreToolUse event with the
-    decision deny and a reason, and the exit code stays 0."""
+    """A refusal is printed in the form Claude Code reads, as a decision to deny with a
+    reason, and the exit code stays 0."""
     outcome = edit(monkeypatch, capsys, str(repo / "inputs" / "x.pdf"))
     assert outcome.exit_code == 0
     assert outcome.decision is not None
@@ -297,8 +298,8 @@ def test_a_pinned_file_is_refused_from_another_folder(
 @objective("functionality")
 @negative
 def test_a_pinned_file_is_refused(repo, monkeypatch, capsys):
-    """A file directly under inputs/ is refused, and the reason names the path and
-    says such files arrive through acquire_sources."""
+    """A file directly under inputs/ is refused, and the reason names the path and says
+    such files arrive through acquire_sources."""
     outcome = edit(monkeypatch, capsys, str(repo / "inputs" / "x.pdf"))
     assert outcome.denied
     assert "inputs/x.pdf" in outcome.reason

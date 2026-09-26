@@ -33,6 +33,6 @@ from validation.shared.staged_downloads import CONTENT
 @objective("correctness")
 @positive
 def test_place_puts_the_file_under_its_final_name(placed):
-    """After place(), the bytes are at the final name."""
+    """After a file is placed, its bytes are at the final name."""
     _, staged = placed
     assert staged.final.read_bytes() == CONTENT

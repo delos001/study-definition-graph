@@ -125,8 +125,8 @@ def test_writes_the_entry_from_the_header(written):
 @objective("functionality")
 @positive
 def test_the_second_paragraph_is_left_out(written):
-    """Only the first paragraph of a Description reaches src/sdgtools/README.md; the rest stays in
-    the header."""
+    """Only the first paragraph of a Description reaches src/sdgtools/README.md, and the
+    rest stays in the header."""
     _, text, _ = written
     assert "second paragraph" not in text
 
@@ -147,8 +147,8 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
 @objective("functionality")
 @positive
 def test_the_index_ends_with_one_newline(written):
-    """src/sdgtools/README.md ends with exactly one newline, so a regenerated file compares equal
-    to itself and --check does not fail on whitespace."""
+    """src/sdgtools/README.md ends with exactly one new line, so a regenerated file
+    compares equal to itself and the check option does not fail on spacing."""
     _, text, _ = written
     assert text.endswith("```\n") and not text.endswith("\n\n")
 
@@ -158,9 +158,8 @@ def test_the_index_ends_with_one_newline(written):
 @objective("functionality")
 @positive
 def test_the_index_is_written_with_lf_line_endings(folder):
-    """src/sdgtools/README.md is written with a bare line feed (LF) ending each line
-    whatever machine regenerates it, so the file does not flip endings between one
-    run and the next.
+    """src/sdgtools/README.md ends each line the same way whatever machine regenerates
+    it, so the file does not change between one run and the next.
 
     It is read as bytes, because reading as text would hide a carriage return."""
     scripts = folder({"alpha.py": GOOD_HEADER})
@@ -252,8 +251,7 @@ def test_check_fails_when_index_is_stale(folder, capsys):
 @objective("functionality")
 @positive
 def test_quiet_prints_nothing(folder, capsys):
-    """With the quiet option, nothing is printed; the exit code is the whole
-    report."""
+    """With the quiet option, nothing is printed. The exit code is the whole report."""
     folder({"alpha.py": GOOD_HEADER})
     assert bi.main(["--quiet"]) == 0
     assert capsys.readouterr().out == ""
@@ -268,8 +266,8 @@ def test_quiet_prints_nothing(folder, capsys):
 @objective("functionality")
 @negative
 def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
-    """A header missing required fields exits 17, naming the script and every
-    missing field, and src/sdgtools/README.md is not written."""
+    """A header missing required fields exits 17, naming the script and every missing
+    field, and src/sdgtools/README.md is not written."""
     scripts = folder(
         {
             "alpha.py": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace(
@@ -289,8 +287,8 @@ def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
 @objective("functionality")
 @negative
 def test_no_docstring_exits_17(folder, capsys):
-    """A script with no module docstring has no header block at all: exit 17,
-    saying so."""
+    """A script with no docstring at the top has no header block at all, and the run
+    exits 17 and says so."""
     folder({"alpha.py": "print('hello')\n"})
     assert bi.main([]) == 17
     assert "alpha.py: no module docstring" in capsys.readouterr().out
@@ -302,7 +300,7 @@ def test_no_docstring_exits_17(folder, capsys):
 @negative
 def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
     """A script that is not valid Python exits 19, and 19 outranks 17 when another
-    script's header is also incomplete; both problems are still named."""
+    script's header is also incomplete. Both problems are still named."""
     folder({"alpha.py": "def broken(:\n", "beta.py": "print('no header')\n"})
     assert bi.main([]) == 19
     out = capsys.readouterr().out

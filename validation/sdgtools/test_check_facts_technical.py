@@ -81,8 +81,8 @@ def fact(tmp_path, monkeypatch):
 @objective("functionality")
 @positive
 def test_matching_figure_exits_0(fact, capsys):
-    """A document stating the measured number passes: exit 0, and --verbose
-    shows the 'ok' line naming the fact, the file and the value."""
+    """A document stating the measured number passes with exit 0, and the verbose option
+    shows a line naming the fact, the file and the value."""
     fact(lambda: 3, "We hold 3 widgets.\n")
     assert cf.main(["--verbose"]) == 0
     out = capsys.readouterr().out
@@ -95,8 +95,8 @@ def test_matching_figure_exits_0(fact, capsys):
 @objective("functionality")
 @negative
 def test_drifted_figure_exits_14(fact, capsys):
-    """A document stating a different number is reported DRIFTED with the
-    stated and measured values, exit 14."""
+    """A document stating a different number is reported as drifted, with the stated and
+    measured values, and the run exits 14."""
     fact(lambda: 3, "We hold 4 widgets.\n")
     assert cf.main([]) == 14
     out = capsys.readouterr().out
@@ -109,8 +109,8 @@ def test_drifted_figure_exits_14(fact, capsys):
 @objective("functionality")
 @negative
 def test_every_occurrence_is_checked(fact, capsys):
-    """When the same figure appears twice and one copy is stale, the stale one
-    is reported; a correct first copy does not hide it."""
+    """When the same figure appears twice and one copy is out of date, that copy is
+    reported. A correct first copy does not hide it."""
     fact(lambda: 3, "We hold 3 widgets. Elsewhere: 5 widgets.\n")
     assert cf.main([]) == 14
     assert "says 5, actual 3" in capsys.readouterr().out
@@ -121,9 +121,9 @@ def test_every_occurrence_is_checked(fact, capsys):
 @objective("functionality")
 @positive
 def test_unasserted_fact_is_reported_but_passes(fact, capsys):
-    """A fact no document states is reported NOT ASSERTED with its measured
-    value but does not fail the run, which exits 0, because the documents are
-    not wrong when they leave out something the script measures."""
+    """A fact no document states is reported as not stated, with its measured value, but
+    the run still exits 0. A document is not wrong for leaving out something the tool
+    measures."""
     fact(lambda: 3, "Nothing about them here.\n")
     assert cf.main([]) == 0
     out = capsys.readouterr().out
@@ -149,9 +149,8 @@ def test_number_written_as_a_word_is_read(fact):
 @objective("functionality")
 @positive
 def test_a_date_is_compared_as_text(fact):
-    """A measurement that produces a date rather than a count passes when the
-    document states the same date: exit 0. Figures compare as text, so a date
-    is one figure like a count is."""
+    """A measurement that gives a date passes when the document states the same date,
+    and the run exits 0. A date is compared as text, like a count."""
     fact(
         lambda: "2026-07-14",
         "The folder is widgets_2026-07-14.\n",
@@ -165,9 +164,9 @@ def test_a_date_is_compared_as_text(fact):
 @objective("functionality")
 @negative
 def test_a_drifted_date_exits_14(fact, capsys):
-    """A document naming a different date from the measured one is reported
-    DRIFTED with both dates, exit 14, which is how a folder named for a date
-    that is not in the pinned file is caught."""
+    """A document naming a different date from the measured one is reported as drifted
+    with both dates, and the run exits 14. That is how a folder named for the wrong date
+    is caught."""
     fact(
         lambda: "2026-07-14",
         "The folder is widgets_2026-07-21.\n",
@@ -219,10 +218,9 @@ def test_a_drifted_date_exits_14(fact, capsys):
 def test_each_measurement_failure_has_its_own_exit_code(
     fact, capsys, raised, code, word
 ):
-    """A measurement that raises is reported under a label naming the cause,
-    with the exception's own message, and the run exits with that cause's
-    number from docs/exit_codes.csv: 8 not downloaded, 13 cannot read, 42 unexpected
-    shape, 3 bad manifest, 10 unrecorded, 9 mismatch, 4 wrong shape, 6 not in repo."""
+    """A measurement that fails is reported under a label naming the cause, with the
+    error's own message. The run exits with that cause's number from
+    docs/exit_codes.csv. It runs once for each cause."""
 
     def measure():
         """Raise the staged error in place of measuring."""
