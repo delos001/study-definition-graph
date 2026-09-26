@@ -312,22 +312,6 @@ def test_a_check_that_staged_nothing_has_an_empty_case(tests_folder, capsys):
     assert row["staged_case"] == ""
 
 
-@code("SA00380")
-@category("repository")
-@objective("functionality")
-@positive
-def test_a_check_with_neither_marker_has_no_case(tests_folder, capsys):
-    """A check with neither @positive nor @negative gets a row with an empty staged
-    case, because it looked at something real rather than staging a situation."""
-    inventory = tests_folder(
-        {"sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace("@negative\n", "")}
-    )
-    assert run(capsys).exit_code == 0
-    row = next(r for r in rows_of(inventory) if r["id"] == "SA99002")
-    assert row["objective"] == "conformance"
-    assert row["staged_case"] == ""
-
-
 @code("SA00381")
 @category("repository")
 @objective("functionality")

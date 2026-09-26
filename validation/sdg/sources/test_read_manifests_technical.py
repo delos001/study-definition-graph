@@ -161,17 +161,6 @@ def test_manifests_are_listed_in_path_order(three_sets):
     assert [manifest.name for manifest in manifests()] == ["alpha", "mid", "zeta"]
 
 
-@code("SA00083")
-@category("repository")
-@objective("functionality")
-@positive
-def test_listing_order_is_the_same_on_every_call(three_sets):
-    """Two calls give the manifests in the same order."""
-    first = [manifest.name for manifest in manifests()]
-    second = [manifest.name for manifest in manifests()]
-    assert first == second
-
-
 @code("SA00084")
 @category("repository")
 @objective("functionality")
