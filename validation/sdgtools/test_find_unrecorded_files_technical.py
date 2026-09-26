@@ -283,3 +283,34 @@ def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
     assert outcome.exit_code == 6
     assert "pip install -e ." in outcome.printed
     assert "no manifests found" not in outcome.printed
+
+
+#######################################################################################
+### Every refusal with the quiet option ###
+#
+# With the quiet option, each refusal prints nothing and still exits with its own
+# code. One check runs once per refusal.
+
+
+@code("SA00523")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize("refusal", ["outside the repo", "unreadable manifest"])
+def test_every_refusal_is_silent_under_quiet(
+    repo, monkeypatch, tmp_path, capsys, refusal
+):
+    """With the quiet option, a refusal prints nothing and still exits with its own
+    code. It runs once each for an install outside the repo and a manifest that
+    cannot be read."""
+    from sdg.sources import read_manifests
+
+    if refusal == "outside the repo":
+        monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
+        expected = 6
+    else:
+        repo.manifest("broken", "{not json")
+        expected = 3
+    outcome = run(capsys, "--quiet")
+    assert outcome.printed == ""
+    assert outcome.exit_code == expected

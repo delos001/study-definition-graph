@@ -323,3 +323,43 @@ def test_no_scripts_exits_20(folder, capsys):
 
 #######################################################################################
 ### The real src/sdgtools/ folder ###
+
+
+#######################################################################################
+### Fields written on one line, or opening with a blank line ###
+
+
+@code("SA00529")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_one_line_usage_is_indexed_as_written(folder, capsys):
+    """A Usage field written on one line is indexed as that one line."""
+    header = GOOD_HEADER.replace(
+        "Usage:       alpha\n                 run it\n             alpha --flag\n"
+        "                 run it with a flag\n",
+        "Usage:       alpha --once\n",
+    )
+    scripts = folder({"alpha.py": header})
+    assert bi.main([]) == 0
+    assert "```\nalpha --once\n```" in (scripts / "README.md").read_text(
+        encoding="utf-8"
+    )
+
+
+@code("SA00530")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_description_opening_with_a_blank_line_is_indexed(folder, capsys):
+    """A Description whose text starts on the line after its label, below a blank
+    line, is still indexed by its first paragraph."""
+    header = GOOD_HEADER.replace(
+        "Description: Does the first thing,",
+        "Description:\n\n             Does the first thing,",
+    )
+    scripts = folder({"alpha.py": header})
+    assert bi.main([]) == 0
+    assert "Does the first thing, continued on a second line." in (
+        scripts / "README.md"
+    ).read_text(encoding="utf-8")

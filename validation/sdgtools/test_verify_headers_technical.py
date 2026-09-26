@@ -605,3 +605,40 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
 # These read the real code folders. The header block is held to its rule, the exit
 # codes a header lists are held to the table and to main(), and the checker is held to
 # the folders the rule names.
+
+
+#######################################################################################
+### A refusal with the quiet option ###
+
+
+@code("SA00524")
+@category("repository")
+@objective("functionality")
+@negative
+def test_an_unreadable_table_is_silent_under_quiet(folder, monkeypatch, capsys):
+    """With the quiet option and docs/exit_codes.csv missing, the run prints nothing
+    and still exits 13."""
+    folder({"alpha.py": GOOD_HEADER})
+    monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
+    outcome = run(capsys, "--quiet")
+    assert outcome.printed == ""
+    assert outcome.exit_code == 13
+
+
+#######################################################################################
+### A header with no Exit codes field ###
+
+
+@code("SA00531")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_header_with_no_exit_codes_field_is_refused(folder, capsys):
+    """A header with no Exit codes field makes the run exit 17, and the problem line
+    names the field as missing."""
+    lines = GOOD_HEADER.splitlines(keepends=True)
+    header = "".join(line for line in lines if not line.startswith("Exit codes:"))
+    folder({"alpha.py": header})
+    outcome = run(capsys)
+    assert outcome.exit_code == 17
+    assert "missing Exit codes" in outcome.printed

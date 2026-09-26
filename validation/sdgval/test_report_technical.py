@@ -790,6 +790,42 @@ def test_a_report_run_emptied_by_a_keyword_filter_is_refused(staged_suite):
     assert not out.exists()
 
 
+@code("SA00517")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_run_that_collects_no_check_is_refused(staged_suite):
+    """A report run given only a test file that holds no check stops with pytest's
+    usage error, exit 4, the message says no checks were collected, and no report is
+    written."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "test_empty.py").write_text(
+        '"""No checks here."""\n', encoding="utf-8"
+    )
+    result, out = staged_suite.run(PASSING_SUITE, "validation/test_empty.py")
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "because no checks were collected" in printed
+    assert not out.exists()
+
+
+@code("SA00518")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_report_folder_outside_the_repo_is_written(staged_suite):
+    """A report asked for in a folder outside the repository is written there, and
+    the run goes ahead, because a folder outside the repository cannot hold changes
+    to the code being validated."""
+    staged_suite.commit(PASSING_SUITE)
+    outside = staged_suite.root.parent / f"{staged_suite.root.name}_reports"
+    result = staged_suite.pytester.runpytest_subprocess(
+        "--validation-report", "--validation-report-dir", str(outside)
+    )
+    assert result.ret == 0
+    assert len(staged_suite.report(outside / "technical")) == 2
+
+
 #######################################################################################
 ### The working folder a report is written on ###
 #

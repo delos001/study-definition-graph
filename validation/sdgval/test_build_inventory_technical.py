@@ -1064,3 +1064,38 @@ def test_a_file_in_an_unlisted_code_folder_exits_48(tests_folder, capsys):
         "sdg/classify, which CODE_FOLDER_ORDER" in outcome.printed
     )
     assert "add the folder there" in outcome.printed
+
+
+#######################################################################################
+### Confirming the hand-kept columns alone ###
+#
+# --check-status needs only the checks' ids, so only a file that will not parse or an
+# empty folder stops it.
+
+
+@code("SA00519")
+@category("repository")
+@objective("functionality")
+@negative
+def test_check_status_on_a_file_that_will_not_parse_exits_19(tests_folder, capsys):
+    """With --check-status, a test file that is not valid Python makes the run exit
+    19 and names the file."""
+    tests_folder({"sdgtools/test_alpha_technical.py": "def broken(:\n"})
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 19
+    assert (
+        "validation/sdgtools/test_alpha_technical.py: cannot parse" in outcome.printed
+    )
+
+
+@code("SA00520")
+@category("repository")
+@objective("functionality")
+@negative
+def test_check_status_on_an_empty_folder_exits_20(tests_folder, capsys):
+    """With --check-status, a validation folder holding no test files makes the run
+    exit 20 and says no test files were found."""
+    tests_folder({})
+    outcome = run(capsys, "--check-status")
+    assert outcome.exit_code == 20
+    assert "no test files found under validation" in outcome.printed

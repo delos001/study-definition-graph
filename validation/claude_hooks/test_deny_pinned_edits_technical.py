@@ -342,3 +342,19 @@ def test_a_relative_path_is_judged_against_the_repo_root(repo, monkeypatch, caps
     outcome = edit(monkeypatch, capsys, "inputs/x.pdf")
     assert outcome.denied
     assert "inputs/x.pdf" in outcome.reason
+
+
+#######################################################################################
+### The repo root itself ###
+
+
+@code("SA00532")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_repo_root_itself_is_allowed(repo, monkeypatch, capsys):
+    """A path that is the repo root itself names no pinned file, so it is allowed and
+    nothing is printed."""
+    outcome = edit(monkeypatch, capsys, str(repo))
+    assert outcome.exit_code == 0
+    assert outcome.printed == ""

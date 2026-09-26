@@ -615,3 +615,23 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 # These prove the assumptions the logic checks rely on hold for the actual
 # standard, and that the fixture is a faithful sample of it. They are the only
 # checks that need inputs/ downloaded.
+
+
+#######################################################################################
+### A class with no definition ###
+
+
+@code("SA00533")
+@category("processing")
+@objective("functionality")
+@positive
+@needs_fixture("usdm_three_classes.yml")
+def test_a_class_with_no_definition_is_listed_without_one(variant, monkeypatch, capsys):
+    """Asking for the attributes of a class that has no Definition prints the class
+    and its attributes, with no definition line, rather than failing."""
+    bare = variant(lambda d: d["Condition"].pop("Definition"))
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", bare)
+    assert usdm_spec.main(["--attributes", "Condition", "--allow-unpinned"]) == 0
+    printed = capsys.readouterr().out
+    assert "Condition  (concrete)" in printed
+    assert "A state of being." not in printed

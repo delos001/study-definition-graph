@@ -54,6 +54,23 @@ where = ["src"]
 pythonpath = [".claude/hooks", "."]
 testpaths = ["validation"]
 
+# What coverage measures, for finding code no check runs. It measures the project's
+# packages and the Claude Code hooks, counts each branch of an if as well as each
+# line, and follows the separate pytest processes some checks start, which a plain
+# pytest --cov run misses. Each process writes its own data file, and coverage
+# combine joins them. validation/running_validation.md gives the commands.
+[tool.coverage.run]
+source = ["src", ".claude/hooks"]
+branch = true
+parallel = true
+patch = ["subprocess"]
+
+# The line that runs a file when it is started directly is left out of the count.
+# A check calls a file's main() in-process, so that line can never run under a
+# check, and counting it would hide the real gaps among lines that could.
+[tool.coverage.report]
+exclude_also = ['if __name__ == "__main__":']
+
 [tool.ruff]
 # Line length matches ruff's default formatter width. The three folders listed are
 # the ones .claude/rules/writing_python_files.md covers.

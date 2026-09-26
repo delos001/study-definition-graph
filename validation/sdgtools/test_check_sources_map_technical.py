@@ -350,3 +350,59 @@ def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
 # and manifests, which is the run that keeps the two in step. It reads real files
 # deliberately, the way the header checker's real-folders check does, because a staged
 # map cannot prove the real one is right.
+
+
+#######################################################################################
+### Every refusal with the quiet option ###
+#
+# With the quiet option, each refusal prints nothing and still exits with its own
+# code. One check runs once per refusal.
+
+
+@code("SA00522")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    "refusal", ["outside the repo", "unreadable manifest", "no map"]
+)
+def test_every_refusal_is_silent_under_quiet(
+    repo, fake_repo, tmp_path, monkeypatch, capsys, refusal
+):
+    """With the quiet option, a refusal prints nothing and still exits with its own
+    code. It runs once each for an install outside the repo, a manifest that cannot
+    be read, and a map that cannot be read."""
+    from sdg.sources import read_manifests
+
+    if refusal == "outside the repo":
+        monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
+        outcome, expected = run(capsys, MAP, "--quiet"), 6
+    elif refusal == "unreadable manifest":
+        (fake_repo.root / "manifests" / "broken.json").write_text(
+            "{ not json", encoding="utf-8"
+        )
+        outcome, expected = run(capsys, MAP, "--quiet"), 3
+    else:
+        outcome, expected = (
+            Outcome(script.main(["--quiet"]), capsys.readouterr().out),
+            13,
+        )
+    assert outcome.printed == ""
+    assert outcome.exit_code == expected
+
+
+#######################################################################################
+### A heading with no location ###
+
+
+@code("SA00528")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_heading_with_no_location_covers_no_file(repo, capsys):
+    """A document heading with no location line above it covers no recorded file, so
+    the file it names is reported as having no heading and the run exits 35."""
+    text = MAP.replace("- location: inputs/standards/example/\n", "")
+    outcome = run(capsys, text)
+    assert outcome.exit_code == 35
+    assert "Example_Guide.pdf" in outcome.printed

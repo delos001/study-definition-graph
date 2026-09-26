@@ -462,3 +462,110 @@ def test_a_reply_with_no_text_gives_an_empty_answer(monkeypatch):
     a Python error."""
     stand_in_for_the_client(monkeypatch, [FakeBlock("thinking", "aside")])
     assert script.call_api(KEY) == ""
+
+
+#######################################################################################
+### Every refusal with the quiet option ###
+#
+# With the quiet option, each refusal prints nothing and still exits with its own
+# code. One check runs once per refusal.
+
+API_REQUEST = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+
+
+def outside_the_repo(repo: Path, monkeypatch) -> int:
+    """Stage an install from outside the repo, and give the code expected."""
+
+    def not_in_repo() -> Path:
+        """Stand in for the repo check with the refusal it gives outside the repo."""
+        raise script.NotInRepoError("sdg is not running from inside its repo")
+
+    monkeypatch.setattr(script, "require_repo", not_in_repo)
+    return 6
+
+
+def no_env_file(repo: Path, monkeypatch) -> int:
+    """Stage a repo with no .env file, and give the code expected."""
+    return 27
+
+
+def rejected_key(repo: Path, monkeypatch) -> int:
+    """Stage a key the API rejects, and give the code expected."""
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    refuse(
+        monkeypatch,
+        anthropic.AuthenticationError(
+            "invalid x-api-key",
+            response=httpx.Response(401, request=API_REQUEST),
+            body=None,
+        ),
+    )
+    return 29
+
+
+def key_without_access(repo: Path, monkeypatch) -> int:
+    """Stage a key the API knows but will not let use the model."""
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    refuse(
+        monkeypatch,
+        anthropic.PermissionDeniedError(
+            "permission denied",
+            response=httpx.Response(403, request=API_REQUEST),
+            body=None,
+        ),
+    )
+    return 43
+
+
+def unreachable_api(repo: Path, monkeypatch) -> int:
+    """Stage an API that cannot be reached, and give the code expected."""
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    refuse(monkeypatch, anthropic.APIConnectionError(request=API_REQUEST))
+    return 30
+
+
+def api_error(repo: Path, monkeypatch) -> int:
+    """Stage an error the API answers with, and give the code expected."""
+    write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
+    refuse(
+        monkeypatch,
+        anthropic.NotFoundError(
+            "model: no-such-model",
+            response=httpx.Response(404, request=API_REQUEST),
+            body=None,
+        ),
+    )
+    return 41
+
+
+@code("SA00521")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    "stage",
+    [
+        outside_the_repo,
+        no_env_file,
+        rejected_key,
+        key_without_access,
+        unreachable_api,
+        api_error,
+    ],
+    ids=[
+        "outside the repo",
+        "no .env file",
+        "rejected key",
+        "key without access",
+        "unreachable API",
+        "error from the API",
+    ],
+)
+def test_every_refusal_is_silent_under_quiet(repo, monkeypatch, capsys, stage):
+    """With the quiet option, a refusal prints nothing and still exits with its own
+    code. It runs once for each refusal the tool can give after its settings are
+    read."""
+    expected = stage(repo, monkeypatch)
+    outcome = run(capsys, "--quiet")
+    assert outcome.printed == ""
+    assert outcome.exit_code == expected

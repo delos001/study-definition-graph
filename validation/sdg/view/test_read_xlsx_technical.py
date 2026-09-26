@@ -564,3 +564,51 @@ def test_a_header_row_below_one_is_refused_as_a_usage_mistake(inputs, capsys):
         run(capsys, "Example_Terms", "--sheet", "terms", "--header-row", "0")
     assert raised.value.code == 2
     assert "starts at 1" in capsys.readouterr().err
+
+
+#######################################################################################
+### Checks on empty sheets, blank rows and searches with no hits ###
+
+
+@code("SA00525")
+@category("processing")
+@objective("functionality")
+@positive
+@pytest.mark.parametrize("form", ["table", "records"])
+def test_an_empty_sheet_says_so(inputs, capsys, form):
+    """A sheet with no rows prints that the sheet is empty, rather than a header with
+    nothing under it or an error. It runs once for each output format."""
+    write_workbook(inputs / "examples" / "Blank_Book.xlsx", {"blank": []})
+    outcome = run(capsys, "Blank_Book", "--sheet", "blank", "--format", form)
+    assert outcome.exit_code == 0
+    assert "(sheet is empty)" in outcome.printed
+
+
+@code("SA00526")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_row_with_every_cell_blank_is_left_out(inputs, capsys):
+    """A row whose every cell is blank is left out of the output, so it does not show
+    as an empty record."""
+    write_workbook(
+        inputs / "examples" / "Gappy_Book.xlsx",
+        {"gappy": [["Visit"], ["Screening"], [None], ["Day 1"]]},
+    )
+    printed = run(
+        capsys, "Gappy_Book", "--sheet", "gappy", "--format", "records"
+    ).printed
+    assert printed.count("--- row") == 2
+
+
+@code("SA00527")
+@category("processing")
+@objective("functionality")
+@positive
+def test_all_names_only_the_workbooks_with_hits(inputs, capsys):
+    """With --all, a workbook that holds no match is not named in the output, so the
+    listing shows only where the term was found."""
+    write_workbook(inputs / "examples" / "Other_Book.xlsx", {"other": [["Nothing"]]})
+    printed = run(capsys, "--all", "--find", "predose").printed
+    assert "Example_Terms.xlsx" in printed
+    assert "Other_Book.xlsx" not in printed

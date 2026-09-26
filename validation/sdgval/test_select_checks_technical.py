@@ -378,3 +378,17 @@ def test_an_aspect_not_in_the_list_stops_the_run(staged_suite):
     assert ret == 4
     assert "--aspect quality: not one of conformance, integrity, technical" in printed
     assert ids == set()
+
+
+@code("SA00514")
+@category("repository")
+@objective("functionality")
+@negative
+def test_an_objective_not_in_the_list_stops_the_run(staged_suite):
+    """An --objective value that is not a defined objective stops the run with
+    pytest's usage error, exit 4, and the message names the value and the
+    objectives."""
+    ret, ids, _, printed = selected(staged_suite, "--objective", "speed")
+    assert ret == 4
+    assert "--objective speed: not one of conformance, correctness" in printed
+    assert ids == set()

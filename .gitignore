@@ -28,6 +28,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .coverage
+.coverage.*
 .venv/
 venv/
 .mypy_cache/

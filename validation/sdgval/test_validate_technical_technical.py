@@ -241,3 +241,43 @@ def test_an_objective_of_another_aspect_is_named_as_such(staged_suite, pytester)
         "its checks. The technical objectives are functionality," in printed
     )
     assert not out.exists()
+
+
+@code("SA00515")
+@category("repository")
+@objective("functionality")
+@negative
+def test_options_matching_nothing_at_all_give_each_count(staged_suite, pytester):
+    """Options that match no check at all, of any aspect, stop the run with exit 4,
+    and the message gives each option's own count without naming the --aspect the
+    command added."""
+    result, out = run_command(staged_suite, pytester, "--category", "products")
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert (
+        "no check matches every option given: --category matched 0, in combination 0."
+        in printed
+    )
+    assert "--aspect matched" not in printed
+    assert not out.exists()
+
+
+@code("SA00516")
+@category("repository")
+@objective("functionality")
+@negative
+def test_several_objectives_of_other_aspects_are_named_together(staged_suite, pytester):
+    """Several --objective values that all belong to other aspects stop the run with
+    exit 4, and the message names them together as not technical and lists the
+    technical objectives."""
+    result, out = run_command(
+        staged_suite, pytester, "--objective", "correctness,conformance"
+    )
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert (
+        "correctness, conformance are not technical objectives, so validate_technical "
+        "has none of their checks. The technical objectives are functionality,"
+        in printed
+    )
+    assert not out.exists()
