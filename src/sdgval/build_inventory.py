@@ -9,7 +9,9 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
              result (its docstring's first paragraph) are read from the file.
              Four columns are kept by hand and carried over from the existing
              inventory by id: status, superseded_by, status_reason and version. A
-             new check starts as active at version 1.
+             new check starts as active at version 1. A check marked superseded or
+             retired keeps its row after its function is removed from the test
+             files.
 
              A check is refused, and nothing is written, when any of these is
              true:
@@ -325,7 +327,7 @@ def _marker_argument(decorator: ast.expr, name: str) -> str | None:
 
     Args:
         decorator: One decorator of a check.
-        name: The marker's short name, such as code, target or objective.
+        name: The marker's short name, such as code, category or objective.
 
     Returns:
         The text in the brackets, or None when the decorator is not that marker.
@@ -542,12 +544,14 @@ def existing_rows() -> dict[str, dict[str, str]]:
         return {row["id"]: row for row in csv.DictReader(fh)}
 
 
-def build_rows() -> tuple[list[dict[str, str]], list[Problem]]:
+def build_rows() -> tuple[list[dict[str, str]], list[Problem], set[str]]:
     """Build every inventory row from the test files.
 
     Returns:
-        The rows in inventory order, and the problems found with the checks. When
-        there is any problem the rows are not to be written.
+        The rows in inventory order, the problems found with the checks, and the ids
+        of the checks in the test files now. The rows also hold the kept rows of
+        superseded and retired checks, which is why the live ids are handed back on
+        their own. When there is any problem the rows are not to be written.
     """
     found, problems = read_checks()
 
@@ -591,6 +595,20 @@ def build_rows() -> tuple[list[dict[str, str]], list[Problem]]:
         for column, start in HAND_KEPT.items():
             row[column] = old.get(column, start)
         ordered.append((code_folder, row))
+    # A check that is superseded or retired has been taken out of the test files, but
+    # its row is kept, so a filed report that names it still finds it and a reader
+    # can see what happened to it.
+    live = {check.check_id for _, _, check in found}
+    for check_id, old in previous.items():
+        if check_id not in live and old.get("status") in ("superseded", "retired"):
+            code_folder, _ = code_folder_and_target(
+                VALIDATION_DIR
+                / old["folder_path"].removeprefix("validation/")
+                / old["file_name"]
+            )
+            ordered.append(
+                (code_folder, {column: old.get(column, "") for column in COLUMNS})
+            )
     # Code folders in pipeline order. A folder not in the list is refused above, and
     # sorts last only so the refusal can still name every problem.
     ordered.sort(
@@ -602,7 +620,7 @@ def build_rows() -> tuple[list[dict[str, str]], list[Problem]]:
     )
     rows = [row for _, row in ordered]
     problems.extend(id_problems(rows))
-    return rows, problems
+    return rows, problems, live
 
 
 def id_problems(rows: list[dict[str, str]]) -> list[Problem]:
@@ -745,7 +763,7 @@ def exit_code(problems: list[Problem]) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Read every check, then write or check the inventory.
+    """Read every check, then write the inventory or confirm it is current.
 
     Problems are collected across every file before returning, so one run names
     every check that needs fixing rather than stopping at the first.
@@ -808,8 +826,7 @@ def main(argv: list[str] | None = None) -> int:
         say(f"{inventory}: the hand-kept columns are in order")
         return 0
 
-    rows, problems = build_rows()
-    live = {row["id"] for row in rows}
+    rows, problems, live = build_rows()
     status = status_problems(rows, live)
     for problem in problems + status:
         say(problem.message)

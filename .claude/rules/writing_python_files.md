@@ -95,12 +95,12 @@ Heavy commenting is not licence for clever code. A block that needs a paragraph 
 
 ## ruff and mypy
 
-Three tool runs check a file, and all three are configured in `pyproject.toml`. From the repo root, in the `sdg` environment:
+Three tools confirm a file, and all three are configured in `pyproject.toml`. They run from the repo root, in the `sdg` environment.
 
 ```powershell
 ruff format .          # rewrap and reindent every file to the standard layout
 ruff check .           # report style and lint problems; add --fix to apply the ones ruff can fix itself
-mypy                   # check the type hints in src/, validation/ and .claude/hooks/
+mypy                   # confirm the type hints in src/, validation/ and .claude/hooks/
 ```
 
 `check_python_files` runs all three in that order and reports what each found. The pre-commit hook runs it, so a file that fails any of them is refused before it lands, whoever made the edit.
@@ -109,18 +109,27 @@ Line length is the formatter's job alone. A line the formatter leaves long is a 
 
 ## Checks
 
-A check is one pytest function that validates one thing, for one category and one objective. The checks live under `validation/`, and they follow everything above plus these rules. The categories, the objectives and the staged cases they refer to are defined in `validation/validation_inventory_dictionary.md`.
+A check is one pytest function that validates one thing, for one category and one objective. The checks live under `validation/`, and they follow everything above plus these rules. The categories, the objectives and the staged cases they refer to are defined in `validation/README.md`, under Validation definitions.
 
 - A check's category and objective are decided before the check is written. The category is the thing the check confirms, and whatever it is compared against is the reference. The objective is what the check confirms about it, and it decides how the check is set up, what fixes a failure and who fixes it. Every check has exactly one of each. A check found to serve two objectives is split when the two parts would have different fixes or different owners.
 
 - Each workflow, step, repo tool, plugin and hook has its own files of checks, one per aspect of quality, at the same relative path under `validation/` as the file under `src/`. Each is named `test_`, the file's name and the aspect, so the technical checks for `src/sdg/sources/fetch_file.py` are in `validation/sdg/sources/test_fetch_file_technical.py` and its integrity checks in `test_fetch_file_integrity.py` beside it. A test file holds checks of one aspect only, and `src/sdgval/build_inventory.py` refuses one that does not. The one exception to the mirroring is the Claude Code hooks, whose checks live under `validation/claude_hooks/`, because pytest does not look inside a folder whose name starts with a dot.
 - Code that checks of more than one file share lives in `validation/shared/`, one file per job, and the fixtures built on it in `validation/conftest.py`, because pytest finds a shared fixture only there.
-- A check finds one discrete issue, so that a failure names one thing to fix. It may look at several things to find that issue: a refusal and the message that explains it are one issue, and so are a report's verdict and the exit status it came from. Two situations staged in one check are two checks, for example a stale `src/sdgtools/README.md` and a missing one. A sentence that needs "and" to say what the check proves is a sign to look again, not a rule in itself. A situation several checks look at is staged once, in a fixture. The same check over several inputs uses `pytest.mark.parametrize`.
+- A check finds one discrete issue, so that a failure names one thing to fix. It may look at several things to find that issue: a refusal and the message that explains it are one issue, and so are a report's verdict and the exit status it came from. A side effect of a refusal, such as a file left untouched, is its own check, because its fix is different. Two situations staged in one check are two checks, for example a stale `src/sdgtools/README.md` and a missing one. A sentence that needs "and" to say what the check proves is a sign to look again, not a rule in itself. A situation several checks look at is staged once, in a fixture. The same check over several inputs uses `pytest.mark.parametrize`.
 - A check that runs once per value says, in simple, non-technical language, in the opening paragraph of its docstring what changes from one run to the next, because that paragraph reaches a report as `expected_result` on the row of every run. Each run carries a readable name, because the name reaches a report as `parameter`. A value that is a plain word, number or path names its run by itself. A value made of several parts, such as a group of arguments, is named with `ids=`, in words that say what that run stages.
-- Every check carries a `@code` marker holding its permanent id from `validation/validation_inventory.csv`, a `@category` marker and an `@objective` marker. There is no aspect marker: the aspect of quality is looked up from the objective, so it cannot disagree with it. A check that stages its own situation also carries `@positive`, for a working situation where the code is expected to succeed, or `@negative`, for a broken situation where the code is expected to refuse. A check that looks at something real carries neither. The case says how the check was set up, so any objective may carry one. `src/sdgval/build_inventory.py` refuses a check whose markers break these rules.
+- Every check carries a `@code` marker holding its permanent id, a `@category` marker and an `@objective` marker. `validation/validation_inventory.csv` is generated from these markers. A check file imports the short names for them from `src/sdgval/labels.py`. There is no aspect marker: the aspect of quality is looked up from the objective, so it cannot disagree with it. A check that stages its own situation also carries `@positive`, for a working situation where the code is expected to succeed, or `@negative`, for a broken situation where the code is expected to refuse. A check that looks at something real carries neither. The case says how the check was set up, so any objective may carry one. `src/sdgval/build_inventory.py` refuses a check whose markers break these rules.
 - A negative check breaks exactly one thing, says which in its docstring, and asserts two things: the type of error raised, and that the message names that cause and its remedy rather than another.
 - A staged check touches nothing real and never downloads. Manifests and files are staged in a temporary folder through the fixtures in `validation/conftest.py`. Anything that downloads is replaced by a fake that serves bytes, or raises, per url. A workflow is called in-process through its `main()` with an argument list, never through a subprocess.
 - A check that carries no case may read the real repo, because the real files are what it validates.
-- A check that reads a real pinned file names it with `@needs_pinned`. `validation/conftest.py` then skips the check, with the reason, when the file is not downloaded or no longer matches its manifest entry. Only the stability check for that file fails for a changed file.
+- A check that reads a real pinned file names it with `@needs_pinned`. `src/sdgval/skip_rules.py` then skips the check, with the reason, when the file is not downloaded or no longer matches its manifest entry. Only the stability check for that file fails for a changed file.
 - A check that reads a file in `validation/fixtures/` names it with `@needs_fixture`, written as its name inside that folder, as in `@needs_fixture("usdm_three_classes.yml")`. A validation report then records which version of that file the check read, on the check's row and nowhere else.
 - A check never asserts a count that grows as the pinned files under `inputs/` grow. It asserts that the known items are present, not that they are the only ones.
+
+## Adding a check
+
+1. Choose the file. It is the check file for the file under test and the aspect of quality, at the mirrored path under `validation/`, as the rules above describe. A new file needs its header block.
+2. Give the check the next number above the highest id in `validation/validation_inventory.csv`.
+3. Write the function with its `@code`, `@category` and `@objective` markers, and `@positive` or `@negative` when it stages its own situation. The names come from `src/sdgval/labels.py`.
+4. Write the docstring's first paragraph as the sentence that must be true for the check to pass. It becomes the check's `expected_result`.
+5. Run the check, then run `build_inventory` to add its row. `build_inventory --check-status` confirms the hand-kept columns alone.
+6. Commit the check and `validation/validation_inventory.csv` together.

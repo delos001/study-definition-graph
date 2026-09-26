@@ -24,7 +24,8 @@ This folder contains the project's validation check programming and associated r
   - Holds small files that stand in for real files a check should not read directly, such as pinned files. Its own README lists them.
 
 - `reports/`
-  - Holds the validation reports, one CSV file per run.
+  - Holds the validation reports, in one folder per aspect of quality, such as `reports/technical/`.
+  - Each run that files a report writes two CSV files there, the report and the run's own details.
   - Its columns and their values are defined in `reports/validation_report_dictionary.md`.
   - Report generation is described in `running_validation.md`.
 
@@ -54,7 +55,7 @@ Project elements targeted by validation procedures are broken into categories:
 - `products`: covers deliverables the processing creates, including content extractions, data structures and provenance, mappings, and the graph.
 
 ### Quality aspects and objectives
-Validation is broken into quality aspects, which can impact process order. Each quality aspect groups objectives, the specific questions a check can ask.
+Validation is broken into quality aspects. Each quality aspect groups objectives, the specific questions a check can ask.
 - `conformance`: evaluates whether something adheres to defined rules, such as a required shape, format or set of allowed elements or values.
   - `conformance`: does the target adhere to defined rules?
 
@@ -90,28 +91,27 @@ The folders of checks mirror `src/`, so a check sits at the same path under `val
 For example, the checks for `src/sdg/sources/fetch_file.py` are in `validation/sdg/sources/`. The one exception is `validation/claude_hooks/`, which holds the checks for `.claude/hooks/`.
 
 ### Check ids
-Every check has an id made of two letters naming its suite and five digits, such as `SA00042`. An id never changes and is never reused, because filed reports refer to checks by it.
+Every check has an id made of two letters naming its suite and five digits, such as `SA00042`. An id never changes and is never reused, because filed reports refer to checks by it. How to choose a new check's id is in the steps for adding a check, in `.claude/rules/writing_python_files.md`.
 
 Every check under `validation/` falls under suite A. The creation of a unique suite of checks can occur, if the need arises, by altering the first two characters of the check ids. For example, a new suite of checks could start with `SB00001` and would be added to `SUITES` in `src/sdgval/build_inventory.py`.
 
 ### Validation script naming
 
-Prefix: Validation scripts are distinguishable from other Python scripts via the prefix `test_`.
+A validation script's name starts with `test_`, which tells it apart from other Python scripts.
 
-Suffix: Validation scripts also have a suffix to signal the quality aspect. For example: `test_build_index_integrity.py` contains checks for quality_aspect = integrity.
+Its name ends with the quality aspect of the checks it holds. For example, `test_build_index_integrity.py` holds integrity checks.
 
-Body: The rest of the name matches the file it validates. For example, `test_build_index_integrity.py` holds checks for `build_index.py`.
+The rest of the name matches the file it validates. For example, `test_build_index_integrity.py` holds checks for `build_index.py`.
 
 ## Standard packages used
 
 These packages are installed with the rest of the project from `environment.yml`.
 - `pytest` finds the checks and runs them.
   - The code in `src/sdgval/` adds this project's own options to it, such as choosing checks by category and writing a report.
-- `pytest-cov` shows which lines of the project's code the checks actually run, to identify code that isn't tested by an existing check.
+- `coverage` shows which lines of the project's code the checks actually run, to find code no check reaches. The commands are in `running_validation.md`.
 - `ruff` confirms that every Python file follows the standard layout and style.
 - `mypy` confirms that each function is given and gives back the kinds of values its code says it will.
 - The `check_python_files` command runs `ruff` and `mypy`, and the pre-commit hook runs that command before every commit. The commands to run them by hand are in `.claude/rules/writing_python_files.md`.
-- `grimp` reads the code and lists which files are used by other files, so the checks can run in an order that follows those links.
 
 ## Other validation
 

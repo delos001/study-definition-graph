@@ -41,7 +41,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 ### `outcome_reason`
 - Says why the outcome is not passed.
 - Read by the writer from pytest's result: the first line of the failure message, the skip reason, or which step broke.
-- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds that sentence alone, because the exit status is all the writer knows about the cause, and `pytest_exit_cause` in the run's own file already carries it.
+- Holds one line, or nothing when the check passed. A check that goes wrong twice holds both reasons, separated by a semicolon, in the order the steps ran. On the row written when no check ran it holds `no check ran` alone, because the exit status is all the writer knows about the cause, and `pytest_exit_cause` in the run's own file already carries it.
 
 ### `target_last_changed`, `target_change_id`
 - Record which version of the script the check covers ran, the one `target_folder_path` and `target_file_name` name. A report run starts only on a working folder that matches its commit, so the script's last change is the version that ran.
@@ -76,7 +76,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 ### `pytest_exit_code`
 - Records pytest's exit code for the run.
 - Read by the writer from pytest.
-- Holds a whole number from 0 to 5.
+- Holds 0, 1, 2 or 3. A run that ends with 4 or 5 validated nothing, so no report is written for it.
 
 ### `pytest_exit_cause`
 - Says what the exit code means.
@@ -84,19 +84,19 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Holds one of the exit causes below.
 
 ### `checks_collected`
-- Says how many checks the run set out to cover.
-- Read by the writer from the checks pytest was left holding, plus every check dropped before the run, which pytest reports through a hook it fires for each one.
+- Says how many checks of the report's aspect the run set out to cover.
+- Read by the writer from the checks pytest was left holding, plus every check of that aspect dropped before the run, which pytest reports through a hook it fires for each one. The checks of other aspects, which the aspect's command drops, are not counted.
 - Holds a whole number. It is counted from what happened rather than from the options that were typed, because an option the writer knows nothing about narrows a run just the same. A file kept out of collection altogether, as `--ignore` does, is never seen by the run, so it cannot be counted here.
 
 ### `checks_reported`
 - Says how many checks the report holds a row for.
 - Read by the writer from the outcomes it collected.
-- Holds a whole number. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so a run that covered part of the suite cannot read as one that covered all of it. It is 0 when no check ran.
+- Holds a whole number. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so a run that covered part of its aspect cannot read as one that covered all of it. On a whole run the two are equal. It is 0 when no check ran.
 
 ### `commit`
 - Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs. It is the one way to get back the exact code that ran, test files included, with `git show <commit>:<path>`.
 - Read by the writer from git.
-- Holds the short hash, or `(unknown)` when git did not answer.
+- Holds the short hash. A report run refuses to start when git does not answer, so the commit is always known.
 
 ### `python_version`, `pytest_version`, `platform`
 - Record the Python version, the pytest version and the operating system the run used.

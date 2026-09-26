@@ -6,7 +6,8 @@
 # of the root README.md runs after the clone. It is committed rather than left in
 # .git/hooks, so a fresh clone gets it.
 #
-# Each step runs one repo tool, an installed command of the sdg conda environment.
+# Each step runs one installed command of the sdg conda environment, from
+# src/sdgtools/ or src/sdgval/.
 # When that environment is active the command is on the path and runs directly.
 # When it is not, the step runs it through conda instead, which is slower but needs
 # no set-up, so a commit works from any terminal. check_facts (reads every pinned

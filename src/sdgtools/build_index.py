@@ -39,7 +39,8 @@ Exit codes:  0   success (the index was written, or --check found it current)
              2   invalid command line, the argument parser's own
              15  src/sdgtools/README.md is stale or missing (--check only)
              17  a header block is missing, incomplete, out of order, or has a
-                 bad Date
+                 bad Date (here only a missing or incomplete block; field order
+                 and the Date are confirmed by verify_headers)
              19  a Python file could not be parsed
              20  no files found to work on
              19 outranks 17, and 17 outranks 15, because an index generated

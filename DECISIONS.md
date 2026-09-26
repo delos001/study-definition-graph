@@ -674,3 +674,12 @@ The 2026-09-23 entry "The operation report records the versions of what each che
 - A check that reads a fixture names it with the `@needs_fixture` label, and only its row records that fixture. This replaces `fixture_sha256s`, which listed every fixture on every row.
 - The outside libraries are listed once per run, in the run's own file, as every installed package with its version, rather than per script on every row. A package's version is the same for every check in a run, and a package the project never imports can still break it through one that does. Listing what is installed needs no import map.
 - The three columns listing called scripts whose checks failed, broke or were skipped are dropped, and so are pulling in and ordering those scripts' checks. A staged technical check replaces what its script calls with fakes, so it judges the script on its own behaviour, and a broken called script already shows as its own failing rows in the same report. This can be revisited if a real failure is ever hard to trace. The repo-wide rule refusing loops between scripts at commit is a separate matter and is unaffected.
+
+## A check's status in the inventory decides whether it runs, decided 2026-09-26
+
+The inventory's `status` column said a check marked `inactive` was switched off, but nothing read the column when checks ran, so such a check would still have run and appeared in reports as though nothing had changed. The validation audit of 2026-09-26 found it. No standard covered the question, so the choice is **unguided**.
+
+- A check marked `pending` or `inactive` is skipped when the checks run, and its report row gives the status and the reason the inventory records. It is skipped rather than left out, so a report still shows the check and why it did not run. `src/sdgval/skip_rules.py` does this, beside the rule that skips a check whose pinned file is not in order.
+- A check marked `superseded` or `retired` is removed from the test files, and `src/sdgval/build_inventory.py` keeps its row when the inventory is regenerated, so a filed report that names it still finds it. This closes the gap issue #47 recorded.
+- Making the status a record only, with switching a check off done by removing it, was considered and rejected, because it would leave the dictionary describing a column that does nothing.
+

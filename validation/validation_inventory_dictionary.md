@@ -76,7 +76,7 @@ Every row is one check. A column about the check itself has a bare name. The two
 ### `id`
 - Identifies the check permanently. A validation report joins to the inventory on it.
 - Read by the generator from the `@code` marker.
-- Holds `S`, a suite letter and five digits, such as `SA00042`, unique across the inventory. The two letters are one of the suites listed in `validation/README.md`. The generator refuses an id that breaks any of those three rules.
+- Holds `S`, a suite letter and five digits, such as `SA00042`, unique across the inventory. The two letters are one of the suites listed in `SUITES` in `src/sdgval/build_inventory.py`. The generator refuses an id that breaks any of those three rules.
 
 ### `target_folder_path`
 - Names the folder of the code file the test file covers.
@@ -101,8 +101,6 @@ Every row is one check. A column about the check itself has a bare name. The two
   - the changed check has passed validation,
   - its report is filed,
   - and it is in production.
-- Until the first validation run, every check stays at 1.
-
 
 ### `status`
 - Says whether what the check guards is still guarded.
@@ -114,6 +112,13 @@ Every row is one check. A column about the check itself has a bare name. The two
   - `inactive`: the check is switched off for now, and `status_reason` says why.
   - `superseded`: other active checks now cover what this check guarded, and `superseded_by` names them.
   - `retired`: the check is withdrawn with nothing covering what it guarded, and `status_reason` says why.
+- A check marked `pending` or `inactive` is skipped when the checks run, and its report row gives the status and the reason recorded here.
+- A check marked `superseded` or `retired` is removed from the test files, and its row is kept when the inventory is regenerated, so a filed report that names it still finds it.
+
+#### Taking a check out of use
+1. In `validation/validation_inventory.csv`, set the check's `status` to `superseded` and name the active checks that now cover it in `superseded_by`, or set it to `retired` and say why in `status_reason`.
+2. In the same change, remove the check's function from its test file. `src/sdgval/build_inventory.py` refuses a superseded or retired check that is still in the test files.
+3. Run `build_inventory`. The row is kept with its status, and `build_inventory --check-status` confirms the hand-kept columns follow their rules.
 
 ### `superseded_by`
 - Names the checks that now cover a superseded check.

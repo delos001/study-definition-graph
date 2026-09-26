@@ -23,10 +23,11 @@ pinned:
     - SA00283
 
 hook:
-  purpose: The checks that reproduce what the pre-commit hook enforces.
-  run: When the hook refuses a commit and the reason is wanted as a report.
+  purpose: The checks that reproduce, on the real repo, what the pre-commit hook enforces.
+  run: When the hook refuses a commit, to find out why with pytest --group hook. No report is filed from this group.
   ids:
     - SA00256
     - SA00391
     - SA00373
     - SA00374
+    - SA00538

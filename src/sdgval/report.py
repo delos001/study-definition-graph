@@ -45,7 +45,7 @@ Description: A pytest plugin that collects how each check ended and, when asked,
 
              The verdict is PASS only when pytest itself exited 0. pytest's exit
              status already accounts for every kind of failure:
-               - a test's own checks,
+               - a test's own assertions,
                - its set-up,
                - its clean-up,
                - a file that fails to load,

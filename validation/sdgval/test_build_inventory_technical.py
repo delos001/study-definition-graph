@@ -1095,3 +1095,59 @@ def test_check_status_on_an_empty_folder_exits_20(tests_folder, capsys):
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 20
     assert "no test files found under validation" in outcome.printed
+
+
+#######################################################################################
+### Rows that outlive their check ###
+#
+# A superseded or retired check is removed from the test files, and its row is kept.
+
+
+def add_row(inventory: Path, check_id: str, **fields: str) -> None:
+    """Add a row to a written inventory for a check that is not in the test files.
+
+    Args:
+        inventory: The inventory file.
+        check_id: The id the row carries.
+        **fields: The columns to set, beside a copy of the first row's others.
+    """
+    rows = rows_of(inventory)
+    rows.append({**rows[0], "id": check_id, "name": f"test_{check_id}", **fields})
+    with inventory.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=script.COLUMNS, lineterminator="\n")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+@code("SA00536")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_retired_row_is_kept_when_the_inventory_is_regenerated(tests_folder, capsys):
+    """A row marked retired, whose check is no longer in the test files, is kept with
+    its status and reason when the inventory is regenerated."""
+    inventory = tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS})
+    assert run(capsys).exit_code == 0
+    add_row(inventory, "SA99009", status="retired", status_reason="No longer needed.")
+    assert run(capsys).exit_code == 0
+    kept = {row["id"]: row for row in rows_of(inventory)}["SA99009"]
+    assert kept["status"] == "retired"
+    assert kept["status_reason"] == "No longer needed."
+
+
+@code("SA00537")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_superseded_row_is_kept_when_the_inventory_is_regenerated(
+    tests_folder, capsys
+):
+    """A row marked superseded, whose check is no longer in the test files, is kept
+    with the check that replaced it when the inventory is regenerated."""
+    inventory = tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS})
+    assert run(capsys).exit_code == 0
+    add_row(inventory, "SA99008", status="superseded", superseded_by="SA99001")
+    assert run(capsys).exit_code == 0
+    kept = {row["id"]: row for row in rows_of(inventory)}["SA99008"]
+    assert kept["status"] == "superseded"
+    assert kept["superseded_by"] == "SA99001"

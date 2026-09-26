@@ -200,7 +200,7 @@ study-definition-graph/
   validation/              # checks that prove the code works, mirroring src/
     claude_hooks/          #   validation for the hooks in .claude/hooks/
     fixtures/              #   small stand-ins for real files a check should not read directly
-    reports/               #   results of a full validation run, archived
+    reports/               #   filed validation reports, one folder per aspect
     sdg/                   #   validation for src/sdg/, one folder per group of work
     sdgtools/              #   validation for src/sdgtools/
     sdgval/                #   validation for src/sdgval/

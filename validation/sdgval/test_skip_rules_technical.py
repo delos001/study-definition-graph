@@ -195,3 +195,69 @@ def test_a_check_naming_a_file_no_manifest_records_errors(staged_suite):
             "*correct the @needs_pinned marker*",
         ]
     )
+
+
+#######################################################################################
+### Checks the inventory has switched off ###
+
+# Two checks, one of which the staged inventory marks as switched off.
+SWITCHED_OFF_SUITE = """
+    import pytest
+
+    @pytest.mark.code("XYZ0601")
+    @pytest.mark.objective("functionality")
+    def test_switched_off():
+        \"\"\"A check the inventory marks as not active.\"\"\"
+
+    @pytest.mark.code("XYZ0602")
+    @pytest.mark.objective("functionality")
+    def test_runs():
+        \"\"\"A check the inventory marks as active.\"\"\"
+    """
+
+
+def stage_inventory(staged_suite, status: str, reason: str) -> None:
+    """Write an inventory under the staged suite marking XYZ0601 with a status.
+
+    Args:
+        staged_suite: The throwaway suite, from validation/conftest.py.
+        status: The status XYZ0601 is given.
+        reason: The reason recorded for it.
+    """
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_inventory.csv").write_text(
+        f"id,status,status_reason\nXYZ0601,{status},{reason}\nXYZ0602,active,\n",
+        encoding="utf-8",
+    )
+
+
+@code("SA00534")
+@category("repository")
+@objective("functionality")
+@negative
+def test_an_inactive_check_is_skipped_with_its_reason(staged_suite):
+    """A check the inventory marks inactive is skipped, and its row gives the status
+    and the reason the inventory records, while an active check still runs."""
+    stage_inventory(staged_suite, "inactive", "Waiting on a new fixture.")
+    result, out = staged_suite.run(SWITCHED_OFF_SUITE)
+    rows = staged_suite.report(out)
+    row = staged_suite.row(rows, "test_switched_off")
+    assert row["outcome"] == "skipped"
+    assert row["outcome_reason"] == (
+        "the inventory marks this check inactive. Waiting on a new fixture."
+    )
+    assert staged_suite.row(rows, "test_runs")["outcome"] == "passed"
+
+
+@code("SA00535")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_pending_check_is_skipped(staged_suite):
+    """A check the inventory marks pending is skipped, and its row says the
+    inventory marks it pending."""
+    stage_inventory(staged_suite, "pending", "")
+    result, out = staged_suite.run(SWITCHED_OFF_SUITE)
+    row = staged_suite.row(staged_suite.report(out), "test_switched_off")
+    assert row["outcome"] == "skipped"
+    assert row["outcome_reason"] == "the inventory marks this check pending."

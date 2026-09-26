@@ -34,8 +34,9 @@ Usage:       validate_technical
 
 Exit codes:  pytest's own, passed through: 0 all passed, 1 some failed, 2 the run
              was interrupted, 3 internal error, 4 bad command line, which
-             includes a run given --aspect and a report refused on uncommitted
-             changes, and 5 no check was collected.
+             includes a run given --aspect, a selection that matches no check,
+             and a report refused on uncommitted changes or when git does not
+             answer, and 5 no check was collected.
 
 Date:        2026-09-25
 Owner:       Jason Delosh

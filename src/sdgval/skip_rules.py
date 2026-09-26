@@ -14,7 +14,14 @@ Description: A pytest plugin holding the rules that skip a check before it runs.
              A label that names a file no manifest records is a mistake in the
              check, so that check errors rather than skips, and the run fails.
 
-Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only, through
+             A check that validation/validation_inventory.csv marks as anything
+             but active, such as inactive or pending, is skipped too, and the
+             reason gives its status and the reason the inventory records. A report
+             then shows it as skipped with that reason, rather than it running as
+             though nothing had switched it off.
+
+Inputs:      validation/validation_inventory.csv   (read-only; each check's status)
+             manifests/*.json, manifests/study_documents/*.json   (read-only, through
                  src/sdg/sources/read_manifests.py)
              inputs/**   (read-only; only the files a @needs_pinned check names,
                  which are measured)
@@ -33,10 +40,67 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import csv
 import fnmatch
 import functools
 
 import pytest
+
+from sdgval.labels import code_of
+from sdgval.select_checks import INVENTORY_RELATIVE
+
+#######################################################################################
+### A check the inventory has switched off ###
+
+# Where each run keeps the statuses it read from the inventory, in pytest's stash, so
+# the file is read once per run and two runs in one process never share them.
+STATUSES = pytest.StashKey[dict[str, tuple[str, str]]]()
+
+
+def inventory_statuses(config: pytest.Config) -> dict[str, tuple[str, str]]:
+    """Read each check's status and reason from validation/validation_inventory.csv.
+
+    Args:
+        config: pytest's configuration for the run, which knows the root folder.
+
+    Returns:
+        Each check's status and status reason, keyed by its id. It is empty when
+        there is no inventory under the root folder, as for a staged suite.
+    """
+    path = config.rootpath / INVENTORY_RELATIVE
+    if not path.is_file():
+        return {}
+    with path.open(encoding="utf-8", newline="") as fh:
+        return {
+            row["id"]: (row.get("status", "active"), row.get("status_reason", ""))
+            for row in csv.DictReader(fh)
+        }
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    """Read the statuses once, before any check is collected.
+
+    Args:
+        config: pytest's configuration for the run.
+    """
+    config.stash[STATUSES] = inventory_statuses(config)
+
+
+def status_skip_reason(item: pytest.Item) -> str | None:
+    """Say why a check the inventory has switched off does not run.
+
+    Args:
+        item: The check about to run.
+
+    Returns:
+        None for an active check, or one not in the inventory. Otherwise the
+        reason, naming the status and the reason the inventory records.
+    """
+    status, why = item.config.stash[STATUSES].get(code_of(item), ("active", ""))
+    if status == "active":
+        return None
+    return f"the inventory marks this check {status}. {why}".strip()
+
 
 #######################################################################################
 ### Pinned files a check depends on ###
@@ -99,16 +163,22 @@ _cached_skip_reason = functools.cache(pinned_skip_reason)
 
 
 def pytest_runtest_setup(item: pytest.Item) -> None:
-    """Skip a check whose pinned files are not downloaded or no longer match.
+    """Skip a check that is switched off, or whose pinned files are not in order.
 
     pytest calls this before it sets up each check, so the pinned files are looked at
     before any fixture could point the manifest reader somewhere else. A label naming
     a file no manifest records makes the check's set-up fail instead, which pytest
     reports as an error.
 
+    A check the inventory has switched off is skipped first, since whether its
+    pinned files are in order does not matter when it is not meant to run.
+
     Args:
         item: The check about to run.
     """
+    status_reason = status_skip_reason(item)
+    if status_reason:
+        pytest.skip(status_reason)
     for marker in item.iter_markers("needs_pinned"):
         for pattern in marker.args:
             # A pattern that matches nothing is not a state of the repo to skip on,
