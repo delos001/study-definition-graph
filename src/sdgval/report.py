@@ -73,7 +73,8 @@ Outputs:     Nothing, unless --validation-report is given. Then it writes two fi
              An existing name is never overwritten; it gets a numeric suffix. A run
              whose command line pytest refused writes nothing, because it
              validated nothing, and neither does a listing run, --collect-only,
-             because it ran nothing.
+             because it ran nothing. A report run left with no check once every
+             filter has run, pytest's -k and -m included, is refused the same way.
 
 Usage:       validate_technical --validation-report
                  an aspect's command runs its checks and this writer writes the
@@ -82,8 +83,9 @@ Usage:       validate_technical --validation-report
                  same, writing the report to another folder
 
 Exit codes:  None of its own. It runs inside pytest, and a report asked for without
-             an aspect's command, when git does not answer, or on uncommitted
-             changes, is refused with pytest's own 4, a bad command line.
+             an aspect's command, when git does not answer, on uncommitted
+             changes, or with no check left to run, is refused with pytest's own
+             4, a bad command line.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -579,6 +581,42 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         )
 
 
+@pytest.hookimpl(trylast=True)
+def pytest_collection_finish(session: pytest.Session) -> None:
+    """Refuse a report run that has no check left once every filter has run.
+
+    The project's own selection options refuse an empty selection themselves. pytest's
+    -k and -m filters run after them, so a run they empty would otherwise end with
+    pytest's "no tests collected" and write a report saying no check ran. Refusing
+    it here, once collection is finished, keeps an empty report run to pytest's
+    usage error, as every other empty selection is. A run whose check file failed to
+    load is left alone, because its report must still say FAIL.
+
+    Args:
+        session: The pytest run.
+
+    Raises:
+        pytest.UsageError: A report was asked for and no check is left to run.
+    """
+    config = session.config
+    if (
+        session.items
+        or session.testsfailed
+        or not config.getoption("--validation-report")
+    ):
+        return
+    if config.getoption("keyword") or config.getoption("markexpr"):
+        raise pytest.UsageError(
+            "No checks were run and no validation report was written, because "
+            "pytest's -k or -m option removed every check the other options "
+            "selected. Widen or drop -k or -m."
+        )
+    raise pytest.UsageError(
+        "No checks were run and no validation report was written, because no checks "
+        "were collected."
+    )
+
+
 # The columns of a report, one row per check, in the order they are written: the
 # run the row belongs to, when it started and what it selected, then the inventory's
 # columns in the inventory's own order with the parameter beside the name, then how
@@ -719,8 +757,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     """
     if not session.config.getoption("--validation-report"):
         return
-    # A refused command line, such as a selection option naming nothing, ran no
-    # check and validated nothing. The refusal is on the terminal, and a report
+    # A refused command line, such as a selection option naming nothing or a -k
+    # filter leaving no check, ran no check and validated nothing. The refusal is on the terminal, and a report
     # of it would only be a file to delete.
     if int(exitstatus) == int(pytest.ExitCode.USAGE_ERROR):
         return

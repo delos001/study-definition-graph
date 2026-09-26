@@ -785,6 +785,22 @@ def test_a_report_asked_of_plain_pytest_is_refused_before_any_check_runs(
     assert not staged_suite.report_dir.exists()
 
 
+@code("SA00499")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_run_emptied_by_a_keyword_filter_is_refused(staged_suite):
+    """A report run whose -k filter removes every check stops with pytest's usage
+    error, exit 4, the message says -k or -m removed every check and to widen or drop
+    it, and no report is written."""
+    result, out = staged_suite.run(PASSING_SUITE, "-k", "no_check_has_this_name")
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "pytest's -k or -m option removed every check" in printed
+    assert "Widen or drop -k or -m." in printed
+    assert not out.exists()
+
+
 #######################################################################################
 ### The working folder a report is written on ###
 #
