@@ -1066,3 +1066,28 @@ def test_the_aspect_is_left_out_of_the_covered_file(tests_folder, capsys):
     first = rows_of(inventory)[0]
     assert first["file_name"] == "test_alpha_conformance.py"
     assert first["target_file_name"] == "alpha.py"
+
+
+#######################################################################################
+### Code folders ###
+#
+# The inventory lists its rows in an order set by code folder, so a test file in a
+# folder the order does not list is refused rather than sorted last without notice.
+
+
+@code("SA00505")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_file_in_an_unlisted_code_folder_exits_48(tests_folder, capsys):
+    """A test file in a code folder that CODE_FOLDER_ORDER does not list makes the run
+    exit 48, and the message names the file and the folder and says to add the
+    folder to CODE_FOLDER_ORDER."""
+    tests_folder({"sdg/classify/test_alpha_conformance.py": TWO_CHECKS})
+    outcome = run(capsys)
+    assert outcome.exit_code == 48
+    assert (
+        "validation/sdg/classify/test_alpha_conformance.py is in the code folder "
+        "sdg/classify, which CODE_FOLDER_ORDER" in outcome.printed
+    )
+    assert "add the folder there" in outcome.printed

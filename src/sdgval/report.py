@@ -110,7 +110,12 @@ import pytest
 # The rule that says which code file a check file proves lives in the inventory
 # generator, src/sdgval/build_inventory.py, which fills the same column of the
 # inventory. Importing it means the inventory and a report can never disagree.
-from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
+from sdgval.build_inventory import (
+    ASPECT_OF,
+    code_folder_and_target,
+    first_paragraph,
+    split_path,
+)
 from sdgval.labels import (
     aspect_of,
     case_of,
@@ -289,9 +294,13 @@ def pytest_runtest_makereport(
             "objective": objective_of(item),
             "case": case_of(item),
             "fixtures": fixtures_of(item),
-            "expected_result": _first_paragraph(
+            # The inventory's own rule gives the sentence, so a report and the
+            # inventory always show the same one. A check with no docstring, which
+            # the inventory refuses, is marked here rather than left blank.
+            "expected_result": first_paragraph(
                 function.__doc__ if function is not None else None
-            ),
+            )
+            or "(no docstring)",
             "outcome": outcome,
             "reason": "",
         },
@@ -355,24 +364,6 @@ def _parameter(item: pytest.Item) -> str:
     return str(callspec.id) if callspec is not None else ""
 
 
-def _first_paragraph(doc: str | None) -> str:
-    """Give a check's docstring's first paragraph as one line.
-
-    That paragraph is the check's expected result, and it is what the report shows for
-    the check.
-
-    Args:
-        doc: The docstring, or None when the check has none.
-
-    Returns:
-        The first paragraph as one line, or the words (no docstring) when the check has none.
-    """
-    if not doc:
-        return "(no docstring)"
-    first = doc.strip().split("\n\n", 1)[0]
-    return " ".join(line.strip() for line in first.splitlines())
-
-
 #######################################################################################
 ### Writing the report ###
 
@@ -429,8 +420,6 @@ def uncommitted_changes(root: Path, report_dir: Path) -> list[str] | None:
         reports = None
     changes = []
     for line in status.splitlines():
-        if not line.strip():
-            continue
         # A status line is two letters, a space, then the path.
         path = line[3:]
         if reports and (path == reports or path.startswith(reports + "/")):
@@ -455,6 +444,9 @@ def _last_change(path: str, root: Path) -> tuple[str, str]:
         (not committed) when git has no change for the file, and (unknown) when git
         did not answer.
     """
+    # A report run starts only when git answers and the folder is committed, so
+    # these two labels are rare. (unknown) is left for git failing part way through
+    # a run, and (not committed) for a file git is told to ignore.
     answer = _git("log", "-1", "--format=%cs %h", "--", path, cwd=root)
     if answer == "(unknown)":
         return "(unknown)", "(unknown)"
@@ -717,7 +709,7 @@ def _selection(config: pytest.Config) -> dict[str, list[str] | str]:
     return {key: chosen[key] for key in SELECTION_KEYS if key in chosen}
 
 
-def _target_of(test_file: Path, root: Path) -> tuple[str, str]:
+def _target_of(test_file: Path, root: Path) -> tuple[str, str, str]:
     """Name the code file a test file proves.
 
     The rule is the inventory generator's, src/sdgval/build_inventory.py, imported
@@ -728,15 +720,15 @@ def _target_of(test_file: Path, root: Path) -> tuple[str, str]:
         root: pytest's root folder.
 
     Returns:
-        The target's folder and its file name, the name marked when the file was not
-        found at run time.
+        The target's path from the root, its folder, and its file name, the name
+        marked when the file was not found at run time.
     """
     _, path = code_folder_and_target(test_file, root / "validation")
     folder, name = split_path(path)
     # The mirrored file is named even when it is not there, so the gap shows.
     if not (root / path).exists():
         name = f"{name} (not found at run time)"
-    return folder, name
+    return path, folder, name
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
@@ -834,8 +826,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         for file, outcomes in by_file.items():
             check_path = f"validation/{file.relative_to(validation_dir).as_posix()}"
             validation_folder, validation_file = split_path(check_path)
-            target_folder, target_file = _target_of(file, root)
-            _, target_path = code_folder_and_target(file, validation_dir)
+            target_path, target_folder, target_file = _target_of(file, root)
             # A script that was not found at run time has no version to record.
             target_date, target_id = (
                 last_change(target_path) if (root / target_path).exists() else ("", "")

@@ -47,3 +47,4 @@ code,cause
 45,a hand-kept column of the validation inventory breaks its rules
 46,the named header row is past the end of the sheet
 47,a test file's name has no aspect of quality or holds a check of another aspect
+48,a test file is in a code folder the inventory has no place for

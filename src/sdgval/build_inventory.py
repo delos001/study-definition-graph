@@ -6,33 +6,33 @@ Description: Generates validation/validation_inventory.csv, the list of every ch
              permanent id (the @code marker), its category (the @category marker),
              its objective (the @objective marker), whether a check that staged its
              own situation staged a working case or a broken one, and its expected
-             result (its docstring's first paragraph) are read from the file. Four columns are kept by hand and carried over from the
-             existing inventory by id: status, superseded_by, status_reason and
-             version. A new check starts as active at version 1. A check that no
-             longer exists drops out, which holds until the first validation run.
+             result (its docstring's first paragraph) are read from the file.
+             Four columns are kept by hand and carried over from the existing
+             inventory by id: status, superseded_by, status_reason and version. A
+             new check starts as active at version 1.
 
              A check is refused, and nothing is written, when any of these is
              true:
                - it has no @code marker, or an id another check already carries,
                  because the id is what joins a validation report to the inventory;
-               - its id is not three capital letters and four digits, or those
-                 letters are not one of the registered prefixes. Whether a prefix
-                 still names the folder of the file its check covers is not
-                 checked, because a check that moves keeps the id it was filed
-                 under;
+               - its id is not S, a suite letter and five digits, such as
+                 SA00042, or its suite is not one of those SUITES lists;
                - it has no @category marker, or one that names no category;
                - it has no @objective marker, or one that names no objective;
                - its first sentence starts with a character a spreadsheet reads
                  as the start of a formula. Leading whitespace is not refused,
-                 because it is stripped before the sentence is looked at.
+                 because it is stripped before the sentence is looked at;
+               - its test file is in a code folder CODE_FOLDER_ORDER does not
+                 list, because the folder's place in the inventory is a choice to
+                 make, not a default.
 
              The hand-kept columns are confirmed too. A status must be one of the
              five, superseded_by must name the active checks that took over
              exactly when the status is superseded, status_reason must say why
              when the status is inactive or retired, a version must be a whole
              number, and a check that is still in the test files can be neither
-             superseded nor retired. --check-status runs this check alone on the
-             inventory on disk.
+             superseded nor retired. --check-status confirms these columns alone,
+             on the inventory on disk.
 
              With --check, nothing is written: the script says whether the
              inventory on disk is what would be generated, and the pre-commit
@@ -51,7 +51,7 @@ Usage:       build_inventory
                  report whether the inventory on disk is current; write nothing.
                  For hooks.
              build_inventory --check-status
-                 check only the hand-kept columns of the inventory on disk;
+                 confirm only the hand-kept columns of the inventory on disk;
                  write nothing
              build_inventory --quiet
                  print nothing; use the exit code
@@ -63,15 +63,15 @@ Exit codes:  0   success (the inventory was written, or a check found it in orde
                  --check-status only)
              18  a check's markers, id or first sentence are missing or wrong, or
                  its id is a duplicate
-             47  a test file's name has no aspect of quality or holds a check of
-                 another aspect
              19  a Python file could not be parsed
              20  no files found to work on
              45  a hand-kept column of the validation inventory breaks its rules
-             19 outranks 20, 20 outranks 18, 18 outranks 47, and 47 outranks 45.
-             Every problem is
-             still named. The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+             47  a test file's name has no aspect of quality or holds a check of
+                 another aspect
+             48  a test file is in a code folder the inventory has no place for
+             19 outranks 20, 20 outranks 18, 18 outranks 48, 48 outranks 47, and
+             47 outranks 45. Every problem is still named. The numbers are the
+             repo-wide table in docs/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -117,9 +117,14 @@ COLUMNS = (
     "status_reason",
 )
 
-# The columns a person keeps by hand. The generator carries them over by id and
-# never works them out.
-HAND_KEPT = ("status", "superseded_by", "status_reason", "version")
+# The columns a person keeps by hand, each with what a new check starts with. The
+# generator carries them over by id and never works them out.
+HAND_KEPT = {
+    "status": "active",
+    "superseded_by": "",
+    "status_reason": "",
+    "version": "1",
+}
 
 # What kind of thing a check confirms. validation/validation_inventory_dictionary.md
 # defines each one.
@@ -191,7 +196,8 @@ FORMULA_STARTS = ("=", "+", "-", "@")
 # Rows are ordered by the code folder the test file mirrors: the pipeline's folders in
 # the order the pipeline runs, then the top of the sdg package, then the repo tools,
 # the validation package and the hooks, with the checks for validation's own files
-# last. Within a folder, files are in name order and checks in file order.
+# last. Within a folder, files are in name order and checks in file order. A test
+# file in a folder not listed here is refused, so a new folder is placed on purpose.
 CODE_FOLDER_ORDER = (
     "sdg/sources",
     "sdg/usdm",
@@ -203,9 +209,9 @@ CODE_FOLDER_ORDER = (
     "validation",
 )
 
-# What a check starts with when it first appears in the inventory.
-NEW_STATUS = "active"
-NEW_VERSION = "1"
+# When several kinds of problem are found in one run, the exit code is the first of
+# these that any problem carries. Every problem is still printed.
+EXIT_PRECEDENCE = (19, 20, 18, 48, 47, 45)
 
 
 #######################################################################################
@@ -213,6 +219,18 @@ NEW_VERSION = "1"
 #
 # The test files are parsed with ast rather than imported, so generating the
 # inventory never runs a check and needs none of the packages the checks import.
+
+
+@dataclass(frozen=True)
+class Problem:
+    """One thing wrong, with the exit code its kind of problem carries.
+
+    The code travels with the problem from where it is found, so the exit code
+    never depends on how a message is worded.
+    """
+
+    message: str
+    code: int
 
 
 @dataclass(frozen=True)
@@ -322,7 +340,7 @@ def _marker_argument(decorator: ast.expr, name: str) -> str | None:
     return None
 
 
-def checks_in(path: Path) -> tuple[list[Check], list[str]]:
+def checks_in(path: Path) -> tuple[list[Check], list[Problem]]:
     """Read every check in one test file.
 
     Args:
@@ -337,10 +355,10 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
     except (SyntaxError, ValueError, OSError) as exc:
-        return [], [f"{_name(path)}: cannot parse ({exc})"]
+        return [], [Problem(f"{_name(path)}: cannot parse ({exc})", 19)]
 
     checks: list[Check] = []
-    problems: list[str] = []
+    problems: list[Problem] = []
     for node in tree.body:
         if not isinstance(node, ast.FunctionDef) or not node.name.startswith("test_"):
             continue
@@ -363,25 +381,34 @@ def checks_in(path: Path) -> tuple[list[Check], list[str]]:
         where = f"{_name(path)}: {node.name}"
 
         if not code:
-            problems.append(f"{where} has no @code marker")
+            problems.append(Problem(f"{where} has no @code marker", 18))
         if not has_category:
-            problems.append(f"{where} has no @category marker")
+            problems.append(Problem(f"{where} has no @category marker", 18))
         elif category not in CATEGORIES:
             problems.append(
-                f"{where} has @category({category!r}), which is not one of "
-                f"{', '.join(CATEGORIES)}"
+                Problem(
+                    f"{where} has @category({category!r}), which is not one of "
+                    f"{', '.join(CATEGORIES)}",
+                    18,
+                )
             )
         if not has_objective:
-            problems.append(f"{where} has no @objective marker")
+            problems.append(Problem(f"{where} has no @objective marker", 18))
         elif objective not in OBJECTIVES:
             problems.append(
-                f"{where} has @objective({objective!r}), which is not one of "
-                f"{', '.join(OBJECTIVES)}"
+                Problem(
+                    f"{where} has @objective({objective!r}), which is not one of "
+                    f"{', '.join(OBJECTIVES)}",
+                    18,
+                )
             )
         if expected.startswith(FORMULA_STARTS):
             problems.append(
-                f"{where} has a first sentence starting with {expected[0]!r}; start "
-                "it with a letter or a digit"
+                Problem(
+                    f"{where} has a first sentence starting with {expected[0]!r}; "
+                    "start it with a letter or a digit",
+                    18,
+                )
             )
 
         checks.append(
@@ -410,7 +437,7 @@ def _name(path: Path) -> str:
     return path.relative_to(REPO_ROOT).as_posix()
 
 
-def read_checks() -> tuple[list[tuple[str, str, Check]], list[str]]:
+def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
     """Read every check in every test file under the validation folder.
 
     Returns:
@@ -419,11 +446,20 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[str]]:
     """
     files = sorted(VALIDATION_DIR.rglob("test_*.py"))
     if not files:
-        return [], [f"no test files found under {_name(VALIDATION_DIR)}"]
+        return [], [Problem(f"no test files found under {_name(VALIDATION_DIR)}", 20)]
     found: list[tuple[str, str, Check]] = []
-    problems: list[str] = []
+    problems: list[Problem] = []
     for path in files:
         code_folder, target = code_folder_and_target(path)
+        if code_folder not in CODE_FOLDER_ORDER:
+            problems.append(
+                Problem(
+                    f"{_name(path)} is in the code folder {code_folder}, which "
+                    "CODE_FOLDER_ORDER in src/sdgval/build_inventory.py does not "
+                    "list; add the folder there, where it belongs in the order",
+                    48,
+                )
+            )
         checks, file_problems = checks_in(path)
         problems.extend(file_problems)
         problems.extend(aspect_problems(path, checks))
@@ -447,7 +483,7 @@ def aspect_of_file(check_file: Path) -> str | None:
     return None
 
 
-def aspect_problems(check_file: Path, checks: list[Check]) -> list[str]:
+def aspect_problems(check_file: Path, checks: list[Check]) -> list[Problem]:
     """Hold a test file to one aspect of quality, the one its name ends with.
 
     A test file holds checks of one aspect only, so a run and a report of one aspect
@@ -466,8 +502,11 @@ def aspect_problems(check_file: Path, checks: list[Check]) -> list[str]:
     aspect = aspect_of_file(check_file)
     if aspect is None:
         return [
-            f"{name} has no aspect in its name; it must end with one of "
-            + ", ".join(f"_{a}" for a in ASPECTS)
+            Problem(
+                f"{name} has no aspect in its name; it must end with one of "
+                + ", ".join(f"_{a}" for a in ASPECTS),
+                47,
+            )
         ]
     problems = []
     for check in checks:
@@ -476,24 +515,14 @@ def aspect_problems(check_file: Path, checks: list[Check]) -> list[str]:
         # check was read, so it is not reported a second time here.
         if belongs and belongs != aspect:
             problems.append(
-                f"{name}: {check.check_name} has the objective {check.objective}, "
-                f"which belongs to {belongs}, in a file named for {aspect}"
+                Problem(
+                    f"{name}: {check.check_name} has the objective "
+                    f"{check.objective}, which belongs to {belongs}, in a file "
+                    f"named for {aspect}",
+                    47,
+                )
             )
     return problems
-
-
-def _is_aspect_problem(problem: str) -> bool:
-    """Say whether a problem is one aspect_problems() reported.
-
-    Args:
-        problem: One reported problem.
-
-    Returns:
-        True for a missing aspect or a check of another aspect.
-    """
-    return (
-        " has no aspect in its name;" in problem or " in a file named for " in problem
-    )
 
 
 #######################################################################################
@@ -513,7 +542,7 @@ def existing_rows() -> dict[str, dict[str, str]]:
         return {row["id"]: row for row in csv.DictReader(fh)}
 
 
-def build_rows() -> tuple[list[dict[str, str]], list[str]]:
+def build_rows() -> tuple[list[dict[str, str]], list[Problem]]:
     """Build every inventory row from the test files.
 
     Returns:
@@ -527,8 +556,11 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
     for _, _, check in found:
         if check.check_id in seen:
             problems.append(
-                f"{check.check_id} is carried by both {seen[check.check_id]} "
-                f"and {check.check_name}"
+                Problem(
+                    f"{check.check_id} is carried by both {seen[check.check_id]} "
+                    f"and {check.check_name}",
+                    18,
+                )
             )
         elif check.check_id:
             seen[check.check_id] = check.check_name
@@ -555,13 +587,12 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
             "expected_result": check.expected_result,
         }
         # The hand-kept columns come from the existing row. A new check gets the
-        # starting status and version and leaves the other two empty.
-        row["status"] = old.get("status", NEW_STATUS)
-        row["superseded_by"] = old.get("superseded_by", "")
-        row["status_reason"] = old.get("status_reason", "")
-        row["version"] = old.get("version", NEW_VERSION)
+        # starting value of each.
+        for column, start in HAND_KEPT.items():
+            row[column] = old.get(column, start)
         ordered.append((code_folder, row))
-    # Code folders in pipeline order; a folder not in the list, a new one, goes last.
+    # Code folders in pipeline order. A folder not in the list is refused above, and
+    # sorts last only so the refusal can still name every problem.
     ordered.sort(
         key=lambda pair: (
             CODE_FOLDER_ORDER.index(pair[0])
@@ -574,8 +605,8 @@ def build_rows() -> tuple[list[dict[str, str]], list[str]]:
     return rows, problems
 
 
-def id_problems(rows: list[dict[str, str]]) -> list[str]:
-    """Check every id for its shape and for carrying a registered prefix.
+def id_problems(rows: list[dict[str, str]]) -> list[Problem]:
+    """Confirm every id has the right shape and belongs to a listed suite.
 
     The id carries no meaning beyond its suite, so there is nothing else about it
     to confirm.
@@ -586,7 +617,7 @@ def id_problems(rows: list[dict[str, str]]) -> list[str]:
     Returns:
         One problem per rule an id breaks, or nothing when every id is in order.
     """
-    problems: list[str] = []
+    problems: list[Problem] = []
     for row in rows:
         check_id = row["id"]
         where = f"{row['folder_path']}/{row['file_name']}: {row['name']}"
@@ -596,19 +627,25 @@ def id_problems(rows: list[dict[str, str]]) -> list[str]:
             continue
         if not ID_SHAPE.fullmatch(check_id):
             problems.append(
-                f"{where} has the id {check_id!r}, which is not S, a capital "
-                "letter and five digits, such as SA00042"
+                Problem(
+                    f"{where} has the id {check_id!r}, which is not S, a capital "
+                    "letter and five digits, such as SA00042",
+                    18,
+                )
             )
         elif check_id[:2] not in SUITES:
             problems.append(
-                f"{where} has the id {check_id}, and {check_id[:2]} is not one of "
-                f"the suites {', '.join(SUITES)}"
+                Problem(
+                    f"{where} has the id {check_id}, and {check_id[:2]} is not one "
+                    f"of the suites {', '.join(SUITES)}",
+                    18,
+                )
             )
     return problems
 
 
-def status_problems(rows: list[dict[str, str]], live_ids: set[str]) -> list[str]:
-    """Check the hand-kept columns of every row against their rules.
+def status_problems(rows: list[dict[str, str]], live_ids: set[str]) -> list[Problem]:
+    """Confirm the hand-kept columns of every row follow their rules.
 
     It can run on the rows the generator is about to write or on the inventory on
     disk, which is what --check-status does.
@@ -618,56 +655,57 @@ def status_problems(rows: list[dict[str, str]], live_ids: set[str]) -> list[str]
         live_ids: The ids of the checks that are in the test files now.
 
     Returns:
-        One line per problem, naming the check and what is wrong.
+        One problem per rule broken, naming the check and what is wrong, each
+        carrying exit code 45.
     """
     status_of = {row["id"]: row["status"] for row in rows}
-    problems: list[str] = []
+    messages: list[str] = []
     for row in rows:
         check_id, status = row["id"], row["status"]
         successors = [s.strip() for s in row["superseded_by"].split(";") if s.strip()]
 
         if status not in STATUSES:
-            problems.append(
+            messages.append(
                 f"{check_id} has status {status!r}, which is not one of "
                 f"{', '.join(STATUSES)}"
             )
         if status == "superseded" and not successors:
-            problems.append(
+            messages.append(
                 f"{check_id} is superseded but superseded_by names no check"
             )
         if status != "superseded" and successors:
-            problems.append(
+            messages.append(
                 f"{check_id} names checks in superseded_by but is {status}, "
                 "not superseded"
             )
         for successor in successors:
             if status_of.get(successor) != "active":
-                problems.append(
+                messages.append(
                     f"{check_id} is superseded by {successor}, which is not an "
                     "active check in the inventory"
                 )
         if status in NEEDS_REASON and not row["status_reason"].strip():
-            problems.append(
+            messages.append(
                 f"{check_id} is {status} but status_reason does not say why"
             )
         if status not in NEEDS_REASON and row["status_reason"].strip():
-            problems.append(
+            messages.append(
                 f"{check_id} has a status_reason but is {status}, and only "
                 f"{' and '.join(NEEDS_REASON)} say why they are off"
             )
         if not row["version"].isdigit() or int(row["version"]) < 1:
-            problems.append(
+            messages.append(
                 f"{check_id} has version {row['version']!r}, which is not a whole "
                 "number from 1 up"
             )
         # A superseded or retired check has been taken out of use, so it cannot
         # still be in the test files, where every run would run it.
         if status in ("superseded", "retired") and check_id in live_ids:
-            problems.append(
+            messages.append(
                 f"{check_id} is {status} but is still in the test files; remove the "
                 "check or change its status"
             )
-    return problems
+    return [Problem(message, 45) for message in messages]
 
 
 def render(rows: list[dict[str, str]]) -> str:
@@ -691,6 +729,19 @@ def render(rows: list[dict[str, str]]) -> str:
 
 #######################################################################################
 ### Command line ###
+
+
+def exit_code(problems: list[Problem]) -> int:
+    """Pick the exit code for a run that found problems.
+
+    Args:
+        problems: Every problem found, at least one.
+
+    Returns:
+        The first code in EXIT_PRECEDENCE that any problem carries.
+    """
+    codes = {problem.code for problem in problems}
+    return next(code for code in EXIT_PRECEDENCE if code in codes)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -717,7 +768,7 @@ def main(argv: list[str] | None = None) -> int:
     mode.add_argument(
         "--check-status",
         action="store_true",
-        help="check only the hand-kept columns of the inventory on disk; write nothing",
+        help="confirm only the hand-kept columns of the inventory on disk; write nothing",
     )
     parser.add_argument(
         "--quiet", action="store_true", help="print nothing; use the exit code"
@@ -739,13 +790,11 @@ def main(argv: list[str] | None = None) -> int:
         found, problems = read_checks()
         # Only a file that will not parse or an empty folder stops this mode, since
         # it needs the checks' ids and nothing else about them.
-        blocking = [
-            p for p in problems if ": cannot parse" in p or "no test files" in p
-        ]
+        blocking = [p for p in problems if p.code in (19, 20)]
         for problem in blocking:
-            say(problem)
+            say(problem.message)
         if blocking:
-            return 19 if any(": cannot parse" in p for p in blocking) else 20
+            return exit_code(blocking)
         if not INVENTORY_PATH.is_file():
             say(f"{inventory} is missing. Run: build_inventory")
             return 16
@@ -753,9 +802,9 @@ def main(argv: list[str] | None = None) -> int:
         live = {check.check_id for _, _, check in found}
         status = status_problems(on_disk, live)
         for problem in status:
-            say(problem)
+            say(problem.message)
         if status:
-            return 45
+            return exit_code(status)
         say(f"{inventory}: the hand-kept columns are in order")
         return 0
 
@@ -763,20 +812,12 @@ def main(argv: list[str] | None = None) -> int:
     live = {row["id"] for row in rows}
     status = status_problems(rows, live)
     for problem in problems + status:
-        say(problem)
+        say(problem.message)
     if problems or status:
-        # A parse failure, an empty validation folder, a check with bad markers and
-        # a bad hand-kept column need different fixes, so each carries its own code.
+        # Each kind of problem needs a different fix, so each carries its own code,
+        # and the most basic one found decides the exit code.
         say("Inventory not written.")
-        if any(": cannot parse" in p for p in problems):
-            return 19
-        if any(p.startswith("no test files") for p in problems):
-            return 20
-        if any(not _is_aspect_problem(p) for p in problems):
-            return 18
-        if problems:
-            return 47
-        return 45
+        return exit_code(problems + status)
 
     text = render(rows)
 

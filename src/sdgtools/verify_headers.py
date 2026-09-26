@@ -137,20 +137,18 @@ def value_column(path: Path) -> int:
     being guessed from the lines that follow, because a guess goes wrong when the only
     line that follows is the first entry's own continuation.
 
+    It is called only for a file the header parser has already read, so the file
+    is known to parse.
+
     Args:
         path: The file whose header is read.
 
     Returns:
         The column, or 0 when the file has no Exit codes line.
     """
-    # A file that will not parse is already reported by the header parser, so the
-    # column falls back to 0 here rather than raising the same problem twice.
-    try:
-        docstring = ast.get_docstring(
-            ast.parse(path.read_text(encoding="utf-8")), clean=False
-        )
-    except (SyntaxError, OSError):
-        return 0
+    docstring = ast.get_docstring(
+        ast.parse(path.read_text(encoding="utf-8")), clean=False
+    )
     for line in (docstring or "").splitlines():
         match = FIELD_RE.match(line)
         if match and match.group(1) == "Exit codes":
@@ -345,14 +343,11 @@ def problems_in(path: Path, table: dict[int, str]) -> tuple[list[str], list[str]
 
     # The file is parsed a second time here rather than threaded through the header
     # parser, which hands back the header alone. Parsing is cheap and keeps the two
-    # readers independent.
-    try:
-        codes += unlisted_codes(
-            returned_codes(ast.parse(path.read_text(encoding="utf-8"))), entries
-        )
-    except (SyntaxError, OSError):
-        # A file that will not parse is already reported by the header parser above.
-        pass
+    # readers independent. A file that will not parse never reaches this point,
+    # because the header parser's error returns above.
+    codes += unlisted_codes(
+        returned_codes(ast.parse(path.read_text(encoding="utf-8"))), entries
+    )
 
     return problems, codes, True
 
