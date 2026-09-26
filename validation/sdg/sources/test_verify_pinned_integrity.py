@@ -21,6 +21,8 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import pytest
 
 from sdg.sources import (
@@ -45,15 +47,29 @@ objective = pytest.mark.objective
 category = pytest.mark.category
 
 
-def pinned_locals() -> list[str]:
+@dataclass(frozen=True)
+class ManifestsUnreadable:
+    """Stands in for the pinned files when the manifests could not be read.
+
+    It carries the manifest reader's own message, which names the manifest, the
+    problem and the fix, so the stability check can fail with it.
+    """
+
+    message: str
+
+
+def pinned_locals() -> list[str | object]:
     """List every file the real manifests record, when the checks are collected.
 
-    A manifest that cannot be read gives no files here. The checks of the manifest
-    reader, in validation/sdg/sources/test_read_manifests_technical.py, report that
-    problem.
+    When the manifests cannot be read, the list holds one stand-in carrying the
+    reader's message instead. The stability check then runs once and fails with that
+    message, rather than running zero times and passing quietly. The error is not
+    let through here, because a check file that fails to load stops every check in
+    the run, not only this one.
 
     Returns:
-        The recorded paths, as the manifests write them.
+        The recorded paths, as the manifests write them, or one run that carries
+        why the manifests could not be read.
     """
     try:
         return [
@@ -61,8 +77,12 @@ def pinned_locals() -> list[str]:
             for manifest in read_manifests.manifests()
             for entry in manifest.entries
         ]
-    except (ManifestError, NotInRepoError):
-        return []
+    except (ManifestError, NotInRepoError) as exc:
+        return [
+            pytest.param(
+                ManifestsUnreadable(str(exc)), id="manifests could not be read"
+            )
+        ]
 
 
 #######################################################################################
@@ -75,7 +95,11 @@ def pinned_locals() -> list[str]:
 @pytest.mark.parametrize("local", pinned_locals())
 def test_pinned_file_is_unchanged(local):
     """A pinned file on disk has the size and sha256 its manifest entry records, so it
-    is unchanged since it was pinned. A file not downloaded is skipped."""
+    is unchanged since it was pinned. It runs once for each file the manifests
+    record. A file not downloaded is skipped, and manifests that cannot be read make
+    it fail once with the reason."""
+    if isinstance(local, ManifestsUnreadable):
+        pytest.fail(local.message, pytrace=False)
     try:
         verify_pinned(local)
     except FileNotFoundError:
@@ -115,3 +139,21 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
 def test_recorded_file_content_reads(recorded_file):
     """read_text() on a verified file gives its content."""
     assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
+
+
+@code("SA00500")
+@category("sources")
+@objective("stability")
+@negative
+def test_unreadable_manifests_make_the_stability_check_fail_once(monkeypatch):
+    """When the manifests cannot be read, the stability check runs once and fails
+    with the manifest reader's own message, so a broken manifest can never leave the
+    check running zero times and passing quietly."""
+
+    def unreadable() -> list:
+        raise ManifestError("set_a.json: cannot read (staged)")
+
+    monkeypatch.setattr(read_manifests, "manifests", unreadable)
+    (only,) = pinned_locals()
+    with pytest.raises(pytest.fail.Exception, match=r"set_a\.json: cannot read"):
+        test_pinned_file_is_unchanged(only.values[0])
