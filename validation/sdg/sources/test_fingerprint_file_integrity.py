@@ -27,23 +27,10 @@ from __future__ import annotations
 
 import hashlib
 
-import pytest
-
 from sdg.sources import fingerprint_file
 from sdg.sources.fingerprint_file import fingerprint
+from sdgval.labels import category, code, objective, positive
 from validation.shared.staged_manifests import CONTENT
-
-positive = pytest.mark.positive
-# Every check carries a @code line: its short, permanent id in
-# validation/validation_inventory.csv, assigned once and never reused.
-code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its category,
-# one of the objectives validation/validation_inventory_dictionary.md defines.
-objective = pytest.mark.objective
-# Every check carries a @category line: what kind of thing the check confirms, one
-# of the categories validation/validation_inventory_dictionary.md defines.
-category = pytest.mark.category
-
 
 #######################################################################################
 ### Measurements ###

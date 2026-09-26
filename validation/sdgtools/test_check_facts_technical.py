@@ -35,19 +35,7 @@ from sdg.sources.read_manifests import ManifestError, NotInRepoError
 from sdg.sources.verify_pinned import IntegrityError, UnrecordedFileError
 from sdg.usdm.usdm_spec import SpecShapeError
 from sdgtools import check_facts as cf
-
-positive = pytest.mark.positive
-negative = pytest.mark.negative
-# Every check carries a @code line: its short, permanent id in
-# validation/validation_inventory.csv, assigned once and never reused.
-code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its category,
-# one of the objectives validation/validation_inventory_dictionary.md defines.
-objective = pytest.mark.objective
-# Every check carries a @category line: what kind of thing the check confirms, one
-# of the categories validation/validation_inventory_dictionary.md defines.
-category = pytest.mark.category
-
+from sdgval.labels import category, code, negative, objective, positive
 
 #######################################################################################
 ### Shared staging ###

@@ -9,7 +9,9 @@ Description: A pytest plugin that declares the labels a check may carry and read
              declared here with a sentence saying what it means. The readers are
              here too, because the selection options in select_checks.py and the
              report in report.py both read the same labels, and one place for them
-             means the two can never read a label differently.
+             means the two can never read a label differently. So are the short
+             names a check file writes the labels with, such as @code, which every
+             check file imports from here.
 
              The aspect of quality is not a label. It is looked up from the
              objective, the same way the inventory's quality_aspect column is
@@ -25,6 +27,8 @@ Usage:       pytest
                  pyproject.toml; nothing to type
              from sdgval.labels import code_of, objective_of
                  read a check's labels in another plugin
+             from sdgval.labels import category, code, objective, positive
+                 give a check file the short names for its labels
 
 Exit codes:  None of its own. It runs inside pytest.
 
@@ -37,6 +41,32 @@ from __future__ import annotations
 import pytest
 
 from sdgval.build_inventory import ASPECT_OF
+
+#######################################################################################
+### The short names a check file uses ###
+#
+# A check is written as @code("SA00001") rather than @pytest.mark.code("SA00001").
+# Every check file imports these names from here, so they are written once.
+# src/sdgval/build_inventory.py reads the labels by these same names.
+
+# A check's permanent id in validation/validation_inventory.csv, assigned once and
+# never reused.
+code = pytest.mark.code
+# What kind of thing the check confirms, one of the categories
+# validation/validation_inventory_dictionary.md defines.
+category = pytest.mark.category
+# What the check confirms about its category, one of the objectives
+# validation/validation_inventory_dictionary.md defines.
+objective = pytest.mark.objective
+# The check staged a working situation and expects the code to succeed.
+positive = pytest.mark.positive
+# The check staged a broken situation and expects the code to refuse it.
+negative = pytest.mark.negative
+# The real pinned files the check reads.
+needs_pinned = pytest.mark.needs_pinned
+# The files in validation/fixtures/ the check reads.
+needs_fixture = pytest.mark.needs_fixture
+
 
 #######################################################################################
 ### Declaring the labels ###

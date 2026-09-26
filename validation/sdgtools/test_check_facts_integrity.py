@@ -25,19 +25,7 @@ import pytest
 
 from sdg.usdm.usdm_spec import PINNED_LOCAL
 from sdgtools import check_facts as cf
-
-positive = pytest.mark.positive
-negative = pytest.mark.negative
-# Every check carries a @code line: its short, permanent id in
-# validation/validation_inventory.csv, assigned once and never reused.
-code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its category,
-# one of the objectives validation/validation_inventory_dictionary.md defines.
-objective = pytest.mark.objective
-# Every check carries a @category line: what kind of thing the check confirms, one
-# of the categories validation/validation_inventory_dictionary.md defines.
-category = pytest.mark.category
-
+from sdgval.labels import category, code, objective
 
 # The real run reads the pinned files its measurements need: the USDM model file, the
 # USDM export under each worked example, and the concepts workbook.

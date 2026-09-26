@@ -42,18 +42,7 @@ import pytest
 
 from sdg.sources import acquire_sources
 from sdg.sources.fetch_file import FetchError, partial_path
-
-positive = pytest.mark.positive
-negative = pytest.mark.negative
-# Every check carries a @code line: its short, permanent id in
-# validation/validation_inventory.csv, assigned once and never reused.
-code = pytest.mark.code
-# Every check carries an @objective line: what the check confirms about its category,
-# one of the objectives validation/validation_inventory_dictionary.md defines.
-objective = pytest.mark.objective
-# Every check carries a @category line: what kind of thing the check confirms, one
-# of the categories validation/validation_inventory_dictionary.md defines.
-category = pytest.mark.category
+from sdgval.labels import category, code, negative, objective, positive
 
 # The one staged file most checks use, its bytes, and the url its entry carries.
 # The url is the one FakeRepo.entry builds for a file of that name.
