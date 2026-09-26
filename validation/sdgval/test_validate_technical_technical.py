@@ -73,7 +73,8 @@ MIXED_SUITE = '''
 
 
 def run_command(staged_suite, pytester, *args, report=True):
-    """Write the mixed suite and run the command on it in a separate process.
+    """Commit the mixed suite as a git repository and run the command on it in a
+    separate process. A report is written only in a git repository.
 
     Args:
         staged_suite: The throwaway suite to write.
@@ -85,7 +86,7 @@ def run_command(staged_suite, pytester, *args, report=True):
         The result of the run and the technical folder inside the report folder,
         where the report is written.
     """
-    staged_suite.write(MIXED_SUITE)
+    staged_suite.commit(MIXED_SUITE, aspect_conftest=False)
     if report:
         args = ("--validation-report", *args)
     result = pytester.run(

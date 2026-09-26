@@ -16,17 +16,19 @@ Description: A pytest plugin that collects how each check ended and, when asked,
                  its version. The working folder must
                  match that commit exactly, so a run asked for a report refuses to
                  start when there are uncommitted changes, before any check runs,
-                 and says which files they are. The commit it would have named
+                 and says which files they are. It also refuses when git does not
+                 answer, since the commit could not be named. The commit it would have named
                  would not have described the code that ran.
                - How is which checks were selected, as JSON on each row and one
                  column per way of narrowing in the run's own file, and, in the
-                 run's own file, how many checks the run set out to cover and how
-                 many it reports on, and the Python and pytest versions and the
-                 operating system. The two counts differ when checks were dropped
-                 or the run stopped early, so a partial run cannot read as a whole
-                 one. They are counted from what happened rather than from the
-                 options typed, because an option this file does not know about
-                 narrows a run just the same.
+                 run's own file, how many checks of its aspect the run set out to
+                 cover and how many it reports on, and the Python and pytest
+                 versions and the operating system. The checks of other aspects,
+                 which an aspect's command drops, are not counted. The two counts
+                 differ when checks were dropped or the run stopped early, so a
+                 partial run cannot read as a whole one. They are counted from what
+                 happened rather than from the options typed, because an option
+                 this file does not know about narrows a run just the same.
                - When is the local timestamp with its zone, on each row and in the
                  run's own file, and by whom is the git user name, in the run's own
                  file.
@@ -80,8 +82,8 @@ Usage:       validate_technical --validation-report
                  same, writing the report to another folder
 
 Exit codes:  None of its own. It runs inside pytest, and a report asked for without
-             an aspect's command, or on uncommitted changes, is refused with
-             pytest's own 4, a bad command line.
+             an aspect's command, when git does not answer, or on uncommitted
+             changes, is refused with pytest's own 4, a bad command line.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -107,7 +109,14 @@ import pytest
 # generator, src/sdgval/build_inventory.py, which fills the same column of the
 # inventory. Importing it means the inventory and a report can never disagree.
 from sdgval.build_inventory import ASPECT_OF, code_folder_and_target, split_path
-from sdgval.labels import case_of, category_of, code_of, fixtures_of, objective_of
+from sdgval.labels import (
+    aspect_of,
+    case_of,
+    category_of,
+    code_of,
+    fixtures_of,
+    objective_of,
+)
 from sdgval.select_checks import SELECTORS, wanted
 
 #######################################################################################
@@ -497,32 +506,43 @@ def _unique(path: Path) -> Path:
 
 
 def pytest_deselected(items: list[pytest.Item]) -> None:
-    """Count checks dropped from the run before it started.
+    """Count the checks of the run's aspect that were dropped before it started.
 
-    pytest hands this hook the dropped checks alone, so the run's state is reached
-    through the first of them.
+    A run held to an aspect, as an aspect's command holds it, drops every check of
+    the other aspects. Those were never part of what the run set out to cover, so
+    they are not counted. Every other check that was dropped is counted, whatever
+    dropped it, so a narrowed run still shows a gap between the two counts. pytest
+    hands this hook the dropped checks alone, so the run's state is reached through
+    the first of them.
 
     Args:
         items: The checks being dropped.
     """
-    if items:
-        items[0].config.stash[RUN_STATE].deselected += len(items)
+    if not items:
+        return
+    config = items[0].config
+    aspects = wanted(config, "aspect")
+    config.stash[RUN_STATE].deselected += sum(
+        1 for item in items if not aspects or aspect_of(item) in aspects
+    )
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Note the moment the run started, and refuse a report that cannot be written.
 
-    Both refusals happen here, before any check is collected, so they cost seconds
+    Every refusal happens here, before any check is collected, so it costs seconds
     rather than the whole run. A report comes only from an aspect's command, which
     leaves its aspect in pytest's stash before the run starts. A report also names
-    the commit it validated, and a folder with uncommitted changes matches no commit.
+    the commit it validated, so it needs git's answer, and a folder with uncommitted
+    changes matches no commit.
 
     Args:
         session: The pytest run.
 
     Raises:
         pytest.UsageError: A report was asked for, and no aspect's command started
-            the run, or the working folder has changes that are not committed.
+            the run, git did not answer, or the working folder has changes that
+            are not committed.
     """
     session.config.stash[RUN_STATE].started_at = time.monotonic()
     if not session.config.getoption("--validation-report"):
@@ -536,6 +556,17 @@ def pytest_sessionstart(session: pytest.Session) -> None:
         )
     report_dir = _report_dir(session.config)
     changes = uncommitted_changes(session.config.rootpath, report_dir)
+    # A report without git's answer could not name the commit it validated, nor say
+    # that the working folder matched it, so it is refused rather than written with
+    # an unknown commit.
+    if changes is None:
+        raise pytest.UsageError(
+            "No checks were run and no validation report was written, because git "
+            "did not answer when asked whether the working folder has uncommitted "
+            "changes. A report names the commit it validated, so it needs git. "
+            "Confirm git is installed and the folder is a git repository, then run "
+            "the report again."
+        )
     if changes:
         listed = "\n".join(f"  {change}" for change in changes)
         raise pytest.UsageError(
@@ -740,10 +771,10 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         "run_verdict": "PASS" if status == 0 else "FAIL",
         "pytest_exit_code": status,
         "pytest_exit_cause": EXIT_CAUSE.get(status, "unknown status"),
-        # What the run set out to cover, against what it ended up reporting on. The
-        # two differ when checks were dropped or the run stopped early, so a run
-        # that covered part of the suite cannot read as one that covered all of it,
-        # whatever narrowed it.
+        # What the run set out to cover within its aspect, against what it ended up
+        # reporting on. The two differ when checks were dropped or the run stopped
+        # early, so a run that covered part of its aspect cannot read as one that
+        # covered all of it, whatever narrowed it.
         "checks_collected": len(session.items) + state.deselected,
         "checks_reported": len(state.outcomes),
         "commit": commit,

@@ -531,6 +531,51 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(staged_su
     assert {r["selection"] for r in staged_suite.report(out)} == {"{}"}
 
 
+# Two technical checks and one integrity check, for a run held to the technical
+# aspect by its command.
+TECHNICAL_AND_INTEGRITY_SUITE = '''
+    import pytest
+
+    @pytest.mark.code("XYZ0401")
+    @pytest.mark.objective("functionality")
+    def test_runs():
+        """A technical check."""
+
+    @pytest.mark.code("XYZ0402")
+    @pytest.mark.objective("correctness")
+    def test_holds():
+        """An integrity check."""
+
+    @pytest.mark.code("XYZ0403")
+    @pytest.mark.objective("functionality")
+    def test_also_runs():
+        """A second technical check."""
+    '''
+
+
+@code("SA00497")
+@category("repository")
+@objective("functionality")
+@positive
+def test_other_aspects_are_not_counted_as_collected(staged_suite, pytester):
+    """On a whole run of an aspect's command, checks_collected and checks_reported
+    are equal, because the checks of other aspects that the command drops were never
+    part of what the run set out to cover."""
+    staged_suite.commit(TECHNICAL_AND_INTEGRITY_SUITE, aspect_conftest=False)
+    result = pytester.run(
+        sys.executable,
+        "-m",
+        "sdgval.validate_technical",
+        "--validation-report",
+        "--validation-report-dir",
+        str(staged_suite.report_dir),
+    )
+    assert result.ret == 0
+    run = staged_suite.run_details(staged_suite.technical_dir)
+    assert run["checks_collected"] == "2"
+    assert run["checks_reported"] == "2"
+
+
 @code("SA00450")
 @category("repository")
 @objective("functionality")
@@ -680,15 +725,14 @@ TWO_TECHNICAL_CHECKS = '''
         """A second technical check."""
     '''
 
-# Two runs of the shared code in one process: the first narrowed to one check, the
-# second covering both, each writing its report to its own folder.
+# Two runs of the shared code in one process: the first narrowed to one check and
+# writing nothing, the second covering both and writing its report.
 TWO_RUNS_IN_ONE_PROCESS = (
     "import sys\n"
     "from sdgval.aspect_run import run_aspect\n"
-    "first = run_aspect('technical', ['--validation-report', "
-    "'--validation-report-dir', sys.argv[1], '--id', 'XYZ0301'])\n"
+    "first = run_aspect('technical', ['--id', 'XYZ0301'])\n"
     "second = run_aspect('technical', ['--validation-report', "
-    "'--validation-report-dir', sys.argv[2]])\n"
+    "'--validation-report-dir', sys.argv[1]])\n"
     "sys.exit(first or second)\n"
 )
 
@@ -702,14 +746,12 @@ def test_a_second_run_in_the_same_process_reports_on_itself_alone(
 ):
     """When two runs happen in one process, the second run's own file counts only
     its own checks, so nothing the first run dropped or ran is carried into it."""
-    staged_suite.write(TWO_TECHNICAL_CHECKS)
-    first_dir = staged_suite.root / "first_reports"
-    second_dir = staged_suite.root / "second_reports"
+    staged_suite.commit(TWO_TECHNICAL_CHECKS, aspect_conftest=False)
     result = pytester.run(
-        sys.executable, "-c", TWO_RUNS_IN_ONE_PROCESS, str(first_dir), str(second_dir)
+        sys.executable, "-c", TWO_RUNS_IN_ONE_PROCESS, str(staged_suite.report_dir)
     )
     assert result.ret == 0
-    second = staged_suite.run_details(second_dir / "technical")
+    second = staged_suite.run_details(staged_suite.technical_dir)
     assert second["checks_collected"] == "2"
     assert second["checks_reported"] == "2"
 
@@ -784,6 +826,35 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(staged
     assert "Commit them, or set them aside with git stash" in printed
     assert "test_adds" not in result.stdout.str()
     assert not out.exists()
+
+
+@code("SA00498")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_git_cannot_answer_for_is_refused_before_any_check_runs(
+    staged_suite, pytester, monkeypatch
+):
+    """With --validation-report in a folder where git does not answer, the run stops
+    with pytest's usage error, exit 4, before any check runs, the message says git
+    did not answer and a report needs it, and no report is written.
+
+    The suite is written without being committed, so its folder is not a git
+    repository, and git is told not to look in the folders above it."""
+    staged_suite.write(PASSING_SUITE)
+    (staged_suite.root / "conftest.py").write_text(
+        staged_suite.ASPECT_CONFTEST, encoding="utf-8"
+    )
+    monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(staged_suite.root.parent))
+    result = pytester.runpytest_subprocess(
+        "--validation-report", "--validation-report-dir", str(staged_suite.report_dir)
+    )
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "git did not answer" in printed
+    assert "so it needs git" in printed
+    assert "test_adds" not in result.stdout.str()
+    assert not staged_suite.report_dir.exists()
 
 
 @code("SA00460")

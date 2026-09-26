@@ -446,7 +446,10 @@ class StagedSuite:
         """Write the suite and run it with a report asked for.
 
         The suite's root gets a conftest that leaves the technical aspect in pytest's
-        stash, standing in for the aspect's command.
+        stash, standing in for the aspect's command. A report is written only in a
+        git repository, so the suite is committed as one the first time it runs. A
+        check that has already committed it keeps its own commit, and any change it
+        made after committing stays uncommitted.
 
         Args:
             test_source: The source of the test file.
@@ -456,6 +459,8 @@ class StagedSuite:
             pytest's result and the technical folder inside the report folder, where
             the report is written.
         """
+        if not (self.root / ".git").exists():
+            self.commit(test_source)
         self.write(test_source)
         (self.root / "conftest.py").write_text(self.ASPECT_CONFTEST, encoding="utf-8")
         result = self.pytester.runpytest_subprocess(
@@ -513,7 +518,7 @@ class StagedSuite:
         assert len(matches) == 1, [r["name"] for r in rows]
         return matches[0]
 
-    def commit(self, test_source: str) -> str:
+    def commit(self, test_source: str, aspect_conftest: bool = True) -> str:
         """Write the suite and commit it as a git repository.
 
         pytest's own cache, the files pytester writes for itself and Python's
@@ -523,6 +528,9 @@ class StagedSuite:
 
         Args:
             test_source: The source of the test file.
+            aspect_conftest: Whether to commit the conftest that stands in for an
+                aspect's command. A check that runs a real command leaves it out,
+                because the command names its own aspect.
 
         Returns:
             The short hash of the commit.
@@ -530,7 +538,10 @@ class StagedSuite:
         self.write(test_source)
         # The conftest run() writes is committed too, so writing it again unchanged
         # does not count as an uncommitted change.
-        (self.root / "conftest.py").write_text(self.ASPECT_CONFTEST, encoding="utf-8")
+        if aspect_conftest:
+            (self.root / "conftest.py").write_text(
+                self.ASPECT_CONFTEST, encoding="utf-8"
+            )
         (self.root / ".gitignore").write_text(
             ".pytest_cache/\n__pycache__/\nrunpytest-*\nstdout\nstderr\n",
             encoding="utf-8",

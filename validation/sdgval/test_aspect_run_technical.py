@@ -5,11 +5,12 @@ Description: Checks for src/sdgval/aspect_run.py, the part every aspect's comman
 
              Each check stages a tiny throwaway suite holding a technical check and
              an integrity check, with the staged_suite fixture in
-             validation/conftest.py, runs the shared code on it as a separate
-             process, and reads the report that comes out. The shared code runs
-             pytest, which cannot be run a second time inside the pytest process
-             running these checks, so a separate process is the only way to run it
-             whole.
+             validation/conftest.py, commits it as a git repository, because a
+             report is written only in one, runs the shared code on it as a
+             separate process, and reads the report that comes out. The shared
+             code runs pytest, which cannot be run a second time inside the pytest
+             process running these checks, so a separate process is the only way
+             to run it whole.
 
 Inputs:      Nothing real. Each staged suite is written to pytest's own temporary
              folder.
@@ -86,7 +87,7 @@ def test_the_run_is_held_to_the_aspect_it_is_given(staged_suite, pytester):
     """Given the integrity aspect, the shared code writes a report named for
     integrity, in a folder named integrity, whose rows are the integrity checks
     alone."""
-    staged_suite.write(MIXED_SUITE)
+    staged_suite.commit(MIXED_SUITE, aspect_conftest=False)
     result = pytester.run(
         sys.executable,
         "-c",
