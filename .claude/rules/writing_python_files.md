@@ -11,7 +11,7 @@ This rule covers every Python file the project writes. Each file is one of these
 
 - the pipeline, the package under `src/sdg/`, which holds the pipeline's workflows and steps;
 - the repo tools, the package under `src/sdgtools/`, which keep the repository's own files in order and are run as commands by a person or by the pre-commit hook, whose steps are in `.pre-commit-config.yaml`;
-- the validation package under `src/sdgval/`, which holds the plugins that select the checks, skip them and write their reports, and the commands that build the inventory and run the checks;
+- the validation package under `src/sdgval/`, which holds the plugins that select the checks, put them in order, skip them and write their reports, and the commands that build the inventory and run the checks;
 - the checks under `validation/`, which validate the three packages, the hooks and the repo's own files, with the code they share in `validation/shared/`;
 - the Claude Code hooks under `.claude/hooks/`, which run around Claude's own tool calls in a session and hold it to the repo's rules.
 

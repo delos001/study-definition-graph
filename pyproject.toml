@@ -35,6 +35,7 @@ validate_technical = "sdgval.validate_technical:main"
 sdgval_labels = "sdgval.labels"
 sdgval_select_checks = "sdgval.select_checks"
 sdgval_skip_rules = "sdgval.skip_rules"
+sdgval_aspect_order = "sdgval.aspect_order"
 sdgval_report = "sdgval.report"
 
 [tool.setuptools.packages.find]

@@ -13,6 +13,8 @@ pytest -v
 
 `pytest` runs every check under `validation/` and writes nothing. Adding `-v` prints one line per check with its name. Run this whenever you change code or a check, because the pre-commit hook does not.
 
+A run that holds checks of more than one aspect of quality, as a plain `pytest` run does, runs them in stages: technical, then conformance, then integrity. Each stage runs in full. A later stage runs only when every active check in the earlier stages came through, because a finding about what the code produced cannot be trusted while the code itself is failing. A check marked pending or inactive never holds a stage back. `src/sdgval/aspect_order.py` holds the rule.
+
 ## Narrowing a run
 
 `--category`, `--objective` and `--id` are spelled as the column they select on, so what you type is what you read in [validation_inventory.csv](validation_inventory.csv). `--group` selects on no column, because a group is a named list of ids.
@@ -71,6 +73,7 @@ A check can also be skipped rather than failed, and its reason says why.
 - A reason starting `not downloaded` means a pinned file it reads is not on disk. Run `acquire_sources`.
 - A reason starting `blocked` means a pinned file no longer matches its manifest entry. The stability check for that file fails and says which file changed.
 - A reason saying the inventory marks the check pending or inactive means the check is switched off in [validation_inventory.csv](validation_inventory.csv), and the reason recorded there says why.
+- A reason starting `held back` means an earlier stage of the run did not pass. It names the stage and the first check that stopped it. Fix that check, then run again.
 
 ## Measuring which code the checks reach
 

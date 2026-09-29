@@ -842,3 +842,12 @@ No standard fits, so the choice is **unguided**.
 - 1 and 2 keep Python's own meanings, widened to the groups "this repo's own code failed" and "the command line is wrong".
 
 This reverses the 2026-09-14 entry's rule of one number per cause. The rule it keeps is that one number means the same thing in every command.
+
+## A switched-off check never holds a later stage back, decided 2026-09-29
+
+The entry "A validation report covers one aspect of quality, and a run that holds several runs them in order, decided 2026-09-23" says a check that was skipped holds the later stages back, because it confirmed nothing. The statuses `pending` and `inactive` came three days later, and a check marked with either is skipped on every run on purpose. Under the 2026-09-23 wording, one such technical check would hold back every conformance and integrity check on every run. No standard covered the question, so the choice is **unguided**.
+
+- Only an active check holds a later stage back. A failure, a set-up or clean-up that broke, and a skip each count, including a skip because a pinned file the check reads is not downloaded or no longer matches its manifest entry.
+- A check marked `pending` has never been switched on, so it was never relied on to confirm anything.
+- A check marked `inactive` is switched off for now, and may never come back, so it is not relied on either.
+- `src/sdgval/aspect_order.py` builds the rule, issue #45.
