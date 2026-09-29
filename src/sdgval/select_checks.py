@@ -13,6 +13,12 @@ Description: A pytest plugin that selects checks in the inventory's own terms.
              before the run, so they neither run nor appear in a validation
              report.
 
+             Each option is defined once, in SELECTION_OPTIONS below, with its
+             name, its help text, the label it reads off a check and the values it
+             accepts. The command line, the filtering and the report's selection
+             columns in src/sdgval/report.py are all built from that one table, so
+             a new option is one more entry there.
+
              A run that would validate nothing stops with pytest's usage error
              rather than running nothing, so an empty run cannot pass for a clean
              one. That covers a value naming no category, objective, group or
@@ -24,7 +30,19 @@ Description: A pytest plugin that selects checks in the inventory's own terms.
              when the options match only checks of other aspects, or when an
              objective belongs to another aspect. A missing id is refused with the
              reason that fits it: no check has it, it lies outside the files the
-             run was given, or a group lists it wrongly.
+             run was given, or a group lists it wrongly. A run that collected no
+             check at all had nothing to select from, so it is left to pytest,
+             which ends it with its own exit status for that.
+
+             A group is refused too when it cannot be run as written. That is a
+             group whose ids are empty, missing or not a list, and a group whose
+             checks belong to more than one aspect of quality, because a report
+             covers one aspect.
+
+             Each refusal leaves its cause in pytest's stash before it stops the
+             run. A plain pytest run ignores the cause and exits 4. An aspect's
+             command reads it, through src/sdgval/aspect_run.py, and ends with the
+             repo's own number for that cause.
 
              It is a plugin rather than part of conftest.py because pytest reads
              the command line before it loads a conftest below the root folder.
@@ -54,12 +72,13 @@ Usage:       pytest --category sources
              pytest --id SA00106,SA00283
                  run only the checks with those ids; a comma-separated list, or
                  a repeated option, means any of them
-             pytest --group pinned
+             pytest --group pinned_integrity
                  run the checks the named group lists
 
-Exit codes:  pytest's own: 4 bad command line, when a value names no category,
-             aspect, objective, group or collected check, or when the options
-             together leave no check to run
+Exit codes:  None of its own. It runs inside pytest, which exits 4, its own usage
+             error, for every refusal above. An aspect's command turns the cause
+             each refusal leaves into the repo's number for it, and that
+             command's header lists the numbers.
 
 Date:        2026-09-21
 Owner:       Jason Delosh
@@ -68,7 +87,11 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import csv
+import enum
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
+from typing import NoReturn
 
 import pytest
 import yaml
@@ -95,8 +118,107 @@ INVENTORY_RELATIVE = Path("validation") / "validation_inventory.csv"
 # word themselves for the command rather than for an --aspect the person never typed.
 RUN_ASPECT = pytest.StashKey[str]()
 
-# The options this file adds. The report writer records the values of each.
-SELECTORS = ("category", "aspect", "objective", "id", "group")
+
+#######################################################################################
+### The selection options ###
+
+
+@dataclass(frozen=True)
+class SelectionOption:
+    """One way of selecting checks that this file adds to the pytest command line.
+
+    An option either reads a label off each check and keeps the checks whose label
+    it names, or it names something that stands for a list of ids, as a group does,
+    and adds those ids to another option's values.
+    """
+
+    # The option's name without its dashes. A report records its values under the
+    # same name.
+    name: str
+    # What the option does, as pytest's help prints it.
+    meaning: str
+    # The function that reads the option's value off a check, or None for an option
+    # that adds to another option's values instead.
+    reader: Callable[[pytest.Item], str] | None = None
+    # The values the option accepts, or None when a value is looked up among the
+    # checks themselves.
+    allowed: tuple[str, ...] | None = None
+    # The option whose values this one adds to, or None for an option that narrows
+    # against every other.
+    adds_to: str | None = None
+
+
+# Every selection option, in the order a report writes their columns. Options with a
+# reader narrow each other. An option that adds to another adds up with it, so --id
+# and --group together keep the checks either one names.
+SELECTION_OPTIONS = (
+    SelectionOption(
+        "aspect",
+        "run only the checks with this aspect of quality",
+        reader=aspect_of,
+        allowed=tuple(OBJECTIVES_BY_ASPECT),
+    ),
+    SelectionOption(
+        "category",
+        "run only the checks with this category",
+        reader=category_of,
+        allowed=CATEGORIES,
+    ),
+    SelectionOption(
+        "objective",
+        "run only the checks with this objective",
+        reader=objective_of,
+        allowed=OBJECTIVES,
+    ),
+    SelectionOption("id", "run only the check with this id", reader=code_of),
+    SelectionOption("group", "run only the checks the named group lists", adds_to="id"),
+)
+
+# The options' names, which the report writer records the values of.
+SELECTORS = tuple(option.name for option in SELECTION_OPTIONS)
+
+
+#######################################################################################
+### Refusing a run ###
+
+
+class Refusal(enum.Enum):
+    """The causes this package refuses a run for, before any check runs.
+
+    Each refusal stops the run with pytest's usage error, which a plain pytest run
+    reports as 4 whatever the cause. src/sdgval/aspect_run.py turns each cause into
+    the repo's own exit number, so an aspect's command says which cause it was.
+    """
+
+    ASPECT_GIVEN = enum.auto()
+    NOTHING_SELECTED = enum.auto()
+    NO_CHECK_COLLECTED = enum.auto()
+    GROUPS_FILE_MISSING = enum.auto()
+    GROUP_WITHOUT_IDS = enum.auto()
+    GROUP_OF_MIXED_ASPECTS = enum.auto()
+    GROUP_WITH_UNKNOWN_ID = enum.auto()
+    UNCOMMITTED_CHANGES = enum.auto()
+    GIT_SILENT = enum.auto()
+
+
+# Where a refusal leaves its cause, in pytest's stash, for an aspect's command to read
+# once pytest has stopped.
+REFUSAL = pytest.StashKey[Refusal]()
+
+
+def refuse(config: pytest.Config, cause: Refusal, message: str) -> NoReturn:
+    """Stop the run with pytest's usage error, leaving the cause behind.
+
+    Args:
+        config: pytest's configuration for the run.
+        cause: Why the run is refused.
+        message: What the person reads, saying what is wrong and what to do.
+
+    Raises:
+        pytest.UsageError: Always, carrying the message.
+    """
+    config.stash[REFUSAL] = cause
+    raise pytest.UsageError(message)
 
 
 #######################################################################################
@@ -117,11 +239,11 @@ def check_key(item: pytest.Item) -> str:
 
 
 #######################################################################################
-### The options ###
+### The options on the command line ###
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
-    """Add the five selection options to the pytest command line.
+    """Add each selection option to the pytest command line.
 
     Each takes a value. Repeating an option, or giving a comma-separated list, means
     any of the values.
@@ -129,19 +251,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     Args:
         parser: pytest's command-line parser.
     """
-    for name, meaning in (
-        ("category", "run only the checks with this category"),
-        ("aspect", "run only the checks with this aspect of quality"),
-        ("objective", "run only the checks with this objective"),
-        ("id", "run only the check with this id"),
-        ("group", "run only the checks the named group lists"),
-    ):
+    for option in SELECTION_OPTIONS:
         parser.addoption(
-            f"--{name}",
+            f"--{option.name}",
             action="append",
             default=None,
             metavar="VALUE",
-            help=f"{meaning}; repeat, or give a comma-separated list, for several",
+            help=f"{option.meaning}; repeat, or give a comma-separated list, for several",
         )
 
 
@@ -173,11 +289,47 @@ def groups(config: pytest.Config) -> dict[str, dict]:
     """
     path = config.rootpath / GROUPS_RELATIVE
     if not path.is_file():
-        raise pytest.UsageError(
+        refuse(
+            config,
+            Refusal.GROUPS_FILE_MISSING,
             f"--group needs {GROUPS_RELATIVE.as_posix()} under {config.rootpath}, "
-            "and it is missing"
+            "and it is missing",
         )
     return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def group_members(config: pytest.Config, name: str, defined: dict) -> list[str]:
+    """Read the ids one named group lists, refusing a group that cannot run.
+
+    Args:
+        config: pytest's configuration for the run.
+        name: The group's name, as the person typed it.
+        defined: Every group the groups file defines.
+
+    Returns:
+        The ids the group lists, in the file's order.
+
+    Raises:
+        pytest.UsageError: The file defines no such group, or the group has no list
+            of ids with at least one id in it.
+    """
+    if name not in defined:
+        refuse(
+            config,
+            Refusal.NOTHING_SELECTED,
+            f"--group {name}: no such group in {GROUPS_RELATIVE.as_posix()}; "
+            f"the groups are {', '.join(defined)}",
+        )
+    group = defined[name]
+    members = group.get("ids") if isinstance(group, dict) else None
+    if not isinstance(members, list) or not members:
+        refuse(
+            config,
+            Refusal.GROUP_WITHOUT_IDS,
+            f"The group {name} in {GROUPS_RELATIVE.as_posix()} has no list of ids, so "
+            "it names no check to run. Give it an ids list naming at least one check.",
+        )
+    return [str(member) for member in members]
 
 
 def inventory_ids(config: pytest.Config) -> set[str]:
@@ -218,67 +370,78 @@ def pytest_collection_modifyitems(
 
     Raises:
         pytest.UsageError: A value names no category, objective, group or collected
-            check, or the options together leave no check to run.
+            check, a group cannot run as written, or the options together leave no
+            check to run.
     """
-    categories = wanted(config, "category")
-    aspects = wanted(config, "aspect")
-    objectives = wanted(config, "objective")
-    ids = wanted(config, "id")
-    names = wanted(config, "group")
-    if not (categories or aspects or objectives or ids or names):
+    given = {option.name: wanted(config, option.name) for option in SELECTION_OPTIONS}
+    if not any(given.values()):
         return
-    # Which options supplied the ids, kept before --group expands into them, so the
-    # refusal below names the option the reader typed rather than its expansion.
-    id_label = " and ".join(
-        label for label, used in (("--id", ids), ("--group", names)) if used
-    )
+    # With no check collected there is nothing to select from. That is pytest's own
+    # "no tests collected", or a check file that failed to load, and pytest reports
+    # either one with its own exit status, so it is left to pytest rather than refused
+    # as a selection that matches nothing.
+    if not items:
+        return
 
-    for value in categories:
-        if value not in CATEGORIES:
-            raise pytest.UsageError(
-                f"--category {value}: not one of {', '.join(CATEGORIES)}"
-            )
-    for value in aspects:
-        if value not in OBJECTIVES_BY_ASPECT:
-            raise pytest.UsageError(
-                f"--aspect {value}: not one of {', '.join(OBJECTIVES_BY_ASPECT)}"
-            )
-    for value in objectives:
-        if value not in OBJECTIVES:
-            raise pytest.UsageError(
-                f"--objective {value}: not one of {', '.join(OBJECTIVES)}"
-            )
-    # Which group each id came from, so an id a group lists wrongly is blamed on the
-    # group rather than on the person, who never typed it.
-    group_of: dict[str, str] = {}
-    if names:
-        defined = groups(config)
-        for name in names:
-            if name not in defined:
-                raise pytest.UsageError(
-                    f"--group {name}: no such group in {GROUPS_RELATIVE.as_posix()}; "
-                    f"the groups are {', '.join(defined)}"
+    for option in SELECTION_OPTIONS:
+        for value in given[option.name]:
+            if option.allowed is not None and value not in option.allowed:
+                refuse(
+                    config,
+                    Refusal.NOTHING_SELECTED,
+                    f"--{option.name} {value}: not one of {', '.join(option.allowed)}",
                 )
-            for member in defined[name].get("ids") or []:
-                ids.append(str(member))
-                group_of.setdefault(str(member), name)
+
+    # Each group becomes the ids it lists, added to the values of the option it adds
+    # to. Which group each id came from is kept, so an id a group lists wrongly is
+    # blamed on the group rather than on the person, who never typed it.
+    added: dict[str, list[str]] = {option.name: [] for option in SELECTION_OPTIONS}
+    group_of: dict[str, str] = {}
+    members_of: dict[str, list[str]] = {}
+    if given["group"]:
+        defined = groups(config)
+        for name in given["group"]:
+            members_of[name] = group_members(config, name, defined)
+            added["id"].extend(members_of[name])
+            for member in members_of[name]:
+                group_of.setdefault(member, name)
+
+    ids = given["id"] + added["id"]
     collected = {code_of(item) for item in items}
     missing = sorted(set(ids) - collected)
     if missing:
         known = inventory_ids(config)
-        raise pytest.UsageError(
-            " ".join(missing_id_message(value, known, group_of) for value in missing)
+        cause = (
+            Refusal.GROUP_WITH_UNKNOWN_ID
+            if any(value in group_of and value not in known for value in missing)
+            else Refusal.NOTHING_SELECTED
         )
+        refuse(
+            config,
+            cause,
+            " ".join(missing_id_message(value, known, group_of) for value in missing),
+        )
+    for name, members in members_of.items():
+        refuse_mixed_group(config, name, members, items)
 
-    # The filters, one per option that narrows the run, each holding the option's
-    # name, the values it was given and the function that reads that value off a
-    # check. A new selection option is one more entry here, and the filtering and
-    # the refusal below need no change for it.
-    filters = (
-        ("--category", categories, category_of),
-        ("--aspect", aspects, aspect_of),
-        ("--objective", objectives, objective_of),
-        (id_label, ids, code_of),
+    # The filters, one per option that reads a label, each holding the label the
+    # refusals name it by, the values it was given, with those of any option that
+    # adds to it, and the function that reads that value off a check. They are built
+    # from SELECTION_OPTIONS, so the filtering and the refusals below need no change
+    # for a new option.
+    filters = tuple(
+        (
+            " and ".join(
+                f"--{other.name}"
+                for other in SELECTION_OPTIONS
+                if (other.name == option.name or other.adds_to == option.name)
+                and given[other.name]
+            ),
+            given[option.name] + added[option.name],
+            option.reader,
+        )
+        for option in SELECTION_OPTIONS
+        if option.reader is not None
     )
     # Which checks each option matched on its own. When the combination matches
     # nothing, these are what name the option that is the odd one out. They hold
@@ -304,13 +467,45 @@ def pytest_collection_modifyitems(
     # is the same empty run the refusals above exist to prevent, reached by another
     # route, so it is refused the same way rather than reported as a clean result.
     if not kept:
-        raise pytest.UsageError(
-            empty_selection_message(config, items, filters, alone, objectives)
+        refuse(
+            config,
+            Refusal.NOTHING_SELECTED,
+            empty_selection_message(config, items, filters, alone, given["objective"]),
         )
 
     if dropped:
         config.hook.pytest_deselected(items=dropped)
         items[:] = kept
+
+
+def refuse_mixed_group(
+    config: pytest.Config, name: str, members: list[str], items: list[pytest.Item]
+) -> None:
+    """Refuse a group whose checks belong to more than one aspect of quality.
+
+    A report covers one aspect, so a group that mixes aspects cannot be run whole by
+    any aspect's command.
+
+    Args:
+        config: pytest's configuration for the run.
+        name: The group's name.
+        members: The ids the group lists, each a collected check.
+        items: Every collected check.
+
+    Raises:
+        pytest.UsageError: The group's checks belong to more than one aspect.
+    """
+    aspects = sorted(
+        {aspect_of(item) for item in items if code_of(item) in members} - {""}
+    )
+    if len(aspects) > 1:
+        refuse(
+            config,
+            Refusal.GROUP_OF_MIXED_ASPECTS,
+            f"The group {name} in {GROUPS_RELATIVE.as_posix()} lists checks of more "
+            f"than one aspect of quality, {', '.join(aspects)}. A group holds the "
+            "checks of one aspect, so split it into one group per aspect.",
+        )
 
 
 #######################################################################################
@@ -353,11 +548,12 @@ def empty_selection_message(
     """Say why the options together leave no check to run.
 
     Under an aspect's command, the --aspect the command added is not the person's
-    option, so it is never named. When the person's own options match checks that
-    are all of another aspect, the message says so, and when an objective belongs to
-    another aspect, it names that aspect and lists the command's own objectives.
-    Otherwise each option's own count is given, so the reader can see which option
-    is the odd one out.
+    option, so it is never named. The command refuses any --aspect the person gives
+    before collection starts, so the aspect in the run is always the command's own.
+    When the person's own options match checks that are all of another aspect, the
+    message says so, and when an objective belongs to another aspect, it names that
+    aspect and lists the command's own objectives. Otherwise each option's own count
+    is given, so the reader can see which option is the odd one out.
 
     Args:
         config: pytest's configuration for the run.
@@ -370,7 +566,7 @@ def empty_selection_message(
         The message.
     """
     run_aspect = config.stash.get(RUN_ASPECT, None)
-    if run_aspect is None or wanted(config, "aspect") != [run_aspect]:
+    if run_aspect is None:
         return per_option_message(alone)
     # The person's own options, without the aspect the command added.
     own = [f for f in filters if f[0] != "--aspect"]

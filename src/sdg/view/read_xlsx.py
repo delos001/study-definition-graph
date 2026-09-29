@@ -35,9 +35,9 @@ Usage:       read_xlsx <workbook>
              read_xlsx --all --find "epoch"
                  search every workbook under inputs/
 
-Exit codes:  0   success
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own (this covers
+Exit codes:  0   the command succeeded
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line (this covers
                  --all without --find, and no workbook named)
              25  the named sheet does not exist in the workbook
              26  no workbook under inputs/ matches the name given
@@ -171,8 +171,9 @@ def count_text(value: int | None) -> str:
     return "" if value is None else str(value)
 
 
-def read_rows(worksheet: Worksheet, header_row: int = 1) -> list[list[str]]:
-    """Read a worksheet into rows of strings, dropping fully empty rows.
+def read_rows(worksheet: Worksheet, header_row: int = 1) -> list[tuple[int, list[str]]]:
+    """Read a worksheet into rows of strings, each with its sheet row number, dropping
+    fully empty rows.
 
     Trailing empty rows are common in these workbooks because openpyxl reports max_row
     from the sheet dimensions, which often overshoot the real data. Dropping them keeps
@@ -183,18 +184,24 @@ def read_rows(worksheet: Worksheet, header_row: int = 1) -> list[list[str]]:
     happens here, before empty rows are dropped, so header_row means the row the sheet
     itself calls that number rather than a position in the result.
 
+    Each row keeps the number the sheet gives it, counted before any row is dropped, so
+    a printed row can be found in Excel and agrees with what --find reports for it.
+
     Args:
         worksheet: The open worksheet.
         header_row: The sheet's own number for the row holding the column names.
 
     Returns:
-        One list of cell strings per non-empty row at or below header_row.
+        One pair per non-empty row at or below header_row: the sheet's own number for
+            the row, and the row's cell strings.
     """
     rows = []
-    for raw_row in worksheet.iter_rows(min_row=header_row, values_only=True):
+    for row_number, raw_row in enumerate(
+        worksheet.iter_rows(min_row=header_row, values_only=True), start=header_row
+    ):
         cells = [cell_text(value) for value in raw_row]
         if any(cells):
-            rows.append(cells)
+            rows.append((row_number, cells))
     return rows
 
 
@@ -202,7 +209,7 @@ def read_rows(worksheet: Worksheet, header_row: int = 1) -> list[list[str]]:
 ### Output formats ###
 
 
-def print_table(rows: list[list[str]]) -> None:
+def print_table(rows: list[tuple[int, list[str]]]) -> None:
     """Print rows as a column-aligned table, with the first row treated as a header.
 
     Column widths are computed from the content so narrow columns stay narrow. Cells
@@ -210,7 +217,8 @@ def print_table(rows: list[list[str]]) -> None:
     available through --format records, so nothing is unrecoverable.
 
     Args:
-        rows: The rows, the first one being the header.
+        rows: The rows with their sheet row numbers, the first one being the header.
+            The numbers are not printed, because a table's rows stay in sheet order.
     """
     if not rows:
         print("(sheet is empty)")
@@ -221,7 +229,7 @@ def print_table(rows: list[list[str]]) -> None:
             cell if len(cell) <= MAX_CELL_WIDTH else cell[: MAX_CELL_WIDTH - 3] + "..."
             for cell in row
         ]
-        for row in rows
+        for _row_number, row in rows
     ]
 
     column_count = max(len(row) for row in trimmed)
@@ -242,8 +250,9 @@ def print_table(rows: list[list[str]]) -> None:
             print("  ".join("-" * width for width in widths).rstrip())
 
 
-def print_records(rows: list[list[str]]) -> None:
-    """Print each data row as a block of "header: value" lines.
+def print_records(rows: list[tuple[int, list[str]]]) -> None:
+    """Print each data row as a block of "header: value" lines, headed by its sheet row
+    number.
 
     This is the format for wide sheets. The Schedule of Activities grid runs to dozens
     of columns, where a table is unreadable and truncation would hide the visit column
@@ -251,15 +260,15 @@ def print_records(rows: list[list[str]]) -> None:
     empty by design.
 
     Args:
-        rows: The rows, the first one being the header.
+        rows: The rows with their sheet row numbers, the first one being the header.
     """
     if not rows:
         print("(sheet is empty)")
         return
 
-    headers = rows[0]
+    headers = rows[0][1]
 
-    for row_number, row in enumerate(rows[1:], start=2):
+    for row_number, row in rows[1:]:
         print(f"--- row {row_number} ---")
         for index, cell in enumerate(row):
             if not cell:
@@ -453,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 46
 
-        width = max((len(row) for row in rows), default=0)
+        width = max((len(row) for _row_number, row in rows), default=0)
         heading = f"### {workbook_path.name} | sheet {actual}"
         if args.header_row > 1:
             heading += f" | from row {args.header_row}"

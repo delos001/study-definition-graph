@@ -7,7 +7,8 @@
 # Each entry carries:
 #   key          what a person types after --doc
 #   label        how the document is named in output, so a quote can cite it
-#   file         the file name a manifest records, which owns the path on disk
+#   file         the file name a manifest records. The manifest alone says
+#                where the file lives, so no location is written here.
 #   boilerplate  patterns for the header and footer lines repeated on every
 #                page, stripped from an extract unless --raw is passed. Each is
 #                a regular expression anchored to the start of a line, so body

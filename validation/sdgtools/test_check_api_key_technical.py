@@ -20,7 +20,7 @@ Usage:       pytest validation/sdgtools/test_check_api_key_technical.py
              pytest validation/sdgtools/test_check_api_key_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-15
 Owner:       Jason Delosh
@@ -32,7 +32,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import anthropic
-import httpx
+
+# The anthropic library declares its errors with the request and response types of
+# httpx2, its own HTTP library, so the fake errors are built from httpx2 to match.
+import httpx2
 import pytest
 
 from sdgtools import check_api_key as script
@@ -206,20 +209,13 @@ def test_quiet_prints_nothing_when_the_key_works(repo, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_prints_nothing(repo, monkeypatch, capsys):
-    """With the quiet option, nothing at all is printed."""
+def test_quiet_missing_key_exits_28_and_prints_nothing(repo, monkeypatch, capsys):
+    """With the quiet option, a missing key still exits 28, and nothing at all is
+    printed."""
     write_env(repo, "ANTHROPIC_API_KEY=")
-    assert run(capsys, "--quiet").printed == ""
-
-
-@code("SA00262")
-@category("repository")
-@objective("functionality")
-@negative
-def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
-    """With the quiet option, the exit code still reports the missing key."""
-    write_env(repo, "ANTHROPIC_API_KEY=")
-    assert run(capsys, "--quiet").exit_code == 28
+    outcome = run(capsys, "--quiet")
+    assert outcome.exit_code == 28
+    assert outcome.printed == ""
 
 
 @code("SA00263")
@@ -256,12 +252,12 @@ def test_empty_key_is_refused(repo, capsys):
 def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
     """When the API does not recognise the key, the run exits 29 and the message says
     the key was rejected and where to get a new one."""
-    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
         monkeypatch,
         anthropic.AuthenticationError(
             "invalid x-api-key",
-            response=httpx.Response(401, request=request),
+            response=httpx2.Response(401, request=request),
             body=None,
         ),
     )
@@ -282,12 +278,12 @@ def test_key_without_access_is_reported_as_an_account_problem(
     """When the API knows the key but will not let it use the model, the run exits 43.
     The message says the key is right and points at the account, rather than saying to
     paste the key again."""
-    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
         monkeypatch,
         anthropic.PermissionDeniedError(
             "permission denied",
-            response=httpx.Response(403, request=request),
+            response=httpx2.Response(403, request=request),
             body=None,
         ),
     )
@@ -306,7 +302,7 @@ def test_key_without_access_is_reported_as_an_account_problem(
 def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When the API cannot be reached at all, the run exits 30 and the message says
     to check the network rather than the key."""
-    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(monkeypatch, anthropic.APIConnectionError(request=request))
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     outcome = run(capsys)
@@ -325,12 +321,12 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
     """When the API answers with an error that is neither a rejected key nor a failed
     connection, such as a retired model name, the run exits 41 and prints the API's own
     message."""
-    request = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+    request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
         monkeypatch,
         anthropic.NotFoundError(
             "model: no-such-model",
-            response=httpx.Response(404, request=request),
+            response=httpx2.Response(404, request=request),
             body=None,
         ),
     )
@@ -470,7 +466,7 @@ def test_a_reply_with_no_text_gives_an_empty_answer(monkeypatch):
 # With the quiet option, each refusal prints nothing and still exits with its own
 # code. One check runs once per refusal.
 
-API_REQUEST = httpx.Request("POST", "https://api.anthropic.com/v1/messages")
+API_REQUEST = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
 
 
 def outside_the_repo(repo: Path, monkeypatch) -> int:
@@ -496,7 +492,7 @@ def rejected_key(repo: Path, monkeypatch) -> int:
         monkeypatch,
         anthropic.AuthenticationError(
             "invalid x-api-key",
-            response=httpx.Response(401, request=API_REQUEST),
+            response=httpx2.Response(401, request=API_REQUEST),
             body=None,
         ),
     )
@@ -510,7 +506,7 @@ def key_without_access(repo: Path, monkeypatch) -> int:
         monkeypatch,
         anthropic.PermissionDeniedError(
             "permission denied",
-            response=httpx.Response(403, request=API_REQUEST),
+            response=httpx2.Response(403, request=API_REQUEST),
             body=None,
         ),
     )
@@ -531,7 +527,7 @@ def api_error(repo: Path, monkeypatch) -> int:
         monkeypatch,
         anthropic.NotFoundError(
             "model: no-such-model",
-            response=httpx.Response(404, request=API_REQUEST),
+            response=httpx2.Response(404, request=API_REQUEST),
             body=None,
         ),
     )

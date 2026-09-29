@@ -22,7 +22,7 @@ Usage:       pytest validation/sdgval/test_aspect_run_technical.py
              pytest validation/sdgval/test_aspect_run_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-26
 Owner:       Jason Delosh

@@ -1,5 +1,7 @@
 # study-definition-graph
 
+This repo is in development, so some processes or steps it describes may be planned but not yet implemented.
+
 ## Overview
 
 This project translates unstructured clinical documents into USDM-standard structure and loads them into a knowledge graph. Read as prose, the information from unstructured documents exists as a mental graph, for a person who has read them all. A mental graph cannot be shared or queried, so the information is used inconsistently and carrying it into downstream work is slow and costly.
@@ -14,7 +16,7 @@ See [BACKGROUND.md](BACKGROUND.md) for why the project exists and the problem in
 
 The pipeline runs as five stages, each taking the previous stage's output as its input. Each stage is one folder under `src/sdg/`.
 
-1. **Acquire** (`sources/`): pull protocols and SAPs from ClinicalTrials.gov, record each one in a manifest, and check every pinned file against its fingerprint.
+1. **Acquire** (`sources/`): pull protocols and SAPs from ClinicalTrials.gov, record each one in a manifest, and confirm that every pinned file matches its fingerprint.
 2. **Locate** (`locate/`): find section boundaries and the schedule grid, with no AI, so a later error can be traced to reading or to prompting but not both.
 3. **Classify** (`classify/`): decide the document's type and what each section is about, with AI.
 4. **Extract** (`extract/`): turn classified content into USDM structures, with every fact carrying where it came from.
@@ -28,20 +30,17 @@ A validation system is included in this workflow. Validation of process outputs 
 
 ## Status
 
-This project is IN DEVELOPMENT.
-
 The project has six phases, Phase 0 to Phase 5, described in [PLAN.md](PLAN.md).
 
-Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues);
-The build sequence and per-phase verification are in [PLAN.md](PLAN.md).
+Current status and the task backlog live in [GitHub Issues](https://github.com/delos001/study-definition-graph/issues). The build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 
 ## Where to look
 
 | For | Read |
 | --- | --- |
 | Which pinned file answers which question | [docs/sources_index.md](docs/sources_index.md) |
-| Every map and inventory the project keeps | [docs/README.md](docs/README.md) |
-| What each repo tool does, and how to run it | [src/sdgtools/README.md](src/sdgtools/README.md) |
+| The project's documentation about itself | [docs/README.md](docs/README.md) |
+| What each installed command does, and how to run it | [docs/commands.md](docs/commands.md) |
 | Which fields the project adds to USDM, and why | [local_definitions/README.md](local_definitions/README.md) |
 | Which codes identify clients, therapeutic areas and document types | [registries/README.md](registries/README.md) |
 
@@ -49,33 +48,32 @@ The build sequence and per-phase verification are in [PLAN.md](PLAN.md).
 
 Commands are PowerShell. The same steps work on macOS or Linux with that shell's syntax.
 
-### You need:
-- Git,
-- [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/),
-- [Docker Desktop](https://www.docker.com/products/docker-desktop/),
-- your own [Anthropic API key](https://console.anthropic.com/).
+### What you need
+
+The setup needs Git, [Miniconda or Anaconda](https://docs.conda.io/projects/miniconda/), [Docker Desktop](https://www.docker.com/products/docker-desktop/), and your own [Anthropic API key](https://console.anthropic.com/).
 
 ### Setup
 ```powershell
 # 1. Clone the repo then navigate to it.
 git clone <repo-url> && cd study-definition-graph
 
-# 2. Turn on the pre-commit checks. They block a commit when a generated file is out of
-#    date or a Python file breaks the repo's rules.
-#    `.githooks/README.md` lists every check.
-git config core.hooksPath .githooks
-
-# 3. Create the Python environment. Python 3.12 comes from the pinned environment.yml.
+# 2. Create the Python environment. environment.yml names every package, Python 3.12
+#    included, and the versions each may take.
 conda env create -f environment.yml
 
-# 4. Activate the sdg conda environment.
+# 3. Activate the sdg conda environment.
 conda activate sdg
 
-# 5. Install the sdg package defined in the src/ folder in editable mode, so that the repo's
-#    commands like usdm_spec and read_pdf work correctly and code edits take effect with
-#    no reinstall.
+# 4. Install the three packages in the src/ folder, sdg, sdgtools and sdgval, in
+#    editable mode, so that the repo's commands, such as usdm_spec and read_pdf, work
+#    and code edits take effect with no reinstall.
 #    Dependencies stay owned by environment.yml, not this install.
 pip install -e .
+
+# 5. Turn on the steps that run before every commit. They block a commit when a
+#    generated file is out of date or a Python file breaks the repo's rules.
+#    .pre-commit-config.yaml lists every step and what it refuses.
+pre-commit install
 
 # 6. Start the Neo4j container. Its version, two ports (browser and driver), and
 #    password come from docker-compose.yml in the repo folder.
@@ -93,10 +91,12 @@ Copy-Item .env.example .env
 check_api_key
 
 # 9. Acquire pinned sources. Everything under inputs/ is gitignored, so a fresh clone
-#    has none of it. Every pinned file is recorded in manifests/ with its URL and sha256.
+#    has none of it. Every pinned file is recorded in manifests/ with its URL and its
+#    SHA-256 hash, a fingerprint of the file's content made with the Secure Hash
+#    Algorithm.
 #    The command below downloads them all and verifies each hash.
 #    Add --dry-run to see what it would fetch without touching the network.
-#    The sdg environment must be active (step 4 above).
+#    The sdg environment must be active (step 3 above).
 #    Note: this command does not overwrite existing files so it is safe to re-run if needed.
 acquire_sources
 ```
@@ -116,7 +116,7 @@ docker compose down -v
 ```
 
 ### Setup Verification
-Each command should exit 0:
+Each command below should exit 0.
 
 ```powershell
 # Confirms every pinned file is present and matches its manifest entry; downloads nothing.
@@ -126,8 +126,8 @@ acquire_sources --dry-run
 find_unrecorded_files
 
 # Recomputes every figure the project's documents state, such as a class count, from
-# the pinned files under inputs/, and reports any figure that no longer agrees. The
-# documents it reads are listed in the script.
+# the pinned files under inputs/, and reports any figure that no longer agrees. It
+# reads every Markdown document git tracks, apart from the ones the script excludes.
 check_facts
 
 # Confirms the pinned USDM model file inputs/standards/cdisc/usdm_v4/dataStructure.yml
@@ -144,7 +144,7 @@ pytest
 ```
 
 ## Working in this repo
-Rules below are critical. See [CLAUDE.md](CLAUDE.md) for the full rule set, including the rules every Python file follows.
+Rules below are critical. See [CLAUDE.md](CLAUDE.md) for the full rule set. The rules every Python file follows are in [.claude/rules/writing_python_files.md](.claude/rules/writing_python_files.md).
 
 - Everything under `inputs/` is pinned and never edited.
 - Every pinned file is downloaded and recorded in `manifests/` as it happens.
@@ -169,7 +169,7 @@ study-definition-graph/
   .gitignore               # what git leaves out, including inputs/ and .env
   .mcp.json                # GitHub server a Claude Code session connects to
   .claude/                 # rules and hooks for Claude Code sessions
-  .githooks/               # checks that run before a commit
+  .pre-commit-config.yaml  # the steps that run before every commit
   docs/                    # project reference documents
     draft/                 #   diagrams and notes in progress
   manifests/               # where each pinned file came from, and its fingerprint
@@ -192,11 +192,11 @@ study-definition-graph/
       extract/             #     turn classified content into USDM structures
       graph/               #     load structures into Neo4j and query them
       locate/              #     find section boundaries and the schedule grid
-      sources/             #     fetch the pinned files and check them
+      sources/             #     fetch the pinned files and confirm them
       usdm/                #     read the USDM standard
       view/                #     print part of a pinned document or workbook
     sdgtools/              #   repo tools, the commands that keep this repo in order
-    sdgval/                #   validation package, the plugins that run the checks
+    sdgval/                #   validation package, the plugins and commands that run the checks
   validation/              # checks that prove the code works, mirroring src/
     claude_hooks/          #   validation for the hooks in .claude/hooks/
     fixtures/              #   small stand-ins for real files a check should not read directly

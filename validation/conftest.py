@@ -1,10 +1,10 @@
 """
 Script:      conftest.py
 Description: Supplies the setups the test_*.py files under validation/ share. pytest
-             reads this file automatically before any test file under validation/
+             reads this file automatically before any check file under validation/
              runs, and requires it to be named conftest.py.
 
-             It adds these fixtures for the test files to ask for by name:
+             It adds these fixtures for the check files to ask for by name:
                - manifest_dir points the manifest reader,
                  src/sdg/sources/read_manifests.py, at a temporary folder,
                - manifest_recording writes one manifest entry for one file,
@@ -204,7 +204,7 @@ def server(monkeypatch):
     fetch() used when the call happens."""
     from sdg.sources import fetch_file
 
-    record = {}
+    record: dict[str, object] = {}
 
     def stage(behavior):
         """Install a fake httpx.stream that behaves as given.
@@ -358,7 +358,7 @@ def fake_repo(tmp_path, monkeypatch) -> FakeRepo:
     manifests folder. All three are pointed at the fake repo for the length of the
     check, and monkeypatch puts them back afterwards. A script that copied one of those
     locations when it was first loaded, such as find_unrecorded_files with its
-    PINNED_DIR, is not covered by this; the test file for that script has its own
+    PINNED_DIR, is not covered by this; the check file for that script has its own
     fixture to repoint it.
 
     Returns:
@@ -399,7 +399,7 @@ def real_manifests():
 class StagedSuite:
     """A throwaway suite of checks, run in a separate pytest process.
 
-    The suite is laid out like the real repo: its test file sits in a validation/
+    The suite is laid out like the real repo: its check file sits in a validation/
     folder under the temporary root, because the validation package finds
     validation/ from pytest's root folder. The package's plugins are loaded in the
     separate process through their entry point, as they are for a real run.
@@ -421,13 +421,13 @@ class StagedSuite:
         self.technical_dir = self.report_dir / "technical"
 
     def write(self, test_source: str) -> Path:
-        """Write the suite's one test file into its validation/ folder.
+        """Write the suite's one check file into its validation/ folder.
 
         Args:
-            test_source: The source of the test file.
+            test_source: The source of the check file.
 
         Returns:
-            The test file's path.
+            The check file's path.
         """
         self.validation.mkdir(exist_ok=True)
         self.test_file.write_text(textwrap.dedent(test_source), encoding="utf-8")
@@ -452,7 +452,7 @@ class StagedSuite:
         made after committing stays uncommitted.
 
         Args:
-            test_source: The source of the test file.
+            test_source: The source of the check file.
             *extra_args: Any further pytest arguments.
 
         Returns:
@@ -527,7 +527,7 @@ class StagedSuite:
         tracked file it can change without the run writing it back.
 
         Args:
-            test_source: The source of the test file.
+            test_source: The source of the check file.
             aspect_conftest: Whether to commit the conftest that stands in for an
                 aspect's command. A check that runs a real command leaves it out,
                 because the command names its own aspect.

@@ -13,7 +13,7 @@ Usage:       pytest validation/sdg/usdm/test_usdm_spec_conformance.py
              pytest validation/sdg/usdm/test_usdm_spec_conformance.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -49,7 +49,7 @@ def test_pinned_file_types_are_classes_or_five_primitives():
     five basic types, and exactly four attributes point at more than one type. The check
     holds its own copy of the five and the four."""
     spec = usdm_spec.load()
-    primitives = set()
+    primitives: set[str] = set()
     multi = []
     for cname, body in spec.items():
         for aname, attr in body["Attributes"].items():

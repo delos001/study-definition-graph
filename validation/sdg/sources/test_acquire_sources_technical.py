@@ -27,7 +27,7 @@ Usage:       pytest validation/sdg/sources/test_acquire_sources_technical.py
              pytest validation/sdg/sources/test_acquire_sources_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -43,12 +43,10 @@ import pytest
 from sdg.sources import acquire_sources
 from sdg.sources.fetch_file import FetchError, partial_path
 from sdgval.labels import category, code, negative, objective, positive
+from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
-# The one staged file most checks use, its bytes, and the url its entry carries.
-# The url is the one FakeRepo.entry builds for a file of that name.
-LOCAL = "inputs/set_a/file.txt"
-CONTENT = b"pinned bytes\n"
-SHA256 = hashlib.sha256(CONTENT).hexdigest()
+# The url in the entry for the one staged file most checks use. It is the url
+# FakeRepo.entry builds for a file of that name.
 URL = "https://example.invalid/file.txt"
 
 # These bytes have the same length as CONTENT, so a file holding them differs
@@ -443,19 +441,12 @@ def test_wrong_hash_download_exits_12(wrong_hash):
 @category("repository")
 @objective("functionality")
 @negative
-def test_failed_fetch_is_reported_with_its_cause(failed_fetch):
-    """An address that cannot be fetched is reported as failed, with the cause."""
+def test_failed_fetch_exits_11_with_its_cause(failed_fetch):
+    """An address that cannot be fetched makes the run exit 11, and it is reported as
+    failed, with the cause."""
+    assert failed_fetch.code == 11
     assert "FAILED" in failed_fetch.out
     assert "no such host" in failed_fetch.out
-
-
-@code("SA00019")
-@category("repository")
-@objective("functionality")
-@negative
-def test_failed_fetch_exits_11(failed_fetch):
-    """A failed fetch makes the run exit 11."""
-    assert failed_fetch.code == 11
 
 
 @code("SA00020")
@@ -575,42 +566,26 @@ def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_locked_file_is_reported_as_cannot_read_with_the_cause(locked):
-    """A recorded file that cannot be opened is reported as unreadable with the cause,
-    and as left alone, rather than ending the run with a Python error."""
+def test_locked_file_exits_13_reported_as_cannot_read(locked):
+    """A recorded file that cannot be opened makes the run exit 13 rather than end with a
+    Python error, and it is reported as unreadable with the cause, and as left alone."""
+    assert locked.code == 13
     assert "CANNOT READ" in locked.out
     assert "locked by another program" in locked.out
     assert "left alone" in locked.out
-
-
-@code("SA00026")
-@category("repository")
-@objective("functionality")
-@negative
-def test_locked_file_exits_13(locked):
-    """A recorded file that cannot be opened makes the run exit 13."""
-    assert locked.code == 13
 
 
 @code("SA00027")
 @category("repository")
 @objective("functionality")
 @negative
-def test_folder_at_a_recorded_path_is_reported_as_cannot_read(folder):
-    """A folder where a recorded file should be is reported as unreadable, a folder not
-    a file, and as left alone."""
+def test_folder_at_a_recorded_path_exits_13_reported_as_cannot_read(folder):
+    """A folder where a recorded file should be makes the run exit 13, and it is
+    reported as unreadable, a folder not a file, and as left alone."""
+    assert folder.code == 13
     assert "CANNOT READ" in folder.out
     assert "a folder, not a file" in folder.out
     assert "left alone" in folder.out
-
-
-@code("SA00028")
-@category("repository")
-@objective("functionality")
-@negative
-def test_folder_at_a_recorded_path_exits_13(folder):
-    """A folder where a recorded file should be makes the run exit 13."""
-    assert folder.code == 13
 
 
 @code("SA00029")
@@ -686,3 +661,22 @@ def test_repo_check_runs_before_any_manifest_is_read(fake_repo, network, capsys)
     fake_repo.manifest("set_a", "{ not json")
     network(None)
     assert run(capsys).code == 6
+
+
+@code("SA00609")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_location_outside_inputs_exits_66(fake_repo, network, capsys):
+    """An entry whose location does not stay under inputs/ stops the run with exit 66
+    before anything is fetched, and the message quotes the location."""
+    fake_repo.manifest(
+        "set_a", [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
+    )
+    network(None)
+    outcome = run(capsys)
+    assert outcome.code == 66
+    assert (
+        'has local "inputs/../elsewhere.txt", which does not stay under inputs/'
+        in outcome.out
+    )

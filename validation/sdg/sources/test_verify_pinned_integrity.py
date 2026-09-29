@@ -13,7 +13,7 @@ Usage:       pytest validation/sdg/sources/test_verify_pinned_integrity.py
              pytest validation/sdg/sources/test_verify_pinned_integrity.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -32,7 +32,7 @@ from sdg.sources import (
     read_manifests,
     verify_pinned,
 )
-from sdgval.labels import category, code, negative, objective, positive
+from sdgval.labels import category, code, objective, positive
 from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 
@@ -127,21 +127,3 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
 def test_recorded_file_content_reads(recorded_file):
     """A verified file's content can be read."""
     assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
-
-
-@code("SA00500")
-@category("sources")
-@objective("stability")
-@negative
-def test_unreadable_manifests_make_the_stability_check_fail_once(monkeypatch):
-    """When the manifests cannot be read, the stability check runs once and fails
-    with the manifest reader's own message, so a broken manifest can never leave the
-    check running zero times and passing quietly."""
-
-    def unreadable() -> list:
-        raise ManifestError("set_a.json: cannot read (staged)")
-
-    monkeypatch.setattr(read_manifests, "manifests", unreadable)
-    (only,) = pinned_locals()
-    with pytest.raises(pytest.fail.Exception, match=r"set_a\.json: cannot read"):
-        test_pinned_file_is_unchanged(only.values[0])

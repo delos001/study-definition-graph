@@ -19,7 +19,7 @@ Usage:       pytest validation/sdg/sources/test_fingerprint_file_technical.py
              pytest validation/sdg/sources/test_fingerprint_file_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-10
 Owner:       Jason Delosh

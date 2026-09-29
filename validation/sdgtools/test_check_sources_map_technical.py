@@ -20,7 +20,7 @@ Usage:       pytest validation/sdgtools/test_check_sources_map_technical.py
              pytest validation/sdgtools/test_check_sources_map_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-15
 Owner:       Jason Delosh
@@ -34,9 +34,9 @@ import pytest
 
 from sdgtools import check_sources_map as script
 from sdgval.labels import category, code, negative, objective, positive
+from validation.shared.staged_manifests import CONTENT
 
 PINNED = "inputs/standards/example/Example_Guide.pdf"
-CONTENT = b"pinned bytes\n"
 
 MAP = "\n".join(
     [
@@ -312,44 +312,22 @@ def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
     assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
 
 
-@pytest.fixture
-def quiet_with_a_forgotten_file(repo, fake_repo, capsys):
-    """Stage a recorded file the map does not cover, run the tool with the quiet
-    option, and hand back what the run produced."""
-    fake_repo.file("inputs/standards/example/Forgotten.xlsx", CONTENT)
-    fake_repo.manifest(
-        "extra", [fake_repo.entry("inputs/standards/example/Forgotten.xlsx")]
-    )
-    return run(capsys, MAP, "--quiet")
-
-
 @code("SA00328")
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_prints_nothing(quiet_with_a_forgotten_file):
-    """With the quiet option, nothing is printed even when a recorded file has no
-    heading in the map."""
-    assert quiet_with_a_forgotten_file.printed == ""
-
-
-@code("SA00329")
-@category("repository")
-@objective("functionality")
-@negative
-def test_quiet_keeps_the_exit_code(quiet_with_a_forgotten_file):
-    """With the quiet option, the exit code still reports the recorded file that has
-    no heading in the map."""
-    assert quiet_with_a_forgotten_file.exit_code == 35
-
-
-#######################################################################################
-### The real map ###
-#
-# Every check above stages its own map. This one runs the tool over the repo's own map
-# and manifests, which is the run that keeps the two in step. It reads real files
-# deliberately, the way the header checker's real-folders check does, because a staged
-# map cannot prove the real one is right.
+def test_quiet_file_with_no_heading_exits_35_and_prints_nothing(
+    repo, fake_repo, capsys
+):
+    """With the quiet option, a recorded file that has no heading in the map still
+    exits 35, and nothing is printed."""
+    fake_repo.file("inputs/standards/example/Forgotten.xlsx", CONTENT)
+    fake_repo.manifest(
+        "extra", [fake_repo.entry("inputs/standards/example/Forgotten.xlsx")]
+    )
+    outcome = run(capsys, MAP, "--quiet")
+    assert outcome.exit_code == 35
+    assert outcome.printed == ""
 
 
 #######################################################################################
@@ -406,3 +384,51 @@ def test_a_heading_with_no_location_covers_no_file(repo, capsys):
     outcome = run(capsys, text)
     assert outcome.exit_code == 35
     assert "Example_Guide.pdf" in outcome.printed
+
+
+#######################################################################################
+### Upper and lower case in a name ###
+#
+# A name in the map matches a recorded path only when every letter has the same case,
+# on Windows as on every other system.
+
+
+@code("SA00592")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_heading_in_another_case_covers_no_file(repo, capsys):
+    """A document heading whose file name differs from the recorded file only in upper
+    and lower case does not cover it, so the run exits 35 and names the file."""
+    text = MAP.replace("Document: Example_Guide.pdf", "Document: example_guide.pdf")
+    outcome = run(capsys, text)
+    assert outcome.exit_code == 35
+    assert PINNED in outcome.printed
+
+
+@code("SA00593")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_location_in_another_case_holds_no_file(repo, capsys):
+    """A location line whose folder differs from a recorded folder only in upper and
+    lower case holds no recorded file, so the run exits 36 and names the location."""
+    text = MAP + "\n- location: inputs/standards/EXAMPLE/\n"
+    outcome = run(capsys, text)
+    assert outcome.exit_code == 36
+    assert "inputs/standards/EXAMPLE" in outcome.printed
+
+
+@code("SA00612")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_manifest_location_outside_inputs_exits_66(repo, fake_repo, capsys):
+    """When a manifest records a location that does not stay under inputs/, the run
+    exits 66 and quotes the location, instead of comparing a map against it."""
+    fake_repo.manifest(
+        "stray", [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
+    )
+    outcome = run(capsys, MAP)
+    assert outcome.exit_code == 66
+    assert "does not stay under inputs/" in outcome.printed

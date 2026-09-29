@@ -3,27 +3,36 @@ name: sdg
 channels:
   - conda-forge
 
+# ruff, mypy, pytest and coverage decide whether the code passes, so each is fixed
+# at one exact version. A verdict then changes only when the code changes, never
+# because a tool moved. Every other package is held to its current major version,
+# because a new major version is where a library breaks what it used to do.
+
 dependencies:
   # Python is 3.12 rather than 3.13, because the PDF and table stack is better
   # tested there.
   - python=3.12
 
   # Binary or compiled dependencies go through conda.
-  - pymupdf        # PDF text extraction with layout and bounding boxes
-  - pandas         # tables from the pinned workbooks, and scoring against eval/
-  - openpyxl       # reads the pinned workbooks: the controlled terminology (CT), the CDISC Open Rules Engine (CORE) conformance rules, the crosswalks, the worked examples
-  - grimp          # maps which project file imports which, for the order between scripts' checks
-  - ruff           # confirms the Python files follow the standard layout and style; run by check_python_files
-  - mypy           # confirms functions take and return the kinds of values they declare; run by check_python_files
+  - pymupdf>=1.28,<2        # PDF text extraction with layout and bounding boxes
+  - pandas>=3.0,<4          # tables from the pinned workbooks, and scoring against eval/
+  - openpyxl>=3.1,<4        # reads the pinned workbooks: the controlled terminology (CT), the CDISC Open Rules Engine (CORE) conformance rules, the crosswalks, the worked examples
+  - grimp>=3.17,<4          # maps which project file imports which, for the order between scripts' checks
+  - ruff==0.16.9            # confirms the Python files follow the standard layout and style; run by check_python_files
+  - mypy==2.3.1             # confirms functions take and return the kinds of values they declare; run by check_python_files
   - pip
 
   - pip:
-      - anthropic          # extraction and classification
-      - pdfplumber         # table detection, complements pymupdf; used from Phase 1
-      - pydantic>=2        # schemas generated from the pinned dataStructure.yml; used from Phase 3
-      - neo4j              # graph driver
-      - httpx              # the ClinicalTrials.gov and Digital Data Flow (DDF) services
-      - python-dotenv      # reads .env once the pipeline calls the model; used from Phase 2
-      - pyyaml             # reads the lookup document list in src/sdg/view/, and the prompt files later
-      - pytest
-      - coverage           # measures which lines the checks reach; the commands are in validation/running_validation.md
+      - anthropic>=1.8,<2          # extraction and classification
+      - httpx2>=2.13,<3            # the HTTP library anthropic uses; its error types build the fake API errors in the checks
+      - pdfplumber>=0.11,<1        # table detection, complements pymupdf; used from Phase 1
+      - pydantic>=2.13,<3          # schemas generated from the pinned dataStructure.yml; used from Phase 3
+      - neo4j>=6.3,<7              # graph driver
+      - httpx>=0.28,<1             # the ClinicalTrials.gov and Digital Data Flow (DDF) services
+      - python-dotenv>=1.2,<2      # reads .env once the pipeline calls the model; used from Phase 2
+      - pyyaml>=6.0,<7             # reads the lookup document list in src/sdg/view/, and the prompt files later
+      - pytest==9.1.1              # finds and runs the checks under validation/
+      - pluggy>=1.6,<2             # pytest's plugin library, which src/sdgval/report.py imports directly
+      - coverage==7.16.1           # measures which lines the checks reach; the commands are in validation/running_validation.md
+      - cosmic-ray>=8.7,<9         # breaks a file under test on a copy of the repo to prove its checks can fail; the commands are in validation/running_validation.md
+      - pre-commit>=4.6,<5         # runs the steps in .pre-commit-config.yaml before every commit

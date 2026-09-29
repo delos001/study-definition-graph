@@ -33,24 +33,25 @@ Inputs:      docs/sources_index.md                              (read-only)
 Outputs:     Nothing on disk. Prints one line per disagreement, or nothing when
              the map and the manifests agree.
 
-             This runs from the validation suite rather than the pre-commit
-             hook, .githooks/pre-commit. The hook keeps to tools that need only the standard library,
-             so a commit works in a terminal where the sdg environment is not
-             active, and this one reads the manifests through the sdg package.
+             This tool is not a step of the pre-commit hook, whose steps are in
+             .pre-commit-config.yaml. The check in
+             validation/sdgtools/test_check_sources_map_integrity.py makes the
+             same run over the real map and manifests.
 
 Usage:       check_sources_map
                  report every disagreement
              check_sources_map --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success (the map and the manifests agree)
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
+Exit codes:  0   the command succeeded (the map and the manifests agree)
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
              3   a manifest is missing or cannot be read
-             6   not running from inside the repo
+             6   the command is not running from inside the repo
              13  a file on disk cannot be read (the sources map)
              35  a pinned file has no document heading in the sources map
              36  the sources map names a location no manifest records
+             66  a manifest records a location that does not stay under inputs/
              35 outranks 36, because a file nobody can find is worse than a
              heading pointing at an empty folder. Every problem is still named.
              The numbers are the repo-wide table in
@@ -65,9 +66,14 @@ from __future__ import annotations
 import argparse
 import re
 import sys
-from fnmatch import fnmatch
+from fnmatch import fnmatchcase
 
-from sdg.sources import ManifestError, NotInRepoError, manifests
+from sdg.sources import (
+    ManifestError,
+    NotInRepoError,
+    OutsideInputsError,
+    manifests,
+)
 from sdg.sources.read_manifests import REPO_ROOT, Manifest
 
 #######################################################################################
@@ -170,7 +176,9 @@ def covers(location: str, pattern: str, local: str) -> bool:
         return False
     folder = PLACEHOLDER_RE.sub("*", location)
     wildcard = PLACEHOLDER_RE.sub("*", pattern)
-    return fnmatch(local, f"{folder}/{wildcard}")
+    # The case-respecting match is used, so a heading and a file whose names differ
+    # only in upper and lower case never match, on Windows as on every other system.
+    return fnmatchcase(local, f"{folder}/{wildcard}")
 
 
 def unmapped_files(found: list[Manifest], patterns: list[tuple[str, str]]) -> list[str]:
@@ -208,7 +216,7 @@ def empty_locations(found: list[Manifest], locations: list[str]) -> list[str]:
     empty = []
     for location in locations:
         prefix = PLACEHOLDER_RE.sub("*", location)
-        if not any(fnmatch(local, f"{prefix}/*") for local in recorded):
+        if not any(fnmatchcase(local, f"{prefix}/*") for local in recorded):
             empty.append(location)
     return empty
 
@@ -242,6 +250,12 @@ def main(argv: list[str] | None = None) -> int:
         if not args.quiet:
             print(exc)
         return 6
+    # A location outside inputs/ is a kind of manifest error with its own number,
+    # so it is caught first.
+    except OutsideInputsError as exc:
+        if not args.quiet:
+            print(exc)
+        return 66
     except ManifestError as exc:
         if not args.quiet:
             print(exc)

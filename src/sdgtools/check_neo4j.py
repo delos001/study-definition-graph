@@ -16,7 +16,7 @@ Description: Confirms the project's Neo4j database is running, accepts the login
              pin.
 
              This tool needs Docker running with the container up, so it is not
-             part of the pre-commit hook, .githooks/pre-commit. It is one of the checks README.md asks
+             part of the pre-commit hook, whose steps are in .pre-commit-config.yaml. It is one of the checks README.md asks
              a person to run after setup.
 
 Inputs:      .env at the repo root             (read-only; the three NEO4J_ lines)
@@ -32,12 +32,11 @@ Usage:       check_neo4j
              check_neo4j --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success (the database answers and is the pinned version)
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
-             6   not running from inside the repo
-             13  a file on disk cannot be read (docker-compose.yml is missing or
-                 names no Neo4j image)
+Exit codes:  0   the command succeeded (the database answers and is the pinned version)
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
+             6   the command is not running from inside the repo
+             13  a file on disk cannot be read (docker-compose.yml is missing)
              27  the .env file has not been created
              37  .env has no Neo4j connection settings
              38  Neo4j could not be reached
@@ -45,6 +44,9 @@ Exit codes:  0   success (the database answers and is the pinned version)
              40  the running Neo4j is not the pinned version
              44  the Neo4j address in .env is not a valid address (the driver
                  refused the NEO4J_URI line before trying to connect)
+             64  a required file was read but holds the wrong content
+                 (docker-compose.yml names no Neo4j image in the form
+                 neo4j:<version>-<edition>)
              The numbers are the repo-wide table in
              docs/exit_codes.csv.
 
@@ -63,7 +65,7 @@ import neo4j
 import yaml
 
 # The repo root comes from the sdg package, so this script needs the editable
-# install (pip install -e ., README.md step 5) the same as the pipeline does.
+# install (pip install -e ., README.md step 4) the same as the pipeline does.
 from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
 
 #######################################################################################
@@ -103,8 +105,12 @@ class SettingsMissingError(Exception):
     """Raised when .env exists but one or more Neo4j lines are absent or empty."""
 
 
+class ComposeFileMissingError(Exception):
+    """Raised when the repo has no docker-compose.yml."""
+
+
 class ComposeFileError(Exception):
-    """Raised when docker-compose.yml cannot be read or names no Neo4j image."""
+    """Raised when docker-compose.yml was read but names no Neo4j image in the pinned form."""
 
 
 #######################################################################################
@@ -184,17 +190,18 @@ def read_pinned_release(compose_path: Path) -> Release:
         The pinned version and edition.
 
     Raises:
-        ComposeFileError: The file is missing, is not YAML, or names no Neo4j image
-            in the expected form.
+        ComposeFileMissingError: The file does not exist.
+        ComposeFileError: The file is not YAML, or names no Neo4j image in the
+            expected form.
     """
     if not compose_path.is_file():
-        raise ComposeFileError(
+        raise ComposeFileMissingError(
             f"{COMPOSE_FILE} does not exist at {compose_path.parent}.\n"
             "  fix -> restore it from git; it pins the database version"
         )
 
     # A compose file that is not YAML, or is YAML of the wrong shape, is reported
-    # as unreadable rather than crashing, so the fix is named.
+    # as holding the wrong content rather than crashing, so the fix is named.
     try:
         content = yaml.safe_load(compose_path.read_text(encoding="utf-8"))
         image = content["services"][COMPOSE_SERVICE]["image"]
@@ -301,12 +308,17 @@ def main(argv: list[str] | None = None) -> int:
         return 37
 
     # The pin is read before the database is asked, so a broken compose file is
-    # reported even when the database is off.
+    # reported even when the database is off. A missing file and a file that names
+    # no image have different fixes, restoring the file and correcting its image
+    # line, so each gets its own exit code.
     try:
         pinned = read_pinned_release(REPO_ROOT / COMPOSE_FILE)
-    except ComposeFileError as exc:
+    except ComposeFileMissingError as exc:
         report(str(exc))
         return 13
+    except ComposeFileError as exc:
+        report(str(exc))
+        return 64
 
     # A refused login is caught first, because it means the settings are wrong.
     # An address the driver will not accept is caught next, and before the

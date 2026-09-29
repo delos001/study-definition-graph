@@ -20,7 +20,7 @@ Usage:       pytest validation/sdg/sources/test_fetch_file_technical.py
              pytest validation/sdg/sources/test_fetch_file_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-10
 Owner:       Jason Delosh
@@ -42,12 +42,12 @@ from validation.shared.fake_server import CHUNKS, URL, FakeResponse
 #######################################################################################
 ### The fake server ###
 #
-# fetch() makes one call to the HTTP library, httpx.stream(...). It uses that
-# call in a with block that hands back a response, asks the response to
-# raise_for_status(), then reads it with iter_bytes(). The fake below stands in
-# for that call. Each check tells it how to behave: serve these chunks, answer
-# with an error, or break after so many chunks. It also records what fetch()
-# asked for, so a check can look at the request.
+# fetch() makes one call to the HTTP library, httpx.stream(...). The fake that
+# stands in for that call is FakeResponse, in validation/shared/fake_server.py.
+# Each check tells it how to behave: serve these chunks, answer with an error, or
+# break after so many chunks. It also records what fetch() asked for, so a check can
+# look at the request. The helper below builds the error it raises for a server
+# that answers 404.
 
 
 def error_status() -> httpx.HTTPStatusError:

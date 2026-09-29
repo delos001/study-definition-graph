@@ -31,6 +31,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+from collections.abc import Iterator, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -52,7 +53,12 @@ CHUNKS = (b"first part, ", b"second part\n")
 class FakeResponse:
     """Stands in for the response that httpx.stream yields."""
 
-    def __init__(self, chunks, status_error=None, break_after=None):
+    def __init__(
+        self,
+        chunks: Sequence[bytes],
+        status_error: Exception | None = None,
+        break_after: int | None = None,
+    ) -> None:
         """Keep the chunks to serve, the status error to raise if any, and the chunk index
         at which to break if any.
 
@@ -67,14 +73,14 @@ class FakeResponse:
         self.status_error = status_error
         self.break_after = break_after
 
-    def raise_for_status(self):
+    def raise_for_status(self) -> None:
         """Raise the staged status error, if there is one, the way httpx does when a server
         answers with an error status.
         """
         if self.status_error is not None:
             raise self.status_error
 
-    def iter_bytes(self):
+    def iter_bytes(self) -> Iterator[bytes]:
         """Hand out the chunks one at a time, and break part way through when the check
         staged that.
 

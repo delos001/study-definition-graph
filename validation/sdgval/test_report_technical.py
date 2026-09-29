@@ -21,7 +21,7 @@ Usage:       pytest validation/sdgval/test_report_technical.py
              pytest validation/sdgval/test_report_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -32,11 +32,13 @@ from __future__ import annotations
 import csv
 import json
 import re
+import subprocess
 import sys
 
 import pytest
 
 from sdgval.labels import category, code, negative, objective, positive
+from sdgval.select_checks import SELECTION_OPTIONS
 
 #######################################################################################
 ### The report on a clean run ###
@@ -50,7 +52,11 @@ PASSING_SUITE = '''
     @pytest.mark.objective("correctness")
     @pytest.mark.positive
     def test_adds():
-        """Two and two make four."""
+        """Two and two
+        make four.
+
+        A second paragraph the report leaves out.
+        """
         assert 2 + 2 == 4
 
     @pytest.mark.skipif(True, reason="not today")
@@ -108,7 +114,12 @@ def test_passing_run_is_recorded_as_pass(passing, staged_suite):
 @positive
 def test_a_passing_check_gets_a_row_with_its_details(passing, staged_suite):
     """A check that passed gets one row carrying its id, its category, its objective,
-    its staged case, its expected result and the outcome passed."""
+    its staged case, its expected result and the outcome passed. The expected result
+    is the first paragraph of the check's docstring alone, written as one line.
+
+    The staged check's first paragraph runs over two lines and a second paragraph
+    follows it, so a report that wrote the first line alone, or the whole docstring,
+    would fail the check."""
     _, rows = passing
     adds = staged_suite.row(rows, "test_adds")
     assert adds["id"] == "XYZ0001"
@@ -117,6 +128,21 @@ def test_a_passing_check_gets_a_row_with_its_details(passing, staged_suite):
     assert adds["staged_case"] == "positive"
     assert adds["expected_result"] == "Two and two make four."
     assert adds["outcome"] == "passed"
+
+
+@code("SA00560")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_row_carries_the_version_the_inventory_records(staged_suite):
+    """A check's row carries the version that validation/validation_inventory.csv
+    records for the check's id."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_inventory.csv").write_text(
+        "id,version,status,status_reason\nXYZ0001,3,active,\n", encoding="utf-8"
+    )
+    _, out = staged_suite.run(PASSING_SUITE)
+    assert staged_suite.row(staged_suite.report(out), "test_adds")["version"] == "3"
 
 
 @code("SA00435")
@@ -329,7 +355,7 @@ def test_setup_failure_is_recorded_as_error(staged_suite):
 @objective("functionality")
 @negative
 def test_file_that_will_not_load_still_gets_a_fail_report(staged_suite):
-    """When a test file cannot even be loaded, no test runs and pytest exits 2. A report
+    """When a check file cannot even be loaded, no test runs and pytest exits 2. A report
     is still written, says FAIL and holds one row saying no check ran, so a broken run
     cannot go unnoticed."""
     result, out = staged_suite.run("def test_broken(:\n    pass\n")
@@ -514,6 +540,61 @@ def test_a_run_that_stops_early_reports_fewer_checks_than_it_collected(staged_su
     assert {r["selection"] for r in staged_suite.report(out)} == {"{}"}
 
 
+@code("SA00579")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_check_that_runs_once_per_value_counts_once(staged_suite):
+    """A check that runs once per value counts once in both the collected and the
+    reported counts, as it has one row in the inventory, while each of its runs keeps
+    its own row in the report."""
+    _, out = staged_suite.run(PARAMETRIZED_SUITE)
+    run = staged_suite.run_details(out)
+    assert (run["checks_collected"], run["checks_reported"]) == ("2", "2")
+    assert len(staged_suite.report(out)) == 3
+
+
+# A value for each selection option that keeps the passing suite's check XYZ0001,
+# which is a repository check with the correctness objective of the integrity aspect.
+# The group adds names a groups file the check stages.
+OPTION_VALUES = {
+    "aspect": "integrity",
+    "category": "repository",
+    "objective": "correctness",
+    "id": "XYZ0001",
+    "group": "adds",
+}
+
+
+@code("SA00580")
+@category("repository")
+@objective("functionality")
+@positive
+def test_every_selection_option_reaches_its_own_column(staged_suite):
+    """Every selection option src/sdgval/select_checks.py defines, given on the command
+    line, is recorded in its own selection column of the run's own file, holding the
+    value given. An option this check has no value for fails it, so a new option
+    cannot be left out."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_groups.yml").write_text(
+        "adds:\n  ids: [XYZ0001]\n", encoding="utf-8"
+    )
+    args = [
+        argument
+        for option in SELECTION_OPTIONS
+        for argument in (f"--{option.name}", OPTION_VALUES[option.name])
+    ]
+    _, out = staged_suite.run(PASSING_SUITE, *args)
+    run = staged_suite.run_details(out)
+    recorded = {
+        option.name: json.loads(run.get(f"selection_{option.name}") or "null")
+        for option in SELECTION_OPTIONS
+    }
+    assert recorded == {
+        option.name: [OPTION_VALUES[option.name]] for option in SELECTION_OPTIONS
+    }
+
+
 # Two technical checks and one integrity check, for a run held to the technical
 # aspect by its command.
 TECHNICAL_AND_INTEGRITY_SUITE = '''
@@ -594,7 +675,7 @@ def test_target_file_names_the_mirrored_code_file_and_marks_a_missing_one(
 ### Which version of each file a check ran ###
 #
 # A staged suite is committed as a git repository with the script it covers and one
-# fixture, so every file has a last change for the report to record. One check names
+# fixture, so every file has a last change for the report to record. Two checks name
 # the fixture and one does not.
 
 FIXTURE_SUITE = '''
@@ -604,6 +685,11 @@ FIXTURE_SUITE = '''
     @pytest.mark.needs_fixture("sample.txt")
     def test_reads_sample():
         """Reads the sample fixture."""
+
+    @pytest.mark.objective("functionality")
+    @pytest.mark.needs_fixture("sample.txt")
+    def test_reads_sample_again():
+        """Reads the sample fixture too."""
 
     @pytest.mark.objective("functionality")
     def test_reads_nothing():
@@ -647,7 +733,7 @@ def test_the_script_under_test_is_recorded_by_its_last_change(committed, staged_
 @objective("functionality")
 @positive
 def test_the_test_file_is_recorded_by_its_last_change(committed, staged_suite):
-    """Each row holds the date and id of the last change in git to the test file the
+    """Each row holds the date and id of the last change in git to the check file the
     check sits in, so a report says which version of the check ran."""
     commit, rows = committed
     row = staged_suite.row(rows, "test_reads_sample")
@@ -668,6 +754,21 @@ def test_a_named_fixture_is_recorded_on_its_checks_row_only(committed, staged_su
     assert fixture["change_id"] == commit
     assert DATE.fullmatch(fixture["last_changed"])
     assert staged_suite.row(rows, "test_reads_nothing")["fixtures"] == ""
+
+
+@code("SA00630")
+@category("repository")
+@objective("functionality")
+@positive
+def test_two_checks_naming_one_fixture_both_record_it(committed, staged_suite):
+    """Two checks that name the same fixture both record it with the date and id of
+    its last change, so a file the report has already looked up is recorded again
+    for the next check that names it."""
+    commit, rows = committed
+    for name in ("test_reads_sample", "test_reads_sample_again"):
+        (fixture,) = json.loads(staged_suite.row(rows, name)["fixtures"])
+        assert fixture["change_id"] == commit
+        assert DATE.fullmatch(fixture["last_changed"])
 
 
 @code("SA00494")
@@ -782,7 +883,7 @@ def test_a_report_run_emptied_by_a_keyword_filter_is_refused(staged_suite):
 @objective("functionality")
 @negative
 def test_a_report_run_that_collects_no_check_is_refused(staged_suite):
-    """A report run given only a test file that holds no check stops with pytest's
+    """A report run given only a check file that holds no check stops with pytest's
     usage error, exit 4, the message says no checks were collected, and no report is
     written."""
     staged_suite.validation.mkdir(exist_ok=True)
@@ -811,6 +912,19 @@ def test_a_report_folder_outside_the_repo_is_written(staged_suite):
     )
     assert result.ret == 0
     assert len(staged_suite.report(outside / "technical")) == 2
+
+
+@code("SA00631")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_report_is_written_with_pytests_printing_switched_off(staged_suite):
+    """With pytest's own printing switched off, the report and the run's own file are
+    still written, and the run exits 0 without an error."""
+    result, out = staged_suite.run(PASSING_SUITE, "-p", "no:terminal")
+    assert result.ret == 0
+    assert len(staged_suite.report(out)) == 2
+    assert staged_suite.run_details(out)["run_verdict"] == "PASS"
 
 
 #######################################################################################
@@ -852,6 +966,51 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(staged
     assert "M notes.txt" in printed
     assert "Commit them, or set them aside with git stash" in printed
     assert "test_adds" not in result.stdout.str()
+    assert not out.exists()
+
+
+@code("SA00623")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_on_a_new_file_is_refused(staged_suite):
+    """A report run on a working folder holding a new file git does not track yet
+    stops with exit 4 and writes no report. The message names the new file by its
+    full path, even inside a new folder, and says to commit or stash it."""
+    staged_suite.commit(PASSING_SUITE)
+    drafts = staged_suite.root / "drafts"
+    drafts.mkdir()
+    (drafts / "new_check.txt").write_text("not yet committed\n", encoding="utf-8")
+    result, out = staged_suite.run(PASSING_SUITE)
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "?? drafts/new_check.txt" in printed
+    assert "Commit them, or set them aside with git stash" in printed
+    assert not out.exists()
+
+
+@code("SA00624")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_on_a_staged_change_is_refused(staged_suite):
+    """A report run on a working folder whose only change is staged for the next commit
+    stops with exit 4 and writes no report. The message names the staged file and says
+    to commit or stash it."""
+    staged_suite.commit(PASSING_SUITE)
+    with (staged_suite.root / "notes.txt").open("a", encoding="utf-8") as fh:
+        fh.write("an edit that is staged but not committed\n")
+    subprocess.run(
+        ["git", "add", "notes.txt"],
+        cwd=staged_suite.root,
+        check=True,
+        capture_output=True,
+    )
+    result, out = staged_suite.run(PASSING_SUITE)
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "M  notes.txt" in printed
+    assert "Commit them, or set them aside with git stash" in printed
     assert not out.exists()
 
 

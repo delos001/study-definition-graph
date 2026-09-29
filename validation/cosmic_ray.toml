@@ -1,0 +1,22 @@
+# The Cosmic Ray settings for proving that the checks on one file can fail.
+#
+# Cosmic Ray breaks the file named in module-path in one small way at a time. After
+# each break it runs test-command and records whether a check failed. It writes each
+# break into the file on disk, so it is only ever run on a copy of the repo.
+# validation/running_validation.md says how to make the copy and run it, under
+# Proving that the checks can fail.
+#
+# In the copy, module-path is set to the file under test and test-command to the
+# check files that cover it. Paths use forward slashes, because Cosmic Ray splits the
+# command the way a POSIX shell would, and a backslash would be read as an escape.
+# The -x option stops pytest at the first failing check, because one failure is
+# enough to show that the break was caught.
+
+[cosmic-ray]
+module-path = "src/sdgtools/check_python_files.py"
+timeout = 120.0
+excluded-modules = []
+test-command = "python -m pytest -x -q -p no:cacheprovider validation/sdgtools/test_check_python_files_technical.py"
+
+[cosmic-ray.distributor]
+name = "local"

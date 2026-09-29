@@ -1,0 +1,79 @@
+# The steps that run before every commit, for anyone who commits from any tool.
+#
+# The pre-commit framework reads this file. It is turned on once per clone with
+# `pre-commit install`, which the setup section of the root README.md includes, and
+# which writes the hook into .git/hooks/. Before the steps run, pre-commit sets
+# aside every change that is not staged, so each step confirms exactly what the
+# commit will hold. Claude Code hooks, which run around Claude's own tool calls, are
+# a different thing and are described in .claude/README.md.
+#
+# Each step runs one installed command of the sdg conda environment, from
+# src/sdgtools/ or src/sdgval/, over the whole repo rather than over the files the
+# commit touches. pre-commit looks for a step's command on the PATH, the list of
+# folders the system searches for a command, and runs it without a shell. The
+# commands are on the PATH only while the sdg environment is active, so every step runs its command through conda run, and a commit works from
+# any terminal whether that environment is active or not. The steps run in the
+# order below, and the first one that fails stops the commit.
+#
+# check_facts, which reads every pinned file, and acquire_sources, which hashes
+# every pinned file, stay manual runs, because they are too slow to run on every
+# commit. The root README.md lists them under Setup Verification.
+#
+# To add a step, write the command in src/sdgtools/, or in src/sdgval/ when it
+# belongs to validation, with a header block. Install it as a command in
+# pyproject.toml, and add an entry below with a comment saying what it refuses.
+# When the step confirms the real repo, add a check that makes the same run to the
+# hook_integrity or hook_conformance group in validation/validation_groups.yml,
+# whichever holds the check's aspect, so a refused commit can be diagnosed with
+# pytest --group hook_integrity,hook_conformance.
+
+fail_fast: true
+
+repos:
+  - repo: local
+    hooks:
+      # Refuses the commit if docs/commands.md is out of date with the header blocks
+      # of the commands it is generated from. The fix is to run build_index and
+      # stage the file.
+      - id: build_index
+        name: docs/commands.md matches the installed commands' header blocks
+        entry: conda run -n sdg --no-capture-output build_index --check
+        language: unsupported
+        pass_filenames: false
+        always_run: true
+
+      # Refuses the commit if any Python file under src/, validation/ or
+      # .claude/hooks/ breaks the header rule in .claude/rules/writing_python_files.md.
+      # A file is refused when:
+      # - it lacks the full header block,
+      # - its fields are out of order,
+      # - its Date is not a plain calendar date, or
+      # - it lists exit codes that disagree with docs/exit_codes.csv or with its own
+      #   main().
+      - id: verify_headers
+        name: every Python file carries a correct header block
+        entry: conda run -n sdg --no-capture-output verify_headers
+        language: unsupported
+        pass_filenames: false
+        always_run: true
+
+      # Refuses the commit if validation/validation_inventory.csv is out of date with
+      # the check files under validation/ it is generated from. The fix is to run
+      # build_inventory and stage the file.
+      - id: build_inventory
+        name: validation/validation_inventory.csv matches the checks
+        entry: conda run -n sdg --no-capture-output build_inventory --check
+        language: unsupported
+        pass_filenames: false
+        always_run: true
+
+      # Refuses the commit if any Python file under src/, validation/ or
+      # .claude/hooks/ fails ruff format --check, ruff check or mypy, all configured
+      # in pyproject.toml. Each tool prints its own report, so the refusal names the
+      # file and the line.
+      - id: check_python_files
+        name: every Python file passes ruff and mypy
+        entry: conda run -n sdg --no-capture-output check_python_files --quiet
+        language: unsupported
+        pass_filenames: false
+        always_run: true

@@ -12,10 +12,12 @@ from .fetch_file import FetchError, fetch, partial_path
 from .finalize_file import discard, place
 from .fingerprint_file import Comparison, Fingerprint, compare, fingerprint
 from .read_manifests import (
+    AmbiguousNameError,
     Entry,
     Manifest,
     ManifestError,
     NotInRepoError,
+    OutsideInputsError,
     entry_for,
     entry_named,
     manifests,
@@ -29,6 +31,7 @@ from .verify_pinned import (
 )
 
 __all__ = [
+    "AmbiguousNameError",
     "Comparison",
     "Entry",
     "FetchError",
@@ -37,6 +40,7 @@ __all__ = [
     "Manifest",
     "ManifestError",
     "NotInRepoError",
+    "OutsideInputsError",
     "UnrecordedFileError",
     "compare",
     "discard",

@@ -13,7 +13,7 @@ Every document in this repo is written for a person reading it. These rules appl
 - Write plain words at the point where they are needed. A compressed phrase that has to be explained when asked was the wrong phrase. If a term cannot be avoided, say what it means in the same sentence.
 - A short name is written out at its first use in each document, with the words it stands for. The exceptions are the names the glossary in `BACKGROUND.md` defines and that the project treats as plain words: USDM, CDISC, ICH, SAP, SoA, AI, PDF, JSON, YAML, CSV, API and URL. Any other short name, such as the name of a code list, a standard, an agency or a file format, is written out where it first appears.
 - Write full sentences with a subject and a verb. No fragments, and no label with a colon standing in for a sentence. In an outline, a child bullet may leave out its subject when the parent bullet names it, as in a file name followed by "Lists every check." The verb is never left out.
-- "Check" is a noun only. It names one validation check, the function in a test file. What a check or a tool does to something is written with the verb "validates" or "confirms", never "checks", so a reader never has to work out which is meant.
+- "Check" is a noun only. It names one validation check, the function in a check file. What a check or a tool does to something is written with the verb "validates" or "confirms", never "checks", so a reader never has to work out which is meant.
 - One idea per sentence. A sentence carrying a parenthesis, a colon and two joined clauses is three sentences.
 - Say what a thing is before saying anything about it. A reader meeting `inputs/` needs to know it holds the pinned source files before hearing that it is gitignored.
 - Name the file. Write the path on first mention, never "the map" or "the rule file". When several files share a name, say which one, as in the root `README.md`.
@@ -70,6 +70,14 @@ GitHub Issues, `PLAN.md`, and `DECISIONS.md` must remain consistent.
   - Create, update or close the affected issues.
   - Update `PLAN.md` if the plan itself changed.
   - Record in `DECISIONS.md` why the plan changed.
+- An issue that says what it leaves out, or that defers part of its work, gets a new issue for each part left out before it is closed. Work that is written down only in a closed issue or in `DECISIONS.md` is lost.
+
+## Decisions and change phases
+
+- A decision is recorded only when the user answered it explicitly. A question from the user is a question to answer, not a new rule. Silence, or an answer to a different point in the same message, decides nothing.
+- A practice that holds only for the current stage of development is not written into a repo document as a rule. Documents describe how a thing is actually handled.
+- A review or audit that ends in decisions produces a list of every item to build, including the ones inside decision groups. The change phase works from that list, and each item is marked done or raised with the user before the phase is called finished.
+- Foundation work the user has decided to finish now is finished now. It is not proposed for deferral to reach the next phase sooner.
 
 ## Pinned files
 

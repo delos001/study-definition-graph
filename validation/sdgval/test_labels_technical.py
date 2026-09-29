@@ -3,11 +3,11 @@ Script:      test_labels_technical.py
 Description: Checks for src/sdgval/labels.py, the plugin that declares the labels a
              check may carry and reads them off a check.
 
-             Each check writes a tiny test file with pytest's own pytester helper,
+             Each check writes a tiny check file with pytest's own pytester helper,
              collects it in this process, and reads the labels off what was
              collected, the way the selection options and the report writer do.
 
-Inputs:      Nothing real. Each test file is written to pytest's own temporary
+Inputs:      Nothing real. Each check file is written to pytest's own temporary
              folder.
 
 Outputs:     Writes nothing to disk outside pytest's temporary folder.
@@ -17,7 +17,7 @@ Usage:       pytest validation/sdgval/test_labels_technical.py
              pytest validation/sdgval/test_labels_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-26
 Owner:       Jason Delosh
@@ -61,11 +61,20 @@ LABELLED = """
     """
 
 
+# A check carrying the positive case. The check in LABELLED carries the negative case,
+# and a check carries one case at most, so the positive case needs a check of its own.
+POSITIVE_CHECK = """
+    @pytest.mark.positive
+    def test_positive():
+        pass
+    """
+
+
 def collected(pytester) -> dict:
-    """Write the labelled test file, collect it, and key what was collected by name.
+    """Write the labelled check file, collect it, and key what was collected by name.
 
     Args:
-        pytester: pytest's helper for staging a test file.
+        pytester: pytest's helper for staging a check file.
 
     Returns:
         Each collected check, keyed by its function name.
@@ -117,11 +126,12 @@ def test_a_check_with_no_labels_reads_as_empty(pytester):
 @objective("functionality")
 @positive
 def test_every_label_is_declared_to_pytest(pytester):
-    """A run that refuses any label pytest has not been told about still collects a
-    check carrying every label, because each one is declared.
+    """A run that refuses any label pytest has not been told about still collects
+    checks that carry every label between them, the positive and the negative case
+    included, because each one is declared.
 
     pytest refuses an unknown label while it collects, so the run only collects,
     and the check is never set up."""
-    pytester.makepyfile(LABELLED)
+    pytester.makepyfile(LABELLED + POSITIVE_CHECK)
     result = pytester.runpytest("--strict-markers", "--collect-only")
     assert result.ret == 0

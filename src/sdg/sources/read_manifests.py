@@ -27,16 +27,23 @@ Usage:       This file is not run directly; other code imports it.
                 entry_for("inputs/standards/cdisc/usdm_v4/dataStructure.yml") -> that file's
                   entry, or None
                 entry_named("USDM-IG.pdf")   -> the entry recorded under that file name,
-                  or None
+                  or None, and a refusal when two entries share the name
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
              do. The errors it can hand back:
-             NotInRepoError   the sdg package is not running from inside its repo
-             ManifestError    a manifest cannot be read, an entry lacks a required
-                              field, or a field holds a value that can never be
-                              right: a size that is not a whole number, or a
-                              sha256 that is not 64 lowercase hex characters
+             NotInRepoError      the sdg package is not running from inside its repo
+             ManifestError       a manifest cannot be read, an entry lacks a required
+                                 field, or a field holds a value that can never be
+                                 right: a size that is not a whole number, or a
+                                 sha256 that is not 64 lowercase hex characters
+             OutsideInputsError  an entry's local location does not stay under
+                                 inputs/ once resolved, as a full path or one
+                                 that steps back up with .. does not
+             AmbiguousNameError  a file name asked for is recorded by more than
+                                 one entry
+             The last two are kinds of ManifestError, so a program that does not
+             tell them apart still stops on them.
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -99,6 +106,24 @@ class ManifestError(Exception):
     field, and a field holding a value that can never be right: a size that is not a
     whole number, or a sha256 that is not 64 lowercase hex characters. The message
     names the file and the cause, quoting a bad value as written.
+    """
+
+
+class OutsideInputsError(ManifestError):
+    """Raised when an entry's local location does not stay under inputs/ once resolved.
+
+    Every pinned file lives under inputs/, and the location is where acquire_sources
+    writes a download. A full path, or one that steps back up with .., would send a
+    download anywhere on the machine, so the entry is refused before anything uses it.
+    """
+
+
+class AmbiguousNameError(ManifestError):
+    """Raised when a file name asked for is recorded by more than one entry.
+
+    Pinned files keep their publisher's names, so two pinned versions of one document
+    share a name. Picking either one would be a guess, so the lookup refuses and names
+    the location of each. A name is answered again once one entry records it.
     """
 
 
@@ -187,6 +212,8 @@ def _entry_from(raw: dict, manifest_name: str) -> Entry:
     Raises:
         ManifestError: A required field is missing, or a field holds a value that can
             never match a file. The message names the manifest, the entry and the field.
+        OutsideInputsError: The local location does not stay under inputs/ once
+            resolved. The message names the manifest, the entry and the location.
     """
 
     label = raw.get("name") or raw.get("local") or "?"
@@ -210,6 +237,21 @@ def _entry_from(raw: dict, manifest_name: str) -> Entry:
         raise ManifestError(
             f'{manifest_name}: entry {label} has sha256 "{sha256}", '
             f"which is not 64 lowercase hex characters\n{fix}"
+        )
+
+    # The location is resolved against the repo root, which folds away any .. and
+    # lets a full path replace the root entirely, and the result has to sit inside
+    # inputs/. Both sides are resolved, so a repo reached through a shortened or
+    # linked folder name is compared on the same footing.
+    local = str(raw["local"])
+    inputs = (REPO_ROOT / "inputs").resolve()
+    resolved = (REPO_ROOT / local).resolve()
+    if resolved == inputs or not resolved.is_relative_to(inputs):
+        raise OutsideInputsError(
+            f'{manifest_name}: entry {label} has local "{local}", '
+            "which does not stay under inputs/ once resolved\n"
+            f"  fix -> write that entry's local in manifests/{manifest_name} as a path "
+            "under inputs/, with no .., drive or leading slash, then re-run"
         )
 
     return Entry(
@@ -349,8 +391,10 @@ def as_local(target: str | Path) -> str:
 def entry_named(name: str) -> Entry | None:
     """Find the manifest entry with a given file name.
 
-    Callers that hold a file's name rather than its location use this, so the path
-    stays owned by the manifest and is never written down a second time.
+    A caller that holds a file's name rather than its location uses this, so the
+    location is written only in the manifest. Pinned files keep their publisher's
+    names, so once a second version of a document is pinned the name matches two
+    entries. The lookup then refuses rather than pick one.
 
     Args:
         name: The file name a manifest records, for example USDM-IG.pdf.
@@ -361,12 +405,27 @@ def entry_named(name: str) -> Entry | None:
     Raises:
         NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: A manifest cannot be read.
+        AmbiguousNameError: More than one entry records the name. The message names
+            the location of each.
     """
-    for manifest in manifests():
-        for entry in manifest.entries:
-            if entry.name == name:
-                return entry
-    return None
+    found = [
+        entry
+        for manifest in manifests()
+        for entry in manifest.entries
+        if entry.name == name
+    ]
+    if len(found) > 1:
+        places = "\n".join(
+            f"  {entry.local} (manifests/{entry.manifest})" for entry in found
+        )
+        raise AmbiguousNameError(
+            f"{len(found)} entries record the file name {name}:\n{places}\n"
+            "  cause -> two pinned files share this name, so the name alone cannot "
+            "say which version to read\n"
+            "  fix -> the code asking for this name has to choose one version of "
+            "the file"
+        )
+    return found[0] if found else None
 
 
 def entry_for(target: str | Path) -> Entry | None:

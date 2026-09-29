@@ -20,7 +20,7 @@ Usage:       pytest validation/sdgval/test_select_checks_technical.py
              pytest validation/sdgval/test_select_checks_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-21
 Owner:       Jason Delosh
@@ -30,6 +30,8 @@ from __future__ import annotations
 
 import json
 import textwrap
+
+import pytest
 
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -170,6 +172,18 @@ def test_a_comma_separated_list_means_any_of_the_values(staged_suite):
 def test_id_keeps_only_those_checks(staged_suite):
     """With the id option, only the checks carrying those ids run."""
     ret, ids, _, _ = selected(staged_suite, "--id", "XYZ0012,XYZ0014")
+    assert ret == 0
+    assert ids == {"XYZ0012", "XYZ0014"}
+
+
+@code("SA00619")
+@category("repository")
+@objective("functionality")
+@positive
+def test_an_option_given_twice_means_any_of_the_values(staged_suite):
+    """The same option given twice keeps the checks matching either value, the same as
+    a comma-separated list on one option."""
+    ret, ids, _, _ = selected(staged_suite, "--id", "XYZ0012", "--id", "XYZ0014")
     assert ret == 0
     assert ids == {"XYZ0012", "XYZ0014"}
 
@@ -386,4 +400,62 @@ def test_an_objective_not_in_the_list_stops_the_run(staged_suite):
     ret, ids, _, printed = selected(staged_suite, "--objective", "speed")
     assert ret == 4
     assert "--objective speed: not one of conformance, correctness" in printed
+    assert ids == set()
+
+
+#######################################################################################
+### Refusing a group that cannot run as written ###
+#
+# A group is refused when its checks belong to more than one aspect of quality, and
+# when it lists no ids. Each refusal stops the run with exit 4, names the group and
+# says what to change.
+
+
+@code("SA00575")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_group_of_mixed_aspects_stops_the_run(staged_suite):
+    """A group whose checks belong to more than one aspect of quality stops the run with
+    exit 4. The message names the group and its aspects and says to split it into one
+    group per aspect."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_groups.yml").write_text(
+        "mixed:\n  ids: [XYZ0011, XYZ0014]\n", encoding="utf-8"
+    )
+    ret, ids, _, printed = selected(staged_suite, "--group", "mixed")
+    assert ret == 4
+    assert (
+        "The group mixed in validation/validation_groups.yml lists checks of more "
+        "than one aspect of quality, conformance, integrity. A group holds the checks "
+        "of one aspect, so split it into one group per aspect." in printed
+    )
+    assert ids == set()
+
+
+@code("SA00576")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    "group",
+    ["empty:\n  ids: []\n", "empty:\n  purpose: No ids.\n", "empty:\n  ids: XYZ0011\n"],
+    ids=["an empty list of ids", "no ids at all", "ids that are not a list"],
+)
+def test_a_group_with_no_list_of_ids_stops_the_run(staged_suite, group):
+    """A group that has no list of ids stops the run with exit 4. The message names the
+    group and says to give it an ids list naming at least one check. The run is
+    repeated for an empty list, for a group with no ids at all, and for ids written
+    as one value rather than a list."""
+    staged_suite.validation.mkdir(exist_ok=True)
+    (staged_suite.validation / "validation_groups.yml").write_text(
+        group, encoding="utf-8"
+    )
+    ret, ids, _, printed = selected(staged_suite, "--group", "empty")
+    assert ret == 4
+    assert (
+        "The group empty in validation/validation_groups.yml has no list of ids, so it "
+        "names no check to run. Give it an ids list naming at least one check."
+        in printed
+    )
     assert ids == set()

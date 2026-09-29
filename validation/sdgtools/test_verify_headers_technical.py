@@ -5,11 +5,12 @@ Description: Checks for src/sdgtools/verify_headers.py, the hand-run script the
              the full header block. Each check writes one or two small files to
              a temporary folder, points the script's checked folders at it,
              runs main() in-process, and asserts the exit code or the problem
-             line the header promises. One check runs the script over the four
-             real code folders, the same run the pre-commit hook, .githooks/pre-commit, makes.
+             line the header promises. The runs over the real code folders, the
+             same run the pre-commit hook makes, are in
+             test_verify_headers_conformance.py, beside this file.
 
-Inputs:      src/**/*.py, validation/**/*.py and .claude/hooks/*.py  (read-only;
-             the one real-folder check)
+Inputs:      Nothing real. Each staged file and exit-code table is written to
+             pytest's own temporary folder.
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
@@ -18,7 +19,7 @@ Usage:       pytest validation/sdgtools/test_verify_headers_technical.py
              pytest validation/sdgtools/test_verify_headers_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -126,7 +127,7 @@ def complete(folder, capsys) -> Outcome:
 #
 # The right thing works: complete headers pass silently, a package marker file is
 # not held to the header rule, and the real folders pass the same run the pre-commit
-# hook, .githooks/pre-commit, makes.
+# hook makes from .pre-commit-config.yaml.
 
 
 @code("SA00345")
@@ -163,7 +164,8 @@ def test_init_file_is_skipped(folder, capsys):
 #
 # The wrong thing is refused, and the problem line names the file and the cause: a
 # missing field, fields out of order, a Date that is not a plain calendar date, a
-# file with no docstring at all, and a file that is not valid Python.
+# file with no docstring at all, and a file that is not valid Python or is not saved
+# as UTF-8 text.
 # With the quiet option, a refusal prints nothing and its exit code still names the
 # cause.
 
@@ -273,12 +275,29 @@ def test_unparseable_outranks_incomplete(folder, capsys):
     assert "beta.py: no module docstring" in outcome.printed
 
 
+@code("SA00590")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_file_not_saved_as_utf8_exits_19(folder, capsys):
+    """A file that is not saved as UTF-8 text makes the run exit 19, and the problem
+    line names the file and says it is not saved as UTF-8 text."""
+    folder({})
+    (script.CHECKED_FOLDERS[0] / "alpha.py").write_bytes(GOOD_HEADER.encode("utf-16"))
+    outcome = run(capsys)
+    assert outcome.exit_code == 19
+    assert "src/sdg/alpha.py: cannot parse, because it is not saved as UTF-8 text" in (
+        outcome.printed
+    )
+
+
 #######################################################################################
 ### Checks on the exit codes a header names ###
 #
 # One number means one cause across the repo, so each entry has to open with the
-# table's wording. A file-specific aside may follow it in brackets. These checks stage
-# a header whose Exit codes field is right, then wrong in one way at a time.
+# table's wording. A file-specific aside may follow it in brackets. No number is above
+# 125, in a header or in the table. These checks stage a header whose Exit codes field
+# is right, then wrong in one way at a time.
 
 
 def with_codes(lines: str) -> str:
@@ -437,24 +456,74 @@ def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_table_with_a_code_that_is_not_a_number_exits_13(folder, capsys):
+def test_a_table_with_a_code_that_is_not_a_number_exits_64(folder, capsys):
     """A row of docs/exit_codes.csv holding a code that is not a number makes the run
-    exit 13 and say that file cannot be read, rather than ending in a Python error."""
+    exit 64, and the message says the file holds the wrong content and to correct the
+    row, rather than ending in a Python error."""
     folder({"alpha.py": GOOD_HEADER})
     script.EXIT_CODES_FILE.write_text(
         "code,cause\n0,success\nthirteen,a file on disk cannot be read\n",
         encoding="utf-8",
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 13
-    assert "exit_codes.csv cannot be read" in outcome.printed
+    assert outcome.exit_code == 64
+    assert "exit_codes.csv holds the wrong content" in outcome.printed
+    assert "correct the row" in outcome.printed
+
+
+@code("SA00587")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_header_code_above_125_exits_33(folder, capsys):
+    """An entry for a number above 125 makes the run exit 33, and the problem line
+    names the number and says 125 is the highest an exit code can take."""
+    folder({"alpha.py": with_codes("126  a cause given too high a number")})
+    outcome = run(capsys)
+    assert outcome.exit_code == 33
+    assert "src/sdg/alpha.py: exit code 126 is above 125" in outcome.printed
+    assert "the highest number an exit code can take" in outcome.printed
+
+
+@code("SA00588")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_table_code_above_125_exits_64(folder, capsys):
+    """A row of docs/exit_codes.csv holding a number above 125 makes the run exit 64,
+    and the message names the number and says to correct the row."""
+    folder({"alpha.py": GOOD_HEADER})
+    script.EXIT_CODES_FILE.write_text(
+        "code,cause\n0,success\n126,a cause given too high a number\n",
+        encoding="utf-8",
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 64
+    assert "code 126 is outside 0 to 125" in outcome.printed
+    assert "correct the row" in outcome.printed
+
+
+@code("SA00589")
+@category("repository")
+@objective("functionality")
+@negative
+def test_wording_that_reads_like_another_problem_still_exits_33(folder, capsys):
+    """An entry that gives a number a second meaning exits 33 even when its wording
+    holds the words another kind of problem prints, because each problem carries its
+    own exit code and the wording of a message never chooses it."""
+    folder({"alpha.py": with_codes("8   the header does not list it")})
+    outcome = run(capsys)
+    assert outcome.exit_code == 33
+    assert "exit code 8 says 'the header does not list it'" in outcome.printed
 
 
 #######################################################################################
 ### Checks on the codes main() returns ###
 #
 # A header can list every code correctly and still forget one the code returns. These
-# checks stage a file with a main() and compare what it returns with what it lists.
+# checks stage a file with a main() and compare what it returns with what it lists. A
+# file with a main() also has to list at least one numbered code, while a file with
+# no main() may describe its codes in a sentence.
 
 
 def with_main(returns: str, codes: str = "0   success") -> str:
@@ -597,12 +666,33 @@ def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
     assert "exit code 8 says" in outcome.printed
 
 
-#######################################################################################
-### Checks on the real repo ###
-#
-# These read the real code folders. The header block is held to its rule, the exit
-# codes a header lists are held to the table and to main(), and the checker is held to
-# the folders the rule names.
+@code("SA00585")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_main_with_no_numbered_code_exits_17(folder, capsys):
+    """A file with a main() whose Exit codes field is written only as a sentence makes
+    the run exit 17, and the problem line names the file and says to list each code
+    the file returns."""
+    folder({"alpha.py": with_main("    return 0", "The codes are the usual ones.")})
+    outcome = run(capsys)
+    assert outcome.exit_code == 17
+    assert (
+        "src/sdg/alpha.py: the Exit codes field lists no numbered code, but the file "
+        "has a main()"
+    ) in outcome.printed
+    assert "list each code it returns" in outcome.printed
+
+
+@code("SA00586")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_file_with_no_main_may_describe_its_codes_in_a_sentence(folder, capsys):
+    """A file with no main(), such as a check file, may write its Exit codes field as
+    a sentence, and the run exits 0."""
+    folder({"alpha.py": with_codes("None of its own. It runs inside pytest.")})
+    assert run(capsys).exit_code == 0
 
 
 #######################################################################################

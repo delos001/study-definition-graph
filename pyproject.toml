@@ -56,10 +56,13 @@ testpaths = ["validation"]
 
 # What coverage measures, for finding code no check runs. It measures the project's
 # packages and the Claude Code hooks, counts each branch of an if as well as each
-# line, and follows the separate pytest processes some checks start, which a plain
-# pytest --cov run misses. Each process writes its own data file, and coverage
-# combine joins them. validation/running_validation.md gives the commands.
+# line, and follows the separate pytest processes some checks start, so their lines
+# are counted too. Each process writes its own data file, and coverage combine joins
+# them. validation/running_validation.md gives the commands.
 [tool.coverage.run]
+# validation/ is left out. coverage is there to find project code that no check
+# runs, and the checks are what does the running, so counting their own lines
+# would mix them into the figure for the code they validate.
 source = ["src", ".claude/hooks"]
 branch = true
 parallel = true
@@ -77,6 +80,10 @@ exclude_also = ['if __name__ == "__main__":']
 line-length = 88
 target-version = "py312"
 src = ["src", "validation", ".claude/hooks"]
+# ruff reads only the Python files in those three folders, however it is started.
+# Left to its defaults, ruff would also rewrite the Python examples inside the
+# Markdown documents, which are written for people and are not held to the rule.
+include = ["src/**/*.py", "validation/**/*.py", ".claude/hooks/**/*.py"]
 
 [tool.ruff.lint]
 # E and W are PEP 8 style, F is pyflakes (unused names, undefined names), I is
@@ -99,7 +106,7 @@ files = ["src", "validation", ".claude/hooks"]
 # validation/claude_hooks/ imports the hooks by bare name, as pytest does, and the
 # checks import validation.shared.<file> from the repo root.
 mypy_path = ["src", ".claude/hooks", "."]
-# With explicit package bases every test file is named validation.<folder>.<file>, so
+# With explicit package bases every check file is named validation.<folder>.<file>, so
 # one override pattern below covers the whole folder, present and future.
 explicit_package_bases = true
 disallow_untyped_defs = true
@@ -111,8 +118,16 @@ module = ["fitz", "fitz.*", "openpyxl", "openpyxl.*", "yaml"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-# Checks take their arguments from pytest fixtures, and a label on each would
-# only repeat the argument's name. Tests are exempt from the hint requirement
-# but are still checked for everything mypy can find without hints.
+# Checks and pytest fixtures take their arguments from pytest, and a hint on each
+# would only repeat the argument's name, so code under validation/ may leave its
+# hints out. check_untyped_defs makes mypy still read the body of every function
+# that has no hints, so the code inside a check is confirmed like any other.
 module = ["validation.*"]
 disallow_untyped_defs = false
+check_untyped_defs = true
+
+[[tool.mypy.overrides]]
+# The code in validation/shared/ is ordinary helper code that checks call, not a
+# check or a fixture, so it carries hints like the code under src/.
+module = ["validation.shared.*"]
+disallow_untyped_defs = true

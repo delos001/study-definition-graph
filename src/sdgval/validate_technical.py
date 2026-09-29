@@ -11,7 +11,7 @@ Description: Runs the technical checks, and with --validation-report writes the
              src/sdgval/report.py. Without it, the run writes nothing, which is how
              the technical checks are run during development. Every other way of
              narrowing a run works as it does for pytest, such as --objective,
-             --category, --id, --group, a test file or a list of test files. A run
+             --category, --id, --group, a check file or a list of check files. A run
              given --aspect is refused before any check runs.
 
 Inputs:      validation/**/test_*.py (read-only; the checks it runs)
@@ -32,11 +32,31 @@ Usage:       validate_technical
              validate_technical validation/sdg/sources
                  run only the technical checks in that folder
 
-Exit codes:  pytest's own, passed through: 0 all passed, 1 some failed, 2 the run
-             was interrupted, 3 internal error, 4 bad command line, which
-             includes a run given --aspect, a selection that matches no check,
-             and a report refused on uncommitted changes or when git does not
-             answer, and 5 no check was collected.
+Exit codes:  0   the command succeeded
+             1   Python stopped on an error that nothing handled (pytest's
+                 internal error is one too)
+             2   the argument parser refused the command line (pytest refused
+                 the command line, such as an option it does not know)
+             13  a file on disk cannot be read (--group was given and
+                 validation/validation_groups.yml is missing)
+             52  one or more checks failed (a check whose set-up or clean-up
+                 broke counts as failed)
+             53  the check run stopped before every check ran (it was stopped by
+                 hand, or a check file could not be loaded)
+             54  no check was collected
+             55  an aspect's command was given --aspect
+             56  the selection options leave no check to run
+             57  a validation report was refused because the working folder has
+                 uncommitted changes
+             58  a validation report was refused because git did not answer
+             59  a group in validation/validation_groups.yml lists checks of more
+                 than one aspect
+             60  a group in validation/validation_groups.yml lists no ids
+             61  a group in validation/validation_groups.yml lists an id no check
+                 has
+             src/sdgval/aspect_run.py turns pytest's own exit status into these
+             numbers. A plain pytest run of the same checks keeps pytest's own
+             numbers. The numbers are the repo-wide table in docs/exit_codes.csv.
 
 Date:        2026-09-25
 Owner:       Jason Delosh
@@ -67,7 +87,7 @@ def main(argv: list[str] | None = None) -> int:
             line.
 
     Returns:
-        pytest's exit status for the run.
+        The repo's exit number for how the run ended, as the header lists them.
     """
     return run_aspect(ASPECT, sys.argv[1:] if argv is None else argv)
 

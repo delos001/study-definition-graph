@@ -19,6 +19,9 @@ data/**
 !data/**/.gitkeep
 !data/README.md
 
+# Claude Code keeps personal settings for one machine here, as .claude/README.md says.
+.claude/settings.local.json
+
 # Model response cache
 .cache/
 

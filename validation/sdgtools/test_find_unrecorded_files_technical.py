@@ -17,7 +17,7 @@ Usage:       pytest validation/sdgtools/test_find_unrecorded_files_technical.py
              pytest validation/sdgtools/test_find_unrecorded_files_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -31,8 +31,8 @@ import pytest
 
 from sdgtools import find_unrecorded_files as script
 from sdgval.labels import category, code, negative, objective, positive
+from validation.shared.staged_manifests import CONTENT
 
-CONTENT = b"pinned bytes\n"
 RECORDED = "inputs/set_a/good.txt"
 
 
@@ -185,46 +185,23 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_prints_nothing(stray_quiet):
-    """With the quiet option, nothing at all is printed, even when a file is
-    unrecorded."""
-    assert stray_quiet.printed == ""
-
-
-@code("SA00334")
-@category("repository")
-@objective("functionality")
-@negative
-def test_quiet_keeps_the_exit_code(stray_quiet):
-    """With the quiet option, the exit code still reports the unrecorded file."""
+def test_quiet_unrecorded_file_exits_10_and_prints_nothing(stray_quiet):
+    """With the quiet option, an unrecorded file still makes the run exit 10, and
+    nothing at all is printed."""
     assert stray_quiet.exit_code == 10
+    assert stray_quiet.printed == ""
 
 
 @code("SA00338")
 @category("repository")
 @objective("functionality")
 @negative
-def test_unrecorded_file_exits_10(stray):
-    """A file under inputs/ that no manifest records makes the run exit 10."""
+def test_unrecorded_file_exits_10_listed_by_path(stray):
+    """A file under inputs/ that no manifest records makes the run exit 10. The file
+    is printed by its repo-relative path, and the summary counts the unrecorded files
+    and says they cannot be restored from a clone."""
     assert stray.exit_code == 10
-
-
-@code("SA00339")
-@category("repository")
-@objective("functionality")
-@negative
-def test_unrecorded_file_is_listed_by_path(stray):
-    """An unrecorded file is printed by its repo-relative path."""
     assert "inputs/set_a/stray.txt" in stray.printed
-
-
-@code("SA00340")
-@category("repository")
-@objective("functionality")
-@negative
-def test_unrecorded_file_summary_says_it_cannot_be_restored(stray):
-    """The summary counts the unrecorded files and says they cannot be restored from
-    a clone."""
     assert "1 file(s) no manifest records" in stray.printed
     assert "cannot be restored" in stray.printed
 
@@ -314,3 +291,18 @@ def test_every_refusal_is_silent_under_quiet(
     outcome = run(capsys, "--quiet")
     assert outcome.printed == ""
     assert outcome.exit_code == expected
+
+
+@code("SA00613")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_manifest_location_outside_inputs_exits_66(repo, capsys):
+    """When a manifest records a location that does not stay under inputs/, the run
+    exits 66 and quotes the location, instead of listing files against it."""
+    repo.manifest(
+        "stray", [repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 66
+    assert "does not stay under inputs/" in outcome.printed

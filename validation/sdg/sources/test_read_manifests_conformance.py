@@ -13,13 +13,15 @@ Usage:       pytest validation/sdg/sources/test_read_manifests_conformance.py
              pytest validation/sdg/sources/test_read_manifests_conformance.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
 """
 
 from __future__ import annotations
+
+from pathlib import PurePosixPath
 
 from sdgval.labels import category, code, objective
 
@@ -42,12 +44,14 @@ def test_every_manifest_lands_under_inputs(real_manifests):
 @objective("conformance")
 def test_every_entry_carries_the_five_required_fields(real_manifests):
     """Every entry in every real manifest has a name, an address, a local path under
-    inputs/, a size above zero and a well-formed fingerprint."""
+    inputs/ that never steps back up a folder, a size above zero and a well-formed
+    fingerprint."""
     for manifest in real_manifests:
         assert manifest.entries, manifest.name
         for entry in manifest.entries:
             assert entry.name
             assert entry.url
             assert entry.local.startswith("inputs/")
+            assert ".." not in PurePosixPath(entry.local).parts
             assert entry.bytes > 0
             assert len(entry.sha256) == 64

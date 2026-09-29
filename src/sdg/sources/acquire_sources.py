@@ -33,11 +33,12 @@ Usage:       acquire_sources
              acquire_sources --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success (every entry's file is on disk and matches its entry)
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
+Exit codes:  0   the command succeeded (every entry's file is on disk and matches
+                 its entry)
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
              3   a manifest is missing or cannot be read
-             6   not running from inside the repo
+             6   the command is not running from inside the repo
              8   a pinned file has not been downloaded (a dry run only; a real
                  run fetches it)
              9   a pinned file on disk does not match its manifest entry
@@ -45,6 +46,7 @@ Exit codes:  0   success (every entry's file is on disk and matches its entry)
              11  a download failed
              12  a downloaded file does not match its manifest entry (discarded)
              13  a file on disk cannot be read (left alone)
+             66  a manifest records a location that does not stay under inputs/
              The numbers are the repo-wide table in
              docs/exit_codes.csv. Every problem is reported;
              the exit code is the worst one seen, in the order 11, 12, 8, 9,
@@ -66,7 +68,12 @@ from collections.abc import Callable
 from .fetch_file import FetchError, fetch
 from .finalize_file import discard, place
 from .fingerprint_file import compare
-from .read_manifests import ManifestError, NotInRepoError, manifests
+from .read_manifests import (
+    ManifestError,
+    NotInRepoError,
+    OutsideInputsError,
+    manifests,
+)
 
 #######################################################################################
 ### Reporting ###
@@ -138,6 +145,11 @@ def main(argv: list[str] | None = None) -> int:
     except NotInRepoError as exc:
         say(str(exc))
         return 6
+    # A location outside inputs/ is caught before the wider manifest error it is a
+    # kind of, because it has its own number: a download there would land anywhere.
+    except OutsideInputsError as exc:
+        say(str(exc))
+        return 66
     except ManifestError as exc:
         say(str(exc))
         return 3

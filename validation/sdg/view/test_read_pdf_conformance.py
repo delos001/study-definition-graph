@@ -15,7 +15,7 @@ Usage:       pytest validation/sdg/view/test_read_pdf_conformance.py
              pytest validation/sdg/view/test_read_pdf_conformance.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-26
 Owner:       Jason Delosh
@@ -34,7 +34,7 @@ from sdgval.labels import category, code, objective
 
 
 @code("SA00513")
-@category("sources")
+@category("repository")
 @objective("conformance")
 def test_every_listed_document_is_recorded_by_a_manifest():
     """Every file src/sdg/view/lookup_documents.yml lists is recorded by a manifest, as

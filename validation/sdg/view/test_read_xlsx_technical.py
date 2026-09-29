@@ -19,7 +19,7 @@ Usage:       pytest validation/sdg/view/test_read_xlsx_technical.py
              pytest validation/sdg/view/test_read_xlsx_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-15
 Owner:       Jason Delosh
@@ -610,3 +610,32 @@ def test_all_names_only_the_workbooks_with_hits(inputs, capsys):
     printed = run(capsys, "--all", "--find", "predose").printed
     assert "Example_Terms.xlsx" in printed
     assert "Other_Book.xlsx" not in printed
+
+
+#######################################################################################
+### Checks on the row numbers records format prints ###
+
+
+@code("SA00603")
+@category("processing")
+@objective("functionality")
+@positive
+def test_records_format_and_find_give_a_row_the_same_number(inputs, capsys):
+    """In records format each row is headed by the number the sheet gives it, the same
+    number the search option reports for it, so a row cited from either can be found in
+    Excel.
+
+    The sheet carries a title and a blank row above its column names and a blank row
+    between its two data rows, so a count of printed rows would give different
+    numbers."""
+    write_workbook(
+        inputs / "standards" / "Spaced.xlsx",
+        {"terms": [["A title"], [None], ROWS[0], ROWS[1], [None], ROWS[2]]},
+    )
+    records = run(
+        capsys, "Spaced", "--sheet", "terms", "--header-row", "3", "--format", "records"
+    ).printed
+    found = run(capsys, "Spaced", "--find", "Blood sample").printed
+    assert "terms row 6:" in found
+    assert "--- row 6 ---" in records
+    assert "Visit: Day 1" in records.split("--- row 6 ---")[1]

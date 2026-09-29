@@ -3,8 +3,9 @@ Script:      test_read_pdf_technical.py
 Description: Checks for src/sdg/view/read_pdf.py, the command that prints part of
              a pinned PDF. They cover the list of lookup documents: that a
              well-formed list becomes the documents the command offers, that each
-             path is taken from the manifest rather than from the list, and that
-             every way the list can be wrong is refused with its own exit code.
+             document's path is taken from the manifest entry that records its
+             file name, and that every way the list can be wrong is refused with
+             its own exit code.
 
              They also cover the modes that open a PDF. Those checks build a
              small document with pymupdf, one with bookmarks and one without, so
@@ -21,7 +22,7 @@ Usage:       pytest validation/sdg/view/test_read_pdf_technical.py
              pytest validation/sdg/view/test_read_pdf_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-15
 Owner:       Jason Delosh
@@ -143,13 +144,13 @@ def test_every_row_becomes_a_document(repo, write_list):
     assert sorted(documents) == ["guide", "plain"]
 
 
-@code("SA00157")
+@code("SA00616")
 @category("processing")
 @objective("functionality")
 @positive
 def test_the_path_comes_from_the_manifest(repo, write_list):
-    """A document's path is taken from its manifest entry, so the lookup document list
-    never says where a file lives."""
+    """A document's path is taken from the manifest entry that records the file name the
+    lookup document list gives, so the list never says where a file lives."""
     documents, _ = load_registry(write_list(LIST_TEXT))
     assert documents["guide"].path == repo.root / GUIDE
 
@@ -330,7 +331,7 @@ def test_a_file_no_manifest_records_is_refused(repo, write_list):
     with pytest.raises(UnknownFileError) as raised:
         load_registry(write_list(text))
     assert "Nobody_Recorded_This.pdf" in str(raised.value)
-    assert "record the file in manifests/" in str(raised.value)
+    assert "correct the name, or record the file in manifests/" in str(raised.value)
 
 
 @code("SA00171")
@@ -344,6 +345,45 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
     with pytest.raises(RegistryError) as raised:
         load_registry(write_list(text))
     assert "nowhere" in str(raised.value)
+
+
+@code("SA00605")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_file_name_two_entries_record_exits_3(repo, write_list, monkeypatch, capsys):
+    """A row naming a file name that two manifest entries record makes the command exit
+    3 rather than open either file. The message names the location of both, says the
+    two pinned files share the name, and says the code asking for it has to choose one
+    version.
+
+    The second entry records the guide's name in another folder, the way a second
+    pinned version of a document would."""
+    other = "inputs/standards/example_v2/Example_Guide.pdf"
+    repo.file(other, CONTENT)
+    repo.manifest("another", [repo.entry(other)])
+    outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
+    assert outcome.exit_code == 3
+    assert GUIDE in outcome.printed and other in outcome.printed
+    assert "two pinned files share this name" in outcome.printed
+    assert "has to choose one version of the file" in outcome.printed
+
+
+@code("SA00614")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_boilerplate_pattern_that_is_not_a_regular_expression_exits_31(
+    repo, write_list, monkeypatch, capsys
+):
+    """A boilerplate pattern that is not a valid regular expression makes the command
+    exit 31, and the message names the document and quotes the pattern, rather than
+    stopping on a traceback."""
+    text = LIST_TEXT.replace("'^ *Page [0-9]+ *$'", "'[unclosed'")
+    outcome = run(write_list, monkeypatch, capsys, text, "--docs")
+    assert outcome.exit_code == 31
+    assert "the boilerplate for guide holds '[unclosed'" in outcome.printed
+    assert "not a valid regular expression" in outcome.printed
 
 
 @code("SA00172")
@@ -380,8 +420,8 @@ def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, caps
 @negative
 def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys):
     """When the sdg package is not running from inside its repo, the command exits 6
-    and prints the install command, because the manifests that own each document's
-    path cannot be found from anywhere else."""
+    and prints the install command, because the manifests that record each document
+    cannot be found from anywhere else."""
     from sdg.sources import read_manifests
 
     monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
@@ -401,6 +441,27 @@ def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
     assert outcome.exit_code == 3
     assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
+
+
+@code("SA00611")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_manifest_location_outside_inputs_exits_66(
+    repo, write_list, monkeypatch, capsys
+):
+    """When a manifest records a location that does not stay under inputs/, the
+    command exits 66 and quotes the location, rather than reporting an unreadable
+    manifest."""
+    repo.manifest(
+        "stray", [repo.entry("inputs/../elsewhere.pdf", bytes=1, sha256="0" * 64)]
+    )
+    outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
+    assert outcome.exit_code == 66
+    assert (
+        '"inputs/../elsewhere.pdf", which does not stay under inputs/'
+        in outcome.printed
+    )
 
 
 @code("SA00176")
@@ -499,7 +560,9 @@ def usage_mistake(capsys, *argv):
     with pytest.raises(SystemExit) as caught:
         read_pdf.main(list(argv))
     captured = capsys.readouterr()
-    return Outcome(int(caught.value.code), captured.out + captured.err)
+    # main() exits with a number, so any other exit value is itself a failure.
+    assert isinstance(caught.value.code, int)
+    return Outcome(caught.value.code, captured.out + captured.err)
 
 
 #######################################################################################
@@ -896,7 +959,9 @@ def test_an_exact_section_number_beats_a_title_match():
             "next_number": "",
         },
     ]
-    assert read_pdf.find_section(sections, "2")["number"] == "2"
+    found = read_pdf.find_section(sections, "2")
+    assert found is not None
+    assert found["number"] == "2"
 
 
 @code("SA00200")
@@ -1093,3 +1158,100 @@ def test_a_search_hit_cuts_a_long_line_short(
     printed = read(capsys, "--doc", "plain", "--find", "needle").printed
     assert "..." in printed
     assert "y" * 150 not in printed
+
+
+#######################################################################################
+### Staging a next bookmark that carries no number ###
+#
+# Some bookmarks carry no section number, such as a glossary or an appendix, so the
+# reader ends the section before them at their title. This document ends its numbered
+# section part way down page 2, where a glossary begins.
+
+
+def build_unnumbered_next_pdf(path, glossary_heading):
+    """Write a two-page PDF whose numbered section runs onto page 2, where an unnumbered
+    GLOSSARY bookmark begins.
+
+    Args:
+        path: Where the document is written. Parent folders are created.
+        glossary_heading: The heading printed above the glossary text on page 2. An
+            empty string leaves the heading off the page, so it cannot be found.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    first = document.new_page()
+    first.insert_text((72, 72), "1 First Section\nalpha content")
+    second = document.new_page()
+    second.insert_text(
+        (72, 72),
+        f"alpha tail\n{glossary_heading}\nglossary content".replace("\n\n", "\n"),
+    )
+    document.set_toc([[1, "1 First Section", 1], [1, "GLOSSARY", 2]])
+    document.save(str(path))
+    document.close()
+
+
+@pytest.fixture
+def unnumbered_next(fake_repo, write_list, monkeypatch):
+    """Stage the guide as a document whose numbered section is followed by a GLOSSARY
+    bookmark, with the glossary's heading on the page.
+
+    Returns:
+        The fake repo, with the command pointed at a list naming both documents.
+    """
+    build_unnumbered_next_pdf(fake_repo.root / GUIDE, "GLOSSARY")
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    return fake_repo
+
+
+@code("SA00600")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_section_ends_at_a_next_heading_that_carries_no_number(
+    unnumbered_next, capsys
+):
+    """When the next bookmark carries no number, the section ends at that bookmark's
+    title on the shared page. The section's own text on that page is kept and the next
+    section's text is left out."""
+    outcome = read(capsys, "1")
+    assert outcome.exit_code == 0
+    assert "alpha tail" in outcome.printed
+    assert "glossary content" not in outcome.printed
+
+
+@code("SA00601")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_missing_heading_that_carries_no_number_warns(
+    fake_repo, write_list, monkeypatch, capsys
+):
+    """When the next bookmark carries no number and its title is not on the page a
+    section ends on, the page is shown whole. A warning names that title and the page
+    and says the extract may run past the section."""
+    build_unnumbered_next_pdf(fake_repo.root / GUIDE, "")
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    outcome = read(capsys, "1")
+    assert outcome.exit_code == 0
+    assert "could not locate the heading for GLOSSARY on page 2" in outcome.printed
+    assert "may run past this section" in outcome.printed
+
+
+@code("SA00602")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_section_that_carries_no_number_is_printed_from_its_start_page(
+    unnumbered_next, capsys
+):
+    """A section whose bookmark carries no number is found by its title and printed
+    from its start page to the end of the document, with its own text in the
+    extract."""
+    outcome = read(capsys, "GLOSSARY")
+    assert outcome.exit_code == 0
+    assert "glossary content" in outcome.printed

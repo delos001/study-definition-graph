@@ -23,12 +23,11 @@ Description: A pytest plugin that collects how each check ended and, when asked,
                  column per way of narrowing in the run's own file, and, in the
                  run's own file, how many checks of its aspect the run set out to
                  cover and how many it reports on, and the Python and pytest
-                 versions and the operating system. The checks of other aspects,
-                 which an aspect's command drops, are not counted. The two counts
-                 differ when checks were dropped or the run stopped early, so a
-                 partial run cannot read as a whole one. They are counted from what
-                 happened rather than from the options typed, because an option
-                 this file does not know about narrows a run just the same.
+                 versions and the operating system. Each count counts a check once,
+                 however many values it ran with. What each count holds, and which
+                 ways of narrowing a run change it, is defined under
+                 checks_collected in
+                 validation/reports/validation_report_dictionary.md.
                - When is the local timestamp with its zone, on each row and in the
                  run's own file, and by whom is the git user name, in the run's own
                  file.
@@ -37,7 +36,8 @@ Description: A pytest plugin that collects how each check ended and, when asked,
                  holds the check's id, its name, its parameter when it has one, its
                  category, its aspect of quality, its objective, its case when it
                  staged its own situation, its expected result, which is its
-                 docstring's first paragraph, its own outcome, and the reason when
+                 docstring's first paragraph, its version as the inventory records
+                 it, its own outcome, and the reason when
                  that is not passed: the assertion message, the step that broke, or
                  why it was skipped. A check that goes wrong twice, failing and then
                  breaking in its clean-up, keeps both reasons in the order the steps
@@ -62,6 +62,8 @@ Description: A pytest plugin that collects how each check ended and, when asked,
 
 Inputs:      git (for the commit, the user name and each file's last change;
                  read-only)
+             validation/validation_inventory.csv (read-only; each check's
+                 version)
              the installed packages' own records of their versions (read-only)
 
 Outputs:     Nothing, unless --validation-report is given. Then it writes two files
@@ -85,7 +87,9 @@ Usage:       validate_technical --validation-report
 Exit codes:  None of its own. It runs inside pytest, and a report asked for without
              an aspect's command, when git does not answer, on uncommitted
              changes, or with no check left to run, is refused with pytest's own
-             4, a bad command line.
+             4, a bad command line. Each refusal but the first also leaves its
+             cause in pytest's stash, and an aspect's command, whose header lists
+             the numbers, ends with the repo's number for it.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -124,7 +128,15 @@ from sdgval.labels import (
     fixtures_of,
     objective_of,
 )
-from sdgval.select_checks import RUN_ASPECT, SELECTORS, wanted
+from sdgval.select_checks import (
+    INVENTORY_RELATIVE,
+    RUN_ASPECT,
+    SELECTORS,
+    Refusal,
+    check_key,
+    refuse,
+    wanted,
+)
 
 #######################################################################################
 ### Settings ###
@@ -226,12 +238,15 @@ class RunState:
     outcomes: dict[str, dict] = field(default_factory=dict)
     # The moment the run started, so the report can say when the run began.
     started_at: float = 0.0
-    # How many checks of the run's aspect were dropped before the run. It is counted
-    # from pytest's own hook rather than from the options that did the dropping,
-    # because pytest fires that hook for every deselection whatever caused it,
-    # including its own --deselect, its -k and -m filters, and the options
-    # src/sdgval/select_checks.py adds.
-    deselected: int = 0
+    # The checks of the run's aspect that were dropped before the run, each named
+    # once however many values it runs with. They are read from pytest's own hook
+    # rather than from the options that did the dropping, because pytest fires that
+    # hook for every deselection whatever caused it, including its own --deselect,
+    # its -k and -m filters, and the options src/sdgval/select_checks.py adds.
+    deselected: set[str] = field(default_factory=set)
+    # Each check's version in validation/validation_inventory.csv, keyed by its id,
+    # read once at the start of the run.
+    versions: dict[str, str] = field(default_factory=dict)
 
 
 # Where each run's state is kept in pytest's stash.
@@ -244,7 +259,27 @@ def pytest_configure(config: pytest.Config) -> None:
     Args:
         config: pytest's configuration for the run.
     """
-    config.stash[RUN_STATE] = RunState()
+    config.stash[RUN_STATE] = RunState(versions=inventory_versions(config))
+
+
+def inventory_versions(config: pytest.Config) -> dict[str, str]:
+    """Read each check's version from validation/validation_inventory.csv.
+
+    The version is the one column of a report row read from the inventory rather
+    than from the check, because a person moves it by hand when the check changes.
+
+    Args:
+        config: pytest's configuration for the run, which knows the root folder.
+
+    Returns:
+        Each check's version, keyed by its id. It is empty when there is no
+        inventory under the root folder, as for a staged suite.
+    """
+    path = config.rootpath / INVENTORY_RELATIVE
+    if not path.is_file():
+        return {}
+    with path.open(encoding="utf-8", newline="") as fh:
+        return {row["id"]: row.get("version", "") for row in csv.DictReader(fh)}
 
 
 @pytest.hookimpl(hookwrapper=True)
@@ -273,7 +308,8 @@ def pytest_runtest_makereport(
         # its own, so there is nothing to record.
         return
     elif report.skipped:
-        # The test was skipped before it ran, by a skipif marker on it.
+        # The check was skipped before it ran. The reasons a check can be skipped
+        # are listed under skipped in validation/reports/validation_report_dictionary.md.
         outcome = "skipped"
     else:
         # Set-up or clean-up broke. pytest's own word for that is error.
@@ -285,6 +321,9 @@ def pytest_runtest_makereport(
         {
             "file": Path(str(item.fspath)),
             "code": code_of(item),
+            # The check the row belongs to, the same for every value it runs with,
+            # so the run's own file can count checks rather than runs.
+            "check": check_key(item),
             # A check is a test function, which pytest describes with its original
             # name and the function itself. They are read with getattr, because the
             # hook is declared for any kind of test item.
@@ -295,8 +334,9 @@ def pytest_runtest_makereport(
             "case": case_of(item),
             "fixtures": fixtures_of(item),
             # The inventory's own rule gives the sentence, so a report and the
-            # inventory always show the same one. A check with no docstring, which
-            # the inventory refuses, is marked here rather than left blank.
+            # inventory always show the same one. A check with no docstring, or an
+            # empty first paragraph, which the inventory refuses, is marked here
+            # rather than left blank.
             "expected_result": first_paragraph(
                 function.__doc__ if function is not None else None
             )
@@ -342,7 +382,9 @@ def _add_reason(row: dict, reason: str) -> None:
         row: The check's row.
         reason: What this step has to say.
     """
-    if reason and reason not in row["reason"].split("; "):
+    # No check stages an empty reason or one already on the row, so the guard's false
+    # side is left out of coverage. The guard stays so a row never repeats a reason.
+    if reason and reason not in row["reason"].split("; "):  # pragma: no branch
         row["reason"] = f"{row['reason']}; {reason}" if row["reason"] else reason
 
 
@@ -449,7 +491,9 @@ def _last_change(path: str, root: Path) -> tuple[str, str]:
     # a run, and (not committed) for a file git is told to ignore.
     answer = _git("log", "-1", "--format=%cs %h", "--", path, cwd=root)
     if answer == "(unknown)":
-        return "(unknown)", "(unknown)"
+        # Only git failing part way through a run reaches this line, and no check
+        # stages that, so the line is left out of coverage.
+        return "(unknown)", "(unknown)"  # pragma: no cover
     if not answer:
         return "(not committed)", "(not committed)"
     date, change_id = answer.split(" ", 1)
@@ -459,8 +503,9 @@ def _last_change(path: str, root: Path) -> tuple[str, str]:
 def _installed_packages() -> str:
     """List every package installed where the run ran, with its version.
 
-    environment.yml fixes no package's version, so a package can change between two
-    runs without anything in the repository changing. A package the project never
+    environment.yml lets a library move within its major version, and a package it
+    does not name can move freely, so a package can change between two runs without
+    anything in the repository changing. A package the project never
     imports can still break it through a package that does, so every installed
     package is listed, not only the ones the project names.
 
@@ -505,14 +550,12 @@ def pytest_deselected(items: list[pytest.Item]) -> None:
     the first of them.
 
     Args:
-        items: The checks being dropped.
+        items: The checks being dropped, at least one.
     """
-    if not items:
-        return
     config = items[0].config
     aspects = wanted(config, "aspect")
-    config.stash[RUN_STATE].deselected += sum(
-        1 for item in items if not aspects or aspect_of(item) in aspects
+    config.stash[RUN_STATE].deselected.update(
+        check_key(item) for item in items if not aspects or aspect_of(item) in aspects
     )
 
 
@@ -551,22 +594,26 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     # that the working folder matched it, so it is refused rather than written with
     # an unknown commit.
     if changes is None:
-        raise pytest.UsageError(
+        refuse(
+            session.config,
+            Refusal.GIT_SILENT,
             "No checks were run and no validation report was written, because git "
             "did not answer when asked whether the working folder has uncommitted "
             "changes. A report names the commit it validated, so it needs git. "
             "Confirm git is installed and the folder is a git repository, then run "
-            "the report again."
+            "the report again.",
         )
     if changes:
         listed = "\n".join(f"  {change}" for change in changes)
-        raise pytest.UsageError(
+        refuse(
+            session.config,
+            Refusal.UNCOMMITTED_CHANGES,
             "No checks were run and no validation report was written, because the "
             "working folder has changes that are not committed:\n"
             f"{listed}\n"
             "A report names the commit it validated, and these changes belong to no "
             "commit yet. Commit them, or set them aside with git stash, then run the "
-            "report again."
+            "report again.",
         )
 
 
@@ -595,22 +642,26 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     ):
         return
     if config.getoption("keyword") or config.getoption("markexpr"):
-        raise pytest.UsageError(
+        refuse(
+            config,
+            Refusal.NOTHING_SELECTED,
             "No checks were run and no validation report was written, because "
             "pytest's -k or -m option removed every check the other options "
-            "selected. Widen or drop -k or -m."
+            "selected. Widen or drop -k or -m.",
         )
-    raise pytest.UsageError(
+    refuse(
+        config,
+        Refusal.NO_CHECK_COLLECTED,
         "No checks were run and no validation report was written, because no checks "
-        "were collected."
+        "were collected.",
     )
 
 
 # The columns of a report, one row per check, in the order they are written: the
 # run the row belongs to, when it started and what it selected, then the inventory's
 # columns in the inventory's own order with the parameter beside the name, then how
-# the check ended, then which version of the script, the test file and each fixture
-# the check ran.
+# the check ended, then which version of the script, the check file and each
+# fixture the check ran.
 # The inventory's columns carry its names, so a row joins to it by id, and run_id
 # joins it to the run's own file.
 REPORT_COLUMNS = (
@@ -629,6 +680,7 @@ REPORT_COLUMNS = (
     "target_folder_path",
     "target_file_name",
     "expected_result",
+    "version",
     "outcome",
     "outcome_reason",
     "target_last_changed",
@@ -638,20 +690,12 @@ REPORT_COLUMNS = (
     "fixtures",
 )
 
-# The ways a run can be narrowed, in the order the run's file writes them. The first
-# five are the options of src/sdgval/select_checks.py, keyword and marker are
-# pytest's -k and -m filters, and paths are the files, folders or single checks the
-# person typed.
-SELECTION_KEYS = (
-    "aspect",
-    "category",
-    "objective",
-    "id",
-    "group",
-    "keyword",
-    "marker",
-    "paths",
-)
+# The ways a run can be narrowed, in the order the run's file writes them. The
+# selection options come first, taken from src/sdgval/select_checks.py, where each
+# is defined once, so a new option reaches the report without an edit here. Then
+# come keyword and marker, pytest's -k and -m filters, and paths, the files, folders
+# or single checks the person typed.
+SELECTION_KEYS = (*SELECTORS, "keyword", "marker", "paths")
 
 # The columns of the run's own file, which holds one row: the details that are the
 # same for every check in the run. The selection comes last, one column per way of
@@ -710,13 +754,13 @@ def _selection(config: pytest.Config) -> dict[str, list[str] | str]:
 
 
 def _target_of(test_file: Path, root: Path) -> tuple[str, str, str]:
-    """Name the code file a test file proves.
+    """Name the code file a check file proves.
 
     The rule is the inventory generator's, src/sdgval/build_inventory.py, imported
     above, so the report's target columns and the inventory's agree by construction.
 
     Args:
-        test_file: The test file's path.
+        test_file: The check file's path.
         root: pytest's root folder.
 
     Returns:
@@ -802,8 +846,10 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         # reporting on. The two differ when checks were dropped or the run stopped
         # early, so a run that covered part of its aspect cannot read as one that
         # covered all of it, whatever narrowed it.
-        "checks_collected": len(session.items) + state.deselected,
-        "checks_reported": len(state.outcomes),
+        "checks_collected": len(
+            {check_key(item) for item in session.items} | state.deselected
+        ),
+        "checks_reported": len({row["check"] for row in state.outcomes.values()}),
         "commit": commit,
         "python_version": platform.python_version(),
         "pytest_version": pytest.__version__,
@@ -818,7 +864,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
 
     rows: list[dict] = []
     if state.outcomes:
-        # Rows keep the order the checks ran in, grouped by test file. The
+        # Rows keep the order the checks ran in, grouped by check file. The
         # per-file values are worked out once per file, not once per row.
         by_file: dict[Path, list[dict]] = {}
         for outcome in state.outcomes.values():
@@ -844,7 +890,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             }
             for outcome in outcomes:
                 # Only the fixtures the check names are recorded, each with the
-                # same two details as the script and the test file.
+                # same two details as the script and the check file.
                 fixtures = []
                 for name in outcome["fixtures"]:
                     date, change_id = last_change(f"validation/fixtures/{name}")
@@ -864,6 +910,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                         "objective": outcome["objective"],
                         "staged_case": outcome["case"],
                         "expected_result": outcome["expected_result"],
+                        "version": state.versions.get(outcome["code"], ""),
                         "outcome": outcome["outcome"],
                         "outcome_reason": outcome["reason"],
                     }
@@ -888,6 +935,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 "objective": "",
                 "staged_case": "",
                 "expected_result": "",
+                "version": "",
                 "outcome": "none",
                 "outcome_reason": "no check ran",
             }

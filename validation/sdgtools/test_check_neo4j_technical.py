@@ -23,7 +23,7 @@ Usage:       pytest validation/sdgtools/test_check_neo4j_technical.py
              pytest validation/sdgtools/test_check_neo4j_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-16
 Owner:       Jason Delosh
@@ -242,20 +242,13 @@ def test_quiet_prints_nothing_when_the_database_matches(repo, monkeypatch, capsy
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_prints_nothing(repo, monkeypatch, capsys):
-    """With the quiet option, nothing at all is printed."""
+def test_quiet_missing_settings_exit_37_and_print_nothing(repo, monkeypatch, capsys):
+    """With the quiet option, missing settings still exit 37, and nothing at all is
+    printed."""
     write_env(repo, "NEO4J_URI=\n")
-    assert run(capsys, "--quiet").printed == ""
-
-
-@code("SA00290")
-@category("repository")
-@objective("functionality")
-@negative
-def test_quiet_keeps_the_exit_code(repo, monkeypatch, capsys):
-    """With the quiet option, the exit code still reports the missing settings."""
-    write_env(repo, "NEO4J_URI=\n")
-    assert run(capsys, "--quiet").exit_code == 37
+    outcome = run(capsys, "--quiet")
+    assert outcome.exit_code == 37
+    assert outcome.printed == ""
 
 
 @code("SA00291")
@@ -305,13 +298,13 @@ def test_missing_compose_file_is_refused(repo, capsys):
 @negative
 def test_compose_file_without_an_image_is_refused(repo, capsys):
     """With a docker-compose.yml that names no image for the neo4j service, the run
-    exits 13 and the message names the missing line."""
+    exits 64 and the message names the missing line."""
     write_env(repo)
     (repo / "docker-compose.yml").write_text(
         "services:\n  neo4j:\n    container_name: sdg-neo4j\n", encoding="utf-8"
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 13
+    assert outcome.exit_code == 64
     assert "names no image for the neo4j service" in outcome.printed
     assert "services.neo4j.image" in outcome.printed
 
@@ -321,12 +314,12 @@ def test_compose_file_without_an_image_is_refused(repo, capsys):
 @objective("functionality")
 @negative
 def test_unpinned_image_tag_is_refused(repo, capsys):
-    """With an image written without a version, the run exits 13 and the message
+    """With an image written without a version, the run exits 64 and the message
     shows the form the tag has to take."""
     write_env(repo)
     write_compose(repo, "neo4j")
     outcome = run(capsys)
-    assert outcome.exit_code == 13
+    assert outcome.exit_code == 64
     assert "not in the form neo4j:<version>-<edition>" in outcome.printed
 
 
@@ -445,6 +438,113 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     outcome = run(capsys)
     assert outcome.exit_code == 6
     assert "not running from inside its repo" in outcome.printed
+
+
+#######################################################################################
+### Every refusal with the quiet option ###
+#
+# With the quiet option, each refusal prints nothing and still exits with its own
+# code. One check runs once per refusal.
+
+
+def outside_the_repo(repo: Path, monkeypatch) -> int:
+    """Stage an install from outside the repo, and give the code expected."""
+
+    def not_in_repo() -> Path:
+        """Stand in for the repo check with the refusal it gives outside the repo."""
+        raise script.NotInRepoError("sdg is not running from inside its repo")
+
+    monkeypatch.setattr(script, "require_repo", not_in_repo)
+    return 6
+
+
+def no_env_file(repo: Path, monkeypatch) -> int:
+    """Stage a repo with no .env file, and give the code expected."""
+    return 27
+
+
+def no_compose_file(repo: Path, monkeypatch) -> int:
+    """Stage a .env with no docker-compose.yml beside it, and give the code expected."""
+    write_env(repo)
+    return 13
+
+
+def compose_without_an_image(repo: Path, monkeypatch) -> int:
+    """Stage a docker-compose.yml that names no image, and give the code expected."""
+    write_env(repo)
+    (repo / "docker-compose.yml").write_text(
+        "services:\n  neo4j:\n    container_name: sdg-neo4j\n", encoding="utf-8"
+    )
+    return 64
+
+
+def unreachable_database(repo: Path, monkeypatch) -> int:
+    """Stage a database that nothing answers for, and give the code expected."""
+    write_env(repo)
+    write_compose(repo)
+    refuse(monkeypatch, neo4j.exceptions.ServiceUnavailable("connection refused"))
+    return 38
+
+
+def malformed_address(repo: Path, monkeypatch) -> int:
+    """Stage an address the driver refuses, and give the code expected."""
+    write_env(repo)
+    write_compose(repo)
+    refuse(monkeypatch, neo4j.exceptions.ConfigurationError("URI scheme missing"))
+    return 44
+
+
+def rejected_login(repo: Path, monkeypatch) -> int:
+    """Stage a login the database rejects, and give the code expected."""
+    write_env(repo)
+    write_compose(repo)
+    refuse(monkeypatch, neo4j.exceptions.AuthError("unauthorized"))
+    return 39
+
+
+def other_version(repo: Path, monkeypatch) -> int:
+    """Stage a database running another version, and give the code expected."""
+    write_env(repo)
+    write_compose(repo)
+    answer(monkeypatch, script.Release("5.27.0", "community"))
+    return 40
+
+
+@code("SA00617")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    "stage",
+    [
+        outside_the_repo,
+        no_env_file,
+        no_compose_file,
+        compose_without_an_image,
+        unreachable_database,
+        malformed_address,
+        rejected_login,
+        other_version,
+    ],
+    ids=[
+        "outside the repo",
+        "no .env file",
+        "no docker-compose.yml",
+        "compose file without an image",
+        "unreachable database",
+        "malformed address",
+        "rejected login",
+        "another version",
+    ],
+)
+def test_every_refusal_is_silent_under_quiet(repo, monkeypatch, capsys, stage):
+    """With the quiet option, a refusal prints nothing and still exits with its own
+    code. It runs once for each refusal the tool can give other than missing
+    settings."""
+    expected = stage(repo, monkeypatch)
+    outcome = run(capsys, "--quiet")
+    assert outcome.printed == ""
+    assert outcome.exit_code == expected
 
 
 #######################################################################################

@@ -16,7 +16,7 @@ Usage:       pytest validation/sdg/sources/test_finalize_file_technical.py
              pytest validation/sdg/sources/test_finalize_file_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-10
 Owner:       Jason Delosh
@@ -96,7 +96,9 @@ def test_place_removes_the_part_name(placed):
 @positive
 def test_discard_deletes_the_part_file(part_file):
     """Discarding a .part file deletes it and gives back nothing."""
-    assert discard(part_file.partial) is None
+    # mypy already knows discard() gives back nothing, and this line confirms it
+    # when the code runs, so mypy's warning about using its value is silenced here.
+    assert discard(part_file.partial) is None  # type: ignore[func-returns-value]
     assert not part_file.partial.exists()
 
 

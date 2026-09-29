@@ -52,19 +52,22 @@ Usage:       read_pdf --docs
              read_pdf --doc m11-template --pages 12-14
              read_pdf --doc model-diagram --find Encounter
 
-Exit codes:  0   success
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own (this covers a
+Exit codes:  0   the command succeeded
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line (this covers a
                  page range that is not a number or two numbers joined by a
                  dash, starts before page 1, runs past the document's last
                  page, or ends before it starts)
-             3   a manifest is missing or cannot be read
-             6   not running from inside the repo
+             3   a manifest is missing or cannot be read (or two manifest
+                 entries record a file name the list names, so the name does
+                 not say which file is meant)
+             6   the command is not running from inside the repo
              8   a pinned file has not been downloaded
              23  the requested section was not found in the PDF
-             24  section mode used on a PDF that has no bookmarks
+             24  section mode was used on a PDF that has no bookmarks
              31  the list of lookup documents is missing or wrongly shaped
              32  the list of lookup documents names a file no manifest records
+             66  a manifest records a location that does not stay under inputs/
              The numbers are the repo-wide table in
              docs/exit_codes.csv.
 
@@ -93,7 +96,12 @@ import fitz
 import yaml
 
 from sdg.console_output import use_utf8_output
-from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
+from sdg.sources.read_manifests import (
+    ManifestError,
+    NotInRepoError,
+    OutsideInputsError,
+    entry_named,
+)
 
 #######################################################################################
 ### The lookup documents and how they are loaded ###
@@ -126,8 +134,9 @@ class Document:
 def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document], str]:
     """Read the list of lookup documents and find each file through its manifest.
 
-    The path of each document is resolved from the manifest entry rather than written
-    in the list, so a re-pinned file moves in one place and this tool follows.
+    Each document is named in the list by its file name, and its path is taken from
+    the manifest entry that records that name, so a re-pinned file moves in one place
+    and this tool follows.
 
     Args:
         registry_file: The list to read, or None for the one beside this file.
@@ -136,10 +145,12 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
         The documents by the key a person types, and the key used when --doc is absent.
 
     Raises:
-        RegistryError: The list is missing, cannot be parsed, is shaped wrongly, names
-            a default that is not in it, or names a file no manifest records.
+        RegistryError: The list is missing, cannot be parsed, is shaped wrongly, holds
+            a boilerplate pattern that is not a valid regular expression, names a
+            default that is not in it, or names a file no manifest records.
         NotInRepoError: The sdg package is not running from inside its repo.
-        ManifestError: A manifest is missing or cannot be read.
+        ManifestError: A manifest is missing or cannot be read, or two entries record
+            a file name the list names.
     """
     target = registry_file or REGISTRY_FILE
     # A list that is missing or is not valid YAML becomes the reader's own error, the
@@ -191,11 +202,24 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
                 f"{target.name} names {row['file']}, which no manifest records.\n"
                 "  fix -> correct the name, or record the file in manifests/"
             )
+        # A pattern that is not a valid regular expression is a mistake in the list,
+        # so it becomes the reader's own error and exits 31 with the document and
+        # the pattern named, rather than stopping on a traceback.
+        compiled = []
+        for pattern in patterns:
+            try:
+                compiled.append(re.compile(pattern))
+            except (re.error, TypeError) as exc:
+                raise RegistryError(
+                    f"{target.name}: the boilerplate for {row['key']} holds {pattern!r}, "
+                    f"which is not a valid regular expression ({exc}).\n"
+                    "  fix -> correct the pattern in the list"
+                ) from exc
         documents[row["key"]] = Document(
             path=entry.path,
             label=row["label"],
             manifest=entry.manifest,
-            boilerplate=tuple(re.compile(pattern) for pattern in patterns),
+            boilerplate=tuple(compiled),
         )
 
     default = content.get("default")
@@ -229,7 +253,8 @@ def load_toc(doc: fitz.Document) -> list[dict]:
     The bookmarks give a start page per section but no end page, so each section's end
     is taken as the next bookmark's start page, included, because a section often runs
     part way into the page where the next one begins. The overlap is trimmed at the
-    heading when the pages are extracted.
+    next bookmark's heading when the pages are extracted, which is why each section
+    carries that bookmark's number and title.
 
     An empty result means the PDF has no bookmarks, which is the normal case for the ICH M11
     documents. Callers must treat empty as "this document cannot be addressed by
@@ -239,10 +264,17 @@ def load_toc(doc: fitz.Document) -> list[dict]:
         doc: The open PDF.
 
     Returns:
-        One dict per bookmark, holding number (the leading section number, such as
-            "4.23", or "" if untitled), title (the full bookmark text), start (the first
-            page, 1-indexed to match the printed page numbers) and end (the last page,
-            1-indexed and inclusive).
+        One dict per bookmark, holding these fields.
+
+        - number is the leading section number, such as "4.23", or "" when the title
+          carries none.
+        - title is the full bookmark text.
+        - start is the first page, 1-indexed to match the printed page numbers.
+        - end is the last page, 1-indexed and inclusive.
+        - next_number is the next bookmark's section number, or "" when it carries none
+          or there is no next bookmark.
+        - next_title is the next bookmark's full text, or "" when there is no next
+          bookmark.
     """
     bookmarks = doc.get_toc()  # list of [level, title, start_page]
     sections: list[dict] = []
@@ -256,10 +288,12 @@ def load_toc(doc: fitz.Document) -> list[dict]:
         if index + 1 < len(bookmarks):
             _next_level, next_title, next_start = bookmarks[index + 1]
             end_page = next_start
-            next_match = SECTION_NUMBER_PATTERN.match(next_title.strip())
+            next_title = next_title.strip()
+            next_match = SECTION_NUMBER_PATTERN.match(next_title)
             next_number = next_match.group(1) if next_match else ""
         else:
             end_page = doc.page_count
+            next_title = ""
             next_number = ""
 
         title = title.strip()
@@ -272,6 +306,7 @@ def load_toc(doc: fitz.Document) -> list[dict]:
                 "start": start_page,
                 "end": end_page,
                 "next_number": next_number,
+                "next_title": next_title,
             }
         )
 
@@ -338,6 +373,55 @@ def heading_offset(text: str, number: str) -> int | None:
 
     match = re.search(rf"^[ \t]*{re.escape(number)}[.\s]", text, re.M)
     return match.start() if match else None
+
+
+def title_offset(text: str, title: str) -> int | None:
+    """Find where a heading that carries no section number begins in a page's text.
+
+    Some bookmarks carry no number, such as GLOSSARY in E9(R1) and Appendices in the
+    USDM IG, so the heading can only be found by its words. The match is a heading
+    standing on its own, the bookmark's title with nothing else on its line, so body
+    text that merely opens with the same word is never taken for it. Any run of
+    whitespace in the title matches any run on the page, so a title the page wraps
+    across two lines is still found. Case is ignored, because a bookmark and the
+    heading it names do not always agree on it.
+
+    Args:
+        text: The page's text.
+        title: The bookmark's full title.
+
+    Returns:
+        The character offset of the heading, or None when it is not found. None rather
+            than a guess, for the same reason as heading_offset().
+    """
+    words = title.split()
+    if not words:
+        return None
+
+    pattern = r"^[ \t]*" + r"\s+".join(re.escape(word) for word in words) + r"[ \t]*$"
+    match = re.search(pattern, text, re.M | re.I)
+    return match.start() if match else None
+
+
+def next_heading_offset(text: str, section: dict) -> int | None:
+    """Find where the next section's heading begins on the page a section ends on.
+
+    A next bookmark that carries a number is found by its number, as heading_offset()
+    explains. One that carries none is found by its title. Either way the section ends
+    at the next bookmark, so an unnumbered heading such as a glossary never runs into
+    the section before it.
+
+    Args:
+        text: The page's text.
+        section: The section being extracted, from load_toc().
+
+    Returns:
+        The character offset of the next heading, or None when there is no next
+            bookmark or its heading is not found.
+    """
+    if section["next_number"]:
+        return heading_offset(text, section["next_number"])
+    return title_offset(text, section["next_title"])
 
 
 def strip_boilerplate(text: str, patterns: tuple[re.Pattern, ...]) -> str:
@@ -437,9 +521,9 @@ def extract_pages(
             and no trimming at the section's edges.
         patterns: The document's boilerplate lines to remove.
         label: The document's name, printed in each block's heading.
-        section: The section being extracted, whose own number and the next section's
-            number say where to trim the first and last pages. None in page mode, where
-            nothing is trimmed.
+        section: The section being extracted, whose own number and the next bookmark's
+            number or title say where to trim the first and last pages. None in page
+            mode, where nothing is trimmed.
 
     Returns:
         The extracted text, one block per page, and a warning for each page whose
@@ -474,13 +558,16 @@ def extract_pages(
             # The trailing cut runs on the last page even when it is also the
             # first, because two sections can share one page; by then the leading
             # cut has already removed everything before this section's heading.
+            # A section with no bookmark after it runs to the end of the document,
+            # so there is no heading to look for and nothing to warn about.
             if page_number == end:
-                cut = heading_offset(text, section["next_number"])
+                cut = next_heading_offset(text, section)
                 if cut is not None:
                     text = text[:cut]
-                elif section["next_number"]:
+                elif section["next_title"]:
+                    heading = section["next_number"] or section["next_title"]
                     warnings.append(
-                        f"could not locate the heading for {section['next_number']} on page "
+                        f"could not locate the heading for {heading} on page "
                         f"{page_number}; that page is shown whole and may run past this section"
                     )
 
@@ -597,7 +684,9 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
         # a document with no bookmarks, where no attribution is possible.
         section_title = "?"
         for section in sections:
-            if section["start"] <= page_number <= section["end"]:
+            # A section the page is not in only moves the loop on, so its side of the
+            # branch has nothing to confirm.
+            if section["start"] <= page_number <= section["end"]:  # pragma: no branch
                 section_title = section["title"]
 
         # Show the first matching line as context, trimmed so a wide PDF line
@@ -652,6 +741,13 @@ def main(argv: list[str] | None = None) -> int:
     except NotInRepoError as exc:
         print(exc, file=sys.stderr)
         return 6
+    # A location outside inputs/ is a kind of manifest error with its own number,
+    # so it is caught first.
+    except OutsideInputsError as exc:
+        print(exc, file=sys.stderr)
+        return 66
+    # A file name that two entries record is caught here too, because the fix is in
+    # the manifests rather than in the list.
     except ManifestError as exc:
         print(exc, file=sys.stderr)
         return 3

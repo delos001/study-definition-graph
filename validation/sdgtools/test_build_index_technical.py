@@ -1,14 +1,17 @@
 """
 Script:      test_build_index_technical.py
 Description: Automated checks for src/sdgtools/build_index.py, which generates
-             src/sdgtools/README.md from each script's header block and, under
-             --check, is the pre-commit hook that blocks a commit whose index
-             is stale. Each check writes one or two small scripts to a
-             temporary folder, points the generator at it, and asserts what it
-             writes or which exit code it returns. One check runs --check on
-             the real src/sdgtools/ folder, the same check the pre-commit hook, .githooks/pre-commit, runs.
+             docs/commands.md from the header block of each command that
+             pyproject.toml installs and, under --check, is the pre-commit hook
+             step that blocks a commit whose page is stale. Each check stages a
+             small repo in a temporary folder, with a pyproject.toml listing one
+             or more commands and the files they run, points the generator at it,
+             and asserts what it writes or which exit code it returns. The run of
+             --check on the real repo, the same run the pre-commit hook makes, is
+             in test_build_index_integrity.py, beside this file.
 
-Inputs:      src/sdgtools/*.py and src/sdgtools/README.md  (read-only; the one real-folder check)
+Inputs:      Nothing real. Each staged repo is written to pytest's own temporary
+             folder.
 
 Outputs:     Writes nothing outside pytest's own temporary folder.
 
@@ -17,7 +20,7 @@ Usage:       pytest validation/sdgtools/test_build_index_technical.py
              pytest validation/sdgtools/test_build_index_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -31,14 +34,14 @@ from sdgtools import build_index as bi
 from sdgval.labels import category, code, negative, objective, positive
 
 # A complete header in this repo's convention: a two-line first paragraph, a
-# second paragraph that must not reach the index, and a Usage whose relative
+# second paragraph that must not reach the page, and a Usage whose relative
 # indentation must survive.
 GOOD_HEADER = '''"""
 Script:      alpha.py
 Description: Does the first thing,
              continued on a second line.
 
-             A second paragraph the index must leave out.
+             A second paragraph the page must leave out.
 
 Inputs:      nothing
 Outputs:     nothing
@@ -52,9 +55,11 @@ Owner:       Jason Delosh
 """
 '''
 
-EXPECTED_ENTRY = """## alpha.py
+EXPECTED_ENTRY = """### alpha
 
 Does the first thing, continued on a second line.
+
+Its header block is in `src/sdgtools/alpha.py`.
 
 ```
 alpha
@@ -70,43 +75,61 @@ alpha --flag
 
 
 @pytest.fixture
-def folder(tmp_path, monkeypatch):
-    """Produces a function that takes {filename: source} and writes those
-    scripts to a temporary folder the generator is pointed at, with the index
-    path beside them, and hands back that folder."""
-    scripts = tmp_path / "src" / "sdgtools"
-    scripts.mkdir(parents=True)
-    monkeypatch.setattr(bi, "SCRIPTS_DIR", scripts)
-    monkeypatch.setattr(bi, "INDEX_PATH", scripts / "README.md")
+def repo(tmp_path, monkeypatch):
+    """Produces a function that takes {module: source}, writes each module's file
+    under src/ of a temporary repo, lists each one in its pyproject.toml as a command
+    named after the module's last part, and hands back the repo's folder. The
+    generator is pointed at that folder."""
+    monkeypatch.setattr(bi, "REPO_ROOT", tmp_path)
+    (tmp_path / "docs").mkdir()
 
-    def make(files: dict[str, str]):
-        """Write the given scripts into the folder and hand the folder back.
+    def make(modules: dict[str, str]):
+        """Write the given modules and the pyproject.toml that installs them.
 
         Args:
-            files: The scripts to write, source text keyed by file name.
+            modules: The source of each module, keyed by its dotted name, such as
+                sdgtools.alpha.
 
         Returns:
-            The folder the generator is pointed at.
+            The staged repo's folder.
         """
-        for name, source in files.items():
-            (scripts / name).write_text(source, encoding="utf-8")
-        return scripts
+        lines = ["[project.scripts]"]
+        for module, source in modules.items():
+            path = tmp_path / "src" / (module.replace(".", "/") + ".py")
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text(source, encoding="utf-8")
+            lines.append(f'{module.split(".")[-1]} = "{module}:main"')
+        (tmp_path / "pyproject.toml").write_text(
+            "\n".join(lines) + "\n", encoding="utf-8"
+        )
+        return tmp_path
 
     return make
 
 
+def page(root) -> str:
+    """Read the generated page of a staged repo.
+
+    Args:
+        root: The staged repo's folder.
+
+    Returns:
+        The text of docs/commands.md.
+    """
+    return (root / "docs" / "commands.md").read_text(encoding="utf-8")
+
+
 #######################################################################################
-### Generating the index ###
+### Generating the page ###
 
 
 @pytest.fixture
-def written(folder, capsys):
-    """Stage one script with a complete header, run the generator, and hand back the
-    exit code, the index it wrote and what it printed."""
-    scripts = folder({"alpha.py": GOOD_HEADER})
+def written(repo, capsys):
+    """Stage one command with a complete header, run the generator, and hand back the
+    exit code, the page it wrote and what it printed."""
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
     exit_code = bi.main([])
-    text = (scripts / "README.md").read_text(encoding="utf-8")
-    return exit_code, text, capsys.readouterr().out
+    return exit_code, page(root), capsys.readouterr().out
 
 
 @code("SA00241")
@@ -114,8 +137,9 @@ def written(folder, capsys):
 @objective("functionality")
 @positive
 def test_writes_the_entry_from_the_header(written):
-    """src/sdgtools/README.md holds each script's name, the first paragraph of its Description
-    joined to one line, and its Usage block with the relative indentation kept."""
+    """docs/commands.md holds each command under a heading of its name, with the first
+    paragraph of its Description joined to one line, the file its header block is in,
+    and its Usage block with the relative indentation kept."""
     _, text, _ = written
     assert EXPECTED_ENTRY in text
 
@@ -125,7 +149,7 @@ def test_writes_the_entry_from_the_header(written):
 @objective("functionality")
 @positive
 def test_the_second_paragraph_is_left_out(written):
-    """Only the first paragraph of a Description reaches src/sdgtools/README.md, and the
+    """Only the first paragraph of a Description reaches docs/commands.md, and the
     rest stays in the header."""
     _, text, _ = written
     assert "second paragraph" not in text
@@ -136,10 +160,10 @@ def test_the_second_paragraph_is_left_out(written):
 @objective("functionality")
 @positive
 def test_the_index_opens_with_the_title_and_the_notice(written):
-    """src/sdgtools/README.md opens with its title and the notice saying it is generated, so
+    """docs/commands.md opens with its title and the notice saying it is generated, so
     nobody edits it by hand."""
     _, text, _ = written
-    assert text.startswith("# src/sdgtools/\n\n" + bi.GENERATED_NOTICE)
+    assert text.startswith("# Commands\n\n" + bi.GENERATED_NOTICE)
 
 
 @code("SA00244")
@@ -147,7 +171,7 @@ def test_the_index_opens_with_the_title_and_the_notice(written):
 @objective("functionality")
 @positive
 def test_the_index_ends_with_one_newline(written):
-    """src/sdgtools/README.md ends with exactly one new line, so a regenerated file
+    """docs/commands.md ends with exactly one new line, so a regenerated file
     compares equal to itself and the check option does not fail on spacing."""
     _, text, _ = written
     assert text.endswith("```\n") and not text.endswith("\n\n")
@@ -157,14 +181,14 @@ def test_the_index_ends_with_one_newline(written):
 @category("repository")
 @objective("functionality")
 @positive
-def test_the_index_is_written_with_lf_line_endings(folder):
-    """src/sdgtools/README.md ends each line the same way whatever machine regenerates
+def test_the_index_is_written_with_lf_line_endings(repo):
+    """docs/commands.md ends each line the same way whatever machine regenerates
     it, so the file does not change between one run and the next.
 
     It is read as bytes, because reading as text would hide a carriage return."""
-    scripts = folder({"alpha.py": GOOD_HEADER})
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
     assert bi.main([]) == 0
-    raw = (scripts / "README.md").read_bytes()
+    raw = (root / "docs" / "commands.md").read_bytes()
     assert b"\r" not in raw
 
 
@@ -173,26 +197,79 @@ def test_the_index_is_written_with_lf_line_endings(folder):
 @objective("functionality")
 @positive
 def test_writing_reports_the_file_and_the_count(written):
-    """A run that writes src/sdgtools/README.md exits 0 and says which file it wrote and how many
-    scripts it holds."""
+    """A run that writes docs/commands.md exits 0 and says which file it wrote and how
+    many commands it holds."""
     exit_code, _, printed = written
     assert exit_code == 0
-    assert "src/sdgtools/README.md written, 1 script(s)" in printed
+    assert "docs/commands.md written, 1 command(s)" in printed
 
 
 @code("SA00247")
 @category("repository")
 @objective("functionality")
 @positive
-def test_scripts_are_listed_in_name_order(folder):
-    """Two scripts appear in alphabetical order whatever order they were
-    written, so src/sdgtools/README.md is stable between runs."""
-    scripts = folder(
-        {"zeta.py": GOOD_HEADER.replace("alpha", "zeta"), "alpha.py": GOOD_HEADER}
+def test_scripts_are_listed_in_name_order(repo):
+    """Two commands of one package appear in alphabetical order whatever order
+    pyproject.toml lists them in, so docs/commands.md is stable between runs."""
+    root = repo(
+        {
+            "sdgtools.zeta": GOOD_HEADER.replace("alpha", "zeta"),
+            "sdgtools.alpha": GOOD_HEADER,
+        }
     )
     assert bi.main([]) == 0
-    text = (scripts / "README.md").read_text(encoding="utf-8")
-    assert text.index("## alpha.py") < text.index("## zeta.py")
+    text = page(root)
+    assert text.index("### alpha") < text.index("### zeta")
+
+
+@code("SA00632")
+@category("repository")
+@objective("functionality")
+@positive
+def test_commands_are_grouped_by_package_in_a_fixed_order(repo):
+    """The commands of each package appear under that package's heading, and the
+    headings run pipeline commands, then repo tools, then validation commands,
+    whatever the commands' names."""
+    root = repo(
+        {
+            "sdgval.alpha": GOOD_HEADER,
+            "sdgtools.mid": GOOD_HEADER.replace("alpha", "mid"),
+            "sdg.sources.zeta": GOOD_HEADER.replace("alpha", "zeta"),
+        }
+    )
+    assert bi.main([]) == 0
+    text = page(root)
+    pipeline = text.index("## Pipeline commands\n\n### zeta")
+    tools = text.index("## Repo tools\n\n### mid")
+    validation = text.index("## Validation commands\n\n### alpha")
+    assert pipeline < tools < validation
+
+
+@code("SA00633")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_package_with_no_command_gets_no_heading(repo):
+    """A package that installs no command has no heading on docs/commands.md."""
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
+    assert bi.main([]) == 0
+    text = page(root)
+    assert "## Pipeline commands" not in text
+    assert "## Validation commands" not in text
+
+
+@code("SA00634")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_file_no_command_runs_is_left_out(repo):
+    """A file in a package that pyproject.toml installs as no command, such as a
+    pytest plugin, does not appear on docs/commands.md, even when it has no header
+    block."""
+    root = repo({"sdgval.alpha": GOOD_HEADER})
+    (root / "src" / "sdgval" / "plugin.py").write_text("x = 1\n", encoding="utf-8")
+    assert bi.main([]) == 0
+    assert "plugin" not in page(root)
 
 
 #######################################################################################
@@ -203,27 +280,27 @@ def test_scripts_are_listed_in_name_order(folder):
 @category("repository")
 @objective("functionality")
 @positive
-def test_check_passes_when_index_is_current(folder, capsys):
-    """With the check option, the run exits 0 and writes nothing when src/sdgtools/README.md
+def test_check_passes_when_index_is_current(repo, capsys):
+    """With the check option, the run exits 0 and writes nothing when docs/commands.md
     on disk equals what would be generated."""
-    scripts = folder({"alpha.py": GOOD_HEADER})
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
     assert bi.main([]) == 0
-    before = (scripts / "README.md").stat().st_mtime_ns
+    before = (root / "docs" / "commands.md").stat().st_mtime_ns
     assert bi.main(["--check"]) == 0
-    assert (scripts / "README.md").stat().st_mtime_ns == before
-    assert "is current, 1 script(s)" in capsys.readouterr().out
+    assert (root / "docs" / "commands.md").stat().st_mtime_ns == before
+    assert "is current, 1 command(s)" in capsys.readouterr().out
 
 
 @code("SA00249")
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_fails_when_index_is_missing(folder, capsys):
-    """With the check option and no index on disk, the run exits 15, names the command
+def test_check_fails_when_index_is_missing(repo, capsys):
+    """With the check option and no page on disk, the run exits 15, names the command
     to run, and writes nothing."""
-    scripts = folder({"alpha.py": GOOD_HEADER})
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
     assert bi.main(["--check"]) == 15
-    assert not (scripts / "README.md").exists()
+    assert not (root / "docs" / "commands.md").exists()
     assert "stale. Run: build_index" in capsys.readouterr().out
 
 
@@ -231,18 +308,22 @@ def test_check_fails_when_index_is_missing(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_fails_when_index_is_stale(folder, capsys):
-    """With the check option and an index that no longer matches the headers, the run
-    exits 15, names the command to run, and leaves the stale index as it was."""
-    scripts = folder({"alpha.py": GOOD_HEADER})
+def test_check_fails_when_index_is_stale(repo, capsys):
+    """With the check option and a page that no longer matches the headers, the run
+    exits 15, names the command to run, and leaves the stale page as it was."""
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
     bi.main([])
-    stale = (scripts / "README.md").read_text(encoding="utf-8")
-    folder(
-        {"alpha.py": GOOD_HEADER.replace("Does the first thing", "Does another thing")}
+    stale = page(root)
+    repo(
+        {
+            "sdgtools.alpha": GOOD_HEADER.replace(
+                "Does the first thing", "Does another thing"
+            )
+        }
     )
     capsys.readouterr()
     assert bi.main(["--check"]) == 15
-    assert (scripts / "README.md").read_text(encoding="utf-8") == stale
+    assert page(root) == stale
     assert "stale. Run: build_index" in capsys.readouterr().out
 
 
@@ -250,9 +331,9 @@ def test_check_fails_when_index_is_stale(folder, capsys):
 @category("repository")
 @objective("functionality")
 @positive
-def test_quiet_prints_nothing(folder, capsys):
+def test_quiet_prints_nothing(repo, capsys):
     """With the quiet option, nothing is printed. The exit code is the whole report."""
-    folder({"alpha.py": GOOD_HEADER})
+    repo({"sdgtools.alpha": GOOD_HEADER})
     assert bi.main(["--quiet"]) == 0
     assert capsys.readouterr().out == ""
 
@@ -265,31 +346,31 @@ def test_quiet_prints_nothing(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_missing_field_exits_17_and_writes_nothing(folder, capsys):
-    """A header missing required fields exits 17, naming the script and every missing
-    field, and src/sdgtools/README.md is not written."""
-    scripts = folder(
+def test_missing_field_exits_17_and_writes_nothing(repo, capsys):
+    """A header missing required fields exits 17, naming the file and every missing
+    field, and docs/commands.md is not written."""
+    root = repo(
         {
-            "alpha.py": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace(
+            "sdgtools.alpha": GOOD_HEADER.replace("Outputs:     nothing\n", "").replace(
                 "Owner:       Jason Delosh\n", ""
             )
         }
     )
     assert bi.main([]) == 17
-    assert not (scripts / "README.md").exists()
+    assert not (root / "docs" / "commands.md").exists()
     out = capsys.readouterr().out
-    assert "alpha.py: header missing Outputs, Owner" in out
-    assert "Index not written" in out
+    assert "src/sdgtools/alpha.py: header missing Outputs, Owner" in out
+    assert "Page not written" in out
 
 
 @code("SA00253")
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_docstring_exits_17(folder, capsys):
-    """A script with no docstring at the top has no header block at all, and the run
-    exits 17 and says so."""
-    folder({"alpha.py": "print('hello')\n"})
+def test_no_docstring_exits_17(repo, capsys):
+    """A command's file with no docstring at the top has no header block at all, and
+    the run exits 17 and says so."""
+    repo({"sdgtools.alpha": "print('hello')\n"})
     assert bi.main([]) == 17
     assert "alpha.py: no module docstring" in capsys.readouterr().out
 
@@ -298,66 +379,188 @@ def test_no_docstring_exits_17(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_unparseable_script_exits_19_and_outranks_17(folder, capsys):
-    """A script that is not valid Python exits 19, and 19 outranks 17 when another
-    script's header is also incomplete. Both problems are still named."""
-    folder({"alpha.py": "def broken(:\n", "beta.py": "print('no header')\n"})
+def test_unparseable_script_exits_19_and_outranks_17(repo, capsys):
+    """A command's file that is not valid Python exits 19, and 19 outranks 17 when
+    another command's header is also incomplete. Both problems are still named."""
+    repo({"sdgtools.alpha": "def broken(:\n", "sdgtools.beta": "print('no header')\n"})
     assert bi.main([]) == 19
     out = capsys.readouterr().out
     assert "alpha.py: cannot parse" in out
     assert "beta.py: no module docstring" in out
 
 
+@code("SA00591")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_script_not_saved_as_utf8_exits_19(repo, capsys):
+    """A command's file that is not saved as UTF-8 text exits 19, and the line names
+    the file and says it is not saved as UTF-8 text."""
+    root = repo({"sdgtools.alpha": ""})
+    (root / "src" / "sdgtools" / "alpha.py").write_bytes(GOOD_HEADER.encode("utf-16"))
+    assert bi.main([]) == 19
+    assert "alpha.py: cannot parse, because it is not saved as UTF-8 text" in (
+        capsys.readouterr().out
+    )
+
+
 @code("SA00255")
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_scripts_exits_20(folder, capsys):
-    """An empty scripts folder exits 20."""
-    folder({})
+def test_no_scripts_exits_20(repo, capsys):
+    """A pyproject.toml that installs no command exits 20 and says so."""
+    repo({})
     assert bi.main([]) == 20
-    assert "no scripts found" in capsys.readouterr().out
+    assert "pyproject.toml installs no commands" in capsys.readouterr().out
 
 
 #######################################################################################
-### The real src/sdgtools/ folder ###
+### Refusing a list of commands the page cannot use ###
+
+
+@code("SA00635")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_missing_pyproject_exits_13(repo, capsys):
+    """With no pyproject.toml in the repo, the run exits 13, the message says the file
+    cannot be read, and docs/commands.md is not written."""
+    root = repo({})
+    (root / "pyproject.toml").unlink()
+    assert bi.main([]) == 13
+    assert "pyproject.toml cannot be read" in capsys.readouterr().out
+    assert not (root / "docs" / "commands.md").exists()
+
+
+@code("SA00636")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_pyproject_that_cannot_be_parsed_exits_64(repo, capsys):
+    """A pyproject.toml whose text is not a valid settings file exits 64, and the
+    message says it cannot be parsed."""
+    root = repo({})
+    (root / "pyproject.toml").write_text("[project.scripts\n", encoding="utf-8")
+    assert bi.main([]) == 64
+    assert "pyproject.toml cannot be parsed" in capsys.readouterr().out
+
+
+@code("SA00637")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_scripts_table_of_the_wrong_shape_exits_64(repo, capsys):
+    """A [project.scripts] table that maps a command to something other than a
+    module and function exits 64, and the message says how an entry is written."""
+    root = repo({})
+    (root / "pyproject.toml").write_text(
+        "[project.scripts]\nalpha = 1\n", encoding="utf-8"
+    )
+    assert bi.main([]) == 64
+    assert "must name each command with the module and function it runs" in (
+        capsys.readouterr().out
+    )
+
+
+@code("SA00638")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_command_from_a_package_with_no_heading_exits_64(repo, capsys):
+    """A command from a package that has no heading on the page exits 64, the message
+    names the command and says to add the package to COMMAND_GROUPS, and
+    docs/commands.md is not written."""
+    root = repo({"other.alpha": GOOD_HEADER})
+    assert bi.main([]) == 64
+    out = capsys.readouterr().out
+    assert "installs alpha from the package other" in out
+    assert "Add the package to COMMAND_GROUPS" in out
+    assert not (root / "docs" / "commands.md").exists()
+
+
+@code("SA00639")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_command_whose_file_is_missing_exits_64(repo, capsys):
+    """A command whose file does not exist exits 64, the message names the command
+    and the missing file and says to correct the entry or restore the file, and
+    docs/commands.md is not written."""
+    root = repo({"sdgtools.alpha": GOOD_HEADER})
+    (root / "src" / "sdgtools" / "alpha.py").unlink()
+    assert bi.main([]) == 64
+    out = capsys.readouterr().out
+    assert (
+        "installs alpha from sdgtools.alpha, but src/sdgtools/alpha.py does not exist"
+        in out
+    )
+    assert "Correct the entry in pyproject.toml or restore the file" in out
+    assert not (root / "docs" / "commands.md").exists()
+
+
+@code("SA00640")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_wrong_command_outranks_a_broken_header(repo, capsys):
+    """A command whose file is missing exits 64 when another command's file is also
+    not valid Python, because the list of commands decides which headers are read.
+    Both problems are still named."""
+    root = repo({"sdgtools.alpha": GOOD_HEADER, "sdgtools.beta": "def broken(:\n"})
+    (root / "src" / "sdgtools" / "alpha.py").unlink()
+    assert bi.main([]) == 64
+    out = capsys.readouterr().out
+    assert "src/sdgtools/alpha.py does not exist" in out
+    assert "beta.py: cannot parse" in out
 
 
 #######################################################################################
-### Fields written on one line, or opening with a blank line ###
+### Fields written on one line, of one paragraph, or opening with a blank line ###
 
 
 @code("SA00529")
 @category("repository")
 @objective("functionality")
 @positive
-def test_a_one_line_usage_is_indexed_as_written(folder, capsys):
+def test_a_one_line_usage_is_indexed_as_written(repo, capsys):
     """A Usage field written on one line is indexed as that one line."""
     header = GOOD_HEADER.replace(
         "Usage:       alpha\n                 run it\n             alpha --flag\n"
         "                 run it with a flag\n",
         "Usage:       alpha --once\n",
     )
-    scripts = folder({"alpha.py": header})
+    root = repo({"sdgtools.alpha": header})
     assert bi.main([]) == 0
-    assert "```\nalpha --once\n```" in (scripts / "README.md").read_text(
-        encoding="utf-8"
-    )
+    assert "```\nalpha --once\n```" in page(root)
 
 
 @code("SA00530")
 @category("repository")
 @objective("functionality")
 @positive
-def test_a_description_opening_with_a_blank_line_is_indexed(folder, capsys):
+def test_a_description_opening_with_a_blank_line_is_indexed(repo, capsys):
     """A Description whose text starts on the line after its label, below a blank
     line, is still indexed by its first paragraph."""
     header = GOOD_HEADER.replace(
         "Description: Does the first thing,",
         "Description:\n\n             Does the first thing,",
     )
-    scripts = folder({"alpha.py": header})
+    root = repo({"sdgtools.alpha": header})
     assert bi.main([]) == 0
-    assert "Does the first thing, continued on a second line." in (
-        scripts / "README.md"
-    ).read_text(encoding="utf-8")
+    assert "Does the first thing, continued on a second line." in page(root)
+
+
+@code("SA00629")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_one_paragraph_description_is_indexed_whole(repo, capsys):
+    """A Description of one paragraph, with no second paragraph after it, is indexed
+    whole, joined into one line."""
+    header = GOOD_HEADER.replace(
+        "\n\n             A second paragraph the page must leave out.\n", "\n"
+    )
+    root = repo({"sdgtools.alpha": header})
+    assert bi.main([]) == 0
+    assert "Does the first thing, continued on a second line." in page(root)

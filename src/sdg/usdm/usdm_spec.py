@@ -46,19 +46,20 @@ Usage:       usdm_spec --list-classes
              usdm_spec --list-classes --allow-unpinned
                  run even if the pinned file no longer matches its checksum
 
-Exit codes:  0   success
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
+Exit codes:  0   the command succeeded
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
              3   a manifest is missing or cannot be read
-             4   the pinned model file is not shaped like USDM v4
+             4   the pinned model file is not shaped like the pinned USDM model
              5   the requested class is not in the model
-             6   not running from inside the repo
+             6   the command is not running from inside the repo
              8   a pinned file has not been downloaded
              9   a pinned file on disk does not match its manifest entry
                  (it can be read anyway with --allow-unpinned)
-             10  a file under inputs/ that no manifest records
+             10  a file under inputs/ is recorded by no manifest
              13  a file on disk cannot be read (another program has the pinned
                  file locked)
+             66  a manifest records a location that does not stay under inputs/
              The numbers are the repo-wide table in
              docs/exit_codes.csv.
 
@@ -77,13 +78,14 @@ from pathlib import Path
 import yaml
 
 # The pinned-file check hands back a verified file; the manifest reader, src/sdg/sources/read_manifests.py, gives the
-# repo root and the install check. The four errors are imported so main() can give
+# repo root and the install check. The five errors are imported so main() can give
 # each its own exit code.
 from sdg.console_output import use_utf8_output
 from sdg.sources.read_manifests import (
     REPO_ROOT,
     ManifestError,
     NotInRepoError,
+    OutsideInputsError,
     require_repo,
 )
 from sdg.sources.verify_pinned import (
@@ -113,7 +115,8 @@ DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 
 
 class SpecShapeError(Exception):
-    """The pinned spec file is parsed but is not shaped the way this module relies on.
+    """The pinned spec file is not valid YAML, or is parsed but not shaped the way this
+    module relies on.
 
     A USDM version whose structure changed will fail loudly and the class that broke
     the assumption is named. Raised rather than letting a later KeyError surface far
@@ -153,8 +156,8 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
         IntegrityError: The file does not match its manifest entry.
         PermissionError: The file is on disk but cannot be opened, as when another
             program has it locked.
-        SpecShapeError: The file parsed but is not shaped like the USDM structure this
-            module reads.
+        SpecShapeError: The file is not valid YAML, or it parsed but is not shaped
+            like the USDM structure this module reads.
     """
     # Confirmed before the file is looked for, not inside verify_pinned(). Installed
     # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
@@ -176,7 +179,14 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     else:
         text = target.read_text(encoding="utf-8")
 
-    spec = yaml.safe_load(text)
+    # A file that is not valid YAML is not shaped like the model either, so it is the
+    # same error and exits 4 rather than stopping on a traceback. With verify on, a
+    # damaged pinned file fails its fingerprint first; this is reached under
+    # --allow-unpinned, or when the path is not the pinned file.
+    try:
+        spec = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise SpecShapeError(f"{target.name} is not valid YAML: {exc}") from exc
 
     if not isinstance(spec, dict) or not spec:
         raise SpecShapeError("spec is empty or not a mapping of classes")
@@ -472,6 +482,11 @@ def main(argv: list[str] | None = None) -> int:
     except NotInRepoError as exc:
         print(exc, file=sys.stderr)
         return 6
+    # A location outside inputs/ is a kind of manifest error with its own number,
+    # so it is caught first.
+    except OutsideInputsError as exc:
+        print(exc, file=sys.stderr)
+        return 66
     except ManifestError as exc:
         print(exc, file=sys.stderr)
         return 3

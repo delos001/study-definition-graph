@@ -7,9 +7,10 @@ Description: A pytest plugin that declares the labels a check may carry and read
 
              pytest warns about a label it has not been told about, so each is
              declared here with a sentence saying what it means. The readers are
-             here too, because the selection options in select_checks.py and the
-             report in report.py both read the same labels, and one place for them
-             means the two can never read a label differently. So are the short
+             here too, because the selection options in select_checks.py, the
+             report in report.py and the inventory generator in build_inventory.py
+             all read the same labels, and one place for them means no two of them
+             can read a label differently. So are the short
              names a check file writes the labels with, such as @code, which every
              check file imports from here.
 
@@ -47,7 +48,6 @@ from sdgval.build_inventory import ASPECT_OF
 #
 # A check is written as @code("SA00001") rather than @pytest.mark.code("SA00001").
 # Every check file imports these names from here, so they are written once.
-# src/sdgval/build_inventory.py reads the labels by these same names.
 
 # A check's permanent id in validation/validation_inventory.csv, assigned once and
 # never reused.

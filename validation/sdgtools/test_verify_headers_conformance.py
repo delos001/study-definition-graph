@@ -13,7 +13,7 @@ Usage:       pytest validation/sdgtools/test_verify_headers_conformance.py
              pytest validation/sdgtools/test_verify_headers_conformance.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-24
 Owner:       Jason Delosh

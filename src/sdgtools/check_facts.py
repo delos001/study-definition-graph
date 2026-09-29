@@ -1,7 +1,9 @@
 """
 Script:      check_facts.py
-Description: Recomputes every figure asserted in the project's markdown, a count
-             or a date, and compares it against what the documents actually say.
+Description: Recomputes each figure its list of facts records, a count or a date,
+             from the pinned files, and compares it with every place the
+             project's Markdown states it. It reads every Markdown file git
+             tracks, apart from the files its exclusion list names.
 
              This exists because two such numbers were found wrong in one
              sitting: CLAUDE.md stated a page total for the pinned PDFs that
@@ -13,7 +15,7 @@ Description: Recomputes every figure asserted in the project's markdown, a count
              A number in prose has no owner. This script makes the pinned files
              the owner and the prose the thing that has to keep up.
 
-             Only figures derived from the pinned corpus are checked.
+             Only figures derived from the pinned corpus are confirmed.
              Judgements, decisions and reasoning are out of scope and always
              will be; those are reviewed by reading. Figures attributed to an
              external source (a cited paper's benchmark, say) are out of scope
@@ -21,37 +23,54 @@ Description: Recomputes every figure asserted in the project's markdown, a count
              owner is the citation and its access date, not this script. Such
              figures live behind a [n] reference marker instead.
 
+             A recorded figure that no document states any more fails the run.
+             Its sentence was most likely reworded, and a figure nothing is
+             compared with is one this tool has silently stopped confirming.
+             Reporting it and passing would say every figure is confirmed when
+             one is not.
+
+             DECISIONS.md is on the exclusion list, because each entry records
+             what was true on the day it was written, and a figure there is
+             history rather than a claim about the pinned files today.
+
 Inputs:      inputs/**              (read-only, pinned, each verified through verify_pinned)
              manifests/*.json       (read-only, through src/sdg/sources/read_manifests.py)
-             the documents named in the DOCS list in this file   (read-only, scanned for the stated figure)
+             every Markdown file git tracks, apart from EXCLUDED_DOCUMENTS in
+             this file   (read-only, scanned for the stated figures)
+             git   (lists the tracked Markdown files)
 
 Outputs:     A report on stdout. Writes nothing to disk.
 
 Usage:       check_facts
-                 check every fact, report drift
+                 confirm every fact, report drift
              check_facts --verbose
                  also show facts that match
 
-Exit codes:  0   success (every stated figure matches the source it came from;
-                 a fact that no document asserts is reported but does not fail
-                 the run)
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
-             3   a manifest is missing or cannot be read
-             4   the pinned model file is not shaped like USDM v4
-             6   not running from inside the repo
-             7   the sdg package is not installed
+Exit codes:  0   the command succeeded (every recorded figure is stated, and
+                 every statement matches the source it came from)
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
+             3   a manifest is missing or cannot be read (or two manifest
+                 entries record the file name a measurement looks up)
+             4   the pinned model file is not shaped like the pinned USDM model
+             6   the command is not running from inside the repo
              8   a pinned file has not been downloaded
              9   a pinned file on disk does not match its manifest entry
-             10  a file under inputs/ that no manifest records
+             10  a file under inputs/ is recorded by no manifest
              13  a file on disk cannot be read (a workbook another program has
                  locked, for example)
              14  a stated figure has drifted from the pinned files
+             22  a tool could not be run at all (git, which lists the tracked
+                 Markdown files, could not be run or did not answer)
              42  a pinned file is not shaped the way a measurement expects (it
                  was read, but lacks what the measurement reaches for)
+             65  a recorded figure is stated in no document
+             66  a manifest records a location that does not stay under inputs/
              The numbers are the repo-wide table in
              docs/exit_codes.csv. A measurement stops at the
              first file it cannot use, so the run reports one cause at a time.
+             14 outranks 65, because a figure stated wrongly misleads a reader
+             now. Both are still named.
 
 Date:        2026-08-18
 Owner:       Jason Delosh
@@ -62,47 +81,52 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 
 import openpyxl
 
-# The model loader, and the ways it can refuse the pinned file. Guarded rather
-# than plain, so that a missing sdg package (never installed) is reported by
-# main() as exit 7 with the install command, instead of a traceback before any
-# check runs. The five exception classes are imported here so the measurement
-# loop can give each cause its own exit code.
-try:
-    from sdg.console_output import use_utf8_output
-    from sdg.sources.read_manifests import ManifestError, NotInRepoError, entry_named
-    from sdg.sources.verify_pinned import (
-        IntegrityError,
-        UnrecordedFileError,
-        verify_pinned,
-    )
-    from sdg.usdm import usdm_spec
-    from sdg.usdm.usdm_spec import SpecShapeError
-
-    SDG_MISSING: ImportError | None = None
-except ImportError as exc:
-    # Nothing is bound in this case. main() reports the missing package and
-    # returns before any of the names above is used.
-    SDG_MISSING = exc
+# The model loader, and the ways it can refuse the pinned file. The six exception
+# classes are imported here so the measurement loop can give each cause its own
+# exit code.
+from sdg.console_output import use_utf8_output
+from sdg.sources.read_manifests import (
+    ManifestError,
+    NotInRepoError,
+    OutsideInputsError,
+    entry_named,
+)
+from sdg.sources.verify_pinned import (
+    IntegrityError,
+    UnrecordedFileError,
+    verify_pinned,
+)
+from sdg.usdm import usdm_spec
+from sdg.usdm.usdm_spec import SpecShapeError
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-STANDARDS = REPO_ROOT / "inputs" / "standards"
 EXAMPLES = REPO_ROOT / "inputs" / "worked_examples"
 
-# Documents scanned for stated figures. Anything under docs/draft/ is left out,
-# because nothing there is linked to or relied on.
-DOCS = [
-    "README.md",
-    "BACKGROUND.md",
-    "PLAN.md",
-    "CLAUDE.md",
-    "docs/sources_index.md",
-    "docs/standards_read_record.md",
-]
+# The pinned Biomedical Concepts export, by the file name its manifest entry records.
+# The manifest alone says where the file lives.
+CONCEPTS_NAME = "cdisc_biomedical_concepts_latest.xlsx"
+
+# Every Markdown file git tracks is scanned for stated figures, so a document added
+# later is compared without an edit here. These tracked files are left out.
+EXCLUDED_DOCUMENTS = {
+    # Each entry records what was true on the day it was written, so a figure there
+    # is history rather than a claim about the pinned files today.
+    "DECISIONS.md",
+}
+
+# The command that lists the tracked files. Named here so a check can stand in a
+# command that cannot be run.
+GIT = "git"
+
+
+class GitError(Exception):
+    """Raised when git cannot be run, or does not answer, so the tracked files are unknown."""
 
 
 #######################################################################################
@@ -112,10 +136,10 @@ DOCS = [
 # pinned file. They are deliberately small and independent so that a failing
 # measurement names exactly one fact.
 #
-# Every file is obtained through verify_pinned(), which checks it against
+# Every file is obtained through verify_pinned(), which confirms it matches
 # its manifest before it is read. A figure certified here is only worth
 # something if it was derived from the file that was actually pinned; a swapped
-# or edited copy fails the check (exit 9) instead of quietly certifying the
+# or edited copy stops the run (exit 9) instead of quietly certifying the
 # documents against the wrong source.
 
 
@@ -172,21 +196,19 @@ def concepts_newest_package_date() -> str:
     CDISC gives the export no version, so the project names its folder with this
     date: the latest package_date in the Biomedical Concepts sheet, which the
     workbook's ReadMe defines as the date a package was published to production.
-    The file is found through its manifest entry rather than through the folder
-    name, so a folder named with a date that is not in the file is reported as
-    drift, not as a missing file.
+    The file is found by the name its manifest entry records, so its location is
+    written only in the manifest. The date is then read from the file itself, so a
+    folder named with a date that is not in the file is reported as drift.
 
     Returns:
         The date as text, in the form 2026-07-14.
 
     Raises:
-        ManifestError: No manifest records the export.
+        ManifestError: No manifest records the export, or two entries record its name.
     """
-    entry = entry_named("cdisc_biomedical_concepts_latest.xlsx")
+    entry = entry_named(CONCEPTS_NAME)
     if entry is None:
-        raise ManifestError(
-            "no manifest entry is named cdisc_biomedical_concepts_latest.xlsx"
-        )
+        raise ManifestError(f"no manifest entry is named {CONCEPTS_NAME}")
     workbook = openpyxl.load_workbook(verify_pinned(entry.path).path, read_only=True)
     rows = workbook["Biomedical Concepts"].iter_rows(values_only=True)
     column = list(next(rows)).index("package_date")
@@ -227,16 +249,52 @@ FACTS = [
 
 
 #######################################################################################
+### Finding the documents ###
+
+
+def tracked_documents() -> list[str]:
+    """List every Markdown file git tracks, apart from the excluded ones.
+
+    git is asked rather than the folders walked, so a file git ignores, such as a
+    working note, is never read as a document the project stands behind.
+
+    Returns:
+        The files' paths from the repo root, with forward slashes, sorted.
+
+    Raises:
+        GitError: git could not be run, or it did not answer.
+    """
+    # A missing git and a git that refuses the folder both leave the tracked files
+    # unknown, and both are fixed by making git work here, so they share one error.
+    try:
+        listing = subprocess.run(
+            [GIT, "ls-files", "-z", "--", "*.md"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            check=True,
+        ).stdout
+    except subprocess.CalledProcessError as exc:
+        raise GitError(f"git did not answer: {exc.stderr.strip()}") from exc
+    except OSError as exc:
+        raise GitError(f"git could not be run: {exc}") from exc
+    return sorted(
+        name for name in listing.split("\0") if name and name not in EXCLUDED_DOCUMENTS
+    )
+
+
+#######################################################################################
 ### Reporting ###
 
 
 # Small counts are often written as words in prose. Mapping them here keeps the
-# check honest without forcing the documents to use digits where words read
+# comparison honest without forcing the documents to use digits where words read
 # better.
 WORD_NUMBERS = {"one": "1", "two": "2", "three": "3", "four": "4"}
 
 
-def stated_values(pattern: str) -> list[tuple[str, str]]:
+def stated_values(pattern: str, documents: list[str]) -> list[tuple[str, str]]:
     """Find every occurrence of a figure matching the pattern, with the file it is in.
 
     A list comes back rather than a single value because the same fact is often asserted
@@ -246,14 +304,17 @@ def stated_values(pattern: str) -> list[tuple[str, str]]:
     Args:
         pattern: The regular expression that finds the figure, with the number as its
             capture group.
+        documents: The documents to read, as paths from the repo root.
 
     Returns:
         One pair per occurrence: the document's name and the figure it states, as
         text, so a count and a date are compared the same way.
     """
     found = []
-    for name in DOCS:
+    for name in documents:
         path = REPO_ROOT / name
+        # A tracked file deleted from the working folder, and not yet committed as
+        # deleted, states nothing any more.
         if not path.exists():
             continue
         for match in re.finditer(pattern, path.read_text(encoding="utf-8")):
@@ -282,17 +343,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # Reported before any measurement, since one of them needs the sdg package and
-    # the fix is the same one-line install either way.
-    if SDG_MISSING is not None:
-        print(f"the sdg package is not installed ({SDG_MISSING})")
-        print("  fix -> from the repo root: pip install -e .")
-        return 7
-
     # Standard text carries characters the Windows console mangles; see
-    # sdg.console_output for why. Called after the guard above, since the
-    # helper comes from the sdg package that guard reports missing.
+    # sdg.console_output for why.
     use_utf8_output()
+
+    # The documents are listed before anything is measured, because without them
+    # no figure can be compared.
+    try:
+        documents = tracked_documents()
+    except GitError as exc:
+        print(f"  NO DOCUMENTS   {exc}")
+        print("  fix -> install git, or run check_facts from inside the repo's clone")
+        return 22
 
     drifted = unasserted = 0
 
@@ -322,6 +384,11 @@ def main(argv: list[str] | None = None) -> int:
         except NotInRepoError as exc:
             print(f"  NOT IN REPO    {label}: {exc}")
             return 6
+        # A location outside inputs/ is a kind of manifest error with its own
+        # number, so it is caught first.
+        except OutsideInputsError as exc:
+            print(f"  BAD LOCATION   {label}: {exc}")
+            return 66
         except ManifestError as exc:
             print(f"  BAD MANIFEST   {label}: {exc}")
             return 3
@@ -335,10 +402,14 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  WRONG SHAPE    {label}: {exc}")
             return 4
 
-        occurrences = stated_values(pattern)
+        occurrences = stated_values(pattern, documents)
 
         if not occurrences:
             print(f"  NOT ASSERTED  {label}: measured {actual}, no document states it")
+            print(
+                "  fix -> state the figure again where the project reasons from it, "
+                "or remove its measurement from FACTS in src/sdgtools/check_facts.py"
+            )
             unasserted += 1
             continue
 
@@ -356,10 +427,14 @@ def main(argv: list[str] | None = None) -> int:
         f"{len(FACTS)} fact(s) checked, {drifted} drifted, {unasserted} asserted nowhere."
     )
 
-    # A fact nobody asserts is not an error in the documents; it just means this
-    # script is tracking something the prose does not claim. Only real drift
-    # fails the run.
-    return 14 if drifted else 0
+    # A recorded figure that no document states fails the run, because passing it
+    # would report every figure confirmed while one is compared with nothing. Drift
+    # outranks it, because a figure stated wrongly misleads a reader now.
+    if drifted:
+        return 14
+    if unasserted:
+        return 65
+    return 0
 
 
 if __name__ == "__main__":

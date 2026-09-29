@@ -21,7 +21,7 @@ Usage:       pytest validation/sdg/sources/test_read_manifests_technical.py
              pytest validation/sdg/sources/test_read_manifests_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-10
 Owner:       Jason Delosh
@@ -36,9 +36,11 @@ import pytest
 
 from sdg.sources import read_manifests
 from sdg.sources.read_manifests import (
+    AmbiguousNameError,
     Entry,
     ManifestError,
     NotInRepoError,
+    OutsideInputsError,
     as_local,
     entry_for,
     entry_named,
@@ -116,14 +118,6 @@ def test_every_entry_names_the_manifest_it_came_from(real_manifests):
     for manifest in real_manifests:
         for entry in manifest.entries:
             assert entry.manifest == f"{manifest.name}.json"
-
-
-#######################################################################################
-### The real manifests follow their rules ###
-#
-# Every real manifest, including any study manifest, is held to the rules for
-# manifests: its files land under inputs/, and every entry has the five required
-# fields.
 
 
 #######################################################################################
@@ -215,7 +209,9 @@ def test_entry_for_accepts_a_full_path(recorded_file):
 @positive
 def test_entry_path_is_the_file_on_this_machine(recorded_file):
     """An entry's path is the full path of its file on this machine."""
-    assert entry_for(LOCAL).path == recorded_file
+    entry = entry_for(LOCAL)
+    assert entry is not None
+    assert entry.path == recorded_file
 
 
 @code("SA00090")
@@ -432,3 +428,54 @@ def test_sha256_that_is_not_lowercase_hex_is_quoted_as_written(fake_repo):
         f'has sha256 "{"A" * 64}", which is not 64 lowercase hex characters' in message
     )
     assert "repair that entry in manifests/set_a.json" in message
+
+
+#######################################################################################
+### Checks on a name two entries share and a location outside inputs/ ###
+
+
+@code("SA00604")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_name_two_entries_record_is_refused_naming_both(fake_repo):
+    """A file name that two entries record is refused rather than answered with either
+    one. The message names the location of both, says the two pinned files share the
+    name, and says the code asking for it has to choose one version.
+
+    The two entries record one publisher's file name in two folders, the way a second
+    pinned version of a document would."""
+    second = "inputs/set_b/file.txt"
+    fake_repo.file(LOCAL, CONTENT)
+    fake_repo.file(second, CONTENT)
+    fake_repo.manifest("set_a", [fake_repo.entry(LOCAL)])
+    fake_repo.manifest("set_b", [fake_repo.entry(second)])
+    with pytest.raises(AmbiguousNameError) as caught:
+        entry_named("file.txt")
+    message = str(caught.value)
+    assert LOCAL in message and second in message
+    assert "two pinned files share this name" in message
+    assert "has to choose one version of the file" in message
+
+
+@code("SA00608")
+@category("repository")
+@objective("functionality")
+@pytest.mark.parametrize(
+    "local",
+    ["/inputs/set_a/file.txt", "inputs/../src/file.txt"],
+    ids=["a location opening with a slash", "a location stepping back out of inputs"],
+)
+@negative
+def test_a_location_that_leaves_inputs_is_refused(fake_repo, local):
+    """An entry whose local location does not stay under inputs/ once resolved is
+    refused, and the message quotes the location and says how to write it. It runs
+    once for a location opening with a slash, which replaces the repo root, and once
+    for one that steps back out of inputs/ with .., which the first four characters
+    alone would let through."""
+    fake_repo.manifest(
+        "set_a", [fake_repo.entry(local, bytes=len(CONTENT), sha256="0" * 64)]
+    )
+    message = refused_with(OutsideInputsError)
+    assert f'has local "{local}", which does not stay under inputs/' in message
+    assert "as a path under inputs/" in message

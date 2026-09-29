@@ -13,7 +13,7 @@ Usage:       pytest validation/sdgval/test_build_inventory_integrity.py
              pytest validation/sdgval/test_build_inventory_integrity.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -32,6 +32,6 @@ from sdgval.labels import category, code, objective
 @category("repository")
 @objective("correctness")
 def test_real_inventory_is_current():
-    """validation/validation_inventory.csv matches the checks in the real test files,
+    """validation/validation_inventory.csv matches the checks in the real check files,
     which is the run the pre-commit hook makes."""
     assert script.main(["--check", "--quiet"]) == 0

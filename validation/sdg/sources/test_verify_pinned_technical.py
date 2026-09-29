@@ -2,18 +2,20 @@
 Script:      test_verify_pinned_technical.py
 Description: Automated checks for src/sdg/sources/verify_pinned.py, the workflow
              that proves a pinned file is the recorded one and hands it back
-             with its identity. Each check proves one promise from that module's
-             header: one part of the identity handed back, or one cause of
-             refusal with the message and remedy the header gives it.
+             with its identity. All but one of the checks prove one promise each
+             from that module's header. The promise is one part of the identity
+             handed back, or one cause of refusal with the message and remedy
+             the header gives it. They stage a small pretend repo in a temporary
+             folder through the fake_repo fixture in conftest.py, so the real
+             manifests/ and inputs/ are never written.
 
-             Most checks stage a small pretend repo in a temporary folder
-             through the fake_repo fixture in conftest.py, so the real
-             manifests/ and inputs/ are never written. The one check that reads
-             the real repo is the stability check, which runs once per recorded
-             file and skips a file that has not been downloaded.
+             The other check confirms the helper the stability check takes its
+             list of files from. The
+             stability check itself, which reads the real pinned files, is in
+             test_verify_pinned_integrity.py, beside this file.
 
-Inputs:      manifests/*.json    (read-only; every recorded file's entry)
-             inputs/**           (read-only; measured, and skipped when absent)
+Inputs:      manifests/*.json  (read-only; read when the stability check's file
+                 is imported for its helper)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
@@ -22,7 +24,7 @@ Usage:       pytest validation/sdg/sources/test_verify_pinned_technical.py
              pytest validation/sdg/sources/test_verify_pinned_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -31,6 +33,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import hashlib
+from typing import Any, cast
 
 import pytest
 
@@ -39,9 +42,11 @@ from sdg.sources import (
     ManifestError,
     NotInRepoError,
     UnrecordedFileError,
+    read_manifests,
     verify_pinned,
 )
 from sdgval.labels import category, code, negative, objective, positive
+from validation.sdg.sources import test_verify_pinned_integrity as integrity
 from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 
 #######################################################################################
@@ -76,14 +81,6 @@ def refused_with(error, target=LOCAL) -> str:
     with pytest.raises(error) as caught:
         verify_pinned(target)
     return str(caught.value)
-
-
-#######################################################################################
-### Every pinned file is unchanged ###
-#
-# One check per pinned file, so a report names the file that changed. It is the only
-# check that fails for a changed pinned file; every other check that reads one is
-# skipped as blocked by src/sdgval/skip_rules.py.
 
 
 #######################################################################################
@@ -292,3 +289,33 @@ def test_size_mismatch_is_reported_as_size_with_both_numbers(fake_repo):
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, bytes=len(CONTENT) + 3)])
     message = refused_with(IntegrityError)
     assert f"size {len(CONTENT)} bytes, manifest says {len(CONTENT) + 3}" in message
+
+
+#######################################################################################
+### The stability check's own helper ###
+#
+# The stability check in test_verify_pinned_integrity.py takes its list of files from
+# a helper in that file. This check confirms the helper keeps a broken manifest from
+# leaving the stability check running zero times.
+
+
+@code("SA00500")
+@category("repository")
+@objective("functionality")
+@negative
+def test_unreadable_manifests_make_the_stability_check_fail_once(monkeypatch):
+    """When the manifests cannot be read, the stability check runs once and fails
+    with the manifest reader's own message, so a broken manifest can never leave the
+    check running zero times and passing quietly."""
+
+    def unreadable() -> list:
+        raise ManifestError("set_a.json: cannot read (staged)")
+
+    monkeypatch.setattr(read_manifests, "manifests", unreadable)
+    (only,) = integrity.pinned_locals()
+    # The one run is pytest's parameter wrapper, whose first value is the stand-in
+    # the stability check receives. pytest does not export the wrapper's type, so
+    # the run is read without one.
+    stand_in = cast(Any, only).values[0]
+    with pytest.raises(pytest.fail.Exception, match=r"set_a\.json: cannot read"):
+        integrity.test_pinned_file_is_unchanged(stand_in)

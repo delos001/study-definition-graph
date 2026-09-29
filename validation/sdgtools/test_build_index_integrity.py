@@ -13,7 +13,7 @@ Usage:       pytest validation/sdgtools/test_build_index_integrity.py
              pytest validation/sdgtools/test_build_index_integrity.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-24
 Owner:       Jason Delosh
@@ -32,6 +32,6 @@ from sdgval.labels import category, code, objective
 @category("repository")
 @objective("correctness")
 def test_real_index_is_current():
-    """src/sdgtools/README.md matches the headers of the real scripts, which is the
-    check the pre-commit hook runs."""
+    """docs/commands.md matches the headers of the real commands that pyproject.toml
+    installs, which is the run the pre-commit hook makes."""
     assert bi.main(["--check", "--quiet"]) == 0

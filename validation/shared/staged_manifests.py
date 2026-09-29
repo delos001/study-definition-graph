@@ -5,7 +5,7 @@ Description: Builds the made-up pinned files and manifest entries that checks st
              manifest entry that matches them, or differs in one chosen way.
 
              It is shared by the checks of more than one script, so it lives in
-             validation/shared/ rather than in any one test file. The fixtures
+             validation/shared/ rather than in any one check file. The fixtures
              that write these files to disk are in validation/conftest.py, because
              pytest finds a shared fixture only there.
 

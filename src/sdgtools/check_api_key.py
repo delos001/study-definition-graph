@@ -19,15 +19,15 @@ Inputs:      .env at the repo root   (read-only)
 Outputs:     Nothing on disk. Prints whether the key works, and what to do when
              it does not. The key itself is never printed.
 
-Usage:       check_api_key.py
+Usage:       check_api_key
                  send one message and report whether the key works
-             check_api_key.py --quiet
+             check_api_key --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success (the key works)
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
-             6   not running from inside the repo
+Exit codes:  0   the command succeeded (the key works)
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
+             6   the command is not running from inside the repo
              27  the .env file has not been created
              28  .env has no Anthropic API key
              29  the Claude API rejected the key
@@ -54,7 +54,7 @@ from pathlib import Path
 import anthropic
 
 # The repo root comes from the sdg package, so this script needs the editable
-# install (pip install -e ., README.md step 5) the same as the pipeline does.
+# install (pip install -e ., README.md step 4) the same as the pipeline does.
 from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
 
 #######################################################################################

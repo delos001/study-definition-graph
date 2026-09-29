@@ -5,29 +5,43 @@
 #
 # When pytest is run with `--group`, every id in the group must belong to a check
 # found in the folders pytest uses. If not, pytest stops before running anything.
+# pytest also stops when a group has no ids listed, and when a group's checks belong
+# to more than one aspect of quality, because a report covers one aspect. A set of
+# checks that spans aspects is written as one group per aspect, named for the set and
+# the aspect.
 #
 # Each group has three fields.
 # - The purpose describes in plain terms why the checks are in the group.
 # - The run describes when the checks should be run.
-# - The ids list the check ids that belong to the group.
+# - The ids list the check ids that belong to the group, at least one.
 # See validation/validation_inventory.csv for what each check does.
 
-pinned:
-  purpose: Every check that reads a real pinned file.
-  run: After a file is re-pinned or newly fetched.
+pinned_integrity:
+  purpose: The integrity checks that read a real pinned file.
+  run: After a file is re-pinned or newly fetched, together with pinned_conformance.
   ids:
     - SA00106
-    - SA00153
-    - SA00154
     - SA00155
     - SA00283
 
-hook:
-  purpose: The checks that reproduce, on the real repo, what the pre-commit hook enforces.
-  run: When the hook refuses a commit, to find out why with pytest --group hook. No report is filed from this group.
+pinned_conformance:
+  purpose: The conformance checks that read a real pinned file.
+  run: After a file is re-pinned or newly fetched, together with pinned_integrity.
+  ids:
+    - SA00153
+    - SA00154
+
+hook_integrity:
+  purpose: The integrity checks that reproduce, on the real repo, what the pre-commit steps in .pre-commit-config.yaml enforce.
+  run: When the hook refuses a commit, to find out why with pytest --group hook_integrity,hook_conformance. No report is filed from this group.
   ids:
     - SA00256
     - SA00391
+
+hook_conformance:
+  purpose: The conformance checks that reproduce, on the real repo, what the pre-commit steps in .pre-commit-config.yaml enforce.
+  run: When the hook refuses a commit, to find out why with pytest --group hook_integrity,hook_conformance. No report is filed from this group.
+  ids:
     - SA00373
     - SA00374
     - SA00538

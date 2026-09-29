@@ -22,7 +22,7 @@ Usage:       pytest validation/claude_hooks/test_deny_pinned_edits_technical.py
              pytest validation/claude_hooks/test_deny_pinned_edits_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-16
 Owner:       Jason Delosh
@@ -213,22 +213,6 @@ def test_the_project_dir_outranks_the_message_cwd(
     assert not outcome.denied
 
 
-@code("SA00424")
-@category("repository")
-@objective("functionality")
-@negative
-def test_the_message_cwd_is_used_when_the_variable_is_absent(
-    tmp_path, monkeypatch, capsys
-):
-    """Without the project folder setting, the folder the message was sent from stands
-    in as the repo root."""
-    monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
-    outcome = edit(
-        monkeypatch, capsys, str(tmp_path / "inputs" / "x.pdf"), cwd=str(tmp_path)
-    )
-    assert outcome.denied
-
-
 @code("SA00425")
 @category("repository")
 @objective("functionality")
@@ -275,6 +259,22 @@ def test_a_refusal_is_printed_in_the_form_claude_code_reads(repo, monkeypatch, c
 #
 # The wrong thing is refused, and the reason names the path and says where the file
 # is meant to come from instead.
+
+
+@code("SA00424")
+@category("repository")
+@objective("functionality")
+@negative
+def test_the_message_cwd_is_used_when_the_variable_is_absent(
+    tmp_path, monkeypatch, capsys
+):
+    """Without the project folder setting, the folder the message was sent from stands
+    in as the repo root."""
+    monkeypatch.delenv("CLAUDE_PROJECT_DIR", raising=False)
+    outcome = edit(
+        monkeypatch, capsys, str(tmp_path / "inputs" / "x.pdf"), cwd=str(tmp_path)
+    )
+    assert outcome.denied
 
 
 @code("SA00428")

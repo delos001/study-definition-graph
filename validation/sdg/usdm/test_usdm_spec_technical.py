@@ -6,26 +6,21 @@ Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              documentation promises. Run them all with one command; green means
              every promise still holds, red names the one that broke.
 
-             Two groups, two inputs:
-             - Logic checks read validation/fixtures/usdm_three_classes.yml, three
-               classes copied verbatim from the pinned file. Small enough to read
-               whole and to break on purpose (a key deleted, a list where a dict
-               should be), which the real file must never be. Broken variants are
-               made in memory and written to a temporary folder pytest owns.
-             - Real-file checks read the pinned dataStructure.yml itself and
-               assert the measured facts about it (the class count, the attributes
-               that reference several types, and that the fixture's classes are
-               identical to the pinned ones). They skip, with a reason, when inputs/ is not
-               downloaded, so the logic checks still run on a fresh clone.
+             The checks read validation/fixtures/usdm_three_classes.yml, three
+             classes copied verbatim from the pinned file. It is small enough to
+             read whole and to break on purpose, as by deleting a key or putting
+             a list where a dict should be, which the real file must never be.
+             Broken variants are made in memory and written to a temporary
+             folder pytest owns. The checks that read the pinned
+             dataStructure.yml itself are in test_usdm_spec_integrity.py and
+             test_usdm_spec_conformance.py, beside this file.
 
              Every check is marked positive (the right thing works) or negative
              (the broken thing fails, and the error names the right cause).
 
-Inputs:      validation/fixtures/usdm_three_classes.yml               (read-only)
-             manifests/cdisc_usdm_v4.json                         (read-only, through
-                                                                   src/sdg/sources/read_manifests.py)
-             inputs/standards/cdisc/usdm_v4/dataStructure.yml     (read-only; real-file
-                                                                   checks only)
+Inputs:      validation/fixtures/usdm_three_classes.yml  (read-only)
+             manifests/*.json                            (read-only, through
+                                                          src/sdg/sources/read_manifests.py)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              src/sdgval/report.py writes a report to validation/reports/ when asked.
@@ -37,7 +32,7 @@ Usage:       pytest validation/sdg/usdm/test_usdm_spec_technical.py
              validate_technical --validation-report validation/sdg/usdm/test_usdm_spec_technical.py
                  run these checks and write a technical report of them
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -389,12 +384,17 @@ def test_unrecorded_file_is_refused_through_load(manifest_dir):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_fingerprint_mismatch_is_refused_through_load(manifest_dir, manifest_recording):
+def test_fingerprint_mismatch_is_refused_through_load(fake_repo, manifest_recording):
     """A file whose fingerprint differs from its record is refused when loaded, and the
-    message shows both fingerprints and the ways to recover."""
-    manifest_dir(manifest_recording(FIXTURE))  # sha256 is the all-zero placeholder
+    message shows both fingerprints and the ways to recover.
+
+    The fixture is copied under the fake repo's inputs/, because a manifest may record
+    only a location there."""
+    staged = fake_repo.file(usdm_spec.PINNED_LOCAL, FIXTURE.read_bytes())
+    # The recorded sha256 is the all-zero placeholder, so the fingerprint cannot match.
+    fake_repo.manifest("cdisc_usdm_v4", manifest_recording(staged))
     with pytest.raises(usdm_spec.IntegrityError) as caught:
-        usdm_spec.load(FIXTURE)
+        usdm_spec.load(staged)
     message = str(caught.value)
     assert "manifest says 0000" in message and "--allow-unpinned" in message
 
@@ -457,12 +457,17 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys, manifest_dir):
 @negative
 @needs_fixture("usdm_three_classes.yml")
 def test_cli_fingerprint_mismatch_exits_9(
-    manifest_dir, manifest_recording, monkeypatch, capsys
+    fake_repo, manifest_recording, monkeypatch, capsys
 ):
     """When the file is present but its fingerprint differs from its manifest entry, the
-    command exits 9 and prints both fingerprints and the way to proceed without the pin."""
-    manifest_dir(manifest_recording(FIXTURE))  # sha256 is the all-zero placeholder
-    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
+    command exits 9 and prints both fingerprints and the way to proceed without the pin.
+
+    The fixture is copied under the fake repo's inputs/, because a manifest may record
+    only a location there."""
+    staged = fake_repo.file(usdm_spec.PINNED_LOCAL, FIXTURE.read_bytes())
+    # The recorded sha256 is the all-zero placeholder, so the fingerprint cannot match.
+    fake_repo.manifest("cdisc_usdm_v4", manifest_recording(staged))
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", staged)
     assert usdm_spec.main(["--list-classes"]) == 9
     err = capsys.readouterr().err
     assert "manifest says 0000" in err and "--allow-unpinned" in err
@@ -609,14 +614,6 @@ def test_cli_unknown_class_exits_5(monkeypatch, capsys):
 
 
 #######################################################################################
-### The real pinned file ###
-#
-# These prove the assumptions the logic checks rely on hold for the actual
-# standard, and that the fixture is a faithful sample of it. They are the only
-# checks that need inputs/ downloaded.
-
-
-#######################################################################################
 ### A class with no definition ###
 
 
@@ -634,3 +631,40 @@ def test_a_class_with_no_definition_is_listed_without_one(variant, monkeypatch, 
     printed = capsys.readouterr().out
     assert "Condition  (concrete)" in printed
     assert "A state of being." not in printed
+
+
+#######################################################################################
+### A manifest location outside inputs/ and a file that is not YAML ###
+
+
+@code("SA00610")
+@category("processing")
+@objective("functionality")
+@negative
+@needs_fixture("usdm_three_classes.yml")
+def test_cli_manifest_location_outside_inputs_exits_66(fake_repo, monkeypatch, capsys):
+    """When a manifest records a location that does not stay under inputs/, the
+    command exits 66 and quotes the location, rather than reporting an unreadable
+    manifest."""
+    staged = fake_repo.file(usdm_spec.PINNED_LOCAL, FIXTURE.read_bytes())
+    fake_repo.manifest(
+        "stray", [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
+    )
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", staged)
+    assert usdm_spec.main(["--list-classes"]) == 66
+    assert "does not stay under inputs/" in capsys.readouterr().err
+
+
+@code("SA00615")
+@category("processing")
+@objective("functionality")
+@negative
+def test_cli_a_file_that_is_not_yaml_exits_4(tmp_path, monkeypatch, capsys):
+    """When the model file is not valid YAML and the pinned-file record is skipped, the
+    command exits 4 and says the file is not valid YAML, rather than stopping on a
+    traceback."""
+    broken = tmp_path / "broken.yml"
+    broken.write_text("Activity: [unclosed\n", encoding="utf-8")
+    monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
+    assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 4
+    assert "broken.yml is not valid YAML" in capsys.readouterr().err

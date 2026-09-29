@@ -24,12 +24,13 @@ Usage:       find_unrecorded_files
              find_unrecorded_files --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   success (every file under inputs/ is recorded)
-             1   unhandled error, Python's own
-             2   invalid command line, the argument parser's own
+Exit codes:  0   the command succeeded (every file under inputs/ is recorded)
+             1   Python stopped on an error that nothing handled
+             2   the argument parser refused the command line
              3   a manifest is missing or cannot be read
-             6   not running from inside the repo
-             10  a file under inputs/ that no manifest records
+             6   the command is not running from inside the repo
+             10  a file under inputs/ is recorded by no manifest
+             66  a manifest records a location that does not stay under inputs/
              The numbers are the repo-wide table in
              docs/exit_codes.csv.
 
@@ -43,9 +44,14 @@ import argparse
 import sys
 
 # The manifests are read through the sdg package, so this script needs the
-# editable install (pip install -e ., README.md step 5) the same as the
+# editable install (pip install -e ., README.md step 4) the same as the
 # pipeline does.
-from sdg.sources import ManifestError, NotInRepoError, manifests
+from sdg.sources import (
+    ManifestError,
+    NotInRepoError,
+    OutsideInputsError,
+    manifests,
+)
 from sdg.sources.read_manifests import REPO_ROOT, Manifest
 
 #######################################################################################
@@ -127,6 +133,12 @@ def main(argv: list[str] | None = None) -> int:
         if not args.quiet:
             print(exc)
         return 6
+    # A location outside inputs/ is a kind of manifest error with its own number,
+    # so it is caught first.
+    except OutsideInputsError as exc:
+        if not args.quiet:
+            print(exc)
+        return 66
     except ManifestError as exc:
         if not args.quiet:
             print(exc)

@@ -1,29 +1,28 @@
 code,cause
-0,success
-1,"unhandled error, Python's own"
-2,"invalid command line, the argument parser's own"
+0,the command succeeded
+1,Python stopped on an error that nothing handled
+2,the argument parser refused the command line
 3,a manifest is missing or cannot be read
-4,the pinned model file is not shaped like USDM v4
+4,the pinned model file is not shaped like the pinned USDM model
 5,the requested class is not in the model
-6,not running from inside the repo
-7,the sdg package is not installed
+6,the command is not running from inside the repo
 8,a pinned file has not been downloaded
 9,a pinned file on disk does not match its manifest entry
-10,a file under inputs/ that no manifest records
+10,a file under inputs/ is recorded by no manifest
 11,a download failed
 12,a downloaded file does not match its manifest entry
 13,a file on disk cannot be read
 14,a stated figure has drifted from the pinned files
-15,src/sdgtools/README.md is stale or missing
+15,docs/commands.md is stale or missing
 16,the validation inventory is stale or missing
 17,"a header block is missing, incomplete, out of order, or has a bad Date"
 18,"a check's markers, id or first sentence are missing or wrong, or its id is a duplicate"
 19,a Python file could not be parsed
-20,no files found to work on
+20,no files were found to work on
 21,ruff or mypy reported a problem
 22,a tool could not be run at all
 23,the requested section was not found in the PDF
-24,section mode used on a PDF that has no bookmarks
+24,section mode was used on a PDF that has no bookmarks
 25,the named sheet does not exist in the workbook
 26,no workbook under inputs/ matches the name given
 27,the .env file has not been created
@@ -46,5 +45,23 @@ code,cause
 44,the Neo4j address in .env is not a valid address
 45,a hand-kept column of the validation inventory breaks its rules
 46,the named header row is past the end of the sheet
-47,a test file's name has no aspect of quality or holds a check of another aspect
-48,a test file is in a code folder the inventory has no place for
+47,a check file's name has no aspect of quality or holds a check of another aspect
+48,a check file is in a code folder the inventory has no place for
+49,a check file could not be loaded
+50,a check's code changed but its version in the validation inventory did not
+51,a check is not written as a function at the top level of its check file
+52,one or more checks failed
+53,the check run stopped before every check ran
+54,no check was collected
+55,an aspect's command was given --aspect
+56,the selection options leave no check to run
+57,a validation report was refused because the working folder has uncommitted changes
+58,a validation report was refused because git did not answer
+59,a group in validation/validation_groups.yml lists checks of more than one aspect
+60,a group in validation/validation_groups.yml lists no ids
+61,a group in validation/validation_groups.yml lists an id no check has
+62,the fingerprints in the validation inventory were made by another Python version
+63,a check's fingerprint in the validation inventory is missing or unreadable
+64,a required file was read but holds the wrong content
+65,a recorded figure is stated in no document
+66,a manifest records a location that does not stay under inputs/

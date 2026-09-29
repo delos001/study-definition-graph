@@ -4,8 +4,8 @@ Description: Checks for src/sdgtools/check_python_files.py, the tool the pre-com
              hook runs to hold every Python file to ruff format, ruff check and
              mypy. Each check stands in for the two things the tool reaches
              outside itself, the search for a tool on the path and the running
-             of a command, so that what each tool would have reported is
-             decided by the check. It then runs the tool's main() in-process
+             of a command, so that whether each tool starts and what it would
+             have reported are decided by the check. It then runs the tool's main() in-process
              and asserts the exit code, the verdict lines, or the commands that
              would have run.
 
@@ -22,7 +22,7 @@ Usage:       pytest validation/sdgtools/test_check_python_files_technical.py
              pytest validation/sdgtools/test_check_python_files_technical.py -v
                  one line per check with its result
 
-Exit codes:  pytest's own: 0 all passed, 1 some failed
+Exit codes:  None of its own. It runs inside pytest.
 
 Date:        2026-09-16
 Owner:       Jason Delosh
@@ -45,8 +45,10 @@ TOOLS = ("ruff format", "ruff check", "mypy")
 ### Shared staging ###
 #
 # One fixture replaces the tool search and the command runner with stand-ins that a
-# check controls: which programs are on the path, and which tools report a problem.
-# The stand-in records every command so a check can see what would have run.
+# check controls. A check decides which programs are on the path, which programs fail
+# to start, and which tools report a problem. The stand-in records every command so
+# a check can see what would have run. It keeps the version questions the tool asks
+# before running anything apart from the tool runs themselves.
 
 
 @dataclass
@@ -55,8 +57,11 @@ class Stage:
 
     on_path: set[str]
     failing: set[str] = field(default_factory=set)
+    not_answering: set[str] = field(default_factory=set)
+    not_launching: set[str] = field(default_factory=set)
     commands: list[list[str]] = field(default_factory=list)
     cwds: list[object] = field(default_factory=list)
+    version_questions: list[list[str]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -85,7 +90,7 @@ def tool_of(command: list[str]) -> str:
 def stage(monkeypatch) -> Stage:
     """Replace the tool search and the command runner with stand-ins.
 
-    By default every program is on the path and every tool passes. A check changes
+    By default every program is on the path, starts, and passes. A check changes
     the stage's sets before running the tool.
 
     Returns:
@@ -97,8 +102,16 @@ def stage(monkeypatch) -> Stage:
         """Say where a tool is, for the tools the check staged as being on the path."""
         return f"/bin/{name}" if name in staged.on_path else None
 
-    def run(command: list[str], cwd=None):
+    def run(command: list[str], cwd=None, capture_output=False):
         """Record the command instead of running it, and answer with the staged result."""
+        if "--version" in command:
+            staged.version_questions.append(list(command))
+            program = command[command.index("--version") - 1]
+            if program in staged.not_launching:
+                raise FileNotFoundError(program)
+            return SimpleNamespace(
+                returncode=1 if program in staged.not_answering else 0
+            )
         staged.commands.append(list(command))
         staged.cwds.append(cwd)
         failed = tool_of(command) in staged.failing
@@ -171,6 +184,18 @@ def test_the_tools_run_from_the_repo_root(stage, capsys):
     the tool was started from."""
     run_tool(capsys)
     assert stage.cwds == [script.REPO_ROOT] * len(TOOLS)
+
+
+@code("SA00625")
+@category("repository")
+@objective("functionality")
+@positive
+def test_the_formatter_runs_in_check_mode(stage, capsys):
+    """The formatter runs in check mode, so a file that is not formatted is reported
+    and never rewritten."""
+    run_tool(capsys)
+    (formatter,) = [c for c in stage.commands if tool_of(c) == "ruff format"]
+    assert "--check" in formatter
 
 
 @code("SA00311")
@@ -246,4 +271,58 @@ def test_no_tool_and_no_conda_exits_22(stage, capsys):
     assert outcome.exit_code == 22
     assert "ruff format: cannot run" in outcome.printed
     assert "conda activate sdg" in outcome.printed
+    assert stage.commands == []
+
+
+# Each way a tool on the path, or reached through conda, can fail to start. Each
+# entry holds the programs on the path, the program that does not answer when asked
+# for its version, and the program the system cannot launch at all.
+FAILED_STARTS = [
+    pytest.param({"conda"}, {"mypy"}, set(), id="conda run cannot start mypy in sdg"),
+    pytest.param(
+        {"ruff", "mypy", "conda"},
+        {"ruff"},
+        set(),
+        id="ruff on the path answers with an error",
+    ),
+    pytest.param(
+        {"ruff", "mypy", "conda"},
+        set(),
+        {"mypy"},
+        id="mypy on the path cannot be launched",
+    ),
+]
+
+
+@code("SA00539")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(("on_path", "not_answering", "not_launching"), FAILED_STARTS)
+def test_a_tool_that_does_not_start_exits_22_and_is_named(
+    stage, capsys, on_path, not_answering, not_launching
+):
+    """When a tool does not answer when asked for its version, the run exits 22,
+    names that tool and says to confirm or recreate the sdg environment. Each run
+    stages one way a tool can fail to start: through conda, on the path with an
+    error, or not launchable at all."""
+    stage.on_path = on_path
+    stage.not_answering = not_answering
+    stage.not_launching = not_launching
+    program = next(iter(not_answering | not_launching))
+    outcome = run_tool(capsys)
+    assert outcome.exit_code == 22
+    assert f"cannot run; {program} did not answer" in outcome.printed
+    assert "recreate it from environment.yml" in outcome.printed
+
+
+@code("SA00540")
+@category("repository")
+@objective("functionality")
+@negative
+def test_no_tool_runs_when_one_does_not_start(stage, capsys):
+    """When mypy, the last tool, does not start, neither ruff run is made, so a report
+    is never half printed."""
+    stage.not_answering = {"mypy"}
+    run_tool(capsys)
     assert stage.commands == []

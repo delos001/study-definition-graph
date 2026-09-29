@@ -28,9 +28,14 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Read by the writer from the check's markers, docstring and file path at run time, not from the inventory. `quality_aspect` is looked up from the objective, the way the inventory fills it.
 - `expected_result` holds `(no docstring)` when the check has none, and `target_file_name` carries the words `(not found at run time)` after the name when the covered file was missing.
 
+### `version`
+- Records which version of the check ran. It sits between `expected_result` and `outcome`.
+- Read by the writer from `validation/validation_inventory.csv`, by the row's `id`, when the run starts. It is the one check column read from the inventory rather than from the check, because a person moves it by hand when the check's code changes.
+- Holds the check's version as the inventory's `version` column defines it in `validation/validation_inventory_dictionary.md`, or nothing when the inventory does not list the check.
+
 ### `parameter`
 - Says which value a parametrized check ran with, since pytest runs such a check once per value and the report has one row per run.
-- Read by the writer from pytest's name for the run: the name the check gives it with `ids=`, or the value itself when it is a plain word, number or path. The full list of a check's values is the `@pytest.mark.parametrize` line above its function in the test file, or, when that line calls a function, whatever the function lists at run time.
+- Read by the writer from pytest's name for the run: the name the check gives it with `ids=`, or the value itself when it is a plain word, number or path. The full list of a check's values is the `@pytest.mark.parametrize` line above its function in the check file, or, when that line calls a function, whatever the function lists at run time.
 - Holds the run's name, such as `unlisted code first`, or nothing when the check has no parameters.
 
 ### `outcome`
@@ -49,7 +54,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Hold the date of the last change, as `YYYY-MM-DD`, and its short id. Comparing the id across two reports shows whether the script changed between them. Both are empty when the script was not found at run time, `(not committed)` when git has no change for it, and `(unknown)` when git did not answer.
 
 ### `check_file_last_changed`, `check_file_change_id`
-- Record which version of the test file the check sits in ran, the one `folder_path` and `file_name` name. A check edited to test less can pass where the earlier one failed, and these show that the test file changed.
+- Record which version of the check file the check sits in ran, the one `folder_path` and `file_name` name. A check edited to test less can pass where the earlier one failed, and these show that the check file changed.
 - Read by the writer from git's history of the file.
 - Hold the same values as the two target columns.
 
@@ -76,7 +81,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 ### `pytest_exit_code`
 - Records pytest's exit code for the run.
 - Read by the writer from pytest.
-- Holds 0, 1, 2 or 3. A run that ends with 4 or 5 validated nothing, so no report is written for it.
+- Holds 0, 1, 2 or 3, or a number a check or plugin chose, as `unknown status` below describes. A run that ends with 4 or 5 validated nothing, so no report is written for it. This is pytest's own number, which an aspect's command turns into the repo's number for the same cause before it exits.
 
 ### `pytest_exit_cause`
 - Says what the exit code means.
@@ -86,15 +91,16 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 ### `checks_collected`
 - Says how many checks of the report's aspect the run set out to cover.
 - Read by the writer from the checks pytest was left holding, plus every check of that aspect dropped before the run, which pytest reports through a hook it fires for each one. The checks of other aspects, which the aspect's command drops, are not counted.
-- Holds a whole number. It is counted from what happened rather than from the options that were typed, because an option the writer knows nothing about narrows a run just the same. A file kept out of collection altogether, as `--ignore` does, is never seen by the run, so it cannot be counted here.
+- Holds a whole number. A check that runs once per value counts once, as it has one row in `validation/validation_inventory.csv`. It is counted from what happened rather than from the options that were typed, because an option the writer knows nothing about narrows a run just the same.
+- A file or folder named on the command line narrows the run before anything is collected, and so does a file kept out with `--ignore`. A check either one leaves out is never seen by the run, so it is in neither count and the two counts stay equal. `selection_paths` shows the files and folders that were named. A file kept out with `--ignore` shows in no column.
 
 ### `checks_reported`
 - Says how many checks the report holds a row for.
 - Read by the writer from the outcomes it collected.
-- Holds a whole number. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so a run that covered part of its aspect cannot read as one that covered all of it. On a whole run the two are equal. It is 0 when no check ran.
+- Holds a whole number, counting a check that runs once per value once, although each of its runs keeps its own row in the report. It is lower than `checks_collected` when checks were dropped from the run or the run stopped before reaching them, so such a run cannot read as a whole one. The ways of narrowing a run that leave the two equal are described under `checks_collected`. It is 0 when no check ran.
 
 ### `commit`
-- Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs. It is the one way to get back the exact code that ran, test files included, with `git show <commit>:<path>`.
+- Records the commit the checks ran against. The working folder matched it exactly, because a run with uncommitted changes is refused before any check runs. It is the one way to get back the exact code that ran, check files included, with `git show <commit>:<path>`.
 - Read by the writer from git.
 - Holds the short hash. A report run refuses to start when git does not answer, so the commit is always known.
 
@@ -134,7 +140,10 @@ The selection columns come last, so a new way of narrowing a run adds a column a
 
 - `passed`: the check ran and every assertion held.
 - `failed`: the check ran and an assertion did not hold.
-- `skipped`: the check did not run, by its own skip marker or because a pinned file it names was not downloaded or no longer matches its manifest entry.
+- `skipped`: the check did not run. There are three reasons:
+  - the check skipped itself, with a skip marker or a call to skip;
+  - a pinned file it names with `@needs_pinned` was not downloaded, or no longer matches its manifest entry;
+  - `validation/validation_inventory.csv` marks the check `pending` or `inactive`.
 - `error`: the check's set-up or clean-up broke, whatever the check itself did.
 - `none`: no check ran at all. The report then has this one row, and `pytest_exit_cause` in the run's own file says why nothing ran.
 
@@ -148,3 +157,4 @@ A later step never makes a row better. A check whose assertions held but whose c
 - `3`: pytest hit an internal error.
 - `4`: pytest was given a bad command line.
 - `5`: no tests were collected.
+- `unknown status`: pytest ended with a number this table does not list. pytest never does so itself, so the number came from a check or plugin that ended the run with a number of its own, as `pytest.exit` given a return code does.
