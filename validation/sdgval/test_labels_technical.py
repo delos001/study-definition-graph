@@ -25,6 +25,8 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import pytest
+
 from sdgval.labels import (
     aspect_of,
     case_of,
@@ -70,7 +72,7 @@ POSITIVE_CHECK = """
     """
 
 
-def collected(pytester) -> dict:
+def collected(pytester: pytest.Pytester) -> dict:
     """Write the labelled check file, collect it, and key what was collected by name.
 
     Args:

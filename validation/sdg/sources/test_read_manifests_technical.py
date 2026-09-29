@@ -79,7 +79,7 @@ def top_level_and_study_sets(fake_repo):
     )
 
 
-def refused_with(error, *args) -> str:
+def refused_with(error: type[Exception], *args: str | None) -> str:
     """Call manifests() with the given arguments and expect it to refuse.
 
     Args:

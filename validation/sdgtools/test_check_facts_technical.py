@@ -34,6 +34,9 @@ from __future__ import annotations
 
 import json
 import subprocess
+from collections.abc import Callable
+from pathlib import Path
+from typing import NoReturn
 
 import openpyxl
 import pytest
@@ -70,7 +73,9 @@ def fact(tmp_path, monkeypatch):
     monkeypatch.setattr(cf, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(cf, "tracked_documents", lambda: ["facts.md"])
 
-    def install(measure, doc_text: str, pattern: str = r"(\d+) widgets") -> None:
+    def install(
+        measure: Callable[[], int], doc_text: str, pattern: str = r"(\d+) widgets"
+    ) -> None:
         """Write the document and make the measurement the script's only fact.
 
         Args:
@@ -131,7 +136,7 @@ def test_matching_figure_exits_0(fact, capsys):
     assert cf.main(["--verbose"]) == 0
     out = capsys.readouterr().out
     assert "ok            widgets in facts.md: 3" in out
-    assert "1 fact(s) checked, 0 drifted, 0 asserted nowhere." in out
+    assert "1 fact(s) compared, 0 drifted, 0 asserted nowhere." in out
 
 
 @code("SA00275")
@@ -293,7 +298,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
     error's own message. The run exits with that cause's number from
     docs/exit_codes.csv. It runs once for each cause."""
 
-    def measure():
+    def measure() -> NoReturn:
         """Raise the staged error in place of measuring."""
         raise raised
 
@@ -400,7 +405,7 @@ def test_a_tracked_document_deleted_from_the_folder_is_passed_over(tracked, caps
 ### Which file a measurement reads ###
 
 
-def write_concepts(path, *package_dates):
+def write_concepts(path: Path, *package_dates: str | None) -> None:
     """Write a concepts workbook with one package row for each date given.
 
     Args:

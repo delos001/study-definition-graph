@@ -23,7 +23,7 @@ Description: The single way to access the pinned USDM model. It reads
              up front.
 
              Before reading the file, load() obtains it through the pinned-file
-             check in sdg.sources, which checks it against the fingerprint recorded in
+             check in sdg.sources, which confirms it against the fingerprint recorded in
              manifests/. A changed or swapped pin fails here rather than
              parsing and passing wrong content downstream;
              - Override is possible but should be used with caution: --allow-unpinned
@@ -163,7 +163,7 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
     # there, so an existence check that ran first would report "not
     # downloaded" for a file that is downloaded, and --allow-unpinned (which
-    # never reaches verify_pinned()) would never check at all.
+    # never reaches verify_pinned()) would never confirm the install at all.
     require_repo()
 
     target = path or DEFAULT_SPEC

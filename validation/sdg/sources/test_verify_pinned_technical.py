@@ -33,7 +33,8 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import hashlib
-from typing import Any, cast
+from pathlib import Path
+from typing import IO, Any, cast
 
 import pytest
 
@@ -68,7 +69,7 @@ def mismatch_message(fake_repo) -> str:
     return str(caught.value)
 
 
-def refused_with(error, target=LOCAL) -> str:
+def refused_with(error: type[Exception], target: str | Path = LOCAL) -> str:
     """Try to verify the target and expect it to be refused.
 
     Args:
@@ -154,7 +155,7 @@ def test_locked_file_passes_the_operating_systems_error_through(
 
     real_open = pathlib.Path.open
 
-    def refuse(self, *args, **kwargs):
+    def refuse(self: pathlib.Path, *args: Any, **kwargs: Any) -> IO[Any]:
         """Refuse to open the recorded file, and open any other file as usual."""
         if self == recorded_file:
             raise PermissionError(f"{self}: locked by another program")

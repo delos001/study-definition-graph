@@ -37,13 +37,22 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING, NoReturn
 
 import pytest
 
 from sdg.sources import acquire_sources
 from sdg.sources.fetch_file import FetchError, partial_path
+from sdg.sources.read_manifests import Entry
 from sdgval.labels import category, code, negative, objective, positive
 from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
+
+# FakeRepo is defined in validation/conftest.py, which pytest loads on its own. It is
+# imported for the type checker alone, because importing it at run time would load
+# that file a second time.
+if TYPE_CHECKING:
+    from validation.conftest import FakeRepo
 
 # The url in the entry for the one staged file most checks use. It is the url
 # FakeRepo.entry builds for a file of that name.
@@ -80,7 +89,7 @@ def network(monkeypatch):
                 the url cannot be reached.
         """
 
-        def fake_fetch(url, destination):
+        def fake_fetch(url: str, destination: Path) -> Path:
             """Write the staged bytes under the .part name, or fail the way the real step
             would for a url it cannot reach.
             """
@@ -114,7 +123,7 @@ class Outcome:
     out: str  # everything the run printed
 
 
-def recorded(repo, local: str, content: bytes) -> dict:
+def recorded(repo: FakeRepo, local: str, content: bytes) -> dict:
     """Build a manifest entry for a file that may not be on disk yet.
 
     Args:
@@ -130,7 +139,7 @@ def recorded(repo, local: str, content: bytes) -> dict:
     )
 
 
-def run(capsys, *argv: str) -> Outcome:
+def run(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the workflow in-process with the given arguments.
 
     Args:
@@ -211,7 +220,7 @@ def locked(fake_repo, network, capsys, monkeypatch) -> Outcome:
     # The workflow compares through one function it imported by name. Making
     # that function fail the way the operating system does for a locked file
     # stages the lock without needing another program to hold the file.
-    def refuse(_path, _entry):
+    def refuse(_path: Path, _entry: Entry) -> NoReturn:
         """Fails the way opening a locked file fails."""
         raise PermissionError("locked by another program")
 

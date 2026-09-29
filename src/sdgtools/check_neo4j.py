@@ -276,7 +276,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check that the Neo4j database is running, accepts the login in .env, and is the pinned version."
+        description="Confirm that the Neo4j database is running, accepts the login in .env, and is the pinned version."
     )
     parser.add_argument(
         "--quiet", action="store_true", help="print nothing; use the exit code"

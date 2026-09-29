@@ -132,6 +132,6 @@ What a check is, and the categories, objectives and staged cases its labels name
 2. Give the check the next number above the highest id in `validation/validation_inventory.csv`.
 3. Write the function with its `@code`, `@category` and `@objective` markers, and `@positive` or `@negative` when it stages its own situation. The names come from `src/sdgval/labels.py`.
 4. Write the docstring's first paragraph as the sentence that must be true for the check to pass. It becomes the check's `expected_result`.
-5. Run Cosmic Ray on the file the check covers, and confirm no break survives. A check that passes either way proves nothing. How to run it is in `validation/running_validation.md`, under Proving that the checks can fail.
+5. Run Cosmic Ray on the file the check covers, and confirm the check fails when the thing its sentence states is broken. A break elsewhere in the file that the check does not state is not its job. A check that passes either way proves nothing. How to run it is in `validation/running_validation.md`, under Proving that the checks can fail.
 6. Run `build_inventory` to add its row. `build_inventory --check-status` confirms the hand-kept columns alone.
 7. Commit the check and `validation/validation_inventory.csv` together.

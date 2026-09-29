@@ -10,9 +10,9 @@ Description: This module measures the size and sha256 of a file, and returns whe
                - the file's size in bytes and
                - its sha256.
 
-             compare(path, entry) checks both values against the entry.
+             compare(path, entry) compares both values with the entry.
 
-             Size is checked first and reported on its own, because the two failures
+             Size is compared first and reported on its own, because the two failures
              mean different things: a size difference is usually a truncated or
              replaced download, while the same size with a different sha256 means
              the content changed in place, which is the case worth a closer look.
@@ -76,7 +76,7 @@ class Fingerprint:
 # The same decorator does the same job here.
 @dataclass(frozen=True)
 class Comparison:
-    """The result of checking one file against its manifest entry."""
+    """The result of comparing one file with its manifest entry."""
 
     matched: bool
     detail: str  # "matched", or which value differed and how, ready to print
@@ -116,7 +116,7 @@ def fingerprint(path: Path) -> Fingerprint:
 def compare(path: Path, entry: Entry) -> Comparison:
     """Compare one file's measurements against its manifest entry.
 
-    Size is checked first. When the size differs the sha256 is not computed, because a
+    Size is compared first. When the size differs the sha256 is not computed, because a
     different size already means the sha256 cannot match, and the size difference is the
     more useful thing to report.
 

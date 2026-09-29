@@ -170,7 +170,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check that the Anthropic API key in .env reaches the Claude API."
+        description="Confirm that the Anthropic API key in .env reaches the Claude API."
     )
     parser.add_argument(
         "--quiet", action="store_true", help="print nothing; use the exit code"
@@ -212,21 +212,21 @@ def main(argv: list[str] | None = None) -> int:
         if not args.quiet:
             print(
                 f"the Claude API rejected the key in {ENV_FILE} ({exc.__class__.__name__}).\n"
-                f"  fix -> check the key at https://console.anthropic.com/ and paste it again"
+                f"  fix -> confirm the key at https://console.anthropic.com/ and paste it again"
             )
         return 29
     except anthropic.PermissionDeniedError as exc:
         if not args.quiet:
             print(
                 f"the Claude API knows the key in {ENV_FILE} but refused it access to {MODEL} ({exc.__class__.__name__}).\n"
-                "  fix -> the key is right; check the account it belongs to at https://console.anthropic.com/"
+                "  fix -> the key is right; look at the account it belongs to at https://console.anthropic.com/"
             )
         return 43
     except anthropic.APIConnectionError as exc:
         if not args.quiet:
             print(
                 f"the Claude API could not be reached ({exc.__class__.__name__}).\n"
-                "  fix -> check the network, then run this again"
+                "  fix -> confirm the network connection works, then run this again"
             )
         return 30
     except anthropic.APIError as exc:

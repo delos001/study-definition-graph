@@ -90,7 +90,9 @@ def repo(tmp_path, monkeypatch) -> Path:
     return tmp_path
 
 
-def send(monkeypatch, capsys, message: str) -> Outcome:
+def send(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], message: str
+) -> Outcome:
     """Run the hook in-process with the given text on stdin.
 
     Args:
@@ -106,7 +108,12 @@ def send(monkeypatch, capsys, message: str) -> Outcome:
     return Outcome(exit_code, capsys.readouterr().out)
 
 
-def edit(monkeypatch, capsys, file_path: str, cwd: str | None = None) -> Outcome:
+def edit(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    file_path: str,
+    cwd: str | None = None,
+) -> Outcome:
     """Send the hook an Edit of the given path, as Claude Code would.
 
     Args:

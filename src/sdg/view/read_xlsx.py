@@ -332,7 +332,7 @@ def search_workbook(path: Path, term: str) -> list[str]:
 def main(argv: list[str] | None = None) -> int:
     """Parse the arguments, run one mode, and give back the exit code.
 
-    Modes are checked in order of specificity: --all --find searches every workbook,
+    Modes are tried in order of specificity: --all --find searches every workbook,
     --find searches one, --sheet prints one sheet, and a bare workbook name lists its
     sheets.
 

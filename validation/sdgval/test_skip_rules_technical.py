@@ -32,10 +32,17 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import sys
+from typing import TYPE_CHECKING
 
 import pytest
 
 from sdgval.labels import category, code, negative, objective, positive
+
+# StagedSuite is defined in validation/conftest.py, which pytest loads on its own. It
+# is imported for the type checker alone, because importing it at run time would load
+# that file a second time.
+if TYPE_CHECKING:
+    from validation.conftest import StagedSuite
 
 #######################################################################################
 ### The pinned-file gate ###
@@ -262,7 +269,7 @@ SWITCHED_OFF_SUITE = """
     """
 
 
-def stage_inventory(staged_suite, status: str, reason: str) -> None:
+def stage_inventory(staged_suite: StagedSuite, status: str, reason: str) -> None:
     """Write an inventory under the staged suite marking XYZ0601 with a status.
 
     Args:

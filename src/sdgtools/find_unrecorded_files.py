@@ -125,7 +125,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    # The manifest reader, src/sdg/sources/read_manifests.py, checks the sdg package is running from inside its repo before it
+    # The manifest reader, src/sdg/sources/read_manifests.py, confirms the sdg package is running from inside its repo before it
     # looks for any manifest, so the wrong install is reported as that.
     try:
         found = manifests()

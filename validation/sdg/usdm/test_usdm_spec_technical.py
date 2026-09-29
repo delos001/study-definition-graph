@@ -40,7 +40,9 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, NoReturn
 
 import pytest
 import yaml
@@ -79,7 +81,7 @@ def variant(tmp_path):
         The function that makes a variant.
     """
 
-    def make(change) -> Path:
+    def make(change: Callable[[Any], None]) -> Path:
         """Apply one change to the fixture's parsed form and write the result.
 
         Args:
@@ -251,7 +253,7 @@ def test_attribute_missing_a_key_is_named(variant):
     """An attribute missing its Relationship Type field is refused, and the message
     names the class, the attribute and the missing field."""
 
-    def rename(d):
+    def rename(d: Any) -> None:
         """Rename one attribute's Relationship Type key, so the expected key is gone."""
         attr = d["Condition"]["Attributes"]["name"]
         attr["Kind"] = attr.pop("Relationship Type")
@@ -272,7 +274,7 @@ def test_attribute_missing_several_keys_lists_them(variant):
     """When more than one key is missing from an attribute, the message lists all
     of them, so one read of the error shows the whole problem."""
 
-    def drop_two(d):
+    def drop_two(d: Any) -> None:
         """Remove two keys from one attribute, so the error has two names to list."""
         for key in ("Type", "Cardinality"):
             d["Condition"]["Attributes"]["name"].pop(key)
@@ -537,7 +539,7 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
     exits 13 and says to close that program, rather than ending in a traceback."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", variant(lambda d: None))
 
-    def locked(target):
+    def locked(target: str | Path) -> NoReturn:
         """Stand in for the pinned-file check with the refusal a locked file gives."""
         raise PermissionError("locked by another program")
 

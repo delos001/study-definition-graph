@@ -22,7 +22,7 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
 
              The sdg package must be installed from inside the repo (pip install
              -e .), or nothing under manifests/ can be found. The manifest
-             reader checks that before it looks for anything.
+             reader confirms that before it looks for anything.
 
 Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
              the pinned file named                  (read-only, opened only to hash)

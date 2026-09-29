@@ -116,7 +116,7 @@ Remove-Item -Recurse -Force $copy
 - `cr-report` shows each break that survived, as the change it made to the code.
 - The lines after `cr-report` return to the repo, clear `PYTHONPATH` and delete the copy.
 
-A break that survives means the checks cannot tell that code from the broken version. Either a check is missing, or the line makes no difference to what the code does. Add or strengthen the check in the real repo, then make a fresh copy and run again.
+A break that survives means the checks cannot tell that code from the broken version. Only the breaks in the thing the new or changed check states matter. Each of those must make the check fail. When one does not, strengthen the check in the real repo, then make a fresh copy and run again.
 
 ## Filing a validation report
 

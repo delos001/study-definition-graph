@@ -13,7 +13,7 @@ Description: Reads the manifests and provides three pieces of information:
 
              Manifests under manifests/study_documents/ are read alongside the top-level
              manifests.
-             This module never downloads, hashes or checks a file against disk.
+             This module never downloads, hashes or compares a file on disk.
 
 Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
 
@@ -72,7 +72,7 @@ MANIFEST_DIR = REPO_ROOT / "manifests"
 STUDY_MANIFEST_DIR = MANIFEST_DIR / "study_documents"
 
 # Every entry must have the five fields shown below. If one is missing, the file cannot
-# be fetched, checked or placed. A missing field is reported as a mistake in
+# be fetched, confirmed or placed. A missing field is reported as a mistake in
 # the manifest; the entry is not skipped.
 REQUIRED_FIELDS = ("name", "url", "local", "bytes", "sha256")
 
@@ -132,7 +132,7 @@ class AmbiguousNameError(ManifestError):
 
 
 def require_repo() -> Path:
-    """Check that this module is running from inside the repo.
+    """Confirm that this module is running from inside the repo.
 
     The check is that pyproject.toml exists at the expected root and names the sdg package.
     A missing manifests folder is a different problem, reported by manifests().

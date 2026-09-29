@@ -85,7 +85,7 @@ def repo(fake_repo, tmp_path, monkeypatch):
     return fake_repo
 
 
-def run(capsys, text, *argv):
+def run(capsys: pytest.CaptureFixture[str], text: str, *argv: str) -> Outcome:
     """Write the given map and run the tool over it.
 
     Args:

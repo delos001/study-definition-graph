@@ -32,10 +32,17 @@ from __future__ import annotations
 
 import json
 import textwrap
+from typing import TYPE_CHECKING
 
 import pytest
 
 from sdgval.labels import category, code, negative, objective, positive
+
+# StagedSuite is defined in validation/conftest.py, which pytest loads on its own. It
+# is imported for the type checker alone, because importing it at run time would load
+# that file a second time.
+if TYPE_CHECKING:
+    from validation.conftest import StagedSuite
 
 # One suite with four checks that differ in category, objective and id.
 SELECTION_SUITE = '''
@@ -81,7 +88,7 @@ GROUPS_FILE = """
 
 
 def selected(
-    staged_suite, *args: str
+    staged_suite: StagedSuite, *args: str
 ) -> tuple[int, set[str], list[dict[str, str]], str]:
     """Run the selection suite with the given options and say which checks ran.
 
@@ -99,7 +106,7 @@ def selected(
     return result.ret, {r["id"] for r in rows}, rows, printed
 
 
-def stage_groups(staged_suite) -> None:
+def stage_groups(staged_suite: StagedSuite) -> None:
     """Write the groups file under the throwaway suite's root, where the plugin reads it.
 
     Args:

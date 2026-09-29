@@ -71,7 +71,7 @@ def repo(fake_repo, monkeypatch):
     return fake_repo
 
 
-def run(capsys, *argv: str) -> Outcome:
+def run(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the script in-process with the given arguments.
 
     Args:

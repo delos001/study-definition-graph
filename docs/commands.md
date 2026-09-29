@@ -148,13 +148,13 @@ check_neo4j --quiet
 
 ### check_python_files
 
-Runs the three tool checks every Python file must pass, in order: ruff format in check mode, ruff check, and mypy. Each tool's own output is printed as it runs, so a failure names the file and the line. All three are configured in pyproject.toml; this script adds nothing to what they confirm.
+Runs the three tools every Python file must pass, in order: ruff format in check mode, ruff check, and mypy. Each tool's own output is printed as it runs, so a failure names the file and the line. All three are configured in pyproject.toml; this script adds nothing to what they confirm.
 
 Its header block is in `src/sdgtools/check_python_files.py`.
 
 ```
 check_python_files
-    run all three checks, report each, exit non-zero if any failed
+    run all three tools, report each, exit non-zero if any failed
 check_python_files --quiet
     print only the tools' own reports and the final verdict lines
 ```

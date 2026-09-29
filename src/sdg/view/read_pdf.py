@@ -357,7 +357,9 @@ def heading_offset(text: str, number: str) -> int | None:
     separate lines, so a title match would fail there. The pattern requires a period or
     whitespace after the number; without that, "4.2" would also match the start of
     "4.23", and a request for the shorter section would be cut at the longer one's
-    heading.
+    heading. An appendix label may also be followed by a colon, because the USDM IG
+    writes its appendix headings as "Appendix A: USDM Team". The colon is accepted after
+    an appendix label alone, so every other heading is matched exactly as before.
 
     Args:
         text: The page's text.
@@ -371,7 +373,8 @@ def heading_offset(text: str, number: str) -> int | None:
     if not number:
         return None
 
-    match = re.search(rf"^[ \t]*{re.escape(number)}[.\s]", text, re.M)
+    after_number = r"[:.\s]" if number.startswith("Appendix ") else r"[.\s]"
+    match = re.search(rf"^[ \t]*{re.escape(number)}{after_number}", text, re.M)
     return match.start() if match else None
 
 
@@ -401,6 +404,26 @@ def title_offset(text: str, title: str) -> int | None:
     pattern = r"^[ \t]*" + r"\s+".join(re.escape(word) for word in words) + r"[ \t]*$"
     match = re.search(pattern, text, re.M | re.I)
     return match.start() if match else None
+
+
+def own_heading_offset(text: str, section: dict) -> int | None:
+    """Find where a section's own heading begins on the page the section starts on.
+
+    A section whose bookmark carries a number is found by its number, as
+    heading_offset() explains. One that carries none, such as GLOSSARY in E9(R1), is
+    found by its title, as title_offset() explains. Either way the section starts at its
+    own heading, so the text of the section before it on the same page is left out.
+
+    Args:
+        text: The page's text.
+        section: The section being extracted, from load_toc().
+
+    Returns:
+        The character offset of the section's heading, or None when it is not found.
+    """
+    if section["number"]:
+        return heading_offset(text, section["number"])
+    return title_offset(text, section["title"])
 
 
 def next_heading_offset(text: str, section: dict) -> int | None:
@@ -521,8 +544,8 @@ def extract_pages(
             and no trimming at the section's edges.
         patterns: The document's boilerplate lines to remove.
         label: The document's name, printed in each block's heading.
-        section: The section being extracted, whose own number and the next bookmark's
-            number or title say where to trim the first and last pages. None in page
+        section: The section being extracted, whose own number or title and the next
+            bookmark's number or title say where to trim the first and last pages. None in page
             mode, where nothing is trimmed.
 
     Returns:
@@ -547,12 +570,13 @@ def extract_pages(
         # share a page range return different text.
         if section is not None and not raw:
             if page_number == start:
-                cut = heading_offset(text, section["number"])
+                cut = own_heading_offset(text, section)
                 if cut is not None:
                     text = text[cut:]
-                elif section["number"]:
+                else:
+                    heading = section["number"] or section["title"]
                     warnings.append(
-                        f"could not locate the heading for {section['number']} on page "
+                        f"could not locate the heading for {heading} on page "
                         f"{page_number}; that page is shown whole and may open mid-section"
                     )
             # The trailing cut runs on the last page even when it is also the
@@ -585,7 +609,7 @@ def extract_pages(
 def page_range(text: str, page_count: int) -> tuple[int, int]:
     """Read a page range as a person types it, and refuse one the document cannot serve.
 
-    Pages are checked against the document before anything is printed, because pymupdf
+    Pages are confirmed against the document before anything is printed, because pymupdf
     reads a page number below 1 from the end of the document and a range past the end
     as an error, and a range that ends before it starts prints nothing. Each of those
     would either show the wrong page under the wrong label or read as though the pages
@@ -710,7 +734,7 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
 def main(argv: list[str] | None = None) -> int:
     """Parse the arguments, run one mode, and give back the exit code.
 
-    Modes are checked in order of specificity: --docs, --list and --find are explicit
+    Modes are tried in order of specificity: --docs, --list and --find are explicit
     requests, --pages bypasses section lookup, and a bare positional argument is
     resolved as a section. Running with no arguments prints the section map, on the
     assumption that a user who does not know what to ask for wants the menu.

@@ -149,7 +149,7 @@ def usdm_concrete_classes() -> int:
     The count goes through sdg.usdm.usdm_spec, the one doorway to the standard, rather than
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
-    docs/standards_read_record.md makes. The loader also checks the file is shaped like USDM v4, the
+    docs/standards_read_record.md makes. The loader also confirms the file is shaped like USDM v4, the
     one failure only this measurement can raise (exit 4).
 
     Returns:
@@ -336,7 +336,7 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check the figures stated in the markdown against the pinned files."
+        description="Confirm that the figures stated in the markdown match the pinned files."
     )
     parser.add_argument(
         "--verbose", action="store_true", help="also show facts that match"
@@ -424,7 +424,7 @@ def main(argv: list[str] | None = None) -> int:
 
     print()
     print(
-        f"{len(FACTS)} fact(s) checked, {drifted} drifted, {unasserted} asserted nowhere."
+        f"{len(FACTS)} fact(s) compared, {drifted} drifted, {unasserted} asserted nowhere."
     )
 
     # A recorded figure that no document states fails the run, because passing it

@@ -106,7 +106,7 @@ def write_compose(repo: Path, image: str = "neo4j:5.26.29-community") -> None:
     )
 
 
-def answer(monkeypatch, release: script.Release = PINNED) -> None:
+def answer(monkeypatch: pytest.MonkeyPatch, release: script.Release = PINNED) -> None:
     """Stand in for the call to the database with one that answers without a network.
 
     Args:
@@ -116,7 +116,7 @@ def answer(monkeypatch, release: script.Release = PINNED) -> None:
     monkeypatch.setattr(script, "ask_database", lambda settings: release)
 
 
-def refuse(monkeypatch, error: Exception) -> None:
+def refuse(monkeypatch: pytest.MonkeyPatch, error: Exception) -> None:
     """Stand in for the call to the database with one that raises the given error.
 
     Args:
@@ -131,7 +131,7 @@ def refuse(monkeypatch, error: Exception) -> None:
     monkeypatch.setattr(script, "ask_database", raise_it)
 
 
-def run(capsys, *argv: str) -> Outcome:
+def run(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the tool in-process with the given arguments.
 
     Args:
@@ -447,7 +447,7 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
 # code. One check runs once per refusal.
 
 
-def outside_the_repo(repo: Path, monkeypatch) -> int:
+def outside_the_repo(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage an install from outside the repo, and give the code expected."""
 
     def not_in_repo() -> Path:
@@ -458,18 +458,18 @@ def outside_the_repo(repo: Path, monkeypatch) -> int:
     return 6
 
 
-def no_env_file(repo: Path, monkeypatch) -> int:
+def no_env_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a repo with no .env file, and give the code expected."""
     return 27
 
 
-def no_compose_file(repo: Path, monkeypatch) -> int:
+def no_compose_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a .env with no docker-compose.yml beside it, and give the code expected."""
     write_env(repo)
     return 13
 
 
-def compose_without_an_image(repo: Path, monkeypatch) -> int:
+def compose_without_an_image(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a docker-compose.yml that names no image, and give the code expected."""
     write_env(repo)
     (repo / "docker-compose.yml").write_text(
@@ -478,7 +478,7 @@ def compose_without_an_image(repo: Path, monkeypatch) -> int:
     return 64
 
 
-def unreachable_database(repo: Path, monkeypatch) -> int:
+def unreachable_database(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a database that nothing answers for, and give the code expected."""
     write_env(repo)
     write_compose(repo)
@@ -486,7 +486,7 @@ def unreachable_database(repo: Path, monkeypatch) -> int:
     return 38
 
 
-def malformed_address(repo: Path, monkeypatch) -> int:
+def malformed_address(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage an address the driver refuses, and give the code expected."""
     write_env(repo)
     write_compose(repo)
@@ -494,7 +494,7 @@ def malformed_address(repo: Path, monkeypatch) -> int:
     return 44
 
 
-def rejected_login(repo: Path, monkeypatch) -> int:
+def rejected_login(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a login the database rejects, and give the code expected."""
     write_env(repo)
     write_compose(repo)
@@ -502,7 +502,7 @@ def rejected_login(repo: Path, monkeypatch) -> int:
     return 39
 
 
-def other_version(repo: Path, monkeypatch) -> int:
+def other_version(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a database running another version, and give the code expected."""
     write_env(repo)
     write_compose(repo)
@@ -558,7 +558,7 @@ def test_every_refusal_is_silent_under_quiet(repo, monkeypatch, capsys, stage):
 class FakeResult:
     """One answer from the driver, holding the rows a query came back with."""
 
-    def __init__(self, records):
+    def __init__(self, records: list[dict[str, object]]) -> None:
         self.records = records
 
 
@@ -570,7 +570,11 @@ class FakeDriver:
     database.
     """
 
-    def __init__(self, records=None, fail_on_query=None):
+    def __init__(
+        self,
+        records: list[dict[str, object]] | None = None,
+        fail_on_query: Exception | None = None,
+    ) -> None:
         self.calls: list[str] = []
         self.records = records or [
             {
@@ -597,7 +601,9 @@ class FakeDriver:
         self.calls.append("close")
 
 
-def stand_in_for_the_driver(monkeypatch, driver: FakeDriver) -> dict:
+def stand_in_for_the_driver(
+    monkeypatch: pytest.MonkeyPatch, driver: FakeDriver
+) -> dict:
     """Replace the neo4j driver with one that records what it was asked to do.
 
     Args:
@@ -609,7 +615,7 @@ def stand_in_for_the_driver(monkeypatch, driver: FakeDriver) -> dict:
     """
     built: dict = {}
 
-    def build(uri, auth, connection_timeout):
+    def build(uri: str, auth: tuple[str, str], connection_timeout: float) -> FakeDriver:
         """Stand in for neo4j.GraphDatabase.driver and record its arguments."""
         built.update(uri=uri, auth=auth, connection_timeout=connection_timeout)
         return driver

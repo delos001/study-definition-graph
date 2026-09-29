@@ -31,10 +31,18 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
 from sdgval.labels import category, code, negative, objective, positive
+
+# StagedSuite is defined in validation/conftest.py, which pytest loads on its own. It
+# is imported for the type checker alone, because importing it at run time would load
+# that file a second time.
+if TYPE_CHECKING:
+    from validation.conftest import StagedSuite
 
 #######################################################################################
 ### Shared staging ###
@@ -62,7 +70,13 @@ MIXED_SUITE = '''
     '''
 
 
-def run_command(staged_suite, pytester, *args, report=True, suite=MIXED_SUITE):
+def run_command(
+    staged_suite: StagedSuite,
+    pytester: pytest.Pytester,
+    *args: str,
+    report: bool = True,
+    suite: str = MIXED_SUITE,
+) -> tuple[pytest.RunResult, Path]:
     """Commit a suite as a git repository and run the command on it in a separate
     process. A report is written only in a git repository.
 
@@ -82,7 +96,12 @@ def run_command(staged_suite, pytester, *args, report=True, suite=MIXED_SUITE):
     return run_uncommitted(staged_suite, pytester, *args, report=report)
 
 
-def run_uncommitted(staged_suite, pytester, *args, report=True):
+def run_uncommitted(
+    staged_suite: StagedSuite,
+    pytester: pytest.Pytester,
+    *args: str,
+    report: bool = True,
+) -> tuple[pytest.RunResult, Path]:
     """Run the command in a separate process on whatever the suite's folder holds.
 
     Args:
@@ -340,7 +359,7 @@ BREAKING_CONFTEST = (
 )
 
 
-def stage_groups(staged_suite, text: str) -> None:
+def stage_groups(staged_suite: StagedSuite, text: str) -> None:
     """Write validation/validation_groups.yml under the suite's root, before it is
     committed.
 

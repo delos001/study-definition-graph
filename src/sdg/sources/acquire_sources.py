@@ -82,7 +82,7 @@ from .read_manifests import (
 def make_reporter(quiet: bool) -> Callable[..., None]:
     """Build the function the workflow prints through, silent when --quiet was given.
 
-    Passing the function around means nothing below has to remember to check the flag
+    Passing the function around means nothing below has to remember to read the flag
     before printing.
 
     Args:
@@ -122,7 +122,7 @@ def main(argv: list[str] | None = None) -> int:
     """
 
     parser = argparse.ArgumentParser(
-        description="Fetch every recorded source file not yet on disk, and check the ones that are."
+        description="Fetch every recorded source file not yet on disk, and confirm the ones that are."
     )
     parser.add_argument(
         "--dry-run",
@@ -137,7 +137,7 @@ def main(argv: list[str] | None = None) -> int:
 
     say = make_reporter(args.quiet)
 
-    # The manifest reader, src/sdg/sources/read_manifests.py, checks that the sdg package is running from inside its repo
+    # The manifest reader, src/sdg/sources/read_manifests.py, confirms that the sdg package is running from inside its repo
     # before it looks for any manifest, so a package installed the wrong way
     # is reported as that and not as "no manifests found".
     try:
@@ -166,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
         say(manifest.name)
 
         for entry in manifest.entries:
-            # A file already on disk is checked, never replaced. A mismatch is
+            # A file already on disk is confirmed, never replaced. A mismatch is
             # a decision for a person, so it is reported and left alone. So is
             # a path that cannot be read at all, such as a folder where a file
             # should be or a workbook Excel has locked. The run carries on, and

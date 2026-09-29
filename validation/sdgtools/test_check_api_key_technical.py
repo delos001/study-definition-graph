@@ -89,7 +89,7 @@ def write_env(repo: Path, line: str) -> None:
     )
 
 
-def answer(monkeypatch, reply: str = REPLY) -> None:
+def answer(monkeypatch: pytest.MonkeyPatch, reply: str = REPLY) -> None:
     """Stand in for the call to the API with one that replies without a network.
 
     Args:
@@ -99,7 +99,7 @@ def answer(monkeypatch, reply: str = REPLY) -> None:
     monkeypatch.setattr(script, "call_api", lambda key: reply)
 
 
-def refuse(monkeypatch, error: Exception) -> None:
+def refuse(monkeypatch: pytest.MonkeyPatch, error: Exception) -> None:
     """Stand in for the call to the API with one that raises the given error.
 
     Args:
@@ -114,7 +114,7 @@ def refuse(monkeypatch, error: Exception) -> None:
     monkeypatch.setattr(script, "call_api", raise_it)
 
 
-def run(capsys, *argv: str) -> Outcome:
+def run(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the tool in-process with the given arguments.
 
     Args:
@@ -301,14 +301,14 @@ def test_key_without_access_is_reported_as_an_account_problem(
 @negative
 def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
     """When the API cannot be reached at all, the run exits 30 and the message says
-    to check the network rather than the key."""
+    to confirm the network connection rather than the key."""
     request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(monkeypatch, anthropic.APIConnectionError(request=request))
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     outcome = run(capsys)
     assert outcome.exit_code == 30
     assert "could not be reached" in outcome.printed
-    assert "check the network" in outcome.printed
+    assert "confirm the network connection" in outcome.printed
 
 
 @code("SA00268")
@@ -335,7 +335,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
     assert outcome.exit_code == 41
     assert "answered with an error" in outcome.printed
     assert "no-such-model" in outcome.printed
-    assert "check the network" not in outcome.printed
+    assert "confirm the network connection" not in outcome.printed
 
 
 @code("SA00269")
@@ -376,17 +376,19 @@ class FakeBlock:
 class FakeMessages:
     """The messages part of the client, recording what it was asked to send."""
 
-    def __init__(self, blocks, sent):
+    def __init__(self, blocks: list[FakeBlock], sent: dict[str, object]) -> None:
         self.blocks = blocks
         self.sent = sent
 
-    def create(self, **kwargs):
+    def create(self, **kwargs: object) -> object:
         """Record the request, then answer with the staged blocks."""
         self.sent.update(kwargs)
         return type("FakeResponse", (), {"content": self.blocks})()
 
 
-def stand_in_for_the_client(monkeypatch, blocks) -> dict:
+def stand_in_for_the_client(
+    monkeypatch: pytest.MonkeyPatch, blocks: list[FakeBlock]
+) -> dict:
     """Replace the Anthropic client with one that records what it was asked to send.
 
     Args:
@@ -399,7 +401,7 @@ def stand_in_for_the_client(monkeypatch, blocks) -> dict:
     """
     sent: dict = {}
 
-    def build(api_key):
+    def build(api_key: str) -> object:
         """Stand in for anthropic.Anthropic and record the key it was built with."""
         sent["api_key"] = api_key
         return type("FakeClient", (), {"messages": FakeMessages(blocks, sent)})()
@@ -469,7 +471,7 @@ def test_a_reply_with_no_text_gives_an_empty_answer(monkeypatch):
 API_REQUEST = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
 
 
-def outside_the_repo(repo: Path, monkeypatch) -> int:
+def outside_the_repo(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage an install from outside the repo, and give the code expected."""
 
     def not_in_repo() -> Path:
@@ -480,12 +482,12 @@ def outside_the_repo(repo: Path, monkeypatch) -> int:
     return 6
 
 
-def no_env_file(repo: Path, monkeypatch) -> int:
+def no_env_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a repo with no .env file, and give the code expected."""
     return 27
 
 
-def rejected_key(repo: Path, monkeypatch) -> int:
+def rejected_key(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a key the API rejects, and give the code expected."""
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     refuse(
@@ -499,7 +501,7 @@ def rejected_key(repo: Path, monkeypatch) -> int:
     return 29
 
 
-def key_without_access(repo: Path, monkeypatch) -> int:
+def key_without_access(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a key the API knows but will not let use the model."""
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     refuse(
@@ -513,14 +515,14 @@ def key_without_access(repo: Path, monkeypatch) -> int:
     return 43
 
 
-def unreachable_api(repo: Path, monkeypatch) -> int:
+def unreachable_api(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage an API that cannot be reached, and give the code expected."""
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     refuse(monkeypatch, anthropic.APIConnectionError(request=API_REQUEST))
     return 30
 
 
-def api_error(repo: Path, monkeypatch) -> int:
+def api_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage an error the API answers with, and give the code expected."""
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     refuse(

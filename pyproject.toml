@@ -119,9 +119,11 @@ ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
 # Checks and pytest fixtures take their arguments from pytest, and a hint on each
-# would only repeat the argument's name, so code under validation/ may leave its
-# hints out. check_untyped_defs makes mypy still read the body of every function
-# that has no hints, so the code inside a check is confirmed like any other.
+# would only repeat the argument's name, so mypy lets code under validation/ leave
+# its hints out. mypy cannot tell a check or a fixture from any other function, so
+# check SA00650 confirms that every other function there carries its hints.
+# check_untyped_defs makes mypy still read the body of every function that has no
+# hints, so the code inside a check is confirmed like any other.
 module = ["validation.*"]
 disallow_untyped_defs = false
 check_untyped_defs = true

@@ -79,7 +79,7 @@ from sdg.sources.read_manifests import REPO_ROOT, Manifest
 #######################################################################################
 ### Settings ###
 
-# The map this script checks. It is read as text rather than parsed as markdown,
+# The map this script validates. It is read as text rather than parsed as markdown,
 # because only two kinds of line matter and both are written the same way every
 # time.
 MAP_FILE = REPO_ROOT / "docs" / "sources_index.md"
@@ -235,14 +235,14 @@ def main(argv: list[str] | None = None) -> int:
         The exit code, as the header block lists them.
     """
     parser = argparse.ArgumentParser(
-        description="Check that docs/sources_index.md and the manifests agree."
+        description="Confirm that docs/sources_index.md and the manifests agree."
     )
     parser.add_argument(
         "--quiet", action="store_true", help="print nothing; use the exit code"
     )
     args = parser.parse_args(argv)
 
-    # The manifest reader, src/sdg/sources/read_manifests.py, checks the sdg package is running from inside its repo before it
+    # The manifest reader, src/sdg/sources/read_manifests.py, confirms the sdg package is running from inside its repo before it
     # looks for any manifest, so the wrong install is reported as that.
     try:
         found = manifests()

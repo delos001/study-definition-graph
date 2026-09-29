@@ -3,7 +3,7 @@ Script:      aspect_run.py
 Description: Holds one pytest run to one aspect of quality. It is the part every
              aspect's command shares, such as src/sdgval/validate_technical.py, and
              it holds nothing that belongs to any one aspect. What an aspect reads,
-             records or checks lives in that aspect's own module.
+             records or validates lives in that aspect's own module.
 
              It hands pytest the person's arguments with --aspect and the command's
              aspect added, so only that aspect's checks run. It leaves the aspect in

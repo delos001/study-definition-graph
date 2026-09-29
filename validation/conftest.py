@@ -56,6 +56,7 @@ import hashlib
 import json
 import subprocess
 import textwrap
+from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
@@ -163,7 +164,7 @@ def manifest_recording():
     """
     from sdg.sources import read_manifests
 
-    def make(path: Path, **overrides) -> str:
+    def make(path: Path, **overrides: object) -> str:
         """Build the entry for the given file, apply the overrides, and give back the
         manifest as JSON text.
 
@@ -206,7 +207,7 @@ def server(monkeypatch):
 
     record: dict[str, object] = {}
 
-    def stage(behavior):
+    def stage(behavior: FakeResponse | Exception) -> dict[str, object]:
         """Install a fake httpx.stream that behaves as given.
 
         Args:
@@ -218,7 +219,9 @@ def server(monkeypatch):
         """
 
         @contextlib.contextmanager
-        def fake_stream(method, url, **settings):
+        def fake_stream(
+            method: str, url: str, **settings: object
+        ) -> Iterator[FakeResponse]:
             """Record the request, then fail the connection or yield the staged response."""
             record.update(method=method, url=url, **settings)
             if isinstance(behavior, Exception):
@@ -253,7 +256,7 @@ class FakeRepo:
     it.
     """
 
-    def __init__(self, root: Path):
+    def __init__(self, root: Path) -> None:
         """Create the fake repo's folders and its pyproject.toml under the root.
 
         Args:
@@ -405,7 +408,7 @@ class StagedSuite:
     separate process through their entry point, as they are for a real run.
     """
 
-    def __init__(self, pytester: pytest.Pytester):
+    def __init__(self, pytester: pytest.Pytester) -> None:
         """Hold the pytester the suite is staged with.
 
         Args:
@@ -442,7 +445,7 @@ class StagedSuite:
         '    config.stash[RUN_ASPECT] = "technical"\n'
     )
 
-    def run(self, test_source: str, *extra_args: str):
+    def run(self, test_source: str, *extra_args: str) -> tuple[pytest.RunResult, Path]:
         """Write the suite and run it with a report asked for.
 
         The suite's root gets a conftest that leaves the technical aspect in pytest's

@@ -30,7 +30,10 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
+from pathlib import Path
+from typing import NoReturn
 
 import fitz
 import pytest
@@ -97,7 +100,7 @@ def write_list(tmp_path):
         The function, which takes the file's text and hands back its path.
     """
 
-    def make(text):
+    def make(text: str) -> Path:
         """Write the given text as the list and give back its path."""
         path = tmp_path / "lookup_documents.yml"
         path.write_text(text, encoding="utf-8")
@@ -106,7 +109,13 @@ def write_list(tmp_path):
     return make
 
 
-def run(write_list, monkeypatch, capsys, text, *argv):
+def run(
+    write_list: Callable[[str], Path],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    text: str,
+    *argv: str,
+) -> Outcome:
     """Point the command at a staged list and run it in-process.
 
     Args:
@@ -493,7 +502,7 @@ def test_docs_exits_8_when_a_document_is_not_downloaded(
 # split the command is designed around.
 
 
-def build_pdf(path, with_bookmarks):
+def build_pdf(path: Path, with_bookmarks: bool) -> None:
     """Write a two-page PDF, with or without the bookmarks a section lookup needs.
 
     Args:
@@ -529,7 +538,7 @@ def readable(fake_repo, write_list, monkeypatch):
     return fake_repo
 
 
-def read(capsys, *argv):
+def read(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the command over the staged documents.
 
     Args:
@@ -544,7 +553,7 @@ def read(capsys, *argv):
     return Outcome(exit_code, captured.out + captured.err)
 
 
-def usage_mistake(capsys, *argv):
+def usage_mistake(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the command expecting the argument parser to refuse the command line.
 
     The parser ends the run itself with exit 2, so the refusal arrives as SystemExit
@@ -777,7 +786,7 @@ def test_a_document_not_downloaded_exits_8(fake_repo, write_list, monkeypatch, c
 # document puts both sections on one page so the cut at a section's start can be seen.
 
 
-def build_shared_page_pdf(path):
+def build_shared_page_pdf(path: Path) -> None:
     """Write a one-page PDF whose two bookmarked sections both begin on that page.
 
     Args:
@@ -865,7 +874,7 @@ def test_the_next_sections_text_is_left_out_at_the_end(readable, capsys):
 # the function that writes the note.
 
 
-def page_with_picture():
+def page_with_picture() -> fitz.Page:
     """Build one page holding a small picture and no table.
 
     Returns:
@@ -879,7 +888,7 @@ def page_with_picture():
     return page
 
 
-def page_with_table():
+def page_with_table() -> fitz.Page:
     """Build one page holding a ruled table of three rows and three columns, and no
     picture.
 
@@ -994,7 +1003,7 @@ def test_a_search_hit_names_the_section_it_falls_in(readable, capsys):
 # sections on one page whose text carries neither heading, so both cuts fail.
 
 
-def build_headingless_pdf(path):
+def build_headingless_pdf(path: Path) -> None:
     """Write a one-page PDF bookmarking two sections on a page that shows neither
     heading.
 
@@ -1113,7 +1122,7 @@ def test_a_page_whose_tables_cannot_be_read_still_extracts(
     The failure is staged by replacing the table finder, since a PDF that reliably
     breaks it cannot be built by hand."""
 
-    def refuse(self):
+    def refuse(self: fitz.Page) -> NoReturn:
         """Stand in for the table finder by failing the way a broken page does."""
         raise RuntimeError("the table finder gave up")
 
@@ -1168,7 +1177,7 @@ def test_a_search_hit_cuts_a_long_line_short(
 # section part way down page 2, where a glossary begins.
 
 
-def build_unnumbered_next_pdf(path, glossary_heading):
+def build_unnumbered_next_pdf(path: Path, glossary_heading: str) -> None:
     """Write a two-page PDF whose numbered section runs onto page 2, where an unnumbered
     GLOSSARY bookmark begins.
 
@@ -1255,3 +1264,98 @@ def test_a_section_that_carries_no_number_is_printed_from_its_start_page(
     outcome = read(capsys, "GLOSSARY")
     assert outcome.exit_code == 0
     assert "glossary content" in outcome.printed
+
+
+@code("SA00646")
+@category("processing")
+@objective("functionality")
+@positive
+def test_a_section_that_carries_no_number_starts_at_its_title(unnumbered_next, capsys):
+    """When a section whose bookmark carries no number begins part way down a page, the
+    extract starts at that bookmark's title, so the text of the section before it on
+    that page is left out."""
+    outcome = read(capsys, "GLOSSARY")
+    assert outcome.exit_code == 0
+    assert "glossary content" in outcome.printed
+    assert "alpha tail" not in outcome.printed
+
+
+@code("SA00647")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_missing_own_heading_that_carries_no_number_warns(
+    fake_repo, write_list, monkeypatch, capsys
+):
+    """When a section's bookmark carries no number and its title is not on the page the
+    section starts on, the page is shown whole. A warning names that title and the page
+    and says the extract may open mid-section."""
+    build_unnumbered_next_pdf(fake_repo.root / GUIDE, "")
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    outcome = read(capsys, "GLOSSARY")
+    assert outcome.exit_code == 0
+    assert "could not locate the heading for GLOSSARY on page 2" in outcome.printed
+    assert "may open mid-section" in outcome.printed
+
+
+#######################################################################################
+### Staging appendix headings written with a colon ###
+#
+# The USDM IG writes an appendix heading as "Appendix A: USDM Team", with a colon after
+# the label. This document puts two such appendices on one page, so the reader has to
+# find the second heading to leave out the first appendix's text.
+
+
+def build_appendix_pdf(path: Path) -> None:
+    """Write a one-page PDF holding two appendices whose headings carry a colon after
+    the label.
+
+    Args:
+        path: Where the document is written. Parent folders are created.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = fitz.open()
+    page = document.new_page()
+    page.insert_text(
+        (72, 72),
+        "Appendix A: First Team\nalpha content\nAppendix B: Second List\nbeta content",
+    )
+    document.set_toc(
+        [[1, "Appendix A: First Team", 1], [1, "Appendix B: Second List", 1]]
+    )
+    document.save(str(path))
+    document.close()
+
+
+@code("SA00648")
+@category("processing")
+@objective("functionality")
+@positive
+def test_an_appendix_heading_written_with_a_colon_is_found(
+    fake_repo, write_list, monkeypatch, capsys
+):
+    """An appendix heading written as the label followed by a colon, such as "Appendix
+    B: Second List", is found on its page. Reading that appendix leaves out the text of
+    the appendix before it on the same page, and no warning is printed."""
+    build_appendix_pdf(fake_repo.root / GUIDE)
+    build_pdf(fake_repo.root / PLAIN, with_bookmarks=False)
+    fake_repo.manifest("example", [fake_repo.entry(GUIDE), fake_repo.entry(PLAIN)])
+    monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
+    outcome = read(capsys, "Appendix B")
+    assert outcome.exit_code == 0
+    assert "beta content" in outcome.printed
+    assert "alpha content" not in outcome.printed
+    assert "could not locate the heading" not in outcome.printed
+
+
+@code("SA00649")
+@category("processing")
+@objective("functionality")
+@negative
+def test_a_colon_after_a_section_number_is_not_taken_for_its_heading():
+    """A line that opens with a section number followed by a colon, such as "2: the
+    second point" in a numbered list, is not taken for the heading of section 2. Only an
+    appendix label may be followed by a colon."""
+    assert read_pdf.heading_offset("2: the second point\n", "2") is None

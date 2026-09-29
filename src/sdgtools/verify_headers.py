@@ -371,7 +371,7 @@ def code_problems(
 
 
 def files_to_check() -> list[Path]:
-    """List every Python file under the checked folders, with __init__.py files left out.
+    """List every Python file under the folders this script validates, with __init__.py files left out.
 
     Returns:
         The files, sorted.
@@ -410,7 +410,7 @@ def problems_in(
     if missing:
         problems.append(HeaderProblem(f"missing {', '.join(missing)}", INCOMPLETE))
 
-    # Order is checked only over the fields present, so a missing field is
+    # Order is confirmed only over the fields present, so a missing field is
     # reported once, above, and not again as a misordering.
     present = [field for field in fields if field in REQUIRED_FIELDS]
     expected = [field for field in REQUIRED_FIELDS if field in fields]

@@ -28,8 +28,10 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import NoReturn
 
 import httpx
 import pytest
@@ -79,7 +81,12 @@ class Failed:
     destination: Path  # the final name fetch() was given
 
 
-def attempt(server, tmp_path, behavior, leftover: bool = False) -> Failed:
+def attempt(
+    server: Callable[[FakeResponse | Exception], dict[str, object]],
+    tmp_path: Path,
+    behavior: FakeResponse | Exception,
+    leftover: bool = False,
+) -> Failed:
     """Stage the given server behaviour, try one download, and expect it to fail.
 
     Args:
@@ -301,7 +308,7 @@ def test_a_failed_cleanup_does_not_mask_the_fetch_error(tmp_path, server, monkey
     """When the .part file cannot be removed after a failed download, the error reported
     is the download's, not the removal's."""
 
-    def refuse(self, missing_ok=False):
+    def refuse(self: Path, missing_ok: bool = False) -> NoReturn:
         """Stand in for removing a file with a refusal, as a locked file gives."""
         raise PermissionError("cannot remove")
 

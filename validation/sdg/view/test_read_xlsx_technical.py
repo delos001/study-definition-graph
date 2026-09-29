@@ -30,7 +30,9 @@ from __future__ import annotations
 import io
 import re
 import zipfile
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 
 import openpyxl
 import pytest
@@ -40,7 +42,7 @@ from sdgval.labels import category, code, negative, objective, positive
 
 # The rows every staged workbook holds. The empty cell and the cell holding a
 # newline are here because both appear in the real worked-example spreadsheets.
-ROWS = [
+ROWS: list[list[str | None]] = [
     ["Visit", "Activity", "Note"],
     ["Screening", "Vital signs", None],
     ["Day 1", "Blood sample", "predose\nand 1h"],
@@ -63,7 +65,9 @@ class Outcome:
     printed: str
 
 
-def write_workbook(path, sheets):
+def write_workbook(
+    path: Path, sheets: Mapping[str, Sequence[Sequence[object]]]
+) -> None:
     """Write one workbook with the given sheets.
 
     Args:
@@ -102,7 +106,7 @@ def inputs(tmp_path, monkeypatch):
     return folder
 
 
-def run(capsys, *argv):
+def run(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the command in-process with the given arguments.
 
     Args:

@@ -28,6 +28,8 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from sdgtools import build_index as bi
@@ -83,7 +85,7 @@ def repo(tmp_path, monkeypatch):
     monkeypatch.setattr(bi, "REPO_ROOT", tmp_path)
     (tmp_path / "docs").mkdir()
 
-    def make(modules: dict[str, str]):
+    def make(modules: dict[str, str]) -> Path:
         """Write the given modules and the pyproject.toml that installs them.
 
         Args:
@@ -107,7 +109,7 @@ def repo(tmp_path, monkeypatch):
     return make
 
 
-def page(root) -> str:
+def page(root: Path) -> str:
     """Read the generated page of a staged repo.
 
     Args:

@@ -28,6 +28,8 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 import hashlib
+from pathlib import Path
+from typing import NoReturn
 
 import pytest
 
@@ -88,7 +90,7 @@ def test_size_difference_skips_the_hash(file_on_disk, monkeypatch):
 
     # compare() reaches fingerprint() through the module, so replacing it here
     # proves the hash step is never reached when the size already differs.
-    def refuse(_path):
+    def refuse(_path: Path) -> NoReturn:
         """Fails the check if the hash step is reached."""
         raise AssertionError("sha256 was computed for a file whose size differs")
 

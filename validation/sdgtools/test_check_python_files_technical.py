@@ -31,6 +31,7 @@ Owner:       Jason Delosh
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -102,7 +103,9 @@ def stage(monkeypatch) -> Stage:
         """Say where a tool is, for the tools the check staged as being on the path."""
         return f"/bin/{name}" if name in staged.on_path else None
 
-    def run(command: list[str], cwd=None, capture_output=False):
+    def run(
+        command: list[str], cwd: Path | None = None, capture_output: bool = False
+    ) -> SimpleNamespace:
         """Record the command instead of running it, and answer with the staged result."""
         if "--version" in command:
             staged.version_questions.append(list(command))
@@ -122,7 +125,7 @@ def stage(monkeypatch) -> Stage:
     return staged
 
 
-def run_tool(capsys, *argv: str) -> Outcome:
+def run_tool(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
     """Run the tool in-process with the given arguments.
 
     Args:
