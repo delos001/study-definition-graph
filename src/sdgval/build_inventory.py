@@ -418,7 +418,9 @@ class CollectionRecord:
             call: How reading it ended, with the error.
             report: pytest's report of the failure.
         """
-        if call.excinfo is None:
+        # pytest calls this only when an error was raised, so excinfo is always
+        # there. The test is kept because pytest's types allow it to be missing.
+        if call.excinfo is None:  # pragma: no cover
             return
         error = call.excinfo.value
         underneath = error.__cause__ or error

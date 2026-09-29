@@ -364,6 +364,38 @@ def test_git_that_cannot_be_run_exits_22(tracked, monkeypatch, capsys):
     assert "fix -> install git" in out
 
 
+@code("SA00641")
+@category("repository")
+@objective("functionality")
+@negative
+def test_git_that_does_not_answer_exits_22(tracked, monkeypatch, capsys):
+    """When git runs but refuses to list the tracked files, as it does outside a
+    repository, the run exits 22 before any measurement, and the report says git did
+    not answer and to run check_facts from inside the repo's clone.
+
+    git is pointed at a repository folder that does not exist, which makes it stop
+    with an error instead of listing files."""
+    tracked({"facts.md": "We hold 3 widgets.\n"})
+    monkeypatch.setenv("GIT_DIR", str(cf.REPO_ROOT / "no_such_repository"))
+    assert cf.main([]) == 22
+    out = capsys.readouterr().out
+    assert "git did not answer" in out
+    assert "run check_facts from inside the repo's clone" in out
+
+
+@code("SA00642")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_tracked_document_deleted_from_the_folder_is_passed_over(tracked, capsys):
+    """A tracked Markdown file that has been deleted from the working folder, but whose
+    deletion is not yet committed, states nothing, so the run compares the documents
+    still there and exits 0."""
+    tracked({"facts.md": "We hold 3 widgets.\n", "gone.md": "We hold 3 widgets.\n"})
+    (cf.REPO_ROOT / "gone.md").unlink()
+    assert cf.main([]) == 0
+
+
 #######################################################################################
 ### Which file a measurement reads ###
 

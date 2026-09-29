@@ -273,21 +273,30 @@ def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-@pytest.mark.parametrize("refusal", ["outside the repo", "unreadable manifest"])
+@pytest.mark.parametrize(
+    "refusal",
+    ["outside the repo", "unreadable manifest", "location outside inputs"],
+)
 def test_every_refusal_is_silent_under_quiet(
     repo, monkeypatch, tmp_path, capsys, refusal
 ):
     """With the quiet option, a refusal prints nothing and still exits with its own
-    code. It runs once each for an install outside the repo and a manifest that
-    cannot be read."""
+    code. It runs once each for an install outside the repo, a manifest that cannot
+    be read, and a manifest location that does not stay under inputs/."""
     from sdg.sources import read_manifests
 
     if refusal == "outside the repo":
         monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
         expected = 6
-    else:
+    elif refusal == "unreadable manifest":
         repo.manifest("broken", "{not json")
         expected = 3
+    else:
+        repo.manifest(
+            "stray",
+            [repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)],
+        )
+        expected = 66
     outcome = run(capsys, "--quiet")
     assert outcome.printed == ""
     assert outcome.exit_code == expected

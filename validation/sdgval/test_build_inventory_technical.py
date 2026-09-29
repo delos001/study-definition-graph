@@ -812,9 +812,13 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_test_files_exits_20(tests_folder, capsys):
-    """A validation folder with no check files makes the run exit 20."""
+@pytest.mark.parametrize("staging", ["empty folder", "no folder"])
+def test_no_test_files_exits_20(tests_folder, capsys, staging):
+    """A validation folder with no check files makes the run exit 20. It runs once
+    with an empty validation folder and once with no validation folder at all."""
     tests_folder({})
+    if staging == "no folder":
+        script.VALIDATION_DIR.rmdir()
     outcome = run(capsys)
     assert outcome.exit_code == 20
     assert "no check files found" in outcome.printed
@@ -1235,6 +1239,27 @@ def test_labels_given_to_the_whole_file_are_read_on_each_check(tests_folder, cap
     )
 
 
+@code("SA00644")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_module_from_outside_the_validation_folder_stays_imported(
+    tests_folder, monkeypatch, capsys
+):
+    """A module that a check file imports while the checks are read, and that lives
+    outside the validation folder, is still imported once the run ends, because
+    whoever imports it gets the same module.
+
+    colorsys, a small module of the standard library, is removed from Python's table
+    of imported modules first, so the staged check file is what imports it."""
+    monkeypatch.delitem(sys.modules, "colorsys", raising=False)
+    tests_folder(
+        {"sdgtools/test_alpha_conformance.py": "import colorsys\n" + TWO_CHECKS}
+    )
+    assert run(capsys).exit_code == 0
+    assert "colorsys" in sys.modules
+
+
 #######################################################################################
 ### Checks pytest reads but the inventory refuses ###
 #
@@ -1324,6 +1349,25 @@ def test_a_check_inside_a_class_exits_51(tests_folder, capsys):
         "a function at the top level of its check file" in outcome.printed
     )
     assert "move it out of its class" in outcome.printed
+
+
+@code("SA00643")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_check_inside_a_class_that_runs_once_per_value_is_named_once(
+    tests_folder, capsys
+):
+    """A check written inside a class that pytest runs once for each of two values is
+    named once in the refusal, not once per value, and the run exits 51."""
+    in_a_class = CHECK_IN_A_CLASS.replace(
+        "    @positive\n",
+        '    @positive\n    @pytest.mark.parametrize("value", [1, 2])\n',
+    ).replace("def test_inside(self):", "def test_inside(self, value):")
+    tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS + in_a_class})
+    outcome = run(capsys)
+    assert outcome.exit_code == 51
+    assert outcome.printed.count("TestGroup::test_inside is not a function") == 1
 
 
 @code("SA00546")

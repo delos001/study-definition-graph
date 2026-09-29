@@ -683,3 +683,140 @@ The inventory's `status` column said a check marked `inactive` was switched off,
 - A check marked `superseded` or `retired` is removed from the test files, and `src/sdgval/build_inventory.py` keeps its row when the inventory is regenerated, so a filed report that names it still finds it. This closes the gap issue #47 recorded.
 - Making the status a record only, with switching a check off done by removing it, was considered and rejected, because it would leave the dictionary describing a column that does nothing.
 
+## Library versions are fixed in environment.yml, and the pre-commit framework runs the commit steps, decided 2026-09-28
+
+The validation audit of 2026-09-28 found two gaps in how the tools that judge the code are set up. `environment.yml` fixed a version for Python alone, so any update of the environment could change ruff, mypy, pytest or coverage. The update of 2026-09-26 did exactly that. It moved ruff and mypy, and a library changed underneath the project, so the type check failed on code nobody had touched. The pre-commit hook in `.githooks/` also judged the files on disk rather than the files being committed. A file that was regenerated but never staged passed the hook, and the commit carried the stale copy. In both cases a result could not be trusted, because what the tool ran against was not what it claimed to judge. No standard settles either question, so the choices are **unguided**, although the second adopts an established tool.
+
+- `environment.yml` fixes an exact version for ruff, mypy, pytest and coverage, because they decide whether code passes, and a new version of any of them can pass or refuse code that did not change.
+- Every other library in `environment.yml` is limited to its current major version, which lets fixes arrive and keeps out the changes a publisher marks as breaking. A separate lock file recording every exact version was the other option offered, and it was not chosen.
+- The pre-commit framework replaces `.githooks/`. Its steps are in `.pre-commit-config.yaml`, and each runs one installed command of the sdg environment over the whole repo.
+- Before the steps run, the framework sets aside every change that is not staged, so each step confirms exactly what the commit will hold.
+- `pre-commit install` turns the framework on once per clone, and the setup section of the root `README.md` includes it.
+
+These settle two of the three questions that the entry "The validation machinery and the repo tools become installed packages under src/, decided 2026-09-23" left open. One was whether to adopt the pre-commit framework, and the other was whether `environment.yml` should fix library versions.
+
+## The inventory reads the checks through pytest, decided 2026-09-28
+
+`src/sdgval/build_inventory.py` read the check files as text and found the checks and their labels itself, while a validation report took the same facts from pytest, which collects and runs the checks. The two readers had drifted apart. The validation audit of 2026-09-28 found that a check written inside a class would run and be reported but never reach the inventory. It also found that the two could disagree on whether a check was positive or negative, when the label was written in pytest's long form, given to a whole file, or given twice. No standard covered the question, so the choice is **unguided**.
+
+- `build_inventory` asks pytest to collect every check under `validation/`, running none of them. It takes each check's labels, docstring, file and line from what pytest collected, and reads the labels through `src/sdgval/labels.py`, as a report does. With one reader, the inventory and a report cannot see a check differently.
+- Every refusal the text reader made is kept.
+- A check file that fails to load stops the inventory with its own message, under exit 49.
+- A check written inside a class is refused under exit 51, because the inventory and a report name a check by its function's name alone.
+- Asking pytest adds about two seconds to each `build_inventory --check`, which the pre-commit framework runs on every commit. That cost was accepted for a single reader.
+
+The audit had proposed refusing each form of label the text reader could not read. The redesign replaced those fixes, because they would have kept two readers that could drift again.
+
+## The aspect commands exit with the repo's own numbers, decided 2026-09-28
+
+`validate_technical` passed pytest's own exit numbers through, and `docs/exit_codes.csv` gives those numbers to other causes. In the repo's table, 1 is a Python error that nothing handled and 2 is a command line the argument parser refused, while pytest uses them for failed checks and an interrupted run. The entry "One exit code per cause across the whole repo, decided 2026-09-14" grants no exception. Recording an exception for pytest's numbers was the other option offered, and it was not chosen. No standard covered the question, so the choice is **unguided**.
+
+- An aspect's command turns pytest's outcome into the repo's numbers before it exits, through `src/sdgval/aspect_run.py`. pytest's internal error becomes 1, and its refused command line becomes 2.
+- Failed checks, a run stopped before every check ran, and a run that collected nothing each get a number of their own, 52, 53 and 54.
+- The refusals that pytest reported under its one number for a bad command line each get a number of their own, from 55 to 61, because each has a different fix. They cover a run given `--aspect`, a selection that leaves no check, a report refused on uncommitted work, git not answering, and the three ways a named group can be wrong.
+- A missing `validation/validation_groups.yml` exits 13, the repo's number for a file that cannot be read.
+- A plain `pytest` run keeps pytest's own numbers, because the aspect's command makes the translation, and a plain run does not go through it.
+
+## A pending check is written but switched off, and superseded_by keeps the history, decided 2026-09-28
+
+The validation audit of 2026-09-28 found three faults in the hand-kept status columns of `validation/validation_inventory.csv`. The dictionary defined `pending` as a check that is planned and waiting on development or a decision, but a row with no check behind it did not survive regeneration, so pending worked only for a check already written. A pending check also could not record why it was pending, although the dictionary said its report row gives the reason. And a superseded check had to name an active replacement, so when the replacement was itself later replaced or retired, the older row failed and had to be rewritten, which erased the record of what first replaced it. No standard covered the questions, so the choices are **unguided**.
+
+- `pending` means the check is written but not yet switched on. A check that is planned but not yet written is tracked in GitHub Issues.
+- A pending check needs a `status_reason`, as an inactive or retired one does. When the check is skipped, its report row shows the reason.
+- `superseded_by` records what replaced a check when it was replaced. It accepts any id in the inventory, whatever its status, other than the row's own, so a chain of replacements stays as it happened and is read by following it from one row to the next.
+
+## Exit numbers stop at 125, decided 2026-09-28
+
+The table of exit codes in `docs/exit_codes.csv` grows by one number for each new cause, and it had no ceiling. A shell gives the numbers from 126 upward meanings of its own, so a project number there would be misread. The validation audit of 2026-09-28 raised it because the pipeline phases still to come will add causes. No standard covered the question, so the choice is **unguided**.
+
+- `.claude/rules/writing_python_files.md` states that project exit numbers stop at 125.
+- `src/sdgtools/verify_headers.py` refuses a number above 125 in a file's header under exit 33, and in `docs/exit_codes.csv` under exit 64.
+
+## check_facts reads every tracked document, and a figure stated nowhere fails, decided 2026-09-28
+
+`check_facts` re-derives each figure the documents state from the pinned files and compares the two. It read a hand-kept list of six documents, so a figure written in any other document was never compared. It also found each figure by an exact phrase. When a sentence was reworded so that the phrase no longer matched, the figure was compared with nothing and the run still passed. The validation audit of 2026-09-28 found both. No standard covered the questions, so the choices are **unguided**.
+
+- `check_facts` reads every Markdown file git tracks, apart from a named list of exclusions in `src/sdgtools/check_facts.py`.
+- `DECISIONS.md` is excluded, because each entry records what was true on the day it was written.
+- When git cannot be run or does not answer, `check_facts` stops with exit 22.
+- A recorded figure that no document states fails with exit 65. The message names the figure and says to state it again where the project reasons from it, or to remove its measurement.
+- When one figure disagrees with a document and another is stated nowhere, the run exits 14, the number for a disagreement.
+
+This reverses a deliberate earlier choice that no entry recorded. A comment in `src/sdgtools/check_facts.py` said that a fact nobody asserts is not an error. The new choice is written here so that a later audit finds it rather than reversing it again.
+
+## read_pdf ends a section at the next bookmark whether or not it carries a number, decided 2026-09-28
+
+The entry "Section addressing, fixed 2026-08-18" ends each section at the next heading, and says to warn rather than guess when a heading cannot be found. It worked only when the next bookmark carried a section number. When the next bookmark had none, such as the bookmark of a glossary or an appendix, nothing trimmed the text and nothing warned. Asking for section A.6 of the estimands guideline printed its glossary as well. The validation audit of 2026-09-28 found it. No standard covered the question, so the choice is **unguided**.
+
+- `read_pdf` ends a section at the next bookmark.
+- A numbered bookmark is found by its number, as before.
+- A bookmark with no number is found by its title standing alone on a line, with upper and lower case ignored.
+- When the title cannot be found, `read_pdf` warns, as the 2026-08-18 entry requires.
+
+## Cosmic Ray proves that the checks can fail, decided 2026-09-28
+
+A check that passes whether the code is right or wrong proves nothing. The step in `.claude/rules/writing_python_files.md` for proving that a check can fail said to run it against a broken copy of the code and then put the code back. That reads as editing the real file, and the step did not say how to make the copy. The validation audit of 2026-09-28 found that the step could not be followed as written. The established way to prove it is mutation testing, in which a tool breaks the code in one small way at a time and records whether a check notices. No standard names a tool, so the choice is **unguided**.
+
+- Three tools were compared. mutmut needs the Windows Subsystem for Linux to run on Windows, and mutatest is no longer maintained. Cosmic Ray runs on Windows and on the project's Python version, so it was adopted.
+- Cosmic Ray writes each break into the file on disk and then puts the file back, so a run that is interrupted can leave a break in the code. It is run only on a copy of the repo.
+- Its settings are in `validation/cosmic_ray.toml`, and `validation/running_validation.md` says how to make the copy and run it.
+- Step 5 of "Adding a check" in the rule says to run Cosmic Ray on the file the check covers and confirm that no break survives.
+- `environment.yml` lists cosmic-ray, limited to its current major version.
+
+## A check's category is the category of its target, decided 2026-09-28
+
+SA00513 compares `lookup_documents.yml` with the pinned files, and it was labelled `sources`. SA00330 compares `docs/sources_index.md` with the same files, and it was labelled `repository`. The category definitions did not say which was right, and the validation audit of 2026-09-28 found the disagreement. No standard covered the question, so the choice is **unguided**.
+
+- `validation/README.md` says that a check's category is the category of its target, the thing the check confirms. Whatever the check compares its target against is the reference, and the reference does not change the category.
+- A record that describes pinned files is the thing that could be wrong, so a check on it is `repository`. SA00513 is relabelled `repository`.
+- No worked example was added beside the definition. A definition that cannot do its job without an example is rewritten until it can.
+
+This reverses a sentence in the entry "Every check names its target and its objective, decided 2026-09-21", which said that a record goes with the thing it describes, so `docs/sources_index.md` is under sources.
+
+## A quiet check stays negative, and the rule for negative checks covers it, decided 2026-09-28
+
+The rule in `.claude/rules/writing_python_files.md` said that a negative check confirms the message names the cause and its fix. A check of the `--quiet` option confirms that nothing is printed, so it could never meet that rule. An earlier commit had kept the quiet checks positive for that reason, and a commit on 2026-09-26 relabelled them negative. Neither change was recorded here. The validation audit of 2026-09-28 found the conflict. No standard covered the question, so the choice is **unguided**.
+
+- The definition in `validation/README.md` decides the label. A negative check stages a broken situation and expects the target to refuse it for the right reason, and a quiet check does that, so it stays negative.
+- The rule now says that a negative check asserts the error raised or the exit number for its cause. When the command prints, the check also asserts that the message names the cause and its remedy. Under `--quiet`, the check asserts the exit number for the cause and that nothing is printed.
+
+This keeps the labels of 2026-09-26 and reverses the earlier positive labels, which no entry recorded.
+
+## A file of checks is called a check file, decided 2026-09-28
+
+The repo called a file that holds checks a test file in some places and a check file in others. A test file usually means a sample file that something is tried on, so the phrase misleads a reader. No standard covered the question, so the choice is **unguided**.
+
+- Every document, header, comment and printed message that a person reads says check file.
+- The `test_` prefix of the file names stays, because it is what pytest collects by default.
+
+## A row whose check is gone is refused once a validation report is filed, decided 2026-09-29
+
+The validation audit of 2026-09-28 found that an inventory row whose check had been deleted, and that was not marked superseded or retired, vanished from `validation/validation_inventory.csv` on the next regeneration with no message. When it held the highest id, the next new check took the same id, although an id is never reused. A filed report naming the old id would then join to a different check. No standard covered the question, so the choice is **unguided**.
+
+- Once `validation/reports/` holds a filed validation report, `build_inventory` refuses a row whose check is in no check file, unless the row is marked retired or superseded. It writes nothing, names the id, and says to mark the row retired or superseded before removing the check.
+- While `validation/reports/` holds no filed report, such a row is dropped, and a check no longer wanted is deleted outright, row and all, because no report can name it.
+- A new check given the id of a retired or superseded row is refused. The message says the id already belongs to another check, that every id is used only once, and to give the check the next free id.
+
+This changes a rule in the entry "Every check is classified by its objective, decided 2026-09-18", which tied the keeping of every row, whatever its status, to a validation run. The rule now turns on whether a validation report has been filed, which `build_inventory` can see on disk.
+
+## A check's version moves whenever the check changes once a report is filed, and the report records it, decided 2026-09-29
+
+The inventory kept a version for each check, but no report recorded which version ran. Once a version moved, an old report joined to the inventory showed the new version rather than the one that ran. The event that moved a version, a check going into production, was also defined nowhere. The validation audit of 2026-09-28 found both. No standard covered the question, so the choice is **unguided**.
+
+- Each report row records the version of the check that ran, in a `version` column.
+- The inventory gains a `fingerprint` column. It holds a fingerprint of each check's code, docstring and labels, taken from the code as Python reads it, so a change of layout alone does not move it.
+- Once `validation/reports/` holds a filed validation report, any change to a check, whatever it is, needs a new version. `build_inventory` then refuses, under exit 50, a check whose fingerprint changed while its version stayed the same.
+- While `validation/reports/` holds no filed report, a changed check's new fingerprint is recorded against the version the row already has.
+- A new Python version can write the same code out differently and move every fingerprint although no check changed. Each fingerprint cell therefore records the Python version, major and minor, that took it.
+- Once a report is filed, a run on another Python version stops with one message under exit 62. `build_inventory --python-changed` then records new fingerprints for those rows alone, in a commit that changes nothing else.
+- Once a report is filed, a fingerprint cell that is empty or unreadable is refused under exit 63, because an empty cell would otherwise be filled in again and let a change through.
+
+This reverses the rule in the entry "Every check is classified by its objective, decided 2026-09-18", under which a version moved only when a changed check passed its validation, its report was filed and it went into production. It also answers the question that the entry "The category conversion is renamed processing, decided 2026-09-22" left open. Re-categorising a check changes its labels, so once a report is filed it moves the version.
+
+## The manifest reader refuses a shared file name and a location outside inputs/, decided 2026-09-29
+
+The validation audit of 2026-09-28 found two ways the manifest reader, `src/sdg/sources/read_manifests.py`, could hand back the wrong pinned file with no sign. Pinned files keep their publisher's names, so once a second version of a file is pinned, two records share a name, and a lookup by name silently returned whichever came first. `read_pdf` could then show the old document, and `check_facts` could confirm a figure against it. A record's `local` location could also hold a full path or a step up, such as `inputs/../src/x`, and send a download outside `inputs/`. No standard covered the questions, so the choices are **unguided**.
+
+- A lookup by a name that more than one record holds is refused. The message names every record that holds it, and says that the code asking for the name has to choose one version.
+- Callers go on naming a pinned file by its name alone, because a file's location is recorded in its manifest and nowhere else. Naming files by their full location in `lookup_documents.yml` and in `check_facts` was built on 2026-09-29 and reversed the same day for that reason.
+- Every command that reads the manifests refuses a `local` location that does not stay under `inputs/` once resolved, under exit 66.

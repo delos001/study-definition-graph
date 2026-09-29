@@ -696,21 +696,36 @@ def test_a_file_with_no_main_may_describe_its_codes_in_a_sentence(folder, capsys
 
 
 #######################################################################################
-### A refusal with the quiet option ###
+### A refusal of the table with the quiet option ###
+#
+# With the quiet option, each way docs/exit_codes.csv can be refused prints nothing
+# and still exits with its own code. One check runs once per refusal.
 
 
 @code("SA00524")
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_unreadable_table_is_silent_under_quiet(folder, monkeypatch, capsys):
-    """With the quiet option and docs/exit_codes.csv missing, the run prints nothing
-    and still exits 13."""
+@pytest.mark.parametrize("refusal", ["missing table", "code above 125"])
+def test_every_table_refusal_is_silent_under_quiet(
+    folder, monkeypatch, capsys, refusal
+):
+    """With the quiet option, a refusal of docs/exit_codes.csv prints nothing and still
+    exits with its own code. It runs once for a missing table, which exits 13, and
+    once for a table holding a code above 125, which exits 64."""
     folder({"alpha.py": GOOD_HEADER})
-    monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
+    if refusal == "missing table":
+        monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
+        expected = 13
+    else:
+        script.EXIT_CODES_FILE.write_text(
+            "code,cause\n0,success\n126,a cause given too high a number\n",
+            encoding="utf-8",
+        )
+        expected = 64
     outcome = run(capsys, "--quiet")
     assert outcome.printed == ""
-    assert outcome.exit_code == 13
+    assert outcome.exit_code == expected
 
 
 #######################################################################################

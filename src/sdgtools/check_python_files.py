@@ -105,7 +105,9 @@ def can_start(program: str) -> bool:
         started or answered with an error.
     """
     command = command_for([program, "--version"])
-    if command is None:
+    # main() stops with exit 22 before asking, when neither the tool nor conda is
+    # found, so this answer is kept only for a caller that asks directly.
+    if command is None:  # pragma: no cover
         return False
     # A program that the system cannot launch at all raises OSError. That is the
     # same answer as a tool that fails to report its version, so it gives False.

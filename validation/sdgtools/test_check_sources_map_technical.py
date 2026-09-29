@@ -342,14 +342,15 @@ def test_quiet_file_with_no_heading_exits_35_and_prints_nothing(
 @objective("functionality")
 @negative
 @pytest.mark.parametrize(
-    "refusal", ["outside the repo", "unreadable manifest", "no map"]
+    "refusal",
+    ["outside the repo", "unreadable manifest", "location outside inputs", "no map"],
 )
 def test_every_refusal_is_silent_under_quiet(
     repo, fake_repo, tmp_path, monkeypatch, capsys, refusal
 ):
     """With the quiet option, a refusal prints nothing and still exits with its own
-    code. It runs once each for an install outside the repo, an unreadable manifest and
-    an unreadable map."""
+    code. It runs once each for an install outside the repo, an unreadable manifest, a
+    manifest location that does not stay under inputs/, and an unreadable map."""
     from sdg.sources import read_manifests
 
     if refusal == "outside the repo":
@@ -360,6 +361,12 @@ def test_every_refusal_is_silent_under_quiet(
             "{ not json", encoding="utf-8"
         )
         outcome, expected = run(capsys, MAP, "--quiet"), 3
+    elif refusal == "location outside inputs":
+        fake_repo.manifest(
+            "stray",
+            [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)],
+        )
+        outcome, expected = run(capsys, MAP, "--quiet"), 66
     else:
         outcome, expected = (
             Outcome(script.main(["--quiet"]), capsys.readouterr().out),

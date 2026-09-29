@@ -8,7 +8,9 @@ Description: Checks for src/sdgval/select_checks.py, the plugin that selects che
              report to see which checks ran. A
              deselected check neither runs nor gets a report row, so the report's
              ids say what was kept. The refusals are confirmed by exit code, by
-             message and by the absence of a report.
+             message and by the absence of a report. One refusal is also run
+             under plain pytest, without the stand-in for an aspect's command,
+             because its message is worded differently there.
 
 Inputs:      Nothing real. The throwaway suite is written to pytest's own
              temporary folder, and the installed plugins are loaded by its process.
@@ -349,6 +351,31 @@ def test_options_that_together_match_nothing_stop_the_run(staged_suite):
         in printed
     )
     assert ids == set()
+
+
+@code("SA00645")
+@category("repository")
+@objective("functionality")
+@negative
+def test_options_that_together_match_nothing_under_plain_pytest_stop_the_run(
+    staged_suite,
+):
+    """Under plain pytest, with no aspect's command, two options that each match a
+    check, but never the same check, stop the run with exit 4. The message gives each
+    option's own count, so the reader can see which one to change.
+
+    The suite is run without the conftest that stands in for an aspect's command, so
+    no aspect is set for the run."""
+    staged_suite.write(SELECTION_SUITE)
+    result = staged_suite.pytester.runpytest_subprocess(
+        "--category", "sources", "--id", "XYZ0011"
+    )
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert (
+        "no check matches every option given: --category matched 1, --id matched 1, in combination 0. Drop or widen the option that matched fewest."
+        in printed
+    )
 
 
 @code("SA00475")

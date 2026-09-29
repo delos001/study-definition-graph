@@ -264,10 +264,16 @@ def test_a_package_with_no_command_gets_no_heading(repo):
 @positive
 def test_a_file_no_command_runs_is_left_out(repo):
     """A file in a package that pyproject.toml installs as no command, such as a
-    pytest plugin, does not appear on docs/commands.md, even when it has no header
-    block."""
+    pytest plugin, does not appear on docs/commands.md, even when it carries a
+    complete header block.
+
+    The plugin's header is complete, so a generator that wrongly took every file in
+    the package would still write the page, and the check fails on the page naming
+    the plugin rather than on an error."""
     root = repo({"sdgval.alpha": GOOD_HEADER})
-    (root / "src" / "sdgval" / "plugin.py").write_text("x = 1\n", encoding="utf-8")
+    (root / "src" / "sdgval" / "plugin.py").write_text(
+        GOOD_HEADER.replace("alpha", "plugin"), encoding="utf-8"
+    )
     assert bi.main([]) == 0
     assert "plugin" not in page(root)
 
