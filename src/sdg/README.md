@@ -12,10 +12,10 @@ This is the `sdg` package. It holds the pipeline, as code other code imports, an
 | `extract/` | In phase 3, it turns classified content into USDM-shaped structures, each carrying where it came from. |
 | `graph/` | In phase 4, it loads the structures into Neo4j, links across documents, and answers questions that span them. |
 
-A file used by several stages goes in the root of `sdg/`. Today that is `console_output.py`, which makes the console print the standards' characters intact on Windows. When two or more such files are about the same thing, they move into a folder named for that thing. Nothing gets a folder before it has earned one.
+A file used by several stages goes in the root of `sdg/`. Today two files sit there. `console_output.py` makes the console print the standards' characters intact on Windows. `exit_codes.py` holds the groups of failure a command exits with, and prints the lines a failing command shows. When two or more such files are about the same thing, they move into a folder named for that thing. Nothing gets a folder before it has earned one.
 
 A file does one job. When a file also does a piece of work that comes before or after its job, and another file could use that piece too, that piece belongs in a file of its own.
 
-Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one. It holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read. The whole map, with which workflow uses which step, is `src/sdg/sdg_file_catalog.md`.
+Every folder holds two kinds of file. A workflow runs steps in order and decides what happens at each one. It holds the policy, and it turns errors into an outcome. A step does one thing, decides nothing, and belongs to no workflow, so any workflow can use it. A step may use another step, for example the fingerprint step takes the entry the manifest step read.
 
 The package is installed once with `pip install -e .`, which is a step in the setup block of the root `README.md`. The tools that keep the repository's own files in order are in `src/sdgtools/`, and the checks that prove this code works are in `validation/sdg/`.
