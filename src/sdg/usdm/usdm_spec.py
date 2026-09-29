@@ -46,22 +46,34 @@ Usage:       usdm_spec --list-classes
              usdm_spec --list-classes --allow-unpinned
                  run even if the pinned file no longer matches its checksum
 
-Exit codes:  0   the command succeeded
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             3   a manifest is missing or cannot be read
-             4   the pinned model file is not shaped like the pinned USDM model
-             5   the requested class is not in the model
-             6   the command is not running from inside the repo
-             8   a pinned file has not been downloaded
-             9   a pinned file on disk does not match its manifest entry
-                 (it can be read anyway with --allow-unpinned)
-             10  a file under inputs/ is recorded by no manifest
-             13  a file on disk cannot be read (another program has the pinned
-                 file locked)
-             66  a manifest records a location that does not stay under inputs/
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest
+             12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been
+                 downloaded
+             13  MANIFEST-UNREADABLE  a manifest is on disk but cannot be opened
+             13  PINNED-FILE-UNREADABLE  a pinned file is on disk but cannot be
+                 opened (another program has it locked)
+             14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
+             14  USDM-MODEL-UNPARSEABLE  the pinned model file is not valid YAML
+             15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a
+                 location that does not stay under inputs/
+             15  USDM-MODEL-WRONG-SHAPE  the pinned model file is not shaped
+                 like the pinned USDM model
+             16  PINNED-FILE-CHANGED  a pinned file on disk no longer matches
+                 its manifest entry (it can be read anyway with
+                 --allow-unpinned)
+             16  FILE-UNRECORDED  a file under inputs/ is recorded by no
+                 manifest
+             17  USDM-CLASS-NOT-FOUND  the class named is not in the model
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-09-03
 Owner:       Jason Delosh
@@ -77,15 +89,16 @@ from pathlib import Path
 # dataStructure.yml is YAML, so reading it is a one-call job for this library.
 import yaml
 
-# The pinned-file check hands back a verified file; the manifest reader, src/sdg/sources/read_manifests.py, gives the
-# repo root and the install check. The five errors are imported so main() can give
-# each its own exit code.
+# The pinned-file check hands back a verified file; the manifest reader,
+# src/sdg/sources/read_manifests.py, gives the repo root and the install check. Their
+# errors are imported so main() can report each with the exit number and sub-code it
+# carries.
 from sdg.console_output import use_utf8_output
+from sdg.exit_codes import fail
 from sdg.sources.read_manifests import (
     REPO_ROOT,
     ManifestError,
     NotInRepoError,
-    OutsideInputsError,
     require_repo,
 )
 from sdg.sources.verify_pinned import (
@@ -115,13 +128,27 @@ DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 
 
 class SpecShapeError(Exception):
-    """The pinned spec file is not valid YAML, or is parsed but not shaped the way this
-    module relies on.
+    """The pinned spec file is parsed but not shaped the way this module relies on.
 
     A USDM version whose structure changed will fail loudly and the class that broke
     the assumption is named. Raised rather than letting a later KeyError surface far
-    from its cause.
+    from its cause. It carries the exit number and sub-code a command reports it with,
+    from docs/exit_codes.csv.
     """
+
+    exit_code = 15
+    sub_code = "USDM-MODEL-WRONG-SHAPE"
+
+
+class SpecUnparseableError(SpecShapeError):
+    """The pinned spec file is not valid YAML.
+
+    It is a kind of SpecShapeError, so a caller that does not tell the two apart still
+    stops on it.
+    """
+
+    exit_code = 14
+    sub_code = "USDM-MODEL-UNPARSEABLE"
 
 
 def load(path: Path | None = None, verify: bool = True) -> dict:
@@ -156,8 +183,9 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
         IntegrityError: The file does not match its manifest entry.
         PermissionError: The file is on disk but cannot be opened, as when another
             program has it locked.
-        SpecShapeError: The file is not valid YAML, or it parsed but is not shaped
-            like the USDM structure this module reads.
+        SpecUnparseableError: The file is not valid YAML.
+        SpecShapeError: The file parsed but is not shaped like the USDM structure this
+            module reads.
     """
     # Confirmed before the file is looked for, not inside verify_pinned(). Installed
     # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
@@ -179,14 +207,13 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     else:
         text = target.read_text(encoding="utf-8")
 
-    # A file that is not valid YAML is not shaped like the model either, so it is the
-    # same error and exits 4 rather than stopping on a traceback. With verify on, a
-    # damaged pinned file fails its fingerprint first; this is reached under
-    # --allow-unpinned, or when the path is not the pinned file.
+    # A file that is not valid YAML is reported as that, rather than stopping on a
+    # traceback. With verify on, a damaged pinned file fails its fingerprint first;
+    # this is reached under --allow-unpinned, or when the path is not the pinned file.
     try:
         spec = yaml.safe_load(text)
     except yaml.YAMLError as exc:
-        raise SpecShapeError(f"{target.name} is not valid YAML: {exc}") from exc
+        raise SpecUnparseableError(f"{target.name} is not valid YAML: {exc}") from exc
 
     if not isinstance(spec, dict) or not spec:
         raise SpecShapeError("spec is empty or not a mapping of classes")
@@ -385,6 +412,18 @@ def _print_classes(spec: dict) -> None:
     )
 
 
+def _say_error(message: str) -> None:
+    """Print one line to standard error, where this command writes every problem.
+
+    Standard error keeps a problem out of the listing a person may be piping to a
+    file.
+
+    Args:
+        message: The line to print.
+    """
+    print(message, file=sys.stderr)
+
+
 def _print_attributes(spec: dict, class_name: str) -> int:
     """Print one class's attributes: name, types, cardinality, kind and, for an inherited
     attribute, the parent it comes from.
@@ -394,19 +433,20 @@ def _print_attributes(spec: dict, class_name: str) -> int:
         class_name: The class to print.
 
     Returns:
-        0, or 5 with a guidance message when the class is unknown, so a typo yields the
+        0, or 17 with a guidance message when the class is unknown, so a typo yields the
             remedy rather than a traceback.
     """
     # An unknown class name is a typo, not a broken model, so it is answered with
-    # the remedy and exit 5 rather than a traceback.
+    # the remedy and exit 17 rather than a traceback.
     try:
         attrs = attributes(spec, class_name)
     except KeyError:
-        print(
+        return fail(
+            _say_error,
+            17,
+            "USDM-CLASS-NOT-FOUND",
             f"unknown class {class_name!r}; run --list-classes to see them all",
-            file=sys.stderr,
         )
-        return 5
 
     modifier = "abstract" if is_abstract(spec, class_name) else "concrete"
     print(f"{class_name}  ({modifier})")
@@ -467,45 +507,36 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     # Each way the file can fail to load is a different cause with a different
-    # remedy, so each gets its own exit code from the repo-wide table. A caller
-    # can tell "not downloaded" from "checksum changed" from "USDM changed shape"
-    # from "installed the wrong way" without reading the message.
+    # remedy, so each has its own sub-code from docs/exit_codes.csv. A caller can
+    # tell "not downloaded" from "checksum changed" from "USDM changed shape" from
+    # "installed the wrong way" without reading the message. The errors from the
+    # sources package and this module's own carry their exit number and sub-code.
     try:
         spec = load(verify=not args.allow_unpinned)
     except FileNotFoundError:
-        print(
+        return fail(
+            _say_error,
+            12,
+            "PINNED-FILE-NOT-DOWNLOADED",
             f"pinned spec not found at {DEFAULT_SPEC.relative_to(REPO_ROOT)}; "
-            f"run acquire_sources",
-            file=sys.stderr,
+            "run acquire_sources",
         )
-        return 8
-    except NotInRepoError as exc:
-        print(exc, file=sys.stderr)
-        return 6
-    # A location outside inputs/ is a kind of manifest error with its own number,
-    # so it is caught first.
-    except OutsideInputsError as exc:
-        print(exc, file=sys.stderr)
-        return 66
-    except ManifestError as exc:
-        print(exc, file=sys.stderr)
-        return 3
-    except UnrecordedFileError as exc:
-        print(exc, file=sys.stderr)
-        return 10
-    except IntegrityError as exc:
-        print(exc, file=sys.stderr)
-        return 9
     except PermissionError as exc:
-        print(
+        return fail(
+            _say_error,
+            13,
+            "PINNED-FILE-UNREADABLE",
             f"the pinned spec is on disk but cannot be opened ({exc}).\n"
             "  fix -> close the program holding the file, then run this again",
-            file=sys.stderr,
         )
-        return 13
-    except SpecShapeError as exc:
-        print(f"spec is present but not the expected shape: {exc}", file=sys.stderr)
-        return 4
+    except (
+        NotInRepoError,
+        ManifestError,
+        UnrecordedFileError,
+        IntegrityError,
+        SpecShapeError,
+    ) as exc:
+        return fail(_say_error, exc.exit_code, exc.sub_code, exc)
 
     if args.list_classes:
         _print_classes(spec)

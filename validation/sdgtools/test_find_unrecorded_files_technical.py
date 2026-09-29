@@ -29,6 +29,7 @@ from dataclasses import dataclass
 
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgtools import find_unrecorded_files as script
 from sdgval.labels import category, code, negative, objective, positive
 from validation.shared.staged_manifests import CONTENT
@@ -185,10 +186,10 @@ def test_missing_inputs_folder_is_clean(fake_repo, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_unrecorded_file_exits_10_and_prints_nothing(stray_quiet):
-    """With the quiet option, an unrecorded file still makes the run exit 10, and
+def test_quiet_unrecorded_file_exits_16_and_prints_nothing(stray_quiet):
+    """With the quiet option, an unrecorded file still makes the run exit 16, and
     nothing at all is printed."""
-    assert stray_quiet.exit_code == 10
+    assert stray_quiet.exit_code == 16
     assert stray_quiet.printed == ""
 
 
@@ -196,11 +197,12 @@ def test_quiet_unrecorded_file_exits_10_and_prints_nothing(stray_quiet):
 @category("repository")
 @objective("functionality")
 @negative
-def test_unrecorded_file_exits_10_listed_by_path(stray):
-    """A file under inputs/ that no manifest records makes the run exit 10. The file
+def test_unrecorded_file_exits_16_listed_by_path(stray):
+    """A file under inputs/ that no manifest records makes the run exit 16. The file
     is printed by its repo-relative path, and the summary counts the unrecorded files
     and says they cannot be restored from a clone."""
-    assert stray.exit_code == 10
+    assert stray.exit_code == 16
+    assert exit_line(16, "FILE-UNRECORDED") in stray.printed
     assert "inputs/set_a/stray.txt" in stray.printed
     assert "1 file(s) no manifest records" in stray.printed
     assert "cannot be restored" in stray.printed
@@ -215,7 +217,8 @@ def test_part_file_is_reported(repo, capsys):
     acquire_sources did not get to finish it."""
     repo.file("inputs/set_a/other.txt.part", b"half")
     outcome = run(capsys)
-    assert outcome.exit_code == 10
+    assert outcome.exit_code == 16
+    assert exit_line(16, "FILE-UNRECORDED") in outcome.printed
     assert "inputs/set_a/other.txt.part" in outcome.printed
 
 
@@ -223,25 +226,27 @@ def test_part_file_is_reported(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_unreadable_manifest_exits_3(repo, capsys):
-    """A manifest that is not valid JSON makes the run exit 3, and the message names
-    the file and says it cannot be read."""
+def test_unparseable_manifest_exits_14(repo, capsys):
+    """A manifest that is not valid JSON makes the run exit 14, and the message names
+    the file and says it is not valid JSON."""
     repo.manifest("broken", "{not json")
     outcome = run(capsys)
-    assert outcome.exit_code == 3
-    assert "broken.json: cannot read" in outcome.printed
+    assert outcome.exit_code == 14
+    assert exit_line(14, "MANIFEST-UNPARSEABLE") in outcome.printed
+    assert "broken.json: is not valid JSON" in outcome.printed
 
 
 @code("SA00343")
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_manifests_exits_3(repo, capsys):
-    """An empty manifests folder makes the run exit 3, and the message says no
+def test_no_manifests_exits_12(repo, capsys):
+    """An empty manifests folder makes the run exit 12, and the message says no
     manifests were found and how to restore them."""
     (repo.root / "manifests" / "set_a.json").unlink()
     outcome = run(capsys)
-    assert outcome.exit_code == 3
+    assert outcome.exit_code == 12
+    assert exit_line(12, "MANIFEST-MISSING") in outcome.printed
     assert "no manifests found" in outcome.printed
     assert "git checkout" in outcome.printed
 
@@ -250,14 +255,15 @@ def test_no_manifests_exits_3(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_not_inside_the_repo_exits_6(repo, monkeypatch, tmp_path, capsys):
-    """When the sdg package is not running from inside its repo, the run exits 6 with
+def test_not_inside_the_repo_exits_3(repo, monkeypatch, tmp_path, capsys):
+    """When the sdg package is not running from inside its repo, the run exits 3 with
     the install command, instead of reporting that no manifests were found."""
     from sdg.sources import read_manifests
 
     monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
     outcome = run(capsys)
-    assert outcome.exit_code == 6
+    assert outcome.exit_code == 3
+    assert exit_line(3, "NOT-IN-REPO") in outcome.printed
     assert "pip install -e ." in outcome.printed
     assert "no manifests found" not in outcome.printed
 
@@ -287,16 +293,16 @@ def test_every_refusal_is_silent_under_quiet(
 
     if refusal == "outside the repo":
         monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
-        expected = 6
+        expected = 3
     elif refusal == "unreadable manifest":
         repo.manifest("broken", "{not json")
-        expected = 3
+        expected = 14
     else:
         repo.manifest(
             "stray",
             [repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)],
         )
-        expected = 66
+        expected = 15
     outcome = run(capsys, "--quiet")
     assert outcome.printed == ""
     assert outcome.exit_code == expected
@@ -306,12 +312,13 @@ def test_every_refusal_is_silent_under_quiet(
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_manifest_location_outside_inputs_exits_66(repo, capsys):
+def test_a_manifest_location_outside_inputs_exits_15(repo, capsys):
     """When a manifest records a location that does not stay under inputs/, the run
-    exits 66 and quotes the location, instead of listing files against it."""
+    exits 15 and quotes the location, instead of listing files against it."""
     repo.manifest(
         "stray", [repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 66
+    assert outcome.exit_code == 15
+    assert exit_line(15, "MANIFEST-LOCATION-OUTSIDE-INPUTS") in outcome.printed
     assert "does not stay under inputs/" in outcome.printed

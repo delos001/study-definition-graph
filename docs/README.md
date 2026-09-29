@@ -9,7 +9,7 @@ A document lives here when it cuts across more than one part of the pipeline, so
 | `sources_index.md` | Which pinned file answers which question, how to open it, and which files were reviewed and not taken. |
 | `standards_read_record.md` | What has been read from each pinned standard and what it established, so a claim about a standard can be told from an inference. |
 | `commands.md` | What each installed command does and how to run it. |
-| `exit_codes.csv` | What each exit code means, one row per code, used by every script in the repo. |
+| `exit_codes.csv` | What each failure means and what to do about it, one row per sub-code, with the exit number and group it belongs to, used by every script in the repo. |
 | `draft/` | Work in progress. Nothing here is linked to or relied on. |
 
 Prose is one paragraph per line, never hard-wrapped, so a phrase can be found with `grep`.

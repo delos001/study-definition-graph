@@ -101,6 +101,7 @@ import csv
 import datetime as dt
 import json
 import platform
+import shutil
 import subprocess
 import time
 from collections.abc import Generator
@@ -573,7 +574,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
     Raises:
         pytest.UsageError: A report was asked for, and no aspect's command started
-            the run, git did not answer, or the working folder has changes that
+            the run, git cannot be found or did not answer, or the working folder has changes that
             are not committed.
     """
     session.config.stash[RUN_STATE].started_at = time.monotonic()
@@ -589,10 +590,19 @@ def pytest_sessionstart(session: pytest.Session) -> None:
             "--validation-report."
         )
     report_dir = _report_dir(session.config)
-    changes = uncommitted_changes(session.config.rootpath, report_dir)
     # A report without git's answer could not name the commit it validated, nor say
     # that the working folder matched it, so it is refused rather than written with
-    # an unknown commit.
+    # an unknown commit. A git that cannot be found and one that does not answer have
+    # different fixes, so each is its own refusal.
+    if shutil.which("git") is None:
+        refuse(
+            session.config,
+            Refusal.GIT_NOT_FOUND,
+            "No checks were run and no validation report was written, because git "
+            "cannot be found on the path. A report names the commit it validated, so "
+            "it needs git. Install git, then run the report again.",
+        )
+    changes = uncommitted_changes(session.config.rootpath, report_dir)
     if changes is None:
         refuse(
             session.config,
@@ -600,8 +610,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
             "No checks were run and no validation report was written, because git "
             "did not answer when asked whether the working folder has uncommitted "
             "changes. A report names the commit it validated, so it needs git. "
-            "Confirm git is installed and the folder is a git repository, then run "
-            "the report again.",
+            "Confirm the folder is a git repository, then run the report again.",
         )
     if changes:
         listed = "\n".join(f"  {change}" for change in changes)

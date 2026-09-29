@@ -24,22 +24,24 @@ Usage:       check_api_key
              check_api_key --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (the key works)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             6   the command is not running from inside the repo
-             27  the .env file has not been created
-             28  .env has no Anthropic API key
-             29  the Claude API rejected the key
-             30  the Claude API could not be reached
-             41  the Claude API answered with an error (a retired model name, an
-                 exhausted balance, a rate limit; the API's own message is
-                 printed)
-             43  the Claude API refused the key access to what was asked (the
-                 key is real, and the account it belongs to is not allowed to
-                 use the model)
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (the key works)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             4   ENV-FILE-MISSING  the .env file has not been created
+             4   API-KEY-MISSING  .env has no Anthropic API key
+             9   CLAUDE-API-UNREACHABLE  the Claude API could not be reached
+             10  CLAUDE-API-KEY-REJECTED  the Claude API rejected the key
+             10  CLAUDE-API-ACCESS-REFUSED  the Claude API knows the key but
+                 refused it access to the model (the account it belongs to is
+                 not allowed to use the model)
+             11  CLAUDE-API-ERROR  the Claude API answered with an error (a
+                 retired model name, an exhausted balance, a rate limit; the
+                 API's own message is printed)
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-09-15
 Owner:       Jason Delosh
@@ -55,6 +57,7 @@ import anthropic
 
 # The repo root comes from the sdg package, so this script needs the editable
 # install (pip install -e ., README.md step 4) the same as the pipeline does.
+from sdg.exit_codes import fail
 from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
 
 #######################################################################################
@@ -85,9 +88,15 @@ MAX_TOKENS = 1024
 class EnvFileMissingError(Exception):
     """Raised when the repo has no .env file yet."""
 
+    exit_code = 4
+    sub_code = "ENV-FILE-MISSING"
+
 
 class KeyMissingError(Exception):
     """Raised when .env exists but carries no Anthropic key."""
+
+    exit_code = 4
+    sub_code = "API-KEY-MISSING"
 
 
 #######################################################################################
@@ -177,65 +186,66 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
+    def say(message: str) -> None:
+        """Print a line, unless --quiet was given."""
+        if not args.quiet:
+            print(message)
+
     # The repo check runs first, so an install made outside the checkout is
     # reported as that rather than as a missing .env file.
     try:
         require_repo()
     except NotInRepoError as exc:
-        if not args.quiet:
-            print(exc)
-        return 6
+        return fail(say, exc.exit_code, exc.sub_code, exc)
 
     # A missing .env and a .env with no key have different fixes, create the file
-    # or paste the key, so each gets its own exit code.
+    # or paste the key, so each has its own sub-code.
     try:
         key = read_key(REPO_ROOT / ENV_FILE)
-    except EnvFileMissingError as exc:
-        if not args.quiet:
-            print(exc)
-        return 27
-    except KeyMissingError as exc:
-        if not args.quiet:
-            print(exc)
-        return 28
+    except (EnvFileMissingError, KeyMissingError) as exc:
+        return fail(say, exc.exit_code, exc.sub_code, exc)
 
     # Four causes, four remedies. A key the API does not recognise is fixed by
     # pasting the right one. A key the API recognises but will not let use the
     # model is an account problem, and pasting again fixes nothing, so it gets
-    # its own code and remedy. A connection that never reached the API is a
+    # its own sub-code and remedy. A connection that never reached the API is a
     # network problem. Anything else the API answered, such as a retired model
     # name, an exhausted credit balance or a rate limit, is none of those, and
     # only the API's own message says what it was, so that message is printed.
     try:
         reply = call_api(key)
     except anthropic.AuthenticationError as exc:
-        if not args.quiet:
-            print(
-                f"the Claude API rejected the key in {ENV_FILE} ({exc.__class__.__name__}).\n"
-                f"  fix -> confirm the key at https://console.anthropic.com/ and paste it again"
-            )
-        return 29
+        return fail(
+            say,
+            10,
+            "CLAUDE-API-KEY-REJECTED",
+            f"the Claude API rejected the key in {ENV_FILE} ({exc.__class__.__name__}).\n"
+            "  fix -> confirm the key at https://console.anthropic.com/ and paste it again",
+        )
     except anthropic.PermissionDeniedError as exc:
-        if not args.quiet:
-            print(
-                f"the Claude API knows the key in {ENV_FILE} but refused it access to {MODEL} ({exc.__class__.__name__}).\n"
-                "  fix -> the key is right; look at the account it belongs to at https://console.anthropic.com/"
-            )
-        return 43
+        return fail(
+            say,
+            10,
+            "CLAUDE-API-ACCESS-REFUSED",
+            f"the Claude API knows the key in {ENV_FILE} but refused it access to {MODEL} ({exc.__class__.__name__}).\n"
+            "  fix -> the key is right; look at the account it belongs to at https://console.anthropic.com/",
+        )
     except anthropic.APIConnectionError as exc:
-        if not args.quiet:
-            print(
-                f"the Claude API could not be reached ({exc.__class__.__name__}).\n"
-                "  fix -> confirm the network connection works, then run this again"
-            )
-        return 30
+        return fail(
+            say,
+            9,
+            "CLAUDE-API-UNREACHABLE",
+            f"the Claude API could not be reached ({exc.__class__.__name__}).\n"
+            "  fix -> confirm the network connection works, then run this again",
+        )
     except anthropic.APIError as exc:
-        if not args.quiet:
-            print(
-                f"the Claude API answered with an error ({exc.__class__.__name__}): {exc}\n"
-                "  fix -> the key reached the API and the network is fine; act on the message above"
-            )
-        return 41
+        return fail(
+            say,
+            11,
+            "CLAUDE-API-ERROR",
+            f"the Claude API answered with an error ({exc.__class__.__name__}): {exc}\n"
+            "  fix -> the key reached the API and the network is fine; act on the message above",
+        )
 
     if not args.quiet:
         print(f"the key in {ENV_FILE} works. {MODEL} replied: {reply}")

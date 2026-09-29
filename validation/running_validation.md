@@ -39,7 +39,7 @@ A comma-separated list on one option, or the same option given twice, means any 
 
 ## When a selection matches nothing
 
-The run stops rather than reporting a clean run of nothing, and no report is written, because nothing was validated. Plain `pytest` exits 4, its own number for a refused command line. `validate_technical` exits with the repo's own number for the cause, and the header of `src/sdgval/validate_technical.py` lists those numbers. The message says which of these cases it is.
+The run stops rather than reporting a clean run of nothing, and no report is written, because nothing was validated. Plain `pytest` exits 4, its own number for a refused command line. `validate_technical` exits with the repo's own number for the cause and ends on a line naming its sub-code, and the header of `src/sdgval/validate_technical.py` lists them. The message says which of these cases it is.
 
 - A category, aspect, objective or group that does not exist. The message names the value and lists the ones that do.
 - An id that is not among the checks collected. The message says whether no check has that id, whether the check lies outside the files or folders the run was given, or whether a group lists an id no check has.

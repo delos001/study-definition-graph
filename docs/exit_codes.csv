@@ -1,67 +1,110 @@
-code,cause
-0,the command succeeded
-1,Python stopped on an error that nothing handled
-2,the argument parser refused the command line
-3,a manifest is missing or cannot be read
-4,the pinned model file is not shaped like the pinned USDM model
-5,the requested class is not in the model
-6,the command is not running from inside the repo
-8,a pinned file has not been downloaded
-9,a pinned file on disk does not match its manifest entry
-10,a file under inputs/ is recorded by no manifest
-11,a download failed
-12,a downloaded file does not match its manifest entry
-13,a file on disk cannot be read
-14,a stated figure has drifted from the pinned files
-15,docs/commands.md is stale or missing
-16,the validation inventory is stale or missing
-17,"a header block is missing, incomplete, out of order, or has a bad Date"
-18,"a check's markers, id or first sentence are missing or wrong, or its id is a duplicate"
-19,a Python file could not be parsed
-20,no files were found to work on
-21,ruff or mypy reported a problem
-22,a tool could not be run at all
-23,the requested section was not found in the PDF
-24,section mode was used on a PDF that has no bookmarks
-25,the named sheet does not exist in the workbook
-26,no workbook under inputs/ matches the name given
-27,the .env file has not been created
-28,.env has no Anthropic API key
-29,the Claude API rejected the key
-30,the Claude API could not be reached
-31,the list of lookup documents is missing or wrongly shaped
-32,the list of lookup documents names a file no manifest records
-33,a header's exit codes disagree with the repo-wide table
-34,a header does not list a code its main() returns
-35,a pinned file has no document heading in the sources map
-36,the sources map names a location no manifest records
-37,.env has no Neo4j connection settings
-38,Neo4j could not be reached
-39,Neo4j rejected the login
-40,the running Neo4j is not the pinned version
-41,the Claude API answered with an error
-42,a pinned file is not shaped the way a measurement expects
-43,the Claude API refused the key access to what was asked
-44,the Neo4j address in .env is not a valid address
-45,a hand-kept column of the validation inventory breaks its rules
-46,the named header row is past the end of the sheet
-47,a check file's name has no aspect of quality or holds a check of another aspect
-48,a check file is in a code folder the inventory has no place for
-49,a check file could not be loaded
-50,a check's code changed but its version in the validation inventory did not
-51,a check is not written as a function at the top level of its check file
-52,one or more checks failed
-53,the check run stopped before every check ran
-54,no check was collected
-55,an aspect's command was given --aspect
-56,the selection options leave no check to run
-57,a validation report was refused because the working folder has uncommitted changes
-58,a validation report was refused because git did not answer
-59,a group in validation/validation_groups.yml lists checks of more than one aspect
-60,a group in validation/validation_groups.yml lists no ids
-61,a group in validation/validation_groups.yml lists an id no check has
-62,the fingerprints in the validation inventory were made by another Python version
-63,a check's fingerprint in the validation inventory is missing or unreadable
-64,a required file was read but holds the wrong content
-65,a recorded figure is stated in no document
-66,a manifest records a location that does not stay under inputs/
+code,group,sub_code,what_happened,what_to_do
+0,the command succeeded,SUCCEEDED,the command succeeded,Nothing.
+1,this repo's own code failed,CHECK-FILE-LOAD-ERROR,a check file is valid Python but raised an error while it was loaded,"Fix the error the message names in that check file, then run build_inventory again."
+1,this repo's own code failed,PYTEST-INTERNAL-ERROR,pytest stopped on an error inside pytest or one of the project's plugins,"Read the traceback pytest printed, then fix the plugin or conftest.py it names."
+1,this repo's own code failed,UNHANDLED-ERROR,Python stopped on an error that nothing handled,"Read the last lines of the traceback Python printed, then fix the code it names."
+2,the command line is wrong,ASPECT-OPTION-GIVEN,an aspect's command was given --aspect,Run the command again without --aspect.
+2,the command line is wrong,COMMAND-LINE-REFUSED,the argument parser refused the command line,Correct the command line. Run the command with --help to see its options.
+3,the working folder is not in the state the command needs,NOT-IN-REPO,the sdg package is not running from inside its repo,Install the package from the repo checkout with pip install -e .
+3,the working folder is not in the state the command needs,UNCOMMITTED-CHANGES,a validation report was refused because the working folder has changes that are not committed,"Commit the changes, or set them aside with git stash, then run the report again."
+4,a setting is missing,API-KEY-MISSING,.env has no Anthropic API key,Open .env and paste your key after ANTHROPIC_API_KEY=.
+4,a setting is missing,ENV-FILE-MISSING,the .env file has not been created,"Create .env from the example with Copy-Item .env.example .env, then fill in its values."
+4,a setting is missing,NEO4J-SETTINGS-MISSING,.env has no Neo4j connection settings,Copy the NEO4J_ lines from .env.example into .env.
+5,a setting is invalid,NEO4J-ADDRESS-INVALID,the Neo4j address in .env is not a valid address,"Make the NEO4J_URI line in .env match .env.example, for example bolt://localhost:7687."
+6,an outside program cannot be found,GIT-NOT-FOUND,git cannot be found on the path,Install git.
+6,an outside program cannot be found,TOOL-NOT-FOUND,"ruff, mypy or conda cannot be found on the path","Run conda activate sdg, or install conda."
+7,an outside program was found but failed to run,GIT-FAILED,git was found but did not answer,"Run the command from inside the repo's clone, and confirm git works there with git status."
+7,an outside program was found but failed to run,TOOL-FAILED-TO-START,ruff or mypy was found but did not answer when asked for its version,"Confirm the sdg environment holds the tool, or recreate it from environment.yml."
+8,an outside program is not the pinned version,NEO4J-VERSION-WRONG,the running Neo4j is not the version docker-compose.yml pins,"Stop whatever answers at that address, then start the pinned container from the repo folder with docker compose up -d."
+8,an outside program is not the pinned version,PYTHON-VERSION-CHANGED,the fingerprints in the validation inventory were made by another Python version,"Run build_inventory --python-changed, and commit the result alone, in a commit that changes nothing else."
+9,a service did not respond,CLAUDE-API-UNREACHABLE,the Claude API could not be reached,"Confirm the network connection works, then run the command again."
+9,a service did not respond,DOWNLOAD-NO-ANSWER,"a download's server could not be reached, did not answer in time, or stopped part way","Confirm the network connection works, then run acquire_sources again."
+9,a service did not respond,NEO4J-UNREACHABLE,Neo4j could not be reached at the address in .env,Start the container from the repo folder with docker compose up -d.
+10,"a service refused the login, key or permission",CLAUDE-API-ACCESS-REFUSED,the Claude API knows the key but refused it access to the model,The key is right. Look at the account it belongs to at https://console.anthropic.com/.
+10,"a service refused the login, key or permission",CLAUDE-API-KEY-REJECTED,the Claude API rejected the key,Confirm the key at https://console.anthropic.com/ and paste it into .env again.
+10,"a service refused the login, key or permission",DOWNLOAD-REFUSED,a download's server refused access to the file,Confirm the url in the manifest still gives public access to the file.
+10,"a service refused the login, key or permission",NEO4J-LOGIN-REJECTED,Neo4j rejected the login in .env,Make NEO4J_USER and NEO4J_PASSWORD in .env match the NEO4J_AUTH line in docker-compose.yml.
+11,a service answered with an error,CLAUDE-API-ERROR,the Claude API answered with an error,"Act on the API's own message, which the command prints."
+11,a service answered with an error,DOWNLOAD-ERROR-ANSWER,a download's server answered with an error,Confirm the url in the manifest still serves the file. A file that moved is a deliberate re-pin.
+12,a file does not exist,COMMAND-FILE-MISSING,pyproject.toml installs a command from a file that does not exist,"Correct the entry in pyproject.toml, or restore the file from git."
+12,a file does not exist,COMMANDS-PAGE-MISSING,docs/commands.md is missing,Run build_index.
+12,a file does not exist,COMPOSE-FILE-MISSING,docker-compose.yml is missing,Restore docker-compose.yml from git.
+12,a file does not exist,EXIT-TABLE-MISSING,docs/exit_codes.csv is missing,Restore docs/exit_codes.csv from git.
+12,a file does not exist,GROUPS-FILE-MISSING,"validation/validation_groups.yml, which --group reads, is missing","Restore validation/validation_groups.yml from git, or run without --group."
+12,a file does not exist,INVENTORY-MISSING,validation/validation_inventory.csv is missing,Run build_inventory.
+12,a file does not exist,LOOKUP-LIST-MISSING,the list of lookup documents is missing,Restore src/sdg/view/lookup_documents.yml from git.
+12,a file does not exist,MANIFEST-MISSING,the manifests folder is missing or holds no manifest,Restore manifests/ from git with git checkout.
+12,a file does not exist,PINNED-FILE-NOT-DOWNLOADED,a pinned file has not been downloaded,Run acquire_sources.
+12,a file does not exist,PYPROJECT-MISSING,pyproject.toml is missing,Restore pyproject.toml from git.
+12,a file does not exist,SOURCES-MAP-MISSING,docs/sources_index.md is missing,Restore docs/sources_index.md from git.
+12,a file does not exist,VALIDATION-FOLDER-MISSING,the validation/ folder is missing,Restore validation/ from git.
+13,a file exists but cannot be opened,EXIT-TABLE-UNREADABLE,docs/exit_codes.csv cannot be opened,"Close any program holding the file, then run the command again."
+13,a file exists but cannot be opened,LOOKUP-LIST-UNREADABLE,the list of lookup documents is on disk but cannot be opened,"Close any program holding the file, then run the command again."
+13,a file exists but cannot be opened,MANIFEST-UNREADABLE,a manifest is on disk but cannot be opened,"Close any program holding the file, or restore manifests/ from git."
+13,a file exists but cannot be opened,PINNED-FILE-UNREADABLE,a pinned file is on disk but cannot be opened,"Close the program holding the file, or remove what sits where the file should be, then run the command again."
+13,a file exists but cannot be opened,PYPROJECT-UNREADABLE,pyproject.toml cannot be opened,"Close any program holding the file, then run the command again."
+13,a file exists but cannot be opened,PYTHON-FILE-UNREADABLE,a Python file cannot be opened,"Close any program holding the file, then run the command again."
+13,a file exists but cannot be opened,SOURCES-MAP-UNREADABLE,docs/sources_index.md cannot be opened,"Close any program holding the file, then run the command again."
+14,content cannot be parsed,COMPOSE-FILE-UNPARSEABLE,docker-compose.yml is not valid YAML,Restore docker-compose.yml from git.
+14,content cannot be parsed,LOOKUP-LIST-UNPARSEABLE,the list of lookup documents is not valid YAML,"Correct the YAML the message names, or restore the file from git."
+14,content cannot be parsed,MANIFEST-UNPARSEABLE,a manifest is not valid JSON,Restore manifests/ from git with git checkout.
+14,content cannot be parsed,PINNED-FILE-UNPARSEABLE,a pinned file a measurement reads is not valid in its format,"Remove the file and run acquire_sources, which fetches the pinned copy again."
+14,content cannot be parsed,PYPROJECT-UNPARSEABLE,pyproject.toml is not valid TOML,"Correct the TOML the message names, or restore pyproject.toml from git."
+14,content cannot be parsed,PYTHON-NOT-UTF8,a Python file is not saved as UTF-8 text,Save the file as UTF-8 text.
+14,content cannot be parsed,PYTHON-UNPARSEABLE,a Python file is not valid Python,Fix the syntax error the message names.
+14,content cannot be parsed,USDM-MODEL-UNPARSEABLE,the pinned model file is not valid YAML,"Remove the file and run acquire_sources, which fetches the pinned copy again."
+15,content breaks a requirement,CHECK-FILE-MISPLACED,a check file is in a code folder the inventory has no place for,"Move the check file to the folder that mirrors its target, or add the folder to CODE_FOLDER_ORDER in src/sdgval/build_inventory.py."
+15,content breaks a requirement,CHECK-FILE-NAME-WRONG,"a check file's name has no aspect of quality, or it holds a check of another aspect","Name the check file with its aspect, as test_<file>_<aspect>.py, and keep only checks of that aspect in it."
+15,content breaks a requirement,CHECK-INSIDE-CLASS,a check is not written as a function at the top level of its check file,"Move the check out of its class, to the top level of its check file."
+15,content breaks a requirement,CHECK-MARKERS-WRONG,"a check's markers, id or first sentence are missing or wrong, or its id is a duplicate","Correct the marker, id or first sentence the message names."
+15,content breaks a requirement,COMPOSE-FILE-NO-IMAGE,docker-compose.yml names no Neo4j image in the form neo4j:<version>-<edition>,"Write the image line as, for example, neo4j:5.26.29-community."
+15,content breaks a requirement,EXIT-TABLE-INVALID,a row of docs/exit_codes.csv breaks the table's rules,Correct the row the message names in docs/exit_codes.csv.
+15,content breaks a requirement,FINGERPRINT-MISSING,a check's fingerprint in the validation inventory is missing or unreadable,"Put the check's fingerprint back as git last recorded it, then run build_inventory again."
+15,content breaks a requirement,GROUP-HAS-NO-IDS,a group in validation/validation_groups.yml lists no ids,Give the group an ids list naming at least one check.
+15,content breaks a requirement,GROUP-MIXES-ASPECTS,a group in validation/validation_groups.yml lists checks of more than one aspect,Keep the group to checks of one aspect.
+15,content breaks a requirement,HEADER-INCOMPLETE,"a header block is incomplete, out of order, has a bad Date, or lists no exit code though the file has a main()",Complete the header block as .claude/rules/writing_python_files.md describes it.
+15,content breaks a requirement,HEADER-MISSING,a Python file has no header block,Add the header block .claude/rules/writing_python_files.md describes.
+15,content breaks a requirement,INVENTORY-COLUMN-INVALID,a hand-kept column of the validation inventory breaks its rules,Correct the hand-kept column the message names in validation/validation_inventory.csv.
+15,content breaks a requirement,LOOKUP-LIST-INVALID,the list of lookup documents breaks a requirement,Correct the entry the message names in src/sdg/view/lookup_documents.yml.
+15,content breaks a requirement,MANIFEST-INVALID,a manifest's content breaks a requirement,"Repair the entry the message names, or restore manifests/ from git."
+15,content breaks a requirement,MANIFEST-LOCATION-OUTSIDE-INPUTS,a manifest records a location that does not stay under inputs/,"Write the entry's local as a path under inputs/, with no .., drive or leading slash."
+15,content breaks a requirement,MANIFEST-NAME-SHARED,two manifest entries record the same file name,Change the code that asks for the name so it chooses one version of the file.
+15,content breaks a requirement,MANIFEST-URL-INVALID,a manifest entry's url is not one the download library can use,Correct the url in the manifest entry.
+15,content breaks a requirement,PINNED-FILE-WRONG-SHAPE,a pinned file is not shaped the way a measurement expects,Look at the file the message names. A publisher change to its layout needs the measurement in src/sdgtools/check_facts.py updated.
+15,content breaks a requirement,PYPROJECT-SCRIPTS-INVALID,the [project.scripts] table of pyproject.toml does not name each command with the module and function it runs,"Write each [project.scripts] entry as the module and function it runs, as in sdg.sources.acquire_sources:main."
+15,content breaks a requirement,RUFF-OR-MYPY-PROBLEM,ruff or mypy reported a problem in a Python file,"Fix what ruff or mypy reported, above the verdict lines."
+15,content breaks a requirement,USDM-MODEL-WRONG-SHAPE,the pinned model file is not shaped like the pinned USDM model,Look at the class the message names. A new USDM layout is a deliberate re-pin.
+16,a description does not match the thing it describes,CHECK-CHANGED-VERSION-SAME,a check's code changed but its version in the validation inventory did not,"Raise the check's version in validation/validation_inventory.csv, then run build_inventory again."
+16,a description does not match the thing it describes,COMMAND-GROUP-UNKNOWN,pyproject.toml installs a command from a package that has no heading on the page,Add the package to COMMAND_GROUPS in src/sdgtools/build_index.py.
+16,a description does not match the thing it describes,COMMANDS-PAGE-STALE,docs/commands.md does not match the commands' headers,Run build_index.
+16,a description does not match the thing it describes,DOWNLOAD-MISMATCH,a downloaded file does not match its manifest entry,"The publisher may have changed the file. Compare the two, and re-pin deliberately if it is a new version."
+16,a description does not match the thing it describes,EXIT-GROUPS-DISAGREE,a group in docs/exit_codes.csv is worded differently from src/sdg/exit_codes.py,Word the group the same way in docs/exit_codes.csv and in GROUPS in src/sdg/exit_codes.py.
+16,a description does not match the thing it describes,FIGURE-DRIFTED,a stated figure has drifted from the pinned files,Correct the figure in the document the message names.
+16,a description does not match the thing it describes,FIGURE-UNSTATED,a recorded figure is stated in no document,"State the figure again where the project reasons from it, or remove its measurement from FACTS in src/sdgtools/check_facts.py."
+16,a description does not match the thing it describes,FILE-UNRECORDED,a file under inputs/ is recorded by no manifest,"Record the file in manifests/, or remove it from inputs/."
+16,a description does not match the thing it describes,GROUP-ID-UNKNOWN,a group in validation/validation_groups.yml lists an id no check has,"Remove the id from the group, or correct it to a check's id."
+16,a description does not match the thing it describes,HEADER-EXIT-CODE-UNLISTED,a header does not list an exit code or sub-code its file uses,Add the exit number and sub-code to the header's Exit codes field.
+16,a description does not match the thing it describes,HEADER-EXIT-CODES-DISAGREE,a header's Exit codes field disagrees with docs/exit_codes.csv,"Word the header's entry the way docs/exit_codes.csv words the sub-code, with the same exit number."
+16,a description does not match the thing it describes,INVENTORY-ROW-MISMATCH,a row of the validation inventory disagrees with the check files,"Mark the row retired or superseded, put the check back, or give a new check the next free id, as the message says."
+16,a description does not match the thing it describes,INVENTORY-STALE,validation/validation_inventory.csv is stale,Run build_inventory.
+16,a description does not match the thing it describes,LOOKUP-LIST-UNRECORDED-FILE,the list of lookup documents names a file no manifest records,"Correct the name in src/sdg/view/lookup_documents.yml, or record the file in manifests/."
+16,a description does not match the thing it describes,PINNED-FILE-CHANGED,a pinned file on disk no longer matches its manifest entry,Remove the file and run acquire_sources if it changed by accident. A real new version is a deliberate re-pin.
+16,a description does not match the thing it describes,SOURCES-MAP-HEADING-MISSING,a pinned file has no document heading in the sources map,Add a document heading for the file to docs/sources_index.md.
+16,a description does not match the thing it describes,SOURCES-MAP-LOCATION-UNRECORDED,the sources map names a location no manifest records,"Correct the location in docs/sources_index.md, or record a file there in manifests/."
+17,the parameters given yielded no results,HEADER-ROW-PAST-END,the named header row is past the end of the sheet,"Run without --header-row to see the sheet, then name a row it has."
+17,the parameters given yielded no results,MANIFEST-NAME-NOT-FOUND,no manifest has the name given,Name a manifest that exists in manifests/.
+17,the parameters given yielded no results,PDF-HAS-NO-BOOKMARKS,a section was asked for in a PDF that has no bookmarks,"Use --find to search the document, or --pages to read a known range."
+17,the parameters given yielded no results,PDF-SECTION-NOT-FOUND,no section in the PDF matches the one asked for,"Run with --list to see the sections, then ask for one of them."
+17,the parameters given yielded no results,SELECTION-MATCHES-NOTHING,the selection options leave no check to run,"Widen or drop the selection options, as the message says."
+17,the parameters given yielded no results,SHEET-NOT-FOUND,the named sheet does not exist in the workbook,"Run without --sheet to list the sheets, then name one of them."
+17,the parameters given yielded no results,USDM-CLASS-NOT-FOUND,the class named is not in the model,"Run usdm_spec --list-classes to see the classes, then name one of them."
+17,the parameters given yielded no results,WORKBOOK-NAME-AMBIGUOUS,the name given matches more than one workbook under inputs/,"Give more of the name, so it matches one of the workbooks listed."
+17,the parameters given yielded no results,WORKBOOK-NOT-FOUND,no workbook under inputs/ matches the name given,"Run read_xlsx with no name to list the workbooks, then name one of them."
+18,the command found no target to act on,NO-CHECK-FILES,no check files were found under validation/,"Add a check file under validation/, or restore the check files from git."
+18,the command found no target to act on,NO-CHECKS-COLLECTED,no check was collected,Point the run at a folder or file that holds checks.
+18,the command found no target to act on,NO-COMMANDS-INSTALLED,pyproject.toml installs no command,Add the commands to the [project.scripts] table of pyproject.toml.
+19,an output already exists and is not overwritten,,no command fails this way yet,
+20,an output could not be written,DOWNLOAD-NOT-WRITTEN,"a download, or its folder, could not be written to disk","Free space on the disk, or remove what sits where the file or its folder should be, then run acquire_sources again."
+21,one or more validation checks failed,CHECKS-FAILED,one or more validation checks failed,"Read the failed checks pytest listed, then fix what each names."
+22,an evaluation score fell below its threshold,,no command fails this way yet,
+23,the run was interrupted before it finished,RUN-INTERRUPTED,the check run was interrupted before every check ran,"Run the command again, and let it finish."

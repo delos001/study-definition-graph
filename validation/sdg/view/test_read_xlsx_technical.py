@@ -37,6 +37,7 @@ from pathlib import Path
 import openpyxl
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdg.view import read_xlsx
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -302,11 +303,12 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
-    """Naming a sheet the workbook does not hold exits 25 and says to run without the
+def test_a_sheet_that_does_not_exist_exits_17(inputs, capsys):
+    """Naming a sheet the workbook does not hold exits 17 and says to run without the
     sheet option to list them."""
     outcome = run(capsys, "Example_Terms", "--sheet", "nowhere")
-    assert outcome.exit_code == 25
+    assert outcome.exit_code == 17
+    assert exit_line(17, "SHEET-NOT-FOUND") in outcome.printed
     assert "Run without --sheet" in outcome.printed
 
 
@@ -314,11 +316,12 @@ def test_a_sheet_that_does_not_exist_exits_25(inputs, capsys):
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
-    """A name matching no workbook exits 26 and repeats the name that was looked
+def test_a_workbook_that_matches_nothing_exits_17(inputs, capsys):
+    """A name matching no workbook exits 17 and repeats the name that was looked
     for."""
     outcome = run(capsys, "Nothing_Like_This")
-    assert outcome.exit_code == 26
+    assert outcome.exit_code == 17
+    assert exit_line(17, "WORKBOOK-NOT-FOUND") in outcome.printed
     assert "Nothing_Like_This" in outcome.printed
 
 
@@ -326,11 +329,12 @@ def test_a_workbook_that_matches_nothing_exits_26(inputs, capsys):
 @category("processing")
 @objective("functionality")
 @negative
-def test_an_ambiguous_name_exits_26_listing_the_matches(inputs, capsys):
-    """A fragment matching more than one workbook exits 26 and lists what it matched,
+def test_an_ambiguous_name_exits_17_listing_the_matches(inputs, capsys):
+    """A fragment matching more than one workbook exits 17 and lists what it matched,
     so the next attempt can be exact."""
     outcome = run(capsys, "Example")
-    assert outcome.exit_code == 26
+    assert outcome.exit_code == 17
+    assert exit_line(17, "WORKBOOK-NAME-AMBIGUOUS") in outcome.printed
     assert "Example_Terms.xlsx" in outcome.printed
     assert "Example_Study.xlsx" in outcome.printed
 
@@ -550,7 +554,8 @@ def test_a_header_row_past_the_end_of_the_sheet_is_refused(inputs, capsys):
     """A row number beyond the sheet's last row is refused with its own exit code, and
     the message names the sheet and the number."""
     outcome = run(capsys, "Example_Terms", "--sheet", "terms", "--header-row", "99")
-    assert outcome.exit_code == 46
+    assert outcome.exit_code == 17
+    assert exit_line(17, "HEADER-ROW-PAST-END") in outcome.printed
     assert "no rows at or below row 99" in outcome.printed
     assert "terms" in outcome.printed
 

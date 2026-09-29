@@ -27,10 +27,13 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import csv
+import io
 from dataclasses import dataclass
 
 import pytest
 
+from sdg.exit_codes import GROUPS, exit_line
 from sdgtools import verify_headers as script
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -41,11 +44,50 @@ Description: Does the first thing.
 Inputs:      nothing
 Outputs:     nothing
 Usage:       alpha
-Exit codes:  0   success
+Exit codes:  0   SUCCEEDED  the command succeeded
 Date:        2026-09-04
 Owner:       Jason Delosh
 """
 '''
+
+# The one entry most checks stage beside success, as a header writes it.
+NOT_DOWNLOADED = "12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been downloaded"
+
+
+def table_text(*extra: list[str], groups: dict[int, str] | None = None) -> str:
+    """Write a staged exit-code table.
+
+    It holds a row for every group, success, a pinned file not downloaded, and any
+    further rows given, so it is well formed unless a check breaks it on purpose.
+
+    Args:
+        *extra: Further rows, each as its code, group, sub-code, what happened and
+            what to do.
+        groups: The groups to write, or None for the real ones.
+
+    Returns:
+        The table as CSV text.
+    """
+    groups = GROUPS if groups is None else groups
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(["code", "group", "sub_code", "what_happened", "what_to_do"])
+    writer.writerow([0, groups[0], "SUCCEEDED", "the command succeeded", "Nothing."])
+    writer.writerow(
+        [
+            12,
+            groups[12],
+            "PINNED-FILE-NOT-DOWNLOADED",
+            "a pinned file has not been downloaded",
+            "Run acquire_sources.",
+        ]
+    )
+    for number, group in groups.items():
+        if number not in (0, 12):
+            writer.writerow([number, group, "", "no command fails this way yet", ""])
+    for row in extra:
+        writer.writerow(row)
+    return buffer.getvalue()
 
 
 #######################################################################################
@@ -81,12 +123,9 @@ def folder(tmp_path, monkeypatch):
     monkeypatch.setattr(script, "CHECKED_FOLDERS", (checked,))
 
     # The exit-code table is staged too, so no check reads the real one and a
-    # check about a wrong code can say what the right one is.
+    # check about a wrong entry can say what the right one is.
     table = tmp_path / "exit_codes.csv"
-    table.write_text(
-        "code,cause\n0,success\n8,a pinned file has not been downloaded\n",
-        encoding="utf-8",
-    )
+    table.write_text(table_text(), encoding="utf-8")
     monkeypatch.setattr(script, "EXIT_CODES_FILE", table)
 
     def make(files: dict[str, str]) -> None:
@@ -179,7 +218,7 @@ def test_quiet_prints_nothing(folder, capsys):
     exit code is the whole report."""
     folder({"alpha.py": GOOD_HEADER.replace("Owner:       Jason Delosh\n", "")})
     outcome = run(capsys, "--quiet")
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
     assert outcome.printed == ""
 
 
@@ -187,8 +226,8 @@ def test_quiet_prints_nothing(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_missing_fields_exit_17(folder, capsys):
-    """A header lacking fields makes the run exit 17, and the problem line names the
+def test_missing_fields_exit_15(folder, capsys):
+    """A header lacking fields makes the run exit 15, and the problem line names the
     file and every missing field."""
     folder(
         {
@@ -198,7 +237,8 @@ def test_missing_fields_exit_17(folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-INCOMPLETE") in outcome.printed
     assert "src/sdg/alpha.py: missing Outputs, Owner" in outcome.printed
 
 
@@ -206,8 +246,8 @@ def test_missing_fields_exit_17(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_fields_out_of_order_exit_17(folder, capsys):
-    """A header with its fields in the wrong order makes the run exit 17, and the
+def test_fields_out_of_order_exit_15(folder, capsys):
+    """A header with its fields in the wrong order makes the run exit 15, and the
     problem line says so and shows the order found."""
     swapped = GOOD_HEADER.replace(
         "Date:        2026-09-04\nOwner:       Jason Delosh\n",
@@ -215,7 +255,8 @@ def test_fields_out_of_order_exit_17(folder, capsys):
     )
     folder({"alpha.py": swapped})
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-INCOMPLETE") in outcome.printed
     assert "src/sdg/alpha.py: fields out of order" in outcome.printed
     assert "Owner, Date" in outcome.printed
 
@@ -224,12 +265,13 @@ def test_fields_out_of_order_exit_17(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_bad_date_exits_17(folder, capsys):
-    """A Date that is not a plain calendar date makes the run exit 17, and the
+def test_bad_date_exits_15(folder, capsys):
+    """A Date that is not a plain calendar date makes the run exit 15, and the
     problem line quotes the value found."""
     folder({"alpha.py": GOOD_HEADER.replace("2026-09-04", "September 2026")})
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-INCOMPLETE") in outcome.printed
     assert "src/sdg/alpha.py: Date is 'September 2026', not YYYY-MM-DD" in (
         outcome.printed
     )
@@ -239,12 +281,13 @@ def test_bad_date_exits_17(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_docstring_exits_17(folder, capsys):
+def test_no_docstring_exits_15(folder, capsys):
     """A file with no docstring at the top has no header block at all, and the run exits
-    17 with a problem line saying so."""
+    15 with a problem line saying so."""
     folder({"alpha.py": "print('hello')\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-MISSING") in outcome.printed
     assert "src/sdg/alpha.py: no module docstring" in outcome.printed
 
 
@@ -252,12 +295,13 @@ def test_no_docstring_exits_17(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_unparseable_file_exits_19(folder, capsys):
-    """A file that is not valid Python makes the run exit 19, and the problem line
+def test_unparseable_file_exits_14(folder, capsys):
+    """A file that is not valid Python makes the run exit 14, and the problem line
     says it cannot be parsed."""
     folder({"alpha.py": "def broken(:\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 19
+    assert outcome.exit_code == 14
+    assert exit_line(14, "PYTHON-UNPARSEABLE") in outcome.printed
     assert "src/sdg/alpha.py: cannot parse" in outcome.printed
 
 
@@ -266,11 +310,12 @@ def test_unparseable_file_exits_19(folder, capsys):
 @objective("functionality")
 @negative
 def test_unparseable_outranks_incomplete(folder, capsys):
-    """When one file cannot be parsed and another has an incomplete header, the run
-    exits 19, and both problems are still named."""
+    """When one file cannot be parsed and another has no header, the file that cannot
+    be parsed decides the exit line, and both problems are still named."""
     folder({"alpha.py": "def broken(:\n", "beta.py": "print('no header')\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 19
+    assert outcome.exit_code == 14
+    assert exit_line(14, "PYTHON-UNPARSEABLE") in outcome.printed
     assert "alpha.py: cannot parse" in outcome.printed
     assert "beta.py: no module docstring" in outcome.printed
 
@@ -279,13 +324,14 @@ def test_unparseable_outranks_incomplete(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_file_not_saved_as_utf8_exits_19(folder, capsys):
-    """A file that is not saved as UTF-8 text makes the run exit 19, and the problem
+def test_a_file_not_saved_as_utf8_exits_14(folder, capsys):
+    """A file that is not saved as UTF-8 text makes the run exit 14, and the problem
     line names the file and says it is not saved as UTF-8 text."""
     folder({})
     (script.CHECKED_FOLDERS[0] / "alpha.py").write_bytes(GOOD_HEADER.encode("utf-16"))
     outcome = run(capsys)
-    assert outcome.exit_code == 19
+    assert outcome.exit_code == 14
+    assert exit_line(14, "PYTHON-NOT-UTF8") in outcome.printed
     assert "src/sdg/alpha.py: cannot parse, because it is not saved as UTF-8 text" in (
         outcome.printed
     )
@@ -294,10 +340,10 @@ def test_a_file_not_saved_as_utf8_exits_19(folder, capsys):
 #######################################################################################
 ### Checks on the exit codes a header names ###
 #
-# One number means one cause across the repo, so each entry has to open with the
-# table's wording. A file-specific aside may follow it in brackets. No number is above
-# 125, in a header or in the table. These checks stage a header whose Exit codes field
-# is right, then wrong in one way at a time.
+# Each entry is the exit number, the sub-code and what happened, all three as the
+# table has them. A file-specific aside may follow the wording in brackets. These
+# checks stage a header whose Exit codes field is right, then wrong in one way at a
+# time.
 
 
 def with_codes(lines: str) -> str:
@@ -309,7 +355,9 @@ def with_codes(lines: str) -> str:
     Returns:
         The whole header block.
     """
-    return GOOD_HEADER.replace("Exit codes:  0   success", f"Exit codes:  {lines}")
+    return GOOD_HEADER.replace(
+        "Exit codes:  0   SUCCEEDED  the command succeeded", f"Exit codes:  {lines}"
+    )
 
 
 @code("SA00355")
@@ -317,8 +365,9 @@ def with_codes(lines: str) -> str:
 @objective("functionality")
 @positive
 def test_wording_from_the_table_passes(folder, capsys):
-    """An entry written with the wording in docs/exit_codes.csv for its number passes."""
-    folder({"alpha.py": with_codes("8   a pinned file has not been downloaded")})
+    """An entry written with the number, sub-code and wording docs/exit_codes.csv gives
+    it passes."""
+    folder({"alpha.py": with_codes(NOT_DOWNLOADED)})
     assert run(capsys).exit_code == 0
 
 
@@ -328,14 +377,8 @@ def test_wording_from_the_table_passes(folder, capsys):
 @positive
 def test_a_bracketed_aside_is_allowed(folder, capsys):
     """An entry may add a bracketed aside after the wording in docs/exit_codes.csv, saying what the
-    cause means in that file."""
-    folder(
-        {
-            "alpha.py": with_codes(
-                "8   a pinned file has not been downloaded (a dry run only)"
-            )
-        }
-    )
+    failure means in that file."""
+    folder({"alpha.py": with_codes(NOT_DOWNLOADED + " (a dry run only)")})
     assert run(capsys).exit_code == 0
 
 
@@ -349,8 +392,8 @@ def test_a_wrapped_entry_is_read_as_one(folder, capsys):
     folder(
         {
             "alpha.py": with_codes(
-                "8   a pinned file has not been downloaded (a dry run\n"
-                "                 only; a real run fetches it)"
+                NOT_DOWNLOADED
+                + " (a dry run\n                 only; a real run fetches it)"
             )
         }
     )
@@ -368,7 +411,8 @@ def test_a_lone_wrapped_entry_keeps_its_second_line(folder, capsys):
     folder(
         {
             "alpha.py": with_codes(
-                "8   a pinned file has not been\n                 downloaded"
+                "12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been\n"
+                "                 downloaded"
             )
         }
     )
@@ -385,7 +429,8 @@ def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
     folder(
         {
             "alpha.py": with_codes(
-                "0   success\n             The numbers are the repo-wide table."
+                "0   SUCCEEDED  the command succeeded\n"
+                "             The wording is the repo-wide table."
             )
         }
     )
@@ -396,25 +441,33 @@ def test_the_closing_prose_is_not_read_as_an_entry(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_code_the_table_lacks_exits_33(folder, capsys):
-    """An entry for a number docs/exit_codes.csv does not hold makes the run exit 33, and the
-    problem line names the file and the number."""
-    folder({"alpha.py": with_codes("99  something nobody agreed on")})
+def test_a_sub_code_the_table_lacks_exits_16(folder, capsys):
+    """An entry for a sub-code docs/exit_codes.csv does not hold makes the run exit 16,
+    and the problem line names the file and the sub-code."""
+    folder({"alpha.py": with_codes("9   NOBODY-AGREED  something nobody agreed on")})
     outcome = run(capsys)
-    assert outcome.exit_code == 33
-    assert "src/sdg/alpha.py: exit code 99 is not in" in outcome.printed
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODES-DISAGREE") in outcome.printed
+    assert "src/sdg/alpha.py: the sub-code NOBODY-AGREED is not in" in outcome.printed
 
 
 @code("SA00361")
 @category("repository")
 @objective("functionality")
 @negative
-def test_different_wording_exits_33(folder, capsys):
-    """An entry giving a number a second meaning makes the run exit 33, and the problem
-    line prints what the header says beside what docs/exit_codes.csv says."""
-    folder({"alpha.py": with_codes("8   the file is missing somehow")})
+def test_different_wording_exits_16(folder, capsys):
+    """An entry giving a sub-code a second meaning makes the run exit 16, and the
+    problem line prints what the header says beside what docs/exit_codes.csv says."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "12  PINNED-FILE-NOT-DOWNLOADED  the file is missing somehow"
+            )
+        }
+    )
     outcome = run(capsys)
-    assert outcome.exit_code == 33
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODES-DISAGREE") in outcome.printed
     assert "the file is missing somehow" in outcome.printed
     assert "a pinned file has not been downloaded" in outcome.printed
 
@@ -424,109 +477,193 @@ def test_different_wording_exits_33(folder, capsys):
 @objective("functionality")
 @negative
 def test_an_incomplete_header_outranks_a_wrong_code(folder, capsys):
-    """When one file has an incomplete header and another has a wrong code, the run
-    exits 17, because a header that cannot be read is the worse problem."""
+    """When one file has no header and another has a wrong entry, the missing header
+    decides the exit line, because a header that cannot be read is the worse problem.
+    Both problems are named."""
     folder(
         {
             "alpha.py": "print('no header')\n",
-            "beta.py": with_codes("99  something nobody agreed on"),
+            "beta.py": with_codes("9   NOBODY-AGREED  something nobody agreed on"),
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-MISSING") in outcome.printed
     assert "no module docstring" in outcome.printed
-    assert "exit code 99 is not in" in outcome.printed
+    assert "the sub-code NOBODY-AGREED is not in" in outcome.printed
 
 
 @code("SA00363")
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_unreadable_table_exits_13(folder, monkeypatch, capsys):
-    """With docs/exit_codes.csv missing, the run exits 13 and says the file cannot
-    be read, rather than reporting every file as disagreeing with nothing."""
+def test_a_missing_table_exits_12(folder, monkeypatch, capsys):
+    """With docs/exit_codes.csv missing, the run exits 12, says the file is missing and
+    to restore it from git, rather than reporting every file as disagreeing with
+    nothing."""
     folder({"alpha.py": GOOD_HEADER})
     monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
     outcome = run(capsys)
-    assert outcome.exit_code == 13
-    assert "cannot be read" in outcome.printed
+    assert outcome.exit_code == 12
+    assert exit_line(12, "EXIT-TABLE-MISSING") in outcome.printed
+    assert "is missing" in outcome.printed
+    assert "restore docs/exit_codes.csv from git" in outcome.printed
 
 
 @code("SA00364")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_table_with_a_code_that_is_not_a_number_exits_64(folder, capsys):
-    """A row of docs/exit_codes.csv holding a code that is not a number makes the run
-    exit 64, and the message says the file holds the wrong content and to correct the
-    row, rather than ending in a Python error."""
+@pytest.mark.parametrize(
+    ("row", "said"),
+    [
+        (
+            ["thirteen", GROUPS[13], "A-B", "x", ""],
+            "is not a whole number from 0 to 125",
+        ),
+        (["126", GROUPS[13], "A-B", "x", ""], "is not a whole number from 0 to 125"),
+        (["24", "a group nobody made", "A-B", "x", ""], "is not a group in GROUPS"),
+        (["13", GROUPS[13], "not a sub code", "x", ""], "is not words in capitals"),
+        (["13", GROUPS[13], "SUCCEEDED", "x", ""], "SUCCEEDED is listed twice"),
+    ],
+    ids=[
+        "a code that is not a number",
+        "a code above 125",
+        "a code with no group",
+        "a sub-code of the wrong form",
+        "a sub-code listed twice",
+    ],
+)
+def test_a_table_row_that_breaks_the_rules_exits_15(folder, capsys, row, said):
+    """A row of docs/exit_codes.csv that breaks the table's rules makes the run exit 15
+    before any file is read, and the message names what is wrong with the row and says
+    to correct it, rather than ending in a Python error. It runs once for each rule a
+    row can break."""
     folder({"alpha.py": GOOD_HEADER})
-    script.EXIT_CODES_FILE.write_text(
-        "code,cause\n0,success\nthirteen,a file on disk cannot be read\n",
-        encoding="utf-8",
-    )
+    script.EXIT_CODES_FILE.write_text(table_text(row), encoding="utf-8")
     outcome = run(capsys)
-    assert outcome.exit_code == 64
-    assert "exit_codes.csv holds the wrong content" in outcome.printed
-    assert "correct the row" in outcome.printed
+    assert outcome.exit_code == 15
+    assert exit_line(15, "EXIT-TABLE-INVALID") in outcome.printed
+    assert said in outcome.printed
+    assert "correct that row" in outcome.printed
+
+
+@code("SA00654")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    ("groups", "said"),
+    [
+        ({**GROUPS, 9: "the network is down"}, "the group of code 9 is"),
+        ({k: v for k, v in GROUPS.items() if k != 22}, "22 are groups"),
+    ],
+    ids=["a group worded differently", "a group with no row"],
+)
+def test_a_table_that_disagrees_with_the_groups_exits_16(folder, capsys, groups, said):
+    """A table whose groups disagree with GROUPS in src/sdg/exit_codes.py, because one
+    is worded differently or one has no row, makes the run exit 16 before any file is
+    read, and the message names the group. It runs once for each way to disagree."""
+    folder({"alpha.py": GOOD_HEADER})
+    script.EXIT_CODES_FILE.write_text(table_text(groups=groups), encoding="utf-8")
+    outcome = run(capsys)
+    assert outcome.exit_code == 16
+    assert exit_line(16, "EXIT-GROUPS-DISAGREE") in outcome.printed
+    assert said in outcome.printed
 
 
 @code("SA00587")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_header_code_above_125_exits_33(folder, capsys):
-    """An entry for a number above 125 makes the run exit 33, and the problem line
-    names the number and says 125 is the highest an exit code can take."""
-    folder({"alpha.py": with_codes("126  a cause given too high a number")})
-    outcome = run(capsys)
-    assert outcome.exit_code == 33
-    assert "src/sdg/alpha.py: exit code 126 is above 125" in outcome.printed
-    assert "the highest number an exit code can take" in outcome.printed
-
-
-@code("SA00588")
-@category("repository")
-@objective("functionality")
-@negative
-def test_a_table_code_above_125_exits_64(folder, capsys):
-    """A row of docs/exit_codes.csv holding a number above 125 makes the run exit 64,
-    and the message names the number and says to correct the row."""
-    folder({"alpha.py": GOOD_HEADER})
-    script.EXIT_CODES_FILE.write_text(
-        "code,cause\n0,success\n126,a cause given too high a number\n",
-        encoding="utf-8",
+def test_an_entry_under_another_number_exits_16(folder, capsys):
+    """An entry that lists a sub-code under a number other than the table's, such as
+    one above 125, makes the run exit 16, and the problem line names both numbers."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "126  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been downloaded"
+            )
+        }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 64
-    assert "code 126 is outside 0 to 125" in outcome.printed
-    assert "correct the row" in outcome.printed
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODES-DISAGREE") in outcome.printed
+    assert (
+        "PINNED-FILE-NOT-DOWNLOADED is listed under 126, and the table gives it 12"
+        in outcome.printed
+    )
 
 
 @code("SA00589")
 @category("repository")
 @objective("functionality")
 @negative
-def test_wording_that_reads_like_another_problem_still_exits_33(folder, capsys):
-    """An entry that gives a number a second meaning exits 33 even when its wording
-    holds the words another kind of problem prints, because each problem carries its
-    own exit code and the wording of a message never chooses it."""
-    folder({"alpha.py": with_codes("8   the header does not list it")})
+def test_wording_that_reads_like_another_problem_still_exits_16(folder, capsys):
+    """An entry that gives a sub-code a second meaning exits 16 with the wording named,
+    even when the wording holds the words another kind of problem prints, because each
+    problem carries its own sub-code and the wording of a message never chooses it."""
+    folder(
+        {
+            "alpha.py": with_codes(
+                "12  PINNED-FILE-NOT-DOWNLOADED  the header does not list it"
+            )
+        }
+    )
     outcome = run(capsys)
-    assert outcome.exit_code == 33
-    assert "exit code 8 says 'the header does not list it'" in outcome.printed
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODES-DISAGREE") in outcome.printed
+    assert "PINNED-FILE-NOT-DOWNLOADED says 'the header does not list it'" in (
+        outcome.printed
+    )
 
 
 #######################################################################################
-### Checks on the codes main() returns ###
+### Checks on the exit numbers and sub-codes the code names ###
 #
-# A header can list every code correctly and still forget one the code returns. These
-# checks stage a file with a main() and compare what it returns with what it lists. A
-# file with a main() also has to list at least one numbered code, while a file with
-# no main() may describe its codes in a sentence.
+# The code names each failure it reports by its number and sub-code together, as in
+# fail(say, 12, "PINNED-FILE-NOT-DOWNLOADED", message), or in an error class's
+# exit_code and sub_code. Each pair has to be a row of the table, whatever file it is
+# in, and a command's header has to list each one its own code names.
 
 
-def with_main(returns: str, codes: str = "0   success") -> str:
+@code("SA00655")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    ("source", "said"),
+    [
+        (
+            'failure = (12, "NOBODY-AGREED")\n',
+            "names the sub-code NOBODY-AGREED, which is not in",
+        ),
+        (
+            'failure = (9, "PINNED-FILE-NOT-DOWNLOADED")\n',
+            "names PINNED-FILE-NOT-DOWNLOADED with exit 9, and the table gives it 12",
+        ),
+        (
+            "class Refused(Exception):\n"
+            "    exit_code = 9\n"
+            '    sub_code = "PINNED-FILE-NOT-DOWNLOADED"\n',
+            "names PINNED-FILE-NOT-DOWNLOADED with exit 9, and the table gives it 12",
+        ),
+    ],
+    ids=["a sub-code the table lacks", "a wrong number", "an error class"],
+)
+def test_a_pair_the_table_does_not_hold_exits_16(folder, capsys, source, said):
+    """An exit number and sub-code the code names together that the table does not
+    hold, in any file, make the run exit 16, and the problem line names the pair. It
+    runs once for a sub-code the table lacks, a number the table gives otherwise, and
+    the same wrong number set in an error class."""
+    folder({"alpha.py": GOOD_HEADER + "\n" + source})
+    outcome = run(capsys)
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODES-DISAGREE") in outcome.printed
+    assert said in outcome.printed
+
+
+def with_main(returns: str, codes: str = "0   SUCCEEDED  the command succeeded") -> str:
     """Build a file whose header lists the given codes and whose main() returns.
 
     Args:
@@ -536,8 +673,57 @@ def with_main(returns: str, codes: str = "0   success") -> str:
     Returns:
         The whole file, header and code.
     """
-    header = GOOD_HEADER.replace("Exit codes:  0   success", f"Exit codes:  {codes}")
-    return header + "\n\ndef main(argv=None):\n" + returns + "\n"
+    return with_codes(codes) + "\n\ndef main(argv=None):\n" + returns + "\n"
+
+
+@code("SA00656")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_sub_code_a_command_names_but_does_not_list_exits_16(folder, capsys):
+    """A command whose code ends on a sub-code its header does not list makes the run
+    exit 16, and the problem line names the sub-code."""
+    folder(
+        {
+            "alpha.py": with_main(
+                '    return fail(print, 12, "PINNED-FILE-NOT-DOWNLOADED", "gone")'
+            )
+        }
+    )
+    outcome = run(capsys)
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODE-UNLISTED") in outcome.printed
+    assert (
+        "the code ends on PINNED-FILE-NOT-DOWNLOADED but the header does not list it"
+        in outcome.printed
+    )
+
+
+@code("SA00657")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_listed_sub_code_a_command_names_passes(folder, capsys):
+    """A command whose code ends on a sub-code its header lists, with the table's
+    number and wording, passes."""
+    folder(
+        {
+            "alpha.py": with_main(
+                '    return fail(print, 12, "PINNED-FILE-NOT-DOWNLOADED", "gone")',
+                "0   SUCCEEDED  the command succeeded\n             " + NOT_DOWNLOADED,
+            )
+        }
+    )
+    assert run(capsys).exit_code == 0
+
+
+#######################################################################################
+### Checks on the codes main() returns ###
+#
+# A header can list every entry correctly and still forget a number the code
+# returns. These checks stage a file with a main() and compare what it returns with
+# what it lists. A file with a main() also has to list at least one entry, while a
+# file with no main() may describe its codes in a sentence.
 
 
 @code("SA00365")
@@ -572,7 +758,7 @@ def test_a_listed_code_that_is_never_returned_is_not_a_problem(folder, capsys):
         {
             "alpha.py": with_main(
                 "    return 0",
-                "0   success\n             8   a pinned file has not been downloaded",
+                "0   SUCCEEDED  the command succeeded\n             " + NOT_DOWNLOADED,
             )
         }
     )
@@ -600,12 +786,13 @@ def test_a_nested_helpers_return_is_not_read_as_mains(folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_unlisted_return_exits_34(folder, capsys):
-    """A code the tool returns that the header does not list makes the run exit 34, and
+def test_an_unlisted_return_exits_16(folder, capsys):
+    """A code the tool returns that the header does not list makes the run exit 16, and
     the problem line names the file and the number."""
     folder({"alpha.py": with_main("    return 8")})
     outcome = run(capsys)
-    assert outcome.exit_code == 34
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODE-UNLISTED") in outcome.printed
     assert "exit code 8 is returned by main()" in outcome.printed
 
 
@@ -622,7 +809,7 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
     """A return written as a one-line choice is read on both sides, so the branch that
     is not listed is still caught whichever side it sits on."""
     folder({"alpha.py": with_main(choice)})
-    assert run(capsys).exit_code == 34
+    assert run(capsys).exit_code == 16
 
 
 @code("SA00371")
@@ -630,9 +817,9 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
 @objective("functionality")
 @negative
 def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
-    """When one file has no header and another forgets a code it returns, the run exits
-    17, because a header that cannot be read is the worse problem. Both problems are
-    named."""
+    """When one file has no header and another forgets a code it returns, the missing
+    header decides the exit line, because a header that cannot be read is the worse
+    problem. Both problems are named."""
     folder(
         {
             "alpha.py": "print('no header')\n",
@@ -640,7 +827,8 @@ def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-MISSING") in outcome.printed
     assert "no module docstring" in outcome.printed
     assert "exit code 8 is returned by main()" in outcome.printed
 
@@ -650,38 +838,40 @@ def test_an_incomplete_header_outranks_a_forgotten_code(folder, capsys):
 @objective("functionality")
 @negative
 def test_a_forgotten_code_outranks_a_reworded_one(folder, capsys):
-    """When one file forgets a code and another rewords one, the run exits 34, because
-    a missing code is the worse problem."""
+    """When one file forgets a code and another rewords one, the forgotten code decides
+    the exit line, because a missing entry is the worse problem."""
     folder(
         {
             "alpha.py": with_main("    return 8"),
-            "beta.py": GOOD_HEADER.replace(
-                "0   success", "8   the file is missing somehow"
+            "beta.py": with_codes(
+                "12  PINNED-FILE-NOT-DOWNLOADED  the file is missing somehow"
             ).replace("alpha.py", "beta.py"),
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 34
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODE-UNLISTED") in outcome.printed
     assert "exit code 8 is returned by main()" in outcome.printed
-    assert "exit code 8 says" in outcome.printed
+    assert "PINNED-FILE-NOT-DOWNLOADED says" in outcome.printed
 
 
 @code("SA00585")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_main_with_no_numbered_code_exits_17(folder, capsys):
+def test_a_main_with_no_listed_code_exits_15(folder, capsys):
     """A file with a main() whose Exit codes field is written only as a sentence makes
-    the run exit 17, and the problem line names the file and says to list each code
-    the file returns."""
+    the run exit 15, and the problem line names the file and says to list each code
+    the file can end on."""
     folder({"alpha.py": with_main("    return 0", "The codes are the usual ones.")})
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-INCOMPLETE") in outcome.printed
     assert (
-        "src/sdg/alpha.py: the Exit codes field lists no numbered code, but the file "
+        "src/sdg/alpha.py: the Exit codes field lists no exit code, but the file "
         "has a main()"
     ) in outcome.printed
-    assert "list each code it returns" in outcome.printed
+    assert "list each one it can end on" in outcome.printed
 
 
 @code("SA00586")
@@ -711,18 +901,17 @@ def test_every_table_refusal_is_silent_under_quiet(
     folder, monkeypatch, capsys, refusal
 ):
     """With the quiet option, a refusal of docs/exit_codes.csv prints nothing and still
-    exits with its own code. It runs once for a missing table, which exits 13, and
-    once for a table holding a code above 125, which exits 64."""
+    exits with its own code. It runs once for a missing table, which exits 12, and
+    once for a table holding a code above 125, which exits 15."""
     folder({"alpha.py": GOOD_HEADER})
     if refusal == "missing table":
         monkeypatch.setattr(script, "EXIT_CODES_FILE", script.REPO_ROOT / "gone.csv")
-        expected = 13
+        expected = 12
     else:
         script.EXIT_CODES_FILE.write_text(
-            "code,cause\n0,success\n126,a cause given too high a number\n",
-            encoding="utf-8",
+            table_text(["126", GROUPS[13], "A-B", "x", ""]), encoding="utf-8"
         )
-        expected = 64
+        expected = 15
     outcome = run(capsys, "--quiet")
     assert outcome.printed == ""
     assert outcome.exit_code == expected
@@ -737,11 +926,12 @@ def test_every_table_refusal_is_silent_under_quiet(
 @objective("functionality")
 @negative
 def test_a_header_with_no_exit_codes_field_is_refused(folder, capsys):
-    """A header with no Exit codes field makes the run exit 17, and the problem line
+    """A header with no Exit codes field makes the run exit 15, and the problem line
     names the field as missing."""
     lines = GOOD_HEADER.splitlines(keepends=True)
     header = "".join(line for line in lines if not line.startswith("Exit codes:"))
     folder({"alpha.py": header})
     outcome = run(capsys)
-    assert outcome.exit_code == 17
+    assert outcome.exit_code == 15
+    assert exit_line(15, "HEADER-INCOMPLETE") in outcome.printed
     assert "missing Exit codes" in outcome.printed

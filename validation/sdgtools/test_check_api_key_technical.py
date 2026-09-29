@@ -38,6 +38,7 @@ import anthropic
 import httpx2
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgtools import check_api_key as script
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -209,12 +210,12 @@ def test_quiet_prints_nothing_when_the_key_works(repo, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_missing_key_exits_28_and_prints_nothing(repo, monkeypatch, capsys):
-    """With the quiet option, a missing key still exits 28, and nothing at all is
+def test_quiet_missing_key_exits_4_and_prints_nothing(repo, monkeypatch, capsys):
+    """With the quiet option, a missing key still exits 4, and nothing at all is
     printed."""
     write_env(repo, "ANTHROPIC_API_KEY=")
     outcome = run(capsys, "--quiet")
-    assert outcome.exit_code == 28
+    assert outcome.exit_code == 4
     assert outcome.printed == ""
 
 
@@ -223,10 +224,11 @@ def test_quiet_missing_key_exits_28_and_prints_nothing(repo, monkeypatch, capsys
 @objective("functionality")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
-    """With no .env file at all, the run exits 27 and the message says to create it
+    """With no .env file at all, the run exits 4 and the message says to create it
     from the example."""
     outcome = run(capsys)
-    assert outcome.exit_code == 27
+    assert outcome.exit_code == 4
+    assert exit_line(4, "ENV-FILE-MISSING") in outcome.printed
     assert ".env does not exist" in outcome.printed
     assert "Copy-Item .env.example .env" in outcome.printed
 
@@ -236,11 +238,12 @@ def test_missing_env_file_is_refused(repo, capsys):
 @objective("functionality")
 @negative
 def test_empty_key_is_refused(repo, capsys):
-    """With a .env whose key line is empty, the run exits 28 and the message says to
+    """With a .env whose key line is empty, the run exits 4 and the message says to
     paste the key into that file."""
     write_env(repo, "ANTHROPIC_API_KEY=")
     outcome = run(capsys)
-    assert outcome.exit_code == 28
+    assert outcome.exit_code == 4
+    assert exit_line(4, "API-KEY-MISSING") in outcome.printed
     assert "no value for ANTHROPIC_API_KEY" in outcome.printed
     assert "paste your key" in outcome.printed
 
@@ -250,7 +253,7 @@ def test_empty_key_is_refused(repo, capsys):
 @objective("functionality")
 @negative
 def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
-    """When the API does not recognise the key, the run exits 29 and the message says
+    """When the API does not recognise the key, the run exits 10 and the message says
     the key was rejected and where to get a new one."""
     request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
@@ -263,7 +266,8 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
     )
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     outcome = run(capsys)
-    assert outcome.exit_code == 29
+    assert outcome.exit_code == 10
+    assert exit_line(10, "CLAUDE-API-KEY-REJECTED") in outcome.printed
     assert "rejected the key" in outcome.printed
     assert "console.anthropic.com" in outcome.printed
 
@@ -275,7 +279,7 @@ def test_rejected_key_is_reported_as_rejected(repo, monkeypatch, capsys):
 def test_key_without_access_is_reported_as_an_account_problem(
     repo, monkeypatch, capsys
 ):
-    """When the API knows the key but will not let it use the model, the run exits 43.
+    """When the API knows the key but will not let it use the model, the run exits 10.
     The message says the key is right and points at the account, rather than saying to
     paste the key again."""
     request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
@@ -289,7 +293,8 @@ def test_key_without_access_is_reported_as_an_account_problem(
     )
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     outcome = run(capsys)
-    assert outcome.exit_code == 43
+    assert outcome.exit_code == 10
+    assert exit_line(10, "CLAUDE-API-ACCESS-REFUSED") in outcome.printed
     assert "refused it access" in outcome.printed
     assert "the key is right" in outcome.printed
     assert "paste it again" not in outcome.printed
@@ -300,13 +305,14 @@ def test_key_without_access_is_reported_as_an_account_problem(
 @objective("functionality")
 @negative
 def test_unreachable_api_is_reported_as_unreachable(repo, monkeypatch, capsys):
-    """When the API cannot be reached at all, the run exits 30 and the message says
+    """When the API cannot be reached at all, the run exits 9 and the message says
     to confirm the network connection rather than the key."""
     request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(monkeypatch, anthropic.APIConnectionError(request=request))
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     outcome = run(capsys)
-    assert outcome.exit_code == 30
+    assert outcome.exit_code == 9
+    assert exit_line(9, "CLAUDE-API-UNREACHABLE") in outcome.printed
     assert "could not be reached" in outcome.printed
     assert "confirm the network connection" in outcome.printed
 
@@ -319,7 +325,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
     repo, monkeypatch, capsys
 ):
     """When the API answers with an error that is neither a rejected key nor a failed
-    connection, such as a retired model name, the run exits 41 and prints the API's own
+    connection, such as a retired model name, the run exits 11 and prints the API's own
     message."""
     request = httpx2.Request("POST", "https://api.anthropic.com/v1/messages")
     refuse(
@@ -332,7 +338,8 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
     )
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     outcome = run(capsys)
-    assert outcome.exit_code == 41
+    assert outcome.exit_code == 11
+    assert exit_line(11, "CLAUDE-API-ERROR") in outcome.printed
     assert "answered with an error" in outcome.printed
     assert "no-such-model" in outcome.printed
     assert "confirm the network connection" not in outcome.printed
@@ -343,7 +350,7 @@ def test_an_error_the_api_answered_with_is_reported_with_its_message(
 @objective("functionality")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
-    """When the sdg package is installed from outside the repo, the run exits 6 before it
+    """When the sdg package is installed from outside the repo, the run exits 3 before it
     looks for a .env file."""
 
     def not_in_repo() -> Path:
@@ -353,7 +360,8 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(script, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(script, "require_repo", not_in_repo)
     outcome = run(capsys)
-    assert outcome.exit_code == 6
+    assert outcome.exit_code == 3
+    assert exit_line(3, "NOT-IN-REPO") in outcome.printed
     assert "not running from inside its repo" in outcome.printed
 
 
@@ -479,12 +487,12 @@ def outside_the_repo(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
         raise script.NotInRepoError("sdg is not running from inside its repo")
 
     monkeypatch.setattr(script, "require_repo", not_in_repo)
-    return 6
+    return 3
 
 
 def no_env_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a repo with no .env file, and give the code expected."""
-    return 27
+    return 4
 
 
 def rejected_key(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -498,7 +506,7 @@ def rejected_key(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
             body=None,
         ),
     )
-    return 29
+    return 10
 
 
 def key_without_access(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -512,14 +520,14 @@ def key_without_access(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
             body=None,
         ),
     )
-    return 43
+    return 10
 
 
 def unreachable_api(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage an API that cannot be reached, and give the code expected."""
     write_env(repo, f"ANTHROPIC_API_KEY={KEY}")
     refuse(monkeypatch, anthropic.APIConnectionError(request=API_REQUEST))
-    return 30
+    return 9
 
 
 def api_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -533,7 +541,7 @@ def api_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
             body=None,
         ),
     )
-    return 41
+    return 11
 
 
 @code("SA00521")

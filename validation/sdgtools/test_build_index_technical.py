@@ -32,6 +32,7 @@ from pathlib import Path
 
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgtools import build_index as bi
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -304,12 +305,14 @@ def test_check_passes_when_index_is_current(repo, capsys):
 @objective("functionality")
 @negative
 def test_check_fails_when_index_is_missing(repo, capsys):
-    """With the check option and no page on disk, the run exits 15, names the command
-    to run, and writes nothing."""
+    """With the check option and no page on disk, the run exits 12, says the page is
+    missing, names the command to run, and writes nothing."""
     root = repo({"sdgtools.alpha": GOOD_HEADER})
-    assert bi.main(["--check"]) == 15
+    assert bi.main(["--check"]) == 12
     assert not (root / "docs" / "commands.md").exists()
-    assert "stale. Run: build_index" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert exit_line(12, "COMMANDS-PAGE-MISSING") in out
+    assert "missing. Run: build_index" in out
 
 
 @code("SA00250")
@@ -318,7 +321,7 @@ def test_check_fails_when_index_is_missing(repo, capsys):
 @negative
 def test_check_fails_when_index_is_stale(repo, capsys):
     """With the check option and a page that no longer matches the headers, the run
-    exits 15, names the command to run, and leaves the stale page as it was."""
+    exits 16, names the command to run, and leaves the stale page as it was."""
     root = repo({"sdgtools.alpha": GOOD_HEADER})
     bi.main([])
     stale = page(root)
@@ -330,9 +333,11 @@ def test_check_fails_when_index_is_stale(repo, capsys):
         }
     )
     capsys.readouterr()
-    assert bi.main(["--check"]) == 15
+    assert bi.main(["--check"]) == 16
     assert page(root) == stale
-    assert "stale. Run: build_index" in capsys.readouterr().out
+    out = capsys.readouterr().out
+    assert exit_line(16, "COMMANDS-PAGE-STALE") in out
+    assert "stale. Run: build_index" in out
 
 
 @code("SA00251")
@@ -347,15 +352,15 @@ def test_quiet_prints_nothing(repo, capsys):
 
 
 #######################################################################################
-### Refusing a bad header, one exit code each ###
+### Refusing a bad header, one sub-code each ###
 
 
 @code("SA00252")
 @category("repository")
 @objective("functionality")
 @negative
-def test_missing_field_exits_17_and_writes_nothing(repo, capsys):
-    """A header missing required fields exits 17, naming the file and every missing
+def test_missing_field_exits_15_and_writes_nothing(repo, capsys):
+    """A header missing required fields exits 15, naming the file and every missing
     field, and docs/commands.md is not written."""
     root = repo(
         {
@@ -364,9 +369,10 @@ def test_missing_field_exits_17_and_writes_nothing(repo, capsys):
             )
         }
     )
-    assert bi.main([]) == 17
+    assert bi.main([]) == 15
     assert not (root / "docs" / "commands.md").exists()
     out = capsys.readouterr().out
+    assert exit_line(15, "HEADER-INCOMPLETE") in out
     assert "src/sdgtools/alpha.py: header missing Outputs, Owner" in out
     assert "Page not written" in out
 
@@ -375,24 +381,27 @@ def test_missing_field_exits_17_and_writes_nothing(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_docstring_exits_17(repo, capsys):
+def test_no_docstring_exits_15(repo, capsys):
     """A command's file with no docstring at the top has no header block at all, and
-    the run exits 17 and says so."""
+    the run exits 15 and says so."""
     repo({"sdgtools.alpha": "print('hello')\n"})
-    assert bi.main([]) == 17
-    assert "alpha.py: no module docstring" in capsys.readouterr().out
+    assert bi.main([]) == 15
+    out = capsys.readouterr().out
+    assert exit_line(15, "HEADER-MISSING") in out
+    assert "alpha.py: no module docstring" in out
 
 
 @code("SA00254")
 @category("repository")
 @objective("functionality")
 @negative
-def test_unparseable_script_exits_19_and_outranks_17(repo, capsys):
-    """A command's file that is not valid Python exits 19, and 19 outranks 17 when
-    another command's header is also incomplete. Both problems are still named."""
+def test_unparseable_script_exits_14_and_outranks_a_missing_header(repo, capsys):
+    """A command's file that is not valid Python exits 14, and it decides the exit line
+    when another command's header is also missing. Both problems are still named."""
     repo({"sdgtools.alpha": "def broken(:\n", "sdgtools.beta": "print('no header')\n"})
-    assert bi.main([]) == 19
+    assert bi.main([]) == 14
     out = capsys.readouterr().out
+    assert exit_line(14, "PYTHON-UNPARSEABLE") in out
     assert "alpha.py: cannot parse" in out
     assert "beta.py: no module docstring" in out
 
@@ -401,26 +410,28 @@ def test_unparseable_script_exits_19_and_outranks_17(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_script_not_saved_as_utf8_exits_19(repo, capsys):
-    """A command's file that is not saved as UTF-8 text exits 19, and the line names
+def test_a_script_not_saved_as_utf8_exits_14(repo, capsys):
+    """A command's file that is not saved as UTF-8 text exits 14, and the line names
     the file and says it is not saved as UTF-8 text."""
     root = repo({"sdgtools.alpha": ""})
     (root / "src" / "sdgtools" / "alpha.py").write_bytes(GOOD_HEADER.encode("utf-16"))
-    assert bi.main([]) == 19
-    assert "alpha.py: cannot parse, because it is not saved as UTF-8 text" in (
-        capsys.readouterr().out
-    )
+    assert bi.main([]) == 14
+    out = capsys.readouterr().out
+    assert exit_line(14, "PYTHON-NOT-UTF8") in out
+    assert "alpha.py: cannot parse, because it is not saved as UTF-8 text" in out
 
 
 @code("SA00255")
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_scripts_exits_20(repo, capsys):
-    """A pyproject.toml that installs no command exits 20 and says so."""
+def test_no_scripts_exits_18(repo, capsys):
+    """A pyproject.toml that installs no command exits 18 and says so."""
     repo({})
-    assert bi.main([]) == 20
-    assert "pyproject.toml installs no commands" in capsys.readouterr().out
+    assert bi.main([]) == 18
+    out = capsys.readouterr().out
+    assert exit_line(18, "NO-COMMANDS-INSTALLED") in out
+    assert "pyproject.toml installs no commands" in out
 
 
 #######################################################################################
@@ -431,13 +442,15 @@ def test_no_scripts_exits_20(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_missing_pyproject_exits_13(repo, capsys):
-    """With no pyproject.toml in the repo, the run exits 13, the message says the file
-    cannot be read, and docs/commands.md is not written."""
+def test_a_missing_pyproject_exits_12(repo, capsys):
+    """With no pyproject.toml in the repo, the run exits 12, the message says the file
+    is missing, and docs/commands.md is not written."""
     root = repo({})
     (root / "pyproject.toml").unlink()
-    assert bi.main([]) == 13
-    assert "pyproject.toml cannot be read" in capsys.readouterr().out
+    assert bi.main([]) == 12
+    out = capsys.readouterr().out
+    assert exit_line(12, "PYPROJECT-MISSING") in out
+    assert "pyproject.toml is missing" in out
     assert not (root / "docs" / "commands.md").exists()
 
 
@@ -445,43 +458,46 @@ def test_a_missing_pyproject_exits_13(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_pyproject_that_cannot_be_parsed_exits_64(repo, capsys):
-    """A pyproject.toml whose text is not a valid settings file exits 64, and the
+def test_a_pyproject_that_cannot_be_parsed_exits_14(repo, capsys):
+    """A pyproject.toml whose text is not a valid settings file exits 14, and the
     message says it cannot be parsed."""
     root = repo({})
     (root / "pyproject.toml").write_text("[project.scripts\n", encoding="utf-8")
-    assert bi.main([]) == 64
-    assert "pyproject.toml cannot be parsed" in capsys.readouterr().out
+    assert bi.main([]) == 14
+    out = capsys.readouterr().out
+    assert exit_line(14, "PYPROJECT-UNPARSEABLE") in out
+    assert "pyproject.toml cannot be parsed" in out
 
 
 @code("SA00637")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_scripts_table_of_the_wrong_shape_exits_64(repo, capsys):
+def test_a_scripts_table_of_the_wrong_shape_exits_15(repo, capsys):
     """A [project.scripts] table that maps a command to something other than a
-    module and function exits 64, and the message says how an entry is written."""
+    module and function exits 15, and the message says how an entry is written."""
     root = repo({})
     (root / "pyproject.toml").write_text(
         "[project.scripts]\nalpha = 1\n", encoding="utf-8"
     )
-    assert bi.main([]) == 64
-    assert "must name each command with the module and function it runs" in (
-        capsys.readouterr().out
-    )
+    assert bi.main([]) == 15
+    out = capsys.readouterr().out
+    assert exit_line(15, "PYPROJECT-SCRIPTS-INVALID") in out
+    assert "must name each command with the module and function it runs" in out
 
 
 @code("SA00638")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_command_from_a_package_with_no_heading_exits_64(repo, capsys):
-    """A command from a package that has no heading on the page exits 64, the message
+def test_a_command_from_a_package_with_no_heading_exits_16(repo, capsys):
+    """A command from a package that has no heading on the page exits 16, the message
     names the command and says to add the package to COMMAND_GROUPS, and
     docs/commands.md is not written."""
     root = repo({"other.alpha": GOOD_HEADER})
-    assert bi.main([]) == 64
+    assert bi.main([]) == 16
     out = capsys.readouterr().out
+    assert exit_line(16, "COMMAND-GROUP-UNKNOWN") in out
     assert "installs alpha from the package other" in out
     assert "Add the package to COMMAND_GROUPS" in out
     assert not (root / "docs" / "commands.md").exists()
@@ -491,14 +507,15 @@ def test_a_command_from_a_package_with_no_heading_exits_64(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_command_whose_file_is_missing_exits_64(repo, capsys):
-    """A command whose file does not exist exits 64, the message names the command
+def test_a_command_whose_file_is_missing_exits_12(repo, capsys):
+    """A command whose file does not exist exits 12, the message names the command
     and the missing file and says to correct the entry or restore the file, and
     docs/commands.md is not written."""
     root = repo({"sdgtools.alpha": GOOD_HEADER})
     (root / "src" / "sdgtools" / "alpha.py").unlink()
-    assert bi.main([]) == 64
+    assert bi.main([]) == 12
     out = capsys.readouterr().out
+    assert exit_line(12, "COMMAND-FILE-MISSING") in out
     assert (
         "installs alpha from sdgtools.alpha, but src/sdgtools/alpha.py does not exist"
         in out
@@ -512,13 +529,14 @@ def test_a_command_whose_file_is_missing_exits_64(repo, capsys):
 @objective("functionality")
 @negative
 def test_a_wrong_command_outranks_a_broken_header(repo, capsys):
-    """A command whose file is missing exits 64 when another command's file is also
-    not valid Python, because the list of commands decides which headers are read.
-    Both problems are still named."""
+    """A command whose file is missing decides the exit line when another command's
+    file is also not valid Python, because the list of commands decides which headers
+    are read. Both problems are still named."""
     root = repo({"sdgtools.alpha": GOOD_HEADER, "sdgtools.beta": "def broken(:\n"})
     (root / "src" / "sdgtools" / "alpha.py").unlink()
-    assert bi.main([]) == 64
+    assert bi.main([]) == 12
     out = capsys.readouterr().out
+    assert exit_line(12, "COMMAND-FILE-MISSING") in out
     assert "src/sdgtools/alpha.py does not exist" in out
     assert "beta.py: cannot parse" in out
 

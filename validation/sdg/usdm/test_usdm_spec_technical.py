@@ -47,6 +47,7 @@ from typing import Any, NoReturn
 import pytest
 import yaml
 
+from sdg.exit_codes import exit_line
 from sdg.usdm import usdm_spec
 from sdgval.labels import category, code, needs_fixture, negative, objective, positive
 from validation.shared.usdm_model import FIXTURE, FIXTURE_CLASSES
@@ -181,7 +182,7 @@ def test_unknown_class_raises_keyerror_naming_it(three):
 
 
 #######################################################################################
-### Refusing a wrongly shaped file (SpecShapeError, exit 4) ###
+### Refusing a wrongly shaped file (SpecShapeError, exit 15) ###
 #
 # Each check breaks the fixture in one described way and asserts the loader
 # refuses it with a message naming the broken class or attribute, which is the
@@ -342,7 +343,7 @@ def test_inherited_from_without_ref_is_named(variant):
 
 
 #######################################################################################
-### Refusing a file that cannot be trusted (exits 9 and 10) ###
+### Refusing a file that cannot be trusted (exit 16) ###
 #
 # The per-cause messages are the pinned-file check's and are proven in
 # validation/sdg/sources/test_verify_pinned_technical.py. These prove the module is
@@ -355,7 +356,7 @@ def test_inherited_from_without_ref_is_named(variant):
 @objective("functionality")
 @negative
 def test_missing_file_raises_filenotfound(tmp_path):
-    """A path that does not exist is refused as a missing file, exit 8 at the command
+    """A path that does not exist is refused as a missing file, exit 12 at the command
     line, which is a different failure from a file that fails its fingerprint."""
     with pytest.raises(FileNotFoundError) as caught:
         usdm_spec.load(tmp_path / "nope.yml")
@@ -426,14 +427,16 @@ def test_cli_no_mode_exits_2():
 @category("processing")
 @objective("functionality")
 @negative
-def test_cli_missing_spec_exits_8(monkeypatch, capsys):
-    """When the pinned file is not downloaded, the command exits 8 and says to run
+def test_cli_missing_spec_exits_12(monkeypatch, capsys):
+    """When the pinned file is not downloaded, the command exits 12 and says to run
     acquire_sources."""
     # A path under the repo, because the message prints it relative to the repo
     # root, as it does for the real pinned path. Nothing is written there.
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE.with_name("nope.yml"))
-    assert usdm_spec.main(["--list-classes"]) == 8
-    assert "acquire_sources" in capsys.readouterr().err
+    assert usdm_spec.main(["--list-classes"]) == 12
+    err = capsys.readouterr().err
+    assert exit_line(12, "PINNED-FILE-NOT-DOWNLOADED") in err
+    assert "acquire_sources" in err
 
 
 @code("SA00143")
@@ -441,16 +444,18 @@ def test_cli_missing_spec_exits_8(monkeypatch, capsys):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys, manifest_dir):
+def test_cli_unrecorded_spec_exits_16(monkeypatch, capsys, manifest_dir):
     """When the file is present but no manifest entry records it, the command
-    exits 10 and prints the cause.
+    exits 16 and prints the cause.
 
     The manifests are staged, holding no entry, so a broken real manifest cannot make
     this check fail for a reason of its own."""
     manifest_dir('{"files": []}')
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
-    assert usdm_spec.main(["--list-classes"]) == 10
-    assert "no manifest entry records it" in capsys.readouterr().err
+    assert usdm_spec.main(["--list-classes"]) == 16
+    err = capsys.readouterr().err
+    assert exit_line(16, "FILE-UNRECORDED") in err
+    assert "no manifest entry records it" in err
 
 
 @code("SA00144")
@@ -458,11 +463,11 @@ def test_cli_unrecorded_spec_exits_10(monkeypatch, capsys, manifest_dir):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_fingerprint_mismatch_exits_9(
+def test_cli_fingerprint_mismatch_exits_16(
     fake_repo, manifest_recording, monkeypatch, capsys
 ):
     """When the file is present but its fingerprint differs from its manifest entry, the
-    command exits 9 and prints both fingerprints and the way to proceed without the pin.
+    command exits 16 and prints both fingerprints and the way to proceed without the pin.
 
     The fixture is copied under the fake repo's inputs/, because a manifest may record
     only a location there."""
@@ -470,8 +475,9 @@ def test_cli_fingerprint_mismatch_exits_9(
     # The recorded sha256 is the all-zero placeholder, so the fingerprint cannot match.
     fake_repo.manifest("cdisc_usdm_v4", manifest_recording(staged))
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", staged)
-    assert usdm_spec.main(["--list-classes"]) == 9
+    assert usdm_spec.main(["--list-classes"]) == 16
     err = capsys.readouterr().err
+    assert exit_line(16, "PINNED-FILE-CHANGED") in err
     assert "manifest says 0000" in err and "--allow-unpinned" in err
 
 
@@ -480,14 +486,15 @@ def test_cli_fingerprint_mismatch_exits_9(
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
-    """When a manifest is not valid JSON, the command exits 3 and names the manifest as
-    what cannot be read, rather than blaming the pinned file."""
+def test_cli_unparseable_manifest_exits_14(manifest_dir, monkeypatch, capsys):
+    """When a manifest is not valid JSON, the command exits 14 and names the manifest as
+    what is not valid, rather than blaming the pinned file."""
     manifest_dir("{ not json")
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
-    assert usdm_spec.main(["--list-classes"]) == 3
+    assert usdm_spec.main(["--list-classes"]) == 14
     err = capsys.readouterr().err
-    assert "cdisc_usdm_v4.json" in err and "cannot read" in err
+    assert exit_line(14, "MANIFEST-UNPARSEABLE") in err
+    assert "cdisc_usdm_v4.json" in err and "is not valid JSON" in err
 
 
 @code("SA00146")
@@ -497,8 +504,8 @@ def test_cli_unreadable_manifest_exits_3(manifest_dir, monkeypatch, capsys):
     "extra", [[], ["--allow-unpinned"]], ids=["verify", "allow-unpinned"]
 )
 @negative
-def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
-    """When the sdg package is not running from inside its repo, the command exits 6 and
+def test_cli_not_inside_repo_exits_3(monkeypatch, tmp_path, capsys, extra):
+    """When the sdg package is not running from inside its repo, the command exits 3 and
     prints the install command. It runs twice, with and without the option that skips
     the pinned-file record, because that option must not skip this refusal.
 
@@ -510,8 +517,9 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
 
     monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", tmp_path / "inputs" / "nope.yml")
-    assert usdm_spec.main(["--list-classes", *extra]) == 6
+    assert usdm_spec.main(["--list-classes", *extra]) == 3
     err = capsys.readouterr().err
+    assert exit_line(3, "NOT-IN-REPO") in err
     assert "pip install -e ." in err and "acquire_sources" not in err
 
 
@@ -520,13 +528,15 @@ def test_cli_not_inside_repo_exits_6(monkeypatch, tmp_path, capsys, extra):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_wrong_shape_exits_4(variant, monkeypatch, capsys):
-    """When the file loads but is not shaped like USDM, the command exits 4 and names
+def test_cli_wrong_shape_exits_15(variant, monkeypatch, capsys):
+    """When the file loads but is not shaped like USDM, the command exits 15 and names
     the broken class."""
     broken = variant(lambda d: d["Condition"].pop("Attributes"))
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
-    assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 4
-    assert "'Condition'" in capsys.readouterr().err
+    assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 15
+    err = capsys.readouterr().err
+    assert exit_line(15, "USDM-MODEL-WRONG-SHAPE") in err
+    assert "'Condition'" in err
 
 
 @code("SA00148")
@@ -545,7 +555,9 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
 
     monkeypatch.setattr(usdm_spec, "verify_pinned", locked)
     assert usdm_spec.main(["--list-classes"]) == 13
-    assert "close the program holding the file" in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert exit_line(13, "PINNED-FILE-UNREADABLE") in err
+    assert "close the program holding the file" in err
 
 
 @code("SA00149")
@@ -553,9 +565,9 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
+def test_cli_malformed_type_exits_15_not_traceback(variant, monkeypatch, capsys):
     """A file whose type values are not lists of references makes the attributes option
-    exit 4 and name the attribute, rather than failing with a Python error while
+    exit 15 and name the attribute, rather than failing with a Python error while
     printing."""
     broken = variant(
         lambda d: d["StudyIdentifier"]["Attributes"]["scopeId"].__setitem__(
@@ -563,8 +575,10 @@ def test_cli_malformed_type_exits_4_not_traceback(variant, monkeypatch, capsys):
         )
     )
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
-    assert usdm_spec.main(["--attributes", "StudyIdentifier", "--allow-unpinned"]) == 4
-    assert "StudyIdentifier.scopeId: Type is not a list" in capsys.readouterr().err
+    assert usdm_spec.main(["--attributes", "StudyIdentifier", "--allow-unpinned"]) == 15
+    err = capsys.readouterr().err
+    assert exit_line(15, "USDM-MODEL-WRONG-SHAPE") in err
+    assert "StudyIdentifier.scopeId: Type is not a list" in err
 
 
 @code("SA00150")
@@ -607,12 +621,14 @@ def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_unknown_class_exits_5(monkeypatch, capsys):
-    """The attributes listing for a class that does not exist exits 5 and points
+def test_cli_unknown_class_exits_17(monkeypatch, capsys):
+    """The attributes listing for a class that does not exist exits 17 and points
     at the class listing, rather than ending in a traceback."""
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", FIXTURE)
-    assert usdm_spec.main(["--attributes", "Nope", "--allow-unpinned"]) == 5
-    assert "run --list-classes" in capsys.readouterr().err
+    assert usdm_spec.main(["--attributes", "Nope", "--allow-unpinned"]) == 17
+    err = capsys.readouterr().err
+    assert exit_line(17, "USDM-CLASS-NOT-FOUND") in err
+    assert "run --list-classes" in err
 
 
 #######################################################################################
@@ -644,29 +660,33 @@ def test_a_class_with_no_definition_is_listed_without_one(variant, monkeypatch, 
 @objective("functionality")
 @negative
 @needs_fixture("usdm_three_classes.yml")
-def test_cli_manifest_location_outside_inputs_exits_66(fake_repo, monkeypatch, capsys):
+def test_cli_manifest_location_outside_inputs_exits_15(fake_repo, monkeypatch, capsys):
     """When a manifest records a location that does not stay under inputs/, the
-    command exits 66 and quotes the location, rather than reporting an unreadable
+    command exits 15 and quotes the location, rather than reporting an unreadable
     manifest."""
     staged = fake_repo.file(usdm_spec.PINNED_LOCAL, FIXTURE.read_bytes())
     fake_repo.manifest(
         "stray", [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
     )
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", staged)
-    assert usdm_spec.main(["--list-classes"]) == 66
-    assert "does not stay under inputs/" in capsys.readouterr().err
+    assert usdm_spec.main(["--list-classes"]) == 15
+    err = capsys.readouterr().err
+    assert exit_line(15, "MANIFEST-LOCATION-OUTSIDE-INPUTS") in err
+    assert "does not stay under inputs/" in err
 
 
 @code("SA00615")
 @category("processing")
 @objective("functionality")
 @negative
-def test_cli_a_file_that_is_not_yaml_exits_4(tmp_path, monkeypatch, capsys):
+def test_cli_a_file_that_is_not_yaml_exits_14(tmp_path, monkeypatch, capsys):
     """When the model file is not valid YAML and the pinned-file record is skipped, the
-    command exits 4 and says the file is not valid YAML, rather than stopping on a
+    command exits 14 and says the file is not valid YAML, rather than stopping on a
     traceback."""
     broken = tmp_path / "broken.yml"
     broken.write_text("Activity: [unclosed\n", encoding="utf-8")
     monkeypatch.setattr(usdm_spec, "DEFAULT_SPEC", broken)
-    assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 4
-    assert "broken.yml is not valid YAML" in capsys.readouterr().err
+    assert usdm_spec.main(["--list-classes", "--allow-unpinned"]) == 14
+    err = capsys.readouterr().err
+    assert exit_line(14, "USDM-MODEL-UNPARSEABLE") in err
+    assert "broken.yml is not valid YAML" in err

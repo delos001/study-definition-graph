@@ -50,8 +50,9 @@ def test_real_headers_follow_the_rule():
 @objective("conformance")
 def test_real_exit_codes_agree_with_the_table_and_main():
     """In every Python file in the real code folders, each exit code the header lists
-    opens with the wording docs/exit_codes.csv gives it, and each code the tool returns
-    is listed."""
+    has the number, sub-code and wording docs/exit_codes.csv gives it, each exit number
+    and sub-code the code names together is a row of that table, and each one a command
+    ends on is listed in its header."""
     table = script.exit_code_table()
     problems = {
         path.relative_to(script.REPO_ROOT).as_posix(): script.problems_in(path, table)[

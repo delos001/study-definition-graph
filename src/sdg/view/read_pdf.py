@@ -52,24 +52,40 @@ Usage:       read_pdf --docs
              read_pdf --doc m11-template --pages 12-14
              read_pdf --doc model-diagram --find Encounter
 
-Exit codes:  0   the command succeeded
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line (this covers a
-                 page range that is not a number or two numbers joined by a
-                 dash, starts before page 1, runs past the document's last
-                 page, or ends before it starts)
-             3   a manifest is missing or cannot be read (or two manifest
-                 entries record a file name the list names, so the name does
-                 not say which file is meant)
-             6   the command is not running from inside the repo
-             8   a pinned file has not been downloaded
-             23  the requested section was not found in the PDF
-             24  section mode was used on a PDF that has no bookmarks
-             31  the list of lookup documents is missing or wrongly shaped
-             32  the list of lookup documents names a file no manifest records
-             66  a manifest records a location that does not stay under inputs/
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line (this covers a page range that is not a number or two
+                 numbers joined by a dash, starts before page 1, runs past the
+                 document's last page, or ends before it starts)
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest
+             12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been
+                 downloaded
+             12  LOOKUP-LIST-MISSING  the list of lookup documents is missing
+             13  MANIFEST-UNREADABLE  a manifest is on disk but cannot be opened
+             13  LOOKUP-LIST-UNREADABLE  the list of lookup documents is on disk
+                 but cannot be opened
+             14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
+             14  LOOKUP-LIST-UNPARSEABLE  the list of lookup documents is not
+                 valid YAML
+             15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a
+                 location that does not stay under inputs/
+             15  MANIFEST-NAME-SHARED  two manifest entries record the same file
+                 name (a name the list of lookup documents uses)
+             15  LOOKUP-LIST-INVALID  the list of lookup documents breaks a
+                 requirement
+             16  LOOKUP-LIST-UNRECORDED-FILE  the list of lookup documents
+                 names a file no manifest records
+             17  PDF-SECTION-NOT-FOUND  no section in the PDF matches the one
+                 asked for
+             17  PDF-HAS-NO-BOOKMARKS  a section was asked for in a PDF that
+                 has no bookmarks
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-08-18
 Owner:       Jason Delosh
@@ -96,10 +112,10 @@ import fitz
 import yaml
 
 from sdg.console_output import use_utf8_output
+from sdg.exit_codes import fail
 from sdg.sources.read_manifests import (
     ManifestError,
     NotInRepoError,
-    OutsideInputsError,
     entry_named,
 )
 
@@ -113,11 +129,43 @@ REGISTRY_FILE = Path(__file__).resolve().parent / "lookup_documents.yml"
 
 
 class RegistryError(Exception):
-    """Raised when the list of lookup documents is missing or wrongly shaped."""
+    """Raised when the list of lookup documents breaks a requirement, and the base of
+    every error about the list.
+
+    Each kind carries the exit number and sub-code a command reports it with, from
+    docs/exit_codes.csv.
+    """
+
+    exit_code = 15
+    sub_code = "LOOKUP-LIST-INVALID"
+
+
+class RegistryMissingError(RegistryError):
+    """Raised when the list of lookup documents is missing."""
+
+    exit_code = 12
+    sub_code = "LOOKUP-LIST-MISSING"
+
+
+class RegistryUnreadableError(RegistryError):
+    """Raised when the list of lookup documents is on disk but cannot be opened."""
+
+    exit_code = 13
+    sub_code = "LOOKUP-LIST-UNREADABLE"
+
+
+class RegistryUnparseableError(RegistryError):
+    """Raised when the list of lookup documents is not valid YAML."""
+
+    exit_code = 14
+    sub_code = "LOOKUP-LIST-UNPARSEABLE"
 
 
 class UnknownFileError(RegistryError):
     """Raised when the list names a file that no manifest records."""
+
+    exit_code = 16
+    sub_code = "LOOKUP-LIST-UNRECORDED-FILE"
 
 
 @dataclass(frozen=True)
@@ -145,26 +193,38 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
         The documents by the key a person types, and the key used when --doc is absent.
 
     Raises:
-        RegistryError: The list is missing, cannot be parsed, is shaped wrongly, holds
-            a boilerplate pattern that is not a valid regular expression, names a
-            default that is not in it, or names a file no manifest records.
+        RegistryMissingError: The list is missing.
+        RegistryUnreadableError: The list is on disk but cannot be opened.
+        RegistryUnparseableError: The list is not valid YAML.
+        UnknownFileError: The list names a file no manifest records.
+        RegistryError: The list is shaped wrongly, holds a boilerplate pattern that is
+            not a valid regular expression, or names a default that is not in it.
         NotInRepoError: The sdg package is not running from inside its repo.
         ManifestError: A manifest is missing or cannot be read, or two entries record
             a file name the list names.
     """
     target = registry_file or REGISTRY_FILE
-    # A list that is missing or is not valid YAML becomes the reader's own error, the
-    # same one a wrongly shaped list raises, so main() can turn all three into exit
-    # 31 with the cause in the message rather than showing a traceback.
+    # A list that is missing, cannot be opened or is not valid YAML becomes a kind of
+    # the reader's own error, so main() reports each with its own exit number and the
+    # cause in the message rather than showing a traceback.
     try:
-        content = yaml.safe_load(target.read_text(encoding="utf-8"))
+        text = target.read_text(encoding="utf-8")
     except FileNotFoundError as exc:
-        raise RegistryError(
+        raise RegistryMissingError(
             f"the list of lookup documents is missing at {target}.\n"
             "  fix -> restore it from git"
         ) from exc
+    except OSError as exc:
+        raise RegistryUnreadableError(
+            f"the list of lookup documents at {target} cannot be opened ({exc}).\n"
+            "  fix -> close any program holding the file, then run this again"
+        ) from exc
+    try:
+        content = yaml.safe_load(text)
     except yaml.YAMLError as exc:
-        raise RegistryError(f"{target.name} is not valid YAML: {exc}") from exc
+        raise RegistryUnparseableError(
+            f"{target.name} is not valid YAML: {exc}"
+        ) from exc
 
     if not isinstance(content, dict) or not isinstance(content.get("documents"), list):
         raise RegistryError(f"{target.name} has no documents list.")
@@ -173,7 +233,7 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
     for row in content["documents"]:
         # A row has to be a set of named fields. A bare value in its place would
         # make the field lookup below crash, and the crash would exit 1 rather
-        # than the code that says the list is wrongly shaped.
+        # than the number that says the list breaks a requirement.
         if not isinstance(row, dict):
             raise RegistryError(
                 f"{target.name} has an entry that is not a set of fields: {row!r}."
@@ -203,7 +263,7 @@ def load_registry(registry_file: Path | None = None) -> tuple[dict[str, Document
                 "  fix -> correct the name, or record the file in manifests/"
             )
         # A pattern that is not a valid regular expression is a mistake in the list,
-        # so it becomes the reader's own error and exits 31 with the document and
+        # so it becomes the reader's own error and exits 15 with the document and
         # the pattern named, rather than stopping on a traceback.
         compiled = []
         for pattern in patterns:
@@ -731,6 +791,17 @@ def search_pages(doc: fitz.Document, sections: list[dict], term: str) -> list[st
 ### Command line ###
 
 
+def _say_error(message: str) -> None:
+    """Print one line to standard error, where this command writes every problem.
+
+    Standard error keeps a problem out of the text a person may be piping to a file.
+
+    Args:
+        message: The line to print.
+    """
+    print(message, file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Parse the arguments, run one mode, and give back the exit code.
 
@@ -750,31 +821,15 @@ def main(argv: list[str] | None = None) -> int:
     use_utf8_output()
 
     # The registry is read before the parser is built, because --doc offers the
-    # keys it holds and falls back to the default it names. A list that is missing
-    # or wrongly shaped exits 31, a list naming a file no manifest records exits
-    # 32, and a manifest problem keeps the manifest reader's own codes, so a caller
-    # can tell those causes apart without reading the message.
+    # keys it holds and falls back to the default it names. Each error about the
+    # list, and each manifest problem, carries its own exit number and sub-code, so
+    # a caller can tell those causes apart without reading the message. A file name
+    # that two entries record is a manifest problem, because the fix is in the
+    # manifests rather than in the list.
     try:
         documents, default_document = load_registry()
-    except UnknownFileError as exc:
-        print(exc, file=sys.stderr)
-        return 32
-    except RegistryError as exc:
-        print(exc, file=sys.stderr)
-        return 31
-    except NotInRepoError as exc:
-        print(exc, file=sys.stderr)
-        return 6
-    # A location outside inputs/ is a kind of manifest error with its own number,
-    # so it is caught first.
-    except OutsideInputsError as exc:
-        print(exc, file=sys.stderr)
-        return 66
-    # A file name that two entries record is caught here too, because the fix is in
-    # the manifests rather than in the list.
-    except ManifestError as exc:
-        print(exc, file=sys.stderr)
-        return 3
+    except (RegistryError, NotInRepoError, ManifestError) as exc:
+        return fail(_say_error, exc.exit_code, exc.sub_code, exc)
 
     parser = argparse.ArgumentParser(
         description="Read part of one of the PDFs listed in lookup_documents.yml, by section, page range or search term."
@@ -816,10 +871,13 @@ def main(argv: list[str] | None = None) -> int:
                 missing += 1
             print(f"  {key:16} {entry.label:42} {state}")
         if missing:
-            print(
-                f"\n{missing} document(s) not downloaded.\n  fix -> run acquire_sources"
+            print()
+            return fail(
+                print,
+                12,
+                "PINNED-FILE-NOT-DOWNLOADED",
+                f"{missing} document(s) not downloaded.\n  fix -> run acquire_sources",
             )
-            return 8
         return 0
 
     document = documents[args.doc]
@@ -829,12 +887,13 @@ def main(argv: list[str] | None = None) -> int:
     # so the message names the expected path and the manifest to restore from
     # rather than letting pymupdf raise.
     if not document.path.exists():
-        print(f"{document.label} not found at {document.path}", file=sys.stderr)
-        print(
+        return fail(
+            _say_error,
+            12,
+            "PINNED-FILE-NOT-DOWNLOADED",
+            f"{document.label} not found at {document.path}\n"
             f"inputs/ is gitignored. Re-download per manifests/{document.manifest}.",
-            file=sys.stderr,
         )
-        return 8
 
     doc = fitz.open(document.path)
     sections = load_toc(doc)
@@ -846,17 +905,15 @@ def main(argv: list[str] | None = None) -> int:
     # reporting "no section matching", either of which would read as though the
     # document lacked the content rather than lacking the navigation data.
     if wants_sections and not sections:
-        print(
+        return fail(
+            _say_error,
+            17,
+            "PDF-HAS-NO-BOOKMARKS",
             f"{document.label} has no embedded bookmarks, so it cannot be "
-            f"addressed by section.",
-            file=sys.stderr,
-        )
-        print(
+            "addressed by section.\n"
             f"Use --find TERM to search its {doc.page_count} pages, "
-            f"or --pages N-M to read a known range.",
-            file=sys.stderr,
+            "or --pages N-M to read a known range.",
         )
-        return 24
 
     # This mode prints the section map.
     if args.list or (not args.section and not args.pages and not args.find):
@@ -898,11 +955,12 @@ def main(argv: list[str] | None = None) -> int:
     else:
         found = find_section(sections, args.section)
         if found is None:
-            print(
+            return fail(
+                _say_error,
+                17,
+                "PDF-SECTION-NOT-FOUND",
                 f"No section matching {args.section!r}. Run with --list to see all.",
-                file=sys.stderr,
             )
-            return 23
         start_page = found["start"]
         end_page = found["end"]
         label = found["title"]

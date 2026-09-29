@@ -14,8 +14,8 @@ Description: Automated checks for src/sdg/sources/acquire_sources.py, the
 
              No check touches the network. The workflow's one download step,
              fetch, is replaced for each check by a fake that writes the bytes
-             the check chose under the .part name, or raises FetchError, per
-             url. A check that must not download installs a fake that fails the
+             the check chose under the .part name, or raises the error a dead
+             address raises, per url. A check that must not download installs a fake that fails the
              check if it is called.
 
 Inputs:      none from the repo
@@ -42,8 +42,9 @@ from typing import TYPE_CHECKING, NoReturn
 
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdg.sources import acquire_sources
-from sdg.sources.fetch_file import FetchError, partial_path
+from sdg.sources.fetch_file import FetchNoAnswerError, partial_path
 from sdg.sources.read_manifests import Entry
 from sdgval.labels import category, code, negative, objective, positive
 from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
@@ -77,7 +78,7 @@ def network(monkeypatch):
 
     Called with a dict of url to bytes, it replaces the workflow's fetch with a
     fake that writes those bytes under the .part name for a url in the dict,
-    and raises FetchError for any other url, the way a dead address would.
+    and raises FetchNoAnswerError for any other url, the way a dead address would.
     Called with nothing, it installs a fake that fails the check if any
     download is attempted."""
 
@@ -96,7 +97,7 @@ def network(monkeypatch):
             if served is None:
                 raise AssertionError(f"the network was used for {url}")
             if url not in served:
-                raise FetchError(f"{url}\n  cause -> no such host")
+                raise FetchNoAnswerError(f"{url}\n  cause -> no such host")
             partial = partial_path(destination)
             partial.parent.mkdir(parents=True, exist_ok=True)
             partial.write_bytes(served[url])
@@ -302,7 +303,7 @@ def test_present_matching_file_is_counted_as_present(present):
 def test_dry_run_names_each_file_it_would_fetch(dry_run_missing):
     """With the dry-run option, each missing file is named as one the run would
     fetch, and they are counted."""
-    assert "would fetch  file.txt" in dry_run_missing.out
+    assert "would fetch file.txt" in dry_run_missing.out
     assert "1 to fetch, 0 present and matching" in dry_run_missing.out
 
 
@@ -321,10 +322,11 @@ def test_dry_run_touches_neither_network_nor_disk(dry_run_missing, fake_repo):
 @category("repository")
 @objective("functionality")
 @positive
-def test_dry_run_exits_8_when_a_file_is_missing(dry_run_missing):
-    """With the dry-run option, the run exits 8 when at least one file would
-    need fetching, because a pinned file has not been downloaded."""
-    assert dry_run_missing.code == 8
+def test_dry_run_exits_12_when_a_file_is_missing(dry_run_missing):
+    """With the dry-run option, the run exits 12 when at least one file would
+    need fetching, and its last line names the missing pinned file as the cause."""
+    assert dry_run_missing.code == 12
+    assert exit_line(12, "PINNED-FILE-NOT-DOWNLOADED") in dry_run_missing.out
 
 
 @code("SA00009")
@@ -396,9 +398,9 @@ def test_set_does_not_read_the_other_manifests(fake_repo, network, capsys):
 @objective("functionality")
 @negative
 def test_changed_file_is_reported_as_a_mismatch(changed):
-    """A file on disk that no longer matches its entry is reported as a mismatch on its
-    fingerprint, and as left alone."""
-    assert f"MISMATCH  {LOCAL}: sha256" in changed.out
+    """A file on disk that no longer matches its entry is reported as a changed pinned
+    file, on its fingerprint, and as left alone."""
+    assert f"PINNED-FILE-CHANGED  {LOCAL}: sha256" in changed.out
     assert "left alone" in changed.out
 
 
@@ -415,10 +417,11 @@ def test_changed_file_is_left_alone(changed, fake_repo):
 @category("repository")
 @objective("functionality")
 @negative
-def test_changed_file_exits_9(changed):
-    """A changed file on disk makes the run exit 9, and the summary says a
-    person has to look."""
-    assert changed.code == 9
+def test_changed_file_exits_16(changed):
+    """A changed file on disk makes the run exit 16, the last line names the changed
+    pinned file as the cause, and the summary says a person has to look."""
+    assert changed.code == 16
+    assert exit_line(16, "PINNED-FILE-CHANGED") in changed.out
     assert "disagree with their entry" in changed.out
 
 
@@ -430,7 +433,7 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
     """A download whose bytes do not match the entry is reported as discarded, and it is
     under neither its final name nor its temporary name."""
     final = fake_repo.root / LOCAL
-    assert "DISCARDED" in wrong_hash.out
+    assert "DOWNLOAD-MISMATCH  DISCARDED" in wrong_hash.out
     assert not final.exists()
     assert not partial_path(final).exists()
 
@@ -439,10 +442,11 @@ def test_wrong_hash_download_is_discarded(wrong_hash, fake_repo):
 @category("repository")
 @objective("functionality")
 @negative
-def test_wrong_hash_download_exits_12(wrong_hash):
-    """A discarded download makes the run exit 12 and is counted as a failed
-    fetch."""
-    assert wrong_hash.code == 12
+def test_wrong_hash_download_exits_16(wrong_hash):
+    """A discarded download makes the run exit 16, the last line names the mismatched
+    download as the cause, and it is counted as a failed fetch."""
+    assert wrong_hash.code == 16
+    assert exit_line(16, "DOWNLOAD-MISMATCH") in wrong_hash.out
     assert "1 fetch(es) failed" in wrong_hash.out
 
 
@@ -450,11 +454,12 @@ def test_wrong_hash_download_exits_12(wrong_hash):
 @category("repository")
 @objective("functionality")
 @negative
-def test_failed_fetch_exits_11_with_its_cause(failed_fetch):
-    """An address that cannot be fetched makes the run exit 11, and it is reported as
-    failed, with the cause."""
-    assert failed_fetch.code == 11
-    assert "FAILED" in failed_fetch.out
+def test_failed_fetch_exits_9_with_its_cause(failed_fetch):
+    """An address that does not answer makes the run exit 9, and it is reported as
+    failed, with its sub-code and the cause."""
+    assert failed_fetch.code == 9
+    assert exit_line(9, "DOWNLOAD-NO-ANSWER") in failed_fetch.out
+    assert "DOWNLOAD-NO-ANSWER  FAILED" in failed_fetch.out
     assert "no such host" in failed_fetch.out
 
 
@@ -464,7 +469,7 @@ def test_failed_fetch_exits_11_with_its_cause(failed_fetch):
 @negative
 def test_failure_outranks_disagreement(fake_repo, network, capsys):
     """With one file changed on disk and another that cannot be fetched, both
-    are reported and the exit code is 11, because a missing file is worse than
+    are reported and the exit number is 9, because a missing file is worse than
     a changed one."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
@@ -476,8 +481,8 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
     )
     network({})
     outcome = run(capsys)
-    assert outcome.code == 11
-    assert "MISMATCH" in outcome.out
+    assert outcome.code == 9
+    assert "PINNED-FILE-CHANGED" in outcome.out
     assert "FAILED" in outcome.out
 
 
@@ -487,7 +492,7 @@ def test_failure_outranks_disagreement(fake_repo, network, capsys):
 @negative
 def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     """In a dry run too, a file that would need fetching outranks a changed file. Both
-    are reported and the exit code is 8, not 9."""
+    are reported and the exit number is 12, not 16."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
         "set_a",
@@ -498,9 +503,9 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
     )
     network(None)
     outcome = run(capsys, "--dry-run")
-    assert outcome.code == 8
-    assert "MISMATCH" in outcome.out
-    assert "would fetch  b.txt" in outcome.out
+    assert outcome.code == 12
+    assert "PINNED-FILE-CHANGED" in outcome.out
+    assert "would fetch b.txt" in outcome.out
 
 
 @code("SA00022")
@@ -509,8 +514,8 @@ def test_dry_run_missing_file_outranks_disagreement(fake_repo, network, capsys):
 @negative
 def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
     """With one file changed on disk and another whose download does not match its
-    entry, both are reported and the exit code is 12, not 9. A file still missing is
-    worse than a changed one."""
+    entry, both are reported, and the mismatched download decides the exit line. A file
+    still missing is worse than a changed one."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     fake_repo.manifest(
         "set_a",
@@ -521,8 +526,9 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
     )
     network({"https://example.invalid/b.txt": b"something else entirely\n"})
     outcome = run(capsys)
-    assert outcome.code == 12
-    assert "MISMATCH" in outcome.out
+    assert outcome.code == 16
+    assert exit_line(16, "DOWNLOAD-MISMATCH") in outcome.out
+    assert "PINNED-FILE-CHANGED" in outcome.out
     assert "DISCARDED" in outcome.out
 
 
@@ -532,7 +538,7 @@ def test_wrong_hash_download_outranks_disagreement(fake_repo, network, capsys):
 @negative
 def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
     """With one file that cannot be fetched and another whose download does not match
-    its entry, both are reported and the exit code is 11, not 12. A file nothing could
+    its entry, both are reported and the exit number is 9, not 16. A file nothing could
     be downloaded for is worse."""
     fake_repo.manifest(
         "set_a",
@@ -543,7 +549,7 @@ def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
     )
     network({"https://example.invalid/b.txt": b"something else entirely\n"})
     outcome = run(capsys)
-    assert outcome.code == 11
+    assert outcome.code == 9
     assert "FAILED" in outcome.out
     assert "DISCARDED" in outcome.out
 
@@ -554,7 +560,7 @@ def test_failed_fetch_outranks_a_discarded_download(fake_repo, network, capsys):
 @negative
 def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
     """With one file changed on disk and a folder where another file should be,
-    both are reported and the exit code is 9, not 13."""
+    both are reported and the exit number is 16, not 13."""
     fake_repo.file("inputs/set_a/a.txt", CHANGED)
     (fake_repo.root / "inputs/set_a/b.txt").mkdir(parents=True)
     fake_repo.manifest(
@@ -566,9 +572,9 @@ def test_disagreement_outranks_an_unreadable_file(fake_repo, network, capsys):
     )
     network(None)
     outcome = run(capsys)
-    assert outcome.code == 9
-    assert "MISMATCH" in outcome.out
-    assert "CANNOT READ" in outcome.out
+    assert outcome.code == 16
+    assert "PINNED-FILE-CHANGED" in outcome.out
+    assert "PINNED-FILE-UNREADABLE" in outcome.out
 
 
 @code("SA00025")
@@ -579,7 +585,7 @@ def test_locked_file_exits_13_reported_as_cannot_read(locked):
     """A recorded file that cannot be opened makes the run exit 13 rather than end with a
     Python error, and it is reported as unreadable with the cause, and as left alone."""
     assert locked.code == 13
-    assert "CANNOT READ" in locked.out
+    assert exit_line(13, "PINNED-FILE-UNREADABLE") in locked.out
     assert "locked by another program" in locked.out
     assert "left alone" in locked.out
 
@@ -592,7 +598,7 @@ def test_folder_at_a_recorded_path_exits_13_reported_as_cannot_read(folder):
     """A folder where a recorded file should be makes the run exit 13, and it is
     reported as unreadable, a folder not a file, and as left alone."""
     assert folder.code == 13
-    assert "CANNOT READ" in folder.out
+    assert exit_line(13, "PINNED-FILE-UNREADABLE") in folder.out
     assert "a folder, not a file" in folder.out
     assert "left alone" in folder.out
 
@@ -601,14 +607,15 @@ def test_folder_at_a_recorded_path_exits_13_reported_as_cannot_read(folder):
 @category("repository")
 @objective("functionality")
 @negative
-def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, capsys):
-    """An entry lacking a required field stops the run with exit 3, and the
+def test_entry_missing_a_field_exits_15_naming_the_field(fake_repo, network, capsys):
+    """An entry lacking a required field stops the run with exit 15, and the
     message names the field."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, url=None)])
     network(None)
     outcome = run(capsys)
-    assert outcome.code == 3
+    assert outcome.code == 15
+    assert exit_line(15, "MANIFEST-INVALID") in outcome.out
     assert "lacks url" in outcome.out
 
 
@@ -616,27 +623,29 @@ def test_entry_missing_a_field_exits_3_naming_the_field(fake_repo, network, caps
 @category("repository")
 @objective("functionality")
 @negative
-def test_unreadable_manifest_exits_3_naming_the_file(fake_repo, network, capsys):
-    """A manifest that is not valid JSON stops the run with exit 3, and the message
+def test_unparseable_manifest_exits_14_naming_the_file(fake_repo, network, capsys):
+    """A manifest that is not valid JSON stops the run with exit 14, and the message
     names the file."""
     fake_repo.manifest("set_a", "{ not json")
     network(None)
     outcome = run(capsys)
-    assert outcome.code == 3
-    assert "set_a.json: cannot read" in outcome.out
+    assert outcome.code == 14
+    assert exit_line(14, "MANIFEST-UNPARSEABLE") in outcome.out
+    assert "set_a.json: is not valid JSON" in outcome.out
 
 
 @code("SA00031")
 @category("repository")
 @objective("functionality")
 @negative
-def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
+def test_unknown_set_exits_17_naming_it(fake_repo, network, capsys):
     """With the set option naming a manifest that does not exist, the run exits
-    3 and the message names it."""
+    17 and the message names it."""
     fake_repo.manifest("set_a", [])
     network(None)
     outcome = run(capsys, "--set", "set_b")
-    assert outcome.code == 3
+    assert outcome.code == 17
+    assert exit_line(17, "MANIFEST-NAME-NOT-FOUND") in outcome.out
     assert "no manifest named set_b" in outcome.out
 
 
@@ -644,8 +653,8 @@ def test_unknown_set_exits_3_naming_it(fake_repo, network, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys):
-    """The sdg package, when not running from inside its repo, exits 6, and the message
+def test_not_in_repo_exits_3_with_the_install_command(fake_repo, network, capsys):
+    """The sdg package, when not running from inside its repo, exits 3, and the message
     gives the install command."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"
@@ -653,7 +662,8 @@ def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys
     fake_repo.manifest("set_a", [])
     network(None)
     outcome = run(capsys)
-    assert outcome.code == 6
+    assert outcome.code == 3
+    assert exit_line(3, "NOT-IN-REPO") in outcome.out
     assert "pip install -e ." in outcome.out
 
 
@@ -662,29 +672,30 @@ def test_not_in_repo_exits_6_with_the_install_command(fake_repo, network, capsys
 @objective("functionality")
 @negative
 def test_repo_check_runs_before_any_manifest_is_read(fake_repo, network, capsys):
-    """With a wrong package name and an unreadable manifest, the run exits 6
-    and not 3, which shows the repo check came first."""
+    """With a wrong package name and a manifest that is not valid JSON, the run exits 3
+    and not 14, which shows the repo check came first."""
     (fake_repo.root / "pyproject.toml").write_text(
         "[project]\nname = 'other'\n", encoding="utf-8"
     )
     fake_repo.manifest("set_a", "{ not json")
     network(None)
-    assert run(capsys).code == 6
+    assert run(capsys).code == 3
 
 
 @code("SA00609")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_location_outside_inputs_exits_66(fake_repo, network, capsys):
-    """An entry whose location does not stay under inputs/ stops the run with exit 66
+def test_a_location_outside_inputs_exits_15(fake_repo, network, capsys):
+    """An entry whose location does not stay under inputs/ stops the run with exit 15
     before anything is fetched, and the message quotes the location."""
     fake_repo.manifest(
         "set_a", [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
     )
     network(None)
     outcome = run(capsys)
-    assert outcome.code == 66
+    assert outcome.code == 15
+    assert exit_line(15, "MANIFEST-LOCATION-OUTSIDE-INPUTS") in outcome.out
     assert (
         'has local "inputs/../elsewhere.txt", which does not stay under inputs/'
         in outcome.out

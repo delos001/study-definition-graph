@@ -41,6 +41,7 @@ import pytest
 from sdg.sources import (
     IntegrityError,
     ManifestError,
+    ManifestUnparseableError,
     NotInRepoError,
     UnrecordedFileError,
     read_manifests,
@@ -202,8 +203,8 @@ def test_unreadable_manifest_is_reported_as_a_manifest_problem(fake_repo):
     message, naming the manifest file and saying to restore it from git."""
     fake_repo.file(LOCAL, CONTENT)
     fake_repo.manifest("set_a", "{ not json")
-    message = refused_with(ManifestError)
-    assert message.startswith("set_a.json: cannot read")
+    message = refused_with(ManifestUnparseableError)
+    assert message.startswith("set_a.json: is not valid JSON")
     assert "git checkout" in message
 
 

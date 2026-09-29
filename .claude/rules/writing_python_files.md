@@ -19,7 +19,7 @@ Where a standard convention exists, the project follows it. The conventions in u
 
 The test of a well-written file is that a person who reads only its header block, its docstrings and its comments comes away with an accurate picture of what the file does. `src/sdg/sources/read_manifests.py` is the worked example.
 
-A change to the code is a change to its description. Before finishing an edit, read the file's header block, the docstrings of the functions touched and the comments around the change, and rewrite whatever the change made untrue. A new function goes into Usage, a new error into the docstring that lists errors, a new exit code into the Exit codes field, and a changed rule into the comment that explained the old one. A description that lags the code is a defect, not a cleanup for later.
+A change to the code is a change to its description. Before finishing an edit, read the file's header block, the docstrings of the functions touched and the comments around the change, and rewrite whatever the change made untrue. A new function goes into Usage, a new error into the docstring that lists errors, a new failure into the Exit codes field, and a changed rule into the comment that explained the old one. A description that lags the code is a defect, not a cleanup for later.
 
 ## The header block
 
@@ -31,7 +31,7 @@ Description: what it does, and any non-obvious constraint it operates under
 Inputs:      files or services read, and whether they are read-only
 Outputs:     what it writes to disk, or "nothing on disk"; and, for a module that hands results back, what it returns
 Usage:       one line per invocation mode, with a real example
-Exit codes:  each code and what causes it
+Exit codes:  each failure it can end on, as its exit number, sub-code and what happened
 Date:        YYYY-MM-DD
 Owner:       Jason Delosh
 ```
@@ -44,9 +44,17 @@ The one exception is `__init__.py`, which carries a one-paragraph docstring nami
 
 ## Exit codes
 
-One number means one cause across the whole repo, so a person who learns what a code means in one script knows what it means in every other. The table is `docs/exit_codes.csv`, one row per code. A header's `Exit codes` field lists only the codes that file can return, each opening with the table's wording. An entry may then add a bracketed aside saying what the cause means in that file, for example `8   a pinned file has not been downloaded (a dry run only; a real run fetches it)`. Everything before the bracket has to match the table, so an aside can explain a cause but never redefine it. `src/sdgtools/verify_headers.py` confirms this and the pre-commit hook runs it. It also reads each file's `main()` and refuses a header that does not list a code the function returns as a plain number. A new cause takes the next unused number and is added to the table in the same commit. Project exit numbers stop at 125, because a shell gives the numbers from 126 up meanings of its own. `src/sdgtools/verify_headers.py` refuses a number above 125 in the table or in a header. Two causes share a number only when they share a fix.
+A command's exit number names a broad group of failure, such as 9, "a service did not respond". The groups are `GROUPS` in `src/sdg/exit_codes.py`, and one number means the same group in every command. A sub-code, a short name in capitals such as `NEO4J-UNREACHABLE`, names the failure itself. Two failures share a sub-code only when they share an explanation and a fix.
 
-Codes 1 and 2 are Python's own and are never assigned to anything else: an unhandled error exits 1, and the argument parser exits 2 on a bad command line.
+`docs/exit_codes.csv` is the reference a person reads. It holds one row per sub-code, with the exit number, the group, what happened and what to do. A new failure gets a new row, and its group is chosen by the separating tests in the `DECISIONS.md` entry "Exit numbers name a broad group of failure, and a sub-code names the failure itself, decided 2026-09-29". A new group is added only when no group's test fits, to `GROUPS` and to the table in the same commit.
+
+A command reports a failure through `fail()` or `finish()` in `src/sdg/exit_codes.py`. Each problem line starts with its sub-code, and the last line names the exit number, its group and the sub-code that decided it, as in `Exit 9: a service did not respond (NEO4J-UNREACHABLE)`. The code names each failure by its number and sub-code written together, as in `fail(say, 9, "NEO4J-UNREACHABLE", message)`, or by an error class's `exit_code` and `sub_code`.
+
+A header's `Exit codes` field lists each failure its file can end on, one entry per sub-code, written as the number, the sub-code and what happened in the table's wording, for example `12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been downloaded`. An entry may then add a bracketed aside saying what the failure means in that file. Everything before the bracket has to match the table, so an aside can explain a failure but never redefine it. `src/sdgtools/verify_headers.py` confirms each entry against the table, confirms that every number and sub-code the code names together is a row of the table, and refuses a command's header that leaves out a sub-code its code names or a number its `main()` returns. The pre-commit hook runs it.
+
+Project exit numbers stop at 125, because a shell gives the numbers from 126 up meanings of its own.
+
+Codes 1 and 2 keep Python's own meanings: an unhandled error exits 1, and the argument parser exits 2 on a bad command line. Their groups are "this repo's own code failed" and "the command line is wrong", so a failure of either kind that the code catches itself takes the same number.
 
 ## Sections inside a file
 
@@ -119,7 +127,7 @@ What a check is, and the categories, objectives and staged cases its labels name
 - A check that runs once per value says, in simple, non-technical language, in the opening paragraph of its docstring what changes from one run to the next, because that paragraph reaches a report as `expected_result` on the row of every run. Each run carries a readable name, because the name reaches a report as `parameter`. A value that is a plain word, number or path names its run by itself. A value made of several parts, such as a group of arguments, is named with `ids=`, in words that say what that run stages.
 - Every check carries a `@code` marker holding its permanent id, a `@category` marker and an `@objective` marker. `validation/validation_inventory.csv` is generated from these markers. `src/sdgval/build_inventory.py` reads them by asking pytest to collect the checks, the same way a validation report reads them. A check file imports the short names for them from `src/sdgval/labels.py`. There is no aspect marker: the aspect of quality is looked up from the objective, so it cannot disagree with it. A check that stages its own situation also carries `@positive`, for a working situation where the code is expected to succeed, or `@negative`, for a broken situation where the code is expected to refuse. A check that looks at something real carries neither. The case says how the check was set up, so any objective may carry one. `src/sdgval/build_inventory.py` refuses a check whose markers break these rules.
 - Before changing a check, read the `version` and `fingerprint` entries in `validation/validation_inventory_dictionary.md`, because they say when `src/sdgval/build_inventory.py` refuses a changed check whose version did not move.
-- A negative check breaks exactly one thing and says which in its docstring. It asserts the error raised or the exit number for that cause. When the command prints, the check also asserts that the message names that cause and its remedy rather than another. Under `--quiet`, the check asserts the exit number for the cause and that nothing is printed.
+- A negative check breaks exactly one thing and says which in its docstring. It asserts the error raised or the exit number for that cause. When the command prints, the check also asserts that the exit line names the cause's sub-code, because several failures share one exit number, and that the message names that cause and its remedy rather than another. Under `--quiet`, the check asserts the exit number for the cause and that nothing is printed.
 - A staged check touches nothing real and never downloads. Manifests and files are staged in a temporary folder through the fixtures in `validation/conftest.py`. Anything that downloads is replaced by a fake that serves bytes, or raises, per url. A workflow is called in-process through its `main()` with an argument list, never through a subprocess.
 - A check that carries no case may read the real repo, because the real files are what it validates.
 - A check that reads a real pinned file names it with `@needs_pinned`. `src/sdgval/skip_rules.py` then skips the check, with the reason, when the file is not downloaded or no longer matches its manifest entry. Only the stability check for that file fails for a changed file.

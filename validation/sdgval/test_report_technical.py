@@ -969,6 +969,38 @@ def test_a_report_on_uncommitted_changes_is_refused_before_any_check_runs(staged
     assert not out.exists()
 
 
+@code("SA00653")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_without_git_is_refused_before_any_check_runs(staged_suite):
+    """A report run where git cannot be found stops with exit 4 before any check runs
+    and writes no report. The message opens with its sub-code, says git cannot be found
+    and says to install it.
+
+    The suite's conftest hides git from the run, the way a machine without git would,
+    by making the lookup for it find nothing."""
+    staged_suite.commit(PASSING_SUITE)
+    (staged_suite.root / "conftest.py").write_text(
+        staged_suite.ASPECT_CONFTEST
+        + "\n\nimport shutil\n\n_which = shutil.which\n"
+        + "shutil.which = lambda name, *args, **kwargs: (\n"
+        + '    None if name == "git" else _which(name, *args, **kwargs)\n'
+        + ")\n",
+        encoding="utf-8",
+    )
+    result = staged_suite.pytester.runpytest_subprocess(
+        "--validation-report", "--validation-report-dir", str(staged_suite.report_dir)
+    )
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "GIT-NOT-FOUND  No checks were run" in printed
+    assert "git cannot be found on the path" in printed
+    assert "Install git" in printed
+    assert "test_adds" not in result.stdout.str()
+    assert not staged_suite.technical_dir.exists()
+
+
 @code("SA00623")
 @category("repository")
 @objective("functionality")

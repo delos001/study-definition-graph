@@ -32,23 +32,29 @@ Usage:       check_neo4j
              check_neo4j --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (the database answers and is the pinned version)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             6   the command is not running from inside the repo
-             13  a file on disk cannot be read (docker-compose.yml is missing)
-             27  the .env file has not been created
-             37  .env has no Neo4j connection settings
-             38  Neo4j could not be reached
-             39  Neo4j rejected the login
-             40  the running Neo4j is not the pinned version
-             44  the Neo4j address in .env is not a valid address (the driver
-                 refused the NEO4J_URI line before trying to connect)
-             64  a required file was read but holds the wrong content
-                 (docker-compose.yml names no Neo4j image in the form
-                 neo4j:<version>-<edition>)
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (the database answers and
+                 is the pinned version)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             4   ENV-FILE-MISSING  the .env file has not been created
+             4   NEO4J-SETTINGS-MISSING  .env has no Neo4j connection settings
+             5   NEO4J-ADDRESS-INVALID  the Neo4j address in .env is not a
+                 valid address (the driver refused the NEO4J_URI line before
+                 trying to connect)
+             8   NEO4J-VERSION-WRONG  the running Neo4j is not the version
+                 docker-compose.yml pins
+             9   NEO4J-UNREACHABLE  Neo4j could not be reached at the address
+                 in .env
+             10  NEO4J-LOGIN-REJECTED  Neo4j rejected the login in .env
+             12  COMPOSE-FILE-MISSING  docker-compose.yml is missing
+             14  COMPOSE-FILE-UNPARSEABLE  docker-compose.yml is not valid YAML
+             15  COMPOSE-FILE-NO-IMAGE  docker-compose.yml names no Neo4j image
+                 in the form neo4j:<version>-<edition>
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-09-16
 Owner:       Jason Delosh
@@ -66,6 +72,7 @@ import yaml
 
 # The repo root comes from the sdg package, so this script needs the editable
 # install (pip install -e ., README.md step 4) the same as the pipeline does.
+from sdg.exit_codes import fail
 from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
 
 #######################################################################################
@@ -97,20 +104,43 @@ CONNECT_TIMEOUT_SECONDS = 10.0
 ### Failures this script reports ###
 
 
+# Each error carries the exit number and sub-code the command reports it with, from
+# docs/exit_codes.csv.
+
+
 class EnvFileMissingError(Exception):
     """Raised when the repo has no .env file yet."""
+
+    exit_code = 4
+    sub_code = "ENV-FILE-MISSING"
 
 
 class SettingsMissingError(Exception):
     """Raised when .env exists but one or more Neo4j lines are absent or empty."""
 
+    exit_code = 4
+    sub_code = "NEO4J-SETTINGS-MISSING"
+
 
 class ComposeFileMissingError(Exception):
     """Raised when the repo has no docker-compose.yml."""
 
+    exit_code = 12
+    sub_code = "COMPOSE-FILE-MISSING"
+
 
 class ComposeFileError(Exception):
     """Raised when docker-compose.yml was read but names no Neo4j image in the pinned form."""
+
+    exit_code = 15
+    sub_code = "COMPOSE-FILE-NO-IMAGE"
+
+
+class ComposeFileUnparseableError(ComposeFileError):
+    """Raised when docker-compose.yml is not valid YAML."""
+
+    exit_code = 14
+    sub_code = "COMPOSE-FILE-UNPARSEABLE"
 
 
 #######################################################################################
@@ -191,8 +221,8 @@ def read_pinned_release(compose_path: Path) -> Release:
 
     Raises:
         ComposeFileMissingError: The file does not exist.
-        ComposeFileError: The file is not YAML, or names no Neo4j image in the
-            expected form.
+        ComposeFileUnparseableError: The file is not valid YAML.
+        ComposeFileError: The file names no Neo4j image in the expected form.
     """
     if not compose_path.is_file():
         raise ComposeFileMissingError(
@@ -201,11 +231,17 @@ def read_pinned_release(compose_path: Path) -> Release:
         )
 
     # A compose file that is not YAML, or is YAML of the wrong shape, is reported
-    # as holding the wrong content rather than crashing, so the fix is named.
+    # as that rather than crashing, so the fix is named.
     try:
         content = yaml.safe_load(compose_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise ComposeFileUnparseableError(
+            f"{COMPOSE_FILE} is not valid YAML ({exc.__class__.__name__}).\n"
+            "  fix -> restore it from git; it pins the database version"
+        ) from exc
+    try:
         image = content["services"][COMPOSE_SERVICE]["image"]
-    except (yaml.YAMLError, KeyError, TypeError) as exc:
+    except (KeyError, TypeError) as exc:
         raise ComposeFileError(
             f"{COMPOSE_FILE} names no image for the {COMPOSE_SERVICE} service ({exc.__class__.__name__}).\n"
             f"  fix -> restore the services.{COMPOSE_SERVICE}.image line, for example neo4j:5.26.29-community"
@@ -293,32 +329,23 @@ def main(argv: list[str] | None = None) -> int:
     try:
         require_repo()
     except NotInRepoError as exc:
-        report(str(exc))
-        return 6
+        return fail(report, exc.exit_code, exc.sub_code, exc)
 
     # A missing .env and a .env with no Neo4j lines have different fixes, so each
-    # gets its own exit code.
+    # has its own sub-code.
     try:
         settings = read_settings(REPO_ROOT / ENV_FILE)
-    except EnvFileMissingError as exc:
-        report(str(exc))
-        return 27
-    except SettingsMissingError as exc:
-        report(str(exc))
-        return 37
+    except (EnvFileMissingError, SettingsMissingError) as exc:
+        return fail(report, exc.exit_code, exc.sub_code, exc)
 
     # The pin is read before the database is asked, so a broken compose file is
-    # reported even when the database is off. A missing file and a file that names
-    # no image have different fixes, restoring the file and correcting its image
-    # line, so each gets its own exit code.
+    # reported even when the database is off. A missing file, a file that is not
+    # YAML and a file that names no image have different fixes, so each has its
+    # own sub-code.
     try:
         pinned = read_pinned_release(REPO_ROOT / COMPOSE_FILE)
-    except ComposeFileMissingError as exc:
-        report(str(exc))
-        return 13
-    except ComposeFileError as exc:
-        report(str(exc))
-        return 64
+    except (ComposeFileMissingError, ComposeFileError) as exc:
+        return fail(report, exc.exit_code, exc.sub_code, exc)
 
     # A refused login is caught first, because it means the settings are wrong.
     # An address the driver will not accept is caught next, and before the
@@ -328,31 +355,39 @@ def main(argv: list[str] | None = None) -> int:
     try:
         running = ask_database(settings)
     except neo4j.exceptions.AuthError as exc:
-        report(
+        return fail(
+            report,
+            10,
+            "NEO4J-LOGIN-REJECTED",
             f"Neo4j at {settings.uri} rejected the login for user {settings.user!r} ({exc.__class__.__name__}).\n"
-            f"  fix -> make NEO4J_USER and NEO4J_PASSWORD in {ENV_FILE} match the NEO4J_AUTH line in {COMPOSE_FILE}"
+            f"  fix -> make NEO4J_USER and NEO4J_PASSWORD in {ENV_FILE} match the NEO4J_AUTH line in {COMPOSE_FILE}",
         )
-        return 39
     except neo4j.exceptions.ConfigurationError as exc:
-        report(
+        return fail(
+            report,
+            5,
+            "NEO4J-ADDRESS-INVALID",
             f"the Neo4j address {settings.uri!r} in {ENV_FILE} is not a valid address ({exc.__class__.__name__}).\n"
-            "  fix -> make the NEO4J_URI line in .env match .env.example, for example bolt://localhost:7687"
+            "  fix -> make the NEO4J_URI line in .env match .env.example, for example bolt://localhost:7687",
         )
-        return 44
     except (neo4j.exceptions.ServiceUnavailable, neo4j.exceptions.DriverError) as exc:
-        report(
+        return fail(
+            report,
+            9,
+            "NEO4J-UNREACHABLE",
             f"Neo4j could not be reached at {settings.uri} ({exc.__class__.__name__}).\n"
-            "  fix -> start the container from the repo folder with: docker compose up -d"
+            "  fix -> start the container from the repo folder with: docker compose up -d",
         )
-        return 38
 
     if running != pinned:
-        report(
+        return fail(
+            report,
+            8,
+            "NEO4J-VERSION-WRONG",
             f"the running Neo4j is {running}, but {COMPOSE_FILE} pins {pinned}.\n"
             "  fix -> stop whatever is answering at that address, then start the pinned\n"
-            "         container from the repo folder with: docker compose up -d"
+            "         container from the repo folder with: docker compose up -d",
         )
-        return 40
 
     report(f"Neo4j at {settings.uri} answers and is the pinned version, {running}.")
     return 0

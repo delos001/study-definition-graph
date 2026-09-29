@@ -31,14 +31,17 @@ Usage:       check_python_files
              check_python_files --quiet
                  print only the tools' own reports and the final verdict lines
 
-Exit codes:  0   the command succeeded (every tool passed)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             21  ruff or mypy reported a problem
-             22  a tool could not be run at all (neither it nor conda is on
-                 the path, or it did not answer when asked for its version)
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (every tool passed)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             6   TOOL-NOT-FOUND  ruff, mypy or conda cannot be found on the path
+             7   TOOL-FAILED-TO-START  ruff or mypy was found but did not answer
+                 when asked for its version
+             15  RUFF-OR-MYPY-PROBLEM  ruff or mypy reported a problem in a
+                 Python file
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -51,6 +54,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+
+from sdg.exit_codes import fail, finish, problem_line
 
 #######################################################################################
 ### Where the tools are ###
@@ -134,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
 
     Returns:
         The exit code, as the header block lists them: 0 when every tool passed,
-        21 when any reported a problem, 22 when a tool could not be run at all.
+        15 when any reported a problem, 6 or 7 when a tool could not be run at all.
     """
     parser = argparse.ArgumentParser(
         description="Run ruff format, ruff check and mypy over the repo."
@@ -155,19 +160,23 @@ def main(argv: list[str] | None = None) -> int:
         program = tool_argv[0]
         command = command_for(tool_argv)
         if command is None:
-            print(f"{name}: cannot run; neither {program} nor conda is on the path")
-            print("  fix -> conda activate sdg, or install conda")
-            return 22
+            return fail(
+                print,
+                6,
+                "TOOL-NOT-FOUND",
+                f"{name}: cannot run; neither {program} nor conda is on the path\n"
+                "  fix -> conda activate sdg, or install conda",
+            )
         if program not in started:
             started[program] = can_start(program)
         if not started[program]:
-            print(
-                f"{name}: cannot run; {program} did not answer when asked for its version"
+            return fail(
+                print,
+                7,
+                "TOOL-FAILED-TO-START",
+                f"{name}: cannot run; {program} did not answer when asked for its version\n"
+                "  fix -> confirm the sdg environment exists and holds the tool, or recreate it from environment.yml",
             )
-            print(
-                "  fix -> confirm the sdg environment exists and holds the tool, or recreate it from environment.yml"
-            )
-            return 22
         commands.append((name, command))
 
     failed: list[str] = []
@@ -181,10 +190,14 @@ def main(argv: list[str] | None = None) -> int:
             failed.append(name)
 
     for name, _ in CHECKS:
-        verdict = "FAILED" if name in failed else "passed"
-        print(f"{name}: {verdict}")
+        if name in failed:
+            print(problem_line("RUFF-OR-MYPY-PROBLEM", f"{name}: FAILED"))
+        else:
+            print(f"{name}: passed")
 
-    return 21 if failed else 0
+    if failed:
+        return finish(print, 15, "RUFF-OR-MYPY-PROBLEM")
+    return 0
 
 
 #######################################################################################

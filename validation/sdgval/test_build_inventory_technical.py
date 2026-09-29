@@ -37,6 +37,7 @@ from pathlib import Path
 
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgval import build_inventory as script
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -526,13 +527,14 @@ def test_check_status_passes_a_retired_check_with_a_reason(written, capsys):
 @objective("functionality")
 @negative
 def test_check_fails_when_inventory_is_missing(tests_folder, capsys):
-    """With the check option and no inventory on disk, the run exits 16, names the
-    command to run, and writes nothing."""
+    """With the check option and no inventory on disk, the run exits 12, says the
+    inventory is missing, names the command to run, and writes nothing."""
     inventory = tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS})
     outcome = run(capsys, "--check")
-    assert outcome.exit_code == 16
+    assert outcome.exit_code == 12
+    assert exit_line(12, "INVENTORY-MISSING") in outcome.printed
     assert not inventory.exists()
-    assert "is stale. Run: build_inventory" in outcome.printed
+    assert "is missing. Run: build_inventory" in outcome.printed
 
 
 @code("SA00393")
@@ -554,6 +556,7 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
     )
     outcome = run(capsys, "--check")
     assert outcome.exit_code == 16
+    assert exit_line(16, "INVENTORY-STALE") in outcome.printed
     assert inventory.read_text(encoding="utf-8") == stale
     assert "is stale. Run: build_inventory" in outcome.printed
 
@@ -562,8 +565,8 @@ def test_check_fails_when_inventory_is_stale(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_without_id_exits_18(tests_folder, capsys):
-    """A check with no id label makes the run exit 18 and name the file and the check,
+def test_check_without_id_exits_15(tests_folder, capsys):
+    """A check with no id label makes the run exit 15 and name the file and the check,
     and the inventory is not written."""
     inventory = tests_folder(
         {
@@ -573,7 +576,8 @@ def test_check_without_id_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert not inventory.exists()
     assert (
         "validation/sdgtools/test_alpha_conformance.py: test_second has no @code marker"
@@ -585,8 +589,8 @@ def test_check_without_id_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_without_objective_exits_18(tests_folder, capsys):
-    """A check with no objective label makes the run exit 18 and name the file and the
+def test_check_without_objective_exits_15(tests_folder, capsys):
+    """A check with no objective label makes the run exit 15 and name the file and the
     check, and the inventory is not written."""
     inventory = tests_folder(
         {
@@ -597,7 +601,8 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert not inventory.exists()
     assert "test_second has no @objective marker" in outcome.printed
 
@@ -606,8 +611,8 @@ def test_check_without_objective_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_without_category_exits_18(tests_folder, capsys):
-    """A check with no category label makes the run exit 18 and name the file and the
+def test_check_without_category_exits_15(tests_folder, capsys):
+    """A check with no category label makes the run exit 15 and name the file and the
     check, and the inventory is not written."""
     inventory = tests_folder(
         {
@@ -617,7 +622,8 @@ def test_check_without_category_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert not inventory.exists()
     assert "test_second has no @category marker" in outcome.printed
 
@@ -626,8 +632,8 @@ def test_check_without_category_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
-    """A check whose category label names no defined category makes the run exit 18. The
+def test_a_category_not_in_the_list_exits_15(tests_folder, capsys):
+    """A check whose category label names no defined category makes the run exit 15. The
     message quotes the value and lists the categories."""
     tests_folder(
         {
@@ -638,7 +644,8 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "test_second has @category('machinery'), which is not one of" in (
         outcome.printed
     )
@@ -649,8 +656,8 @@ def test_a_category_not_in_the_list_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
-    """A check whose objective label names no defined objective makes the run exit 18.
+def test_an_objective_not_in_the_list_exits_15(tests_folder, capsys):
+    """A check whose objective label names no defined objective makes the run exit 15.
     The message quotes the value and lists the objectives."""
     tests_folder(
         {
@@ -661,7 +668,8 @@ def test_an_objective_not_in_the_list_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "test_second has @objective('behaviour'), which is not one of" in (
         outcome.printed
     )
@@ -697,11 +705,11 @@ def test_any_objective_may_carry_a_staged_case(tests_folder, capsys):
 @objective("functionality")
 @negative
 @pytest.mark.parametrize("start", ["=", "+", "-", "@", "(", "*"])
-def test_a_first_sentence_starting_with_a_refused_character_exits_18(
+def test_a_first_sentence_starting_with_a_refused_character_exits_15(
     tests_folder, capsys, start
 ):
     """A check whose first sentence starts with something other than a letter or a
-    digit makes the run exit 18, and the message names the character and says to start
+    digit makes the run exit 15, and the message names the character and says to start
     with a letter or a digit. The run is repeated once for each character, the four a
     spreadsheet reads as the start of a formula, then a bracket and an asterisk."""
     inventory = tests_folder(
@@ -712,7 +720,8 @@ def test_a_first_sentence_starting_with_a_refused_character_exits_18(
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert not inventory.exists()
     assert f"test_second has a first sentence starting with {start!r}" in (
         outcome.printed
@@ -744,14 +753,15 @@ def test_a_first_sentence_opening_with_whitespace_is_accepted(tests_folder, caps
 @category("repository")
 @objective("functionality")
 @negative
-def test_duplicate_id_exits_18(tests_folder, capsys):
-    """Two checks carrying the same id make the run exit 18, and the message names
+def test_duplicate_id_exits_15(tests_folder, capsys):
+    """Two checks carrying the same id make the run exit 15, and the message names
     both checks."""
     tests_folder(
         {"sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace("SA99002", "SA99001")}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "SA99001 is carried by both test_first and test_second" in outcome.printed
 
 
@@ -759,14 +769,15 @@ def test_duplicate_id_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_id_of_the_wrong_shape_exits_18(tests_folder, capsys):
-    """An id that is not S, a capital letter and five digits makes the run exit 18,
+def test_an_id_of_the_wrong_shape_exits_15(tests_folder, capsys):
+    """An id that is not S, a capital letter and five digits makes the run exit 15,
     and the message names the check and says what an id looks like."""
     tests_folder(
         {"sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace("SA99001", "sa99001")}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_conformance.py: test_first has the id 'sa99001', which "
         "is not S, a capital letter and five digits" in outcome.printed
@@ -777,15 +788,16 @@ def test_an_id_of_the_wrong_shape_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_unregistered_suite_exits_18(tests_folder, capsys):
+def test_an_unregistered_suite_exits_15(tests_folder, capsys):
     """An id whose two letters are not one of the registered suites makes the run
-    exit 18, and the message names the suite and lists the ones that are
+    exit 15, and the message names the suite and lists the ones that are
     registered."""
     tests_folder(
         {"sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace("SA99001", "SZ99001")}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_conformance.py: test_first has the id SZ99001, and SZ "
         "is not one of the suites" in outcome.printed
@@ -797,12 +809,13 @@ def test_an_unregistered_suite_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_unparseable_file_exits_19(tests_folder, capsys):
-    """A check file that is not valid Python makes the run exit 19, and the message
+def test_unparseable_file_exits_14(tests_folder, capsys):
+    """A check file that is not valid Python makes the run exit 14, and the message
     names it."""
     tests_folder({"sdgtools/test_alpha_conformance.py": "def broken(:\n"})
     outcome = run(capsys)
-    assert outcome.exit_code == 19
+    assert outcome.exit_code == 14
+    assert exit_line(14, "PYTHON-UNPARSEABLE") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_conformance.py: cannot parse" in outcome.printed
     )
@@ -812,22 +825,31 @@ def test_unparseable_file_exits_19(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-@pytest.mark.parametrize("staging", ["empty folder", "no folder"])
-def test_no_test_files_exits_20(tests_folder, capsys, staging):
-    """A validation folder with no check files makes the run exit 20. It runs once
-    with an empty validation folder and once with no validation folder at all."""
+@pytest.mark.parametrize(
+    ("staging", "code", "sub_code", "said"),
+    [
+        ("empty folder", 18, "NO-CHECK-FILES", "no check files found"),
+        ("no folder", 12, "VALIDATION-FOLDER-MISSING", "is missing"),
+    ],
+    ids=["empty folder", "no folder"],
+)
+def test_no_test_files_is_refused(tests_folder, capsys, staging, code, sub_code, said):
+    """A validation folder with no check files makes the run exit 18, and a missing
+    validation folder makes it exit 12, each naming its cause. It runs once with an
+    empty validation folder and once with no validation folder at all."""
     tests_folder({})
     if staging == "no folder":
         script.VALIDATION_DIR.rmdir()
     outcome = run(capsys)
-    assert outcome.exit_code == 20
-    assert "no check files found" in outcome.printed
+    assert outcome.exit_code == code
+    assert exit_line(code, sub_code) in outcome.printed
+    assert said in outcome.printed
 
 
 #######################################################################################
 ### Negative checks on the hand-kept columns ###
 #
-# A hand-kept column that breaks its rule is refused with exit 45 and the row named,
+# A hand-kept column that breaks its rule is refused with exit 15 and the row named,
 # and nothing is written. A problem with a check's markers outranks it.
 
 
@@ -835,13 +857,14 @@ def test_no_test_files_exits_20(tests_folder, capsys, staging):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_status_not_in_the_list_exits_45(written, capsys):
-    """A row whose status is not one of the five makes the run exit 45, quoting the
+def test_a_status_not_in_the_list_exits_15(written, capsys):
+    """A row whose status is not one of the five makes the run exit 15, quoting the
     status, and the inventory is not rewritten."""
     with_hand_kept(written, "SA99002", status="archived")
     before = written.read_text(encoding="utf-8")
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert written.read_text(encoding="utf-8") == before
     assert "SA99002 has status 'archived', which is not one of" in outcome.printed
 
@@ -851,9 +874,9 @@ def test_a_status_not_in_the_list_exits_45(written, capsys):
 @objective("functionality")
 @negative
 @pytest.mark.parametrize("status", ["pending", "inactive", "retired"])
-def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, status):
+def test_a_status_that_needs_a_reason_without_one_exits_15(written, capsys, status):
     """A check marked pending, inactive or retired with no reason recorded makes the
-    check-status run exit 45 and say the reason is missing. The run is repeated once
+    check-status run exit 15 and say the reason is missing. The run is repeated once
     for each of the three statuses.
 
     A retired check is staged as removed from its check file, as a retired check is.
@@ -868,7 +891,8 @@ def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, stat
         check_id = "SA99002"
         with_hand_kept(written, check_id, status=status)
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert f"{check_id} is {status} but status_reason does not say why" in (
         outcome.printed
     )
@@ -878,14 +902,15 @@ def test_a_status_that_needs_a_reason_without_one_exits_45(written, capsys, stat
 @category("repository")
 @objective("functionality")
 @negative
-def test_superseded_without_a_successor_exits_45(written, capsys):
+def test_superseded_without_a_successor_exits_15(written, capsys):
     """A removed check marked superseded that names no replacing check makes the
-    --check-status run exit 45 and say no check is named."""
+    --check-status run exit 15 and say no check is named."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded"))
     write_rows(written, rows)
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert "SA99009 is superseded but superseded_by names no check" in outcome.printed
 
 
@@ -893,12 +918,13 @@ def test_superseded_without_a_successor_exits_45(written, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
+def test_a_successor_on_a_check_not_superseded_exits_15(written, capsys):
     """A row that names replacing checks while its status is not superseded makes the
-    run exit 45."""
+    run exit 15."""
     with_hand_kept(written, "SA99002", superseded_by="SA99001")
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert "SA99002 names checks in superseded_by but is active, not superseded" in (
         outcome.printed
     )
@@ -908,15 +934,16 @@ def test_a_successor_on_a_check_not_superseded_exits_45(written, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
+def test_a_status_reason_on_a_check_that_is_not_off_exits_15(written, capsys):
     """A row that carries a reason while its status is not pending, inactive or retired
-    makes the run exit 45, because only those three statuses record why a check does
+    makes the run exit 15, because only those three statuses record why a check does
     not run."""
     with_hand_kept(
         written, "SA99002", status_reason="Switched off while the API moved."
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert "SA99002 has a status_reason but is active" in outcome.printed
 
 
@@ -924,14 +951,15 @@ def test_a_status_reason_on_a_check_that_is_not_off_exits_45(written, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_successor_that_is_not_in_the_inventory_exits_45(written, capsys):
+def test_a_successor_that_is_not_in_the_inventory_exits_15(written, capsys):
     """A superseded row that names a replacing check which is not in the inventory
-    makes the check-status run exit 45 and name that check."""
+    makes the check-status run exit 15 and name that check."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99404"))
     write_rows(written, rows)
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert (
         "SA99009 is superseded by SA99404, which is not a check in the inventory"
         in (outcome.printed)
@@ -942,12 +970,13 @@ def test_a_successor_that_is_not_in_the_inventory_exits_45(written, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
+def test_a_version_that_is_not_a_whole_number_exits_15(written, capsys):
     """A row whose version is not a whole number from 1 up, such as 1.1, makes the
-    run exit 45, quoting the value."""
+    run exit 15, quoting the value."""
     with_hand_kept(written, "SA99002", version="1.1")
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert "SA99002 has version '1.1', which is not a whole number" in outcome.printed
 
 
@@ -955,14 +984,15 @@ def test_a_version_that_is_not_a_whole_number_exits_45(written, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
+def test_a_retired_check_still_in_the_test_files_exits_16(written, capsys):
     """A row marked retired whose check is still in the check files makes the run exit
-    45, saying to remove the check or change its status."""
+    16, saying to remove the check or change its status."""
     with_hand_kept(
         written, "SA99002", status="retired", status_reason="No longer needed."
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 16
+    assert exit_line(16, "INVENTORY-ROW-MISMATCH") in outcome.printed
     assert "SA99002 is retired but is still in the check files" in outcome.printed
     assert "remove the check or change its status" in outcome.printed
 
@@ -971,12 +1001,13 @@ def test_a_retired_check_still_in_the_test_files_exits_45(written, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
-    """With the check-status option and no inventory on disk, the run exits 16 and
+def test_check_status_without_an_inventory_exits_12(tests_folder, capsys):
+    """With the check-status option and no inventory on disk, the run exits 12 and
     names the command that writes one."""
     tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS})
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 16
+    assert outcome.exit_code == 12
+    assert exit_line(12, "INVENTORY-MISSING") in outcome.printed
     assert "is missing. Run: build_inventory" in outcome.printed
 
 
@@ -986,7 +1017,7 @@ def test_check_status_without_an_inventory_exits_16(tests_folder, capsys):
 @negative
 def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, capsys):
     """When one check has no objective label and another row has a status not in the
-    list, the run exits 18 and names both problems."""
+    list, the run exits 15 and names both problems."""
     with_hand_kept(written, "SA99001", status="archived")
     tests_folder(
         {
@@ -997,7 +1028,8 @@ def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, ca
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "test_second has no @objective marker" in outcome.printed
     assert "SA99001 has status 'archived'" in outcome.printed
 
@@ -1012,12 +1044,13 @@ def test_a_marker_problem_outranks_a_hand_kept_problem(written, tests_folder, ca
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_file_with_no_aspect_in_its_name_exits_47(tests_folder, capsys):
-    """A check file whose name ends with no aspect of quality makes the run exit 47,
+def test_a_file_with_no_aspect_in_its_name_exits_15(tests_folder, capsys):
+    """A check file whose name ends with no aspect of quality makes the run exit 15,
     and the message names the file and lists the endings it may take."""
     tests_folder({"sdgtools/test_alpha.py": TWO_CHECKS})
     outcome = run(capsys)
-    assert outcome.exit_code == 47
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-FILE-NAME-WRONG") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha.py has no aspect in its name; it must end "
         "with one of _conformance, _integrity, _technical" in outcome.printed
@@ -1028,13 +1061,14 @@ def test_a_file_with_no_aspect_in_its_name_exits_47(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_check_of_another_aspect_exits_47(tests_folder, capsys):
+def test_a_check_of_another_aspect_exits_15(tests_folder, capsys):
     """A check whose objective belongs to another aspect than the one its file is named
-    for makes the run exit 47. The message names the check, its objective, the
+    for makes the run exit 15. The message names the check, its objective, the
     objective's aspect and the file's aspect."""
     tests_folder({"sdgtools/test_alpha_integrity.py": TWO_CHECKS})
     outcome = run(capsys)
-    assert outcome.exit_code == 47
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-FILE-NAME-WRONG") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_integrity.py: test_first has the objective "
         "conformance, which belongs to conformance, in a file named for integrity"
@@ -1067,13 +1101,14 @@ def test_the_aspect_is_left_out_of_the_covered_file(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_file_in_an_unlisted_code_folder_exits_48(tests_folder, capsys):
+def test_a_file_in_an_unlisted_code_folder_exits_15(tests_folder, capsys):
     """A check file in a code folder the inventory's folder order does not list makes the
-    run exit 48. The message names the file and the folder and says to add the folder to
+    run exit 15. The message names the file and the folder and says to add the folder to
     that order."""
     tests_folder({"sdg/classify/test_alpha_conformance.py": TWO_CHECKS})
     outcome = run(capsys)
-    assert outcome.exit_code == 48
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-FILE-MISPLACED") in outcome.printed
     assert (
         "validation/sdg/classify/test_alpha_conformance.py is in the code folder "
         "sdg/classify, which CODE_FOLDER_ORDER" in outcome.printed
@@ -1092,12 +1127,13 @@ def test_a_file_in_an_unlisted_code_folder_exits_48(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_status_on_a_file_that_will_not_parse_exits_19(tests_folder, capsys):
+def test_check_status_on_a_file_that_will_not_parse_exits_14(tests_folder, capsys):
     """With the check-status option, a check file that is not valid Python makes the run
-    exit 19 and name the file."""
+    exit 14 and name the file."""
     tests_folder({"sdgtools/test_alpha_technical.py": "def broken(:\n"})
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 19
+    assert outcome.exit_code == 14
+    assert exit_line(14, "PYTHON-UNPARSEABLE") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_technical.py: cannot parse" in outcome.printed
     )
@@ -1107,12 +1143,13 @@ def test_check_status_on_a_file_that_will_not_parse_exits_19(tests_folder, capsy
 @category("repository")
 @objective("functionality")
 @negative
-def test_check_status_on_an_empty_folder_exits_20(tests_folder, capsys):
+def test_check_status_on_an_empty_folder_exits_18(tests_folder, capsys):
     """With the check-status option, a validation folder holding no check files makes the
-    run exit 20 and say no check files were found."""
+    run exit 18 and say no check files were found."""
     tests_folder({})
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 20
+    assert outcome.exit_code == 18
+    assert exit_line(18, "NO-CHECK-FILES") in outcome.printed
     assert "no check files found under validation" in outcome.printed
 
 
@@ -1295,9 +1332,9 @@ def test_each(value):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_check_file_that_will_not_load_exits_49(tests_folder, capsys):
+def test_a_check_file_that_will_not_load_exits_1(tests_folder, capsys):
     """A check file that is valid Python but fails when it is loaded, because it
-    imports a module that does not exist, makes the run exit 49, and the message names
+    imports a module that does not exist, makes the run exit 1, and the message names
     the file and the error."""
     tests_folder(
         {
@@ -1306,7 +1343,8 @@ def test_a_check_file_that_will_not_load_exits_49(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 49
+    assert outcome.exit_code == 1
+    assert exit_line(1, "CHECK-FILE-LOAD-ERROR") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_conformance.py could not be loaded"
         in outcome.printed
@@ -1318,9 +1356,9 @@ def test_a_check_file_that_will_not_load_exits_49(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_conftest_that_will_not_load_exits_49(tests_folder, capsys):
+def test_a_conftest_that_will_not_load_exits_1(tests_folder, capsys):
     """A conftest.py in the validation folder that fails when pytest loads it, before
-    any check file is read, makes the run exit 49, and the message names the
+    any check file is read, makes the run exit 1, and the message names the
     conftest.py."""
     tests_folder(
         {
@@ -1329,7 +1367,8 @@ def test_a_conftest_that_will_not_load_exits_49(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 49
+    assert outcome.exit_code == 1
+    assert exit_line(1, "CHECK-FILE-LOAD-ERROR") in outcome.printed
     assert "pytest could not collect the checks under validation" in outcome.printed
     assert "conftest.py" in outcome.printed
 
@@ -1338,12 +1377,13 @@ def test_a_conftest_that_will_not_load_exits_49(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_check_inside_a_class_exits_51(tests_folder, capsys):
-    """A check written inside a class makes the run exit 51. The message names the
+def test_a_check_inside_a_class_exits_15(tests_folder, capsys):
+    """A check written inside a class makes the run exit 15. The message names the
     file, the class and the check, and says to move the check out of its class."""
     tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS + CHECK_IN_A_CLASS})
     outcome = run(capsys)
-    assert outcome.exit_code == 51
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-INSIDE-CLASS") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_conformance.py: TestGroup::test_inside is not "
         "a function at the top level of its check file" in outcome.printed
@@ -1359,14 +1399,15 @@ def test_a_check_inside_a_class_that_runs_once_per_value_is_named_once(
     tests_folder, capsys
 ):
     """A check written inside a class that pytest runs once for each of two values is
-    named once in the refusal, not once per value, and the run exits 51."""
+    named once in the refusal, not once per value, and the run exits 15."""
     in_a_class = CHECK_IN_A_CLASS.replace(
         "    @positive\n",
         '    @positive\n    @pytest.mark.parametrize("value", [1, 2])\n',
     ).replace("def test_inside(self):", "def test_inside(self, value):")
     tests_folder({"sdgtools/test_alpha_conformance.py": TWO_CHECKS + in_a_class})
     outcome = run(capsys)
-    assert outcome.exit_code == 51
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-INSIDE-CLASS") in outcome.printed
     assert outcome.printed.count("TestGroup::test_inside is not a function") == 1
 
 
@@ -1374,7 +1415,7 @@ def test_a_check_inside_a_class_that_runs_once_per_value_is_named_once(
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_check_carrying_both_cases_exits_18(tests_folder, capsys):
+def test_a_check_carrying_both_cases_exits_15(tests_folder, capsys):
     """A check carrying both the positive and the negative label makes the run exit
     18, and the message names the check and says to keep the one that is true."""
     tests_folder(
@@ -1385,7 +1426,8 @@ def test_a_check_carrying_both_cases_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "test_first carries both @positive and @negative" in outcome.printed
     assert "keep the one that is true" in outcome.printed
 
@@ -1394,14 +1436,15 @@ def test_a_check_carrying_both_cases_exits_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_runs_of_one_check_with_different_labels_exit_18(tests_folder, capsys):
+def test_runs_of_one_check_with_different_labels_exit_15(tests_folder, capsys):
     """A check that runs once per value, where one value carries a label the other
-    does not, makes the run exit 18, and the message names the check."""
+    does not, makes the run exit 15, and the message names the check."""
     tests_folder(
         {"sdgtools/test_alpha_conformance.py": TWO_CHECKS + LABEL_ON_ONE_VALUE}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "test_each carries different labels on different runs" in outcome.printed
 
 
@@ -1409,8 +1452,8 @@ def test_runs_of_one_check_with_different_labels_exit_18(tests_folder, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_check_without_a_docstring_exits_18(tests_folder, capsys):
-    """A check with no docstring makes the run exit 18, and the message names the
+def test_a_check_without_a_docstring_exits_15(tests_folder, capsys):
+    """A check with no docstring makes the run exit 15, and the message names the
     check and says to write the sentence that must be true for it to pass."""
     tests_folder(
         {
@@ -1420,7 +1463,8 @@ def test_a_check_without_a_docstring_exits_18(tests_folder, capsys):
         }
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 18
+    assert outcome.exit_code == 15
+    assert exit_line(15, "CHECK-MARKERS-WRONG") in outcome.printed
     assert "test_second has no docstring, or its first paragraph is empty" in (
         outcome.printed
     )
@@ -1451,9 +1495,9 @@ def test_new():
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_active_row_whose_check_is_gone_exits_45(tests_folder, tmp_path, capsys):
+def test_an_active_row_whose_check_is_gone_exits_16(tests_folder, tmp_path, capsys):
     """Once a validation report has been filed, a row marked active whose check has
-    been deleted from its check file makes the run exit 45. The message names the id
+    been deleted from its check file makes the run exit 16. The message names the id
     and says to mark the row retired or superseded, or put the check back.
 
     The report is staged after the inventory is first written, as a filed report
@@ -1466,7 +1510,8 @@ def test_an_active_row_whose_check_is_gone_exits_45(tests_folder, tmp_path, caps
         {"sdgtools/test_alpha_conformance.py": TWO_CHECKS.split('@code("SA99002")')[0]}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 16
+    assert exit_line(16, "INVENTORY-ROW-MISMATCH") in outcome.printed
     assert "SA99002 is active, but no check file holds a check with that id" in (
         outcome.printed
     )
@@ -1514,8 +1559,8 @@ def test_a_row_whose_check_is_gone_is_dropped_when_no_report_is_filed(
     ],
     ids=["a retired check's id", "a superseded check's id"],
 )
-def test_a_new_check_given_a_spent_id_exits_45(written, tests_folder, capsys, spent):
-    """A new check given the id of a check taken out of use makes the run exit 45. The
+def test_a_new_check_given_a_spent_id_exits_16(written, tests_folder, capsys, spent):
+    """A new check given the id of a check taken out of use makes the run exit 16. The
     message says the id already belongs to a check of that status and to give the new
     check the next free id, and offers no other remedy. The run is repeated for a
     retired check's id and for a superseded check's id."""
@@ -1526,7 +1571,8 @@ def test_a_new_check_given_a_spent_id_exits_45(written, tests_folder, capsys, sp
         {"sdgtools/test_alpha_conformance.py": TWO_CHECKS + NEW_CHECK_WITH_A_SPENT_ID}
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 16
+    assert exit_line(16, "INVENTORY-ROW-MISMATCH") in outcome.printed
     assert (
         "validation/sdgtools/test_alpha_conformance.py: test_new carries SA99009, which "
         f"already belongs to a {spent['status']} check" in outcome.printed
@@ -1563,14 +1609,15 @@ def test_a_successor_taken_out_of_use_since_is_accepted(
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_row_superseded_by_itself_exits_45(written, capsys):
+def test_a_row_superseded_by_itself_exits_15(written, capsys):
     """A superseded row that names its own id in superseded_by makes the check-status
-    run exit 45, and the message says to name the checks that took over from it."""
+    run exit 15, and the message says to name the checks that took over from it."""
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99009"))
     write_rows(written, rows)
     outcome = run(capsys, "--check-status")
-    assert outcome.exit_code == 45
+    assert outcome.exit_code == 15
+    assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
     assert "SA99009 names itself in superseded_by" in outcome.printed
 
 
@@ -1782,18 +1829,19 @@ def test_a_changed_check_is_refingerprinted_when_no_report_is_filed(
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_changed_check_whose_version_did_not_move_exits_50(
+def test_a_changed_check_whose_version_did_not_move_exits_16(
     tests_folder, tmp_path, capsys
 ):
     """Once a validation report has been filed, a check whose code changed while its
-    version stayed at 1 makes the run exit 50. The message names the check and its
+    version stayed at 1 makes the run exit 16. The message names the check and its
     id and says to raise its version to 2."""
     tests_folder({"sdgtools/test_alpha_conformance.py": BODY_CHECK})
     assert run(capsys).exit_code == 0
     file_a_report(tmp_path)
     tests_folder({"sdgtools/test_alpha_conformance.py": BODY_CHECK_CHANGED})
     outcome = run(capsys)
-    assert outcome.exit_code == 50
+    assert outcome.exit_code == 16
+    assert exit_line(16, "CHECK-CHANGED-VERSION-SAME") in outcome.printed
     assert "test_adds (SA99007) has changed since version 1 was recorded" in (
         outcome.printed
     )
@@ -1842,9 +1890,9 @@ def test_a_fingerprint_records_the_python_version_that_made_it(tests_folder, cap
 @category("repository")
 @objective("functionality")
 @negative
-def test_fingerprints_made_by_another_python_exit_62(tests_folder, tmp_path, capsys):
+def test_fingerprints_made_by_another_python_exit_8(tests_folder, tmp_path, capsys):
     """Once a validation report has been filed, an inventory whose fingerprints another
-    Python version made stops the run with exit 62 and one message. The message names
+    Python version made stops the run with exit 8 and one message. The message names
     both Python versions and says to run build_inventory --python-changed in a commit
     that changes nothing else."""
     inventory = tests_folder({"sdgtools/test_alpha_conformance.py": BODY_CHECK})
@@ -1852,7 +1900,8 @@ def test_fingerprints_made_by_another_python_exit_62(tests_folder, tmp_path, cap
     file_a_report(tmp_path)
     made_by_another_python(inventory, "SA99007")
     outcome = run(capsys)
-    assert outcome.exit_code == 62
+    assert outcome.exit_code == 8
+    assert exit_line(8, "PYTHON-VERSION-CHANGED") in outcome.printed
     assert "were made by Python 2.7, and this is Python" in outcome.printed
     assert "Run build_inventory --python-changed" in outcome.printed
     assert "in a commit that changes nothing else" in outcome.printed
@@ -1879,40 +1928,33 @@ def test_python_changed_records_new_fingerprints(tests_folder, tmp_path, capsys)
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_empty_fingerprint_exits_63(tests_folder, tmp_path, capsys):
+def test_an_empty_fingerprint_exits_15(tests_folder, tmp_path, capsys):
     """Once a validation report has been filed, a row whose fingerprint cell was
-    emptied makes the run exit 63. The message names the check and its id and says
+    emptied makes the run exit 15. The message names the check and its id and says
     to put its fingerprint back as git last recorded it."""
     inventory = tests_folder({"sdgtools/test_alpha_conformance.py": BODY_CHECK})
     assert run(capsys).exit_code == 0
     file_a_report(tmp_path)
     with_hand_kept(inventory, "SA99007", fingerprint="")
     outcome = run(capsys)
-    assert outcome.exit_code == 63
+    assert outcome.exit_code == 15
+    assert exit_line(15, "FINGERPRINT-MISSING") in outcome.printed
     assert "test_adds (SA99007) has no fingerprint recorded" in outcome.printed
     assert "Put its fingerprint back as git last recorded it" in outcome.printed
 
 
 #######################################################################################
-### Which exit code wins ###
+### Which sub-code decides the exit line ###
 #
-# The header ranks the exit codes, so a run that finds problems of several kinds
-# exits with the one ranked highest. Each pair of codes next to each other in the
+# The header ranks the sub-codes, so a run that finds problems of several kinds ends
+# on the one ranked highest. Each pair of sub-codes next to each other in the
 # header's order is staged as two problems, the lower-ranked one found first.
 
-# Each code and the code the header ranks next below it.
-RANKED_PAIRS = [
-    (19, 49),
-    (49, 20),
-    (20, 62),
-    (62, 18),
-    (18, 51),
-    (51, 48),
-    (48, 47),
-    (47, 45),
-    (45, 63),
-    (63, 50),
-]
+# Each sub-code and the sub-code the header ranks next below it, read from the order
+# the script itself keeps.
+RANKED_PAIRS = list(
+    zip(script.EXIT_PRECEDENCE, script.EXIT_PRECEDENCE[1:], strict=False)
+)
 
 
 @code("SA00622")
@@ -1924,12 +1966,12 @@ RANKED_PAIRS = [
     RANKED_PAIRS,
     ids=[f"{higher} over {lower}" for higher, lower in RANKED_PAIRS],
 )
-def test_the_higher_ranked_exit_code_wins(higher, lower):
-    """When a run finds two problems, it exits with the code the header ranks higher,
-    even when the other problem was found first. It runs once for each pair of codes
-    next to each other in the header's order."""
+def test_the_higher_ranked_sub_code_decides(higher, lower):
+    """When a run finds two problems, the one whose sub-code the header ranks higher
+    decides the exit line, even when the other problem was found first. It runs once
+    for each pair of sub-codes next to each other in the header's order."""
     problems = [
-        script.Problem("found first", lower),
-        script.Problem("found second", higher),
+        script.Problem("found first", 0, lower),
+        script.Problem("found second", 0, higher),
     ]
-    assert script.exit_code(problems) == higher
+    assert script.deciding_problem(problems).sub_code == higher

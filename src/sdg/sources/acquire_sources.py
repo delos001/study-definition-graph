@@ -33,27 +33,46 @@ Usage:       acquire_sources
              acquire_sources --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (every entry's file is on disk and matches
-                 its entry)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             3   a manifest is missing or cannot be read
-             6   the command is not running from inside the repo
-             8   a pinned file has not been downloaded (a dry run only; a real
-                 run fetches it)
-             9   a pinned file on disk does not match its manifest entry
-                 (left alone)
-             11  a download failed
-             12  a downloaded file does not match its manifest entry (discarded)
-             13  a file on disk cannot be read (left alone)
-             66  a manifest records a location that does not stay under inputs/
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv. Every problem is reported;
-             the exit code is the worst one seen, in the order 11, 12, 8, 9,
-             13, because a corpus with a file missing is worse than one whose
-             files are all present but one has changed. So --dry-run --quiet
-             answers whether the pinned files under inputs/ are complete and intact from the exit
-             code alone.
+Exit codes:  0   SUCCEEDED  the command succeeded (every entry's file is on
+                 disk and matches its entry)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             9   DOWNLOAD-NO-ANSWER  a download's server could not be reached,
+                 did not answer in time, or stopped part way
+             10  DOWNLOAD-REFUSED  a download's server refused access to the
+                 file
+             11  DOWNLOAD-ERROR-ANSWER  a download's server answered with an
+                 error
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest
+             12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been
+                 downloaded (a dry run only; a real run fetches it)
+             13  MANIFEST-UNREADABLE  a manifest is on disk but cannot be opened
+             13  PINNED-FILE-UNREADABLE  a pinned file is on disk but cannot be
+                 opened (left alone)
+             14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
+             15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a
+                 location that does not stay under inputs/
+             15  MANIFEST-URL-INVALID  a manifest entry's url is not one the
+                 download library can use
+             16  PINNED-FILE-CHANGED  a pinned file on disk no longer matches
+                 its manifest entry (left alone)
+             16  DOWNLOAD-MISMATCH  a downloaded file does not match its
+                 manifest entry (discarded)
+             17  MANIFEST-NAME-NOT-FOUND  no manifest has the name given
+             20  DOWNLOAD-NOT-WRITTEN  a download, or its folder, could not be
+                 written to disk
+             The wording is the table in docs/exit_codes.csv. Every problem is
+             reported, and the exit number is the worst one seen, in the order
+             of PRECEDENCE below, because a corpus with a file missing is worse
+             than one whose files are all present but one has changed. So
+             --dry-run --quiet answers whether the pinned files under inputs/
+             are complete and intact from the exit number alone.
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -65,14 +84,30 @@ import argparse
 import sys
 from collections.abc import Callable
 
+from sdg.exit_codes import fail, finish, problem_line
+
 from .fetch_file import FetchError, fetch
 from .finalize_file import discard, place
 from .fingerprint_file import compare
-from .read_manifests import (
-    ManifestError,
-    NotInRepoError,
-    OutsideInputsError,
-    manifests,
+from .read_manifests import ManifestError, NotInRepoError, manifests
+
+#######################################################################################
+### Settings ###
+
+# The order in which the problems a run found decide its exit number, worst first.
+# A download that failed leaves a file missing, which is worse than a file that is
+# present but changed, because the second at least has known contents on disk. In a
+# dry run a file that would be fetched is a file missing.
+PRECEDENCE = (
+    "DOWNLOAD-NO-ANSWER",
+    "DOWNLOAD-REFUSED",
+    "DOWNLOAD-ERROR-ANSWER",
+    "MANIFEST-URL-INVALID",
+    "DOWNLOAD-NOT-WRITTEN",
+    "DOWNLOAD-MISMATCH",
+    "PINNED-FILE-NOT-DOWNLOADED",
+    "PINNED-FILE-CHANGED",
+    "PINNED-FILE-UNREADABLE",
 )
 
 #######################################################################################
@@ -137,22 +172,14 @@ def main(argv: list[str] | None = None) -> int:
 
     say = make_reporter(args.quiet)
 
-    # The manifest reader, src/sdg/sources/read_manifests.py, confirms that the sdg package is running from inside its repo
-    # before it looks for any manifest, so a package installed the wrong way
-    # is reported as that and not as "no manifests found".
+    # The manifest reader, src/sdg/sources/read_manifests.py, confirms that the sdg
+    # package is running from inside its repo before it looks for any manifest, so a
+    # package installed the wrong way is reported as that and not as "no manifests
+    # found". Each of its errors carries its own exit number and sub-code.
     try:
         found = manifests(args.only)
-    except NotInRepoError as exc:
-        say(str(exc))
-        return 6
-    # A location outside inputs/ is caught before the wider manifest error it is a
-    # kind of, because it has its own number: a download there would land anywhere.
-    except OutsideInputsError as exc:
-        say(str(exc))
-        return 66
-    except ManifestError as exc:
-        say(str(exc))
-        return 3
+    except (NotInRepoError, ManifestError) as exc:
+        return fail(say, exc.exit_code, exc.sub_code, exc)
 
     fetched = 0
     would_fetch = 0
@@ -161,6 +188,9 @@ def main(argv: list[str] | None = None) -> int:
     wrong_downloads = 0
     mismatches = 0
     unreadable = 0
+    # Each problem's sub-code, with the exit number it carries, so the worst can be
+    # chosen once the run has seen them all.
+    seen: dict[str, int] = {}
 
     for manifest in found:
         say(manifest.name)
@@ -170,39 +200,66 @@ def main(argv: list[str] | None = None) -> int:
             # a decision for a person, so it is reported and left alone. So is
             # a path that cannot be read at all, such as a folder where a file
             # should be or a workbook Excel has locked. The run carries on, and
-            # the exit code says a person has to look.
+            # the exit number says a person has to look.
             if entry.path.exists():
                 if entry.path.is_dir():
                     say(
-                        f"  CANNOT READ  {entry.local}: a folder, not a file; left alone"
+                        "  "
+                        + problem_line(
+                            "PINNED-FILE-UNREADABLE",
+                            f"{entry.local}: a folder, not a file; left alone",
+                        )
                     )
+                    seen["PINNED-FILE-UNREADABLE"] = 13
                     unreadable += 1
                     continue
                 try:
                     result = compare(entry.path, entry)
                 except OSError as exc:
-                    say(f"  CANNOT READ  {entry.local}: {exc}; left alone")
+                    say(
+                        "  "
+                        + problem_line(
+                            "PINNED-FILE-UNREADABLE",
+                            f"{entry.local}: {exc}; left alone",
+                        )
+                    )
+                    seen["PINNED-FILE-UNREADABLE"] = 13
                     unreadable += 1
                     continue
                 if result.matched:
                     present += 1
                 else:
-                    say(f"  MISMATCH  {entry.local}: {result.detail}; left alone")
+                    say(
+                        "  "
+                        + problem_line(
+                            "PINNED-FILE-CHANGED",
+                            f"{entry.local}: {result.detail}; left alone",
+                        )
+                    )
+                    seen["PINNED-FILE-CHANGED"] = 16
                     mismatches += 1
                 continue
 
             if args.dry_run:
-                say(f"  would fetch  {entry.name}")
+                say(
+                    "  "
+                    + problem_line(
+                        "PINNED-FILE-NOT-DOWNLOADED", f"would fetch {entry.name}"
+                    )
+                )
+                seen["PINNED-FILE-NOT-DOWNLOADED"] = 12
                 would_fetch += 1
                 continue
 
             say(f"  fetching     {entry.name}")
             # A url that cannot be fetched is reported and counted, and the run goes on
-            # to the next entry, so one dead address does not stop the rest.
+            # to the next entry, so one dead address does not stop the rest. The kind
+            # of error names the group of failure.
             try:
                 partial = fetch(entry.url, entry.path)
             except FetchError as exc:
-                say(f"    FAILED  {exc}")
+                say("    " + problem_line(exc.sub_code, f"FAILED  {exc}"))
+                seen[exc.sub_code] = exc.exit_code
                 fetch_failures += 1
                 continue
 
@@ -213,7 +270,11 @@ def main(argv: list[str] | None = None) -> int:
                 place(partial)
                 fetched += 1
             else:
-                say(f"    DISCARDED  {result.detail}")
+                say(
+                    "    "
+                    + problem_line("DOWNLOAD-MISMATCH", f"DISCARDED  {result.detail}")
+                )
+                seen["DOWNLOAD-MISMATCH"] = 16
                 discard(partial)
                 wrong_downloads += 1
 
@@ -231,20 +292,10 @@ def main(argv: list[str] | None = None) -> int:
             f"{fetch_failures + wrong_downloads} fetch(es) failed or did not match their entry."
         )
 
-    # One exit code per cause, the worst one seen. A corpus with a file missing
-    # is worse than one whose files are all present but one has changed, because
-    # the second at least has known contents on disk. In a dry run a file that
-    # would be fetched is a file missing.
-    if fetch_failures:
-        return 11
-    if wrong_downloads:
-        return 12
-    if would_fetch:
-        return 8
-    if mismatches:
-        return 9
-    if unreadable:
-        return 13
+    # The worst problem seen decides the exit number.
+    for sub_code in PRECEDENCE:
+        if sub_code in seen:
+            return finish(say, seen[sub_code], sub_code)
     return 0
 
 

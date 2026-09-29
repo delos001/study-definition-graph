@@ -50,8 +50,9 @@ Exit codes:  There are none, because this file is not run on its own. On a probl
              PermissionError      the file is on disk but cannot be opened, as when
                                   another program has it locked; the operating
                                   system's own error, passed through
-             One error per cause, so the program using this step can give each
-             its own exit code without reading the message.
+             One error per cause. UnrecordedFileError and IntegrityError carry
+             the exit number and sub-code a command reports them with, from
+             docs/exit_codes.csv, as the manifest reader's errors do.
 
 Date:        2026-09-04
 Owner:       Jason Delosh
@@ -76,6 +77,9 @@ class UnrecordedFileError(Exception):
     a test fixture directly.
     """
 
+    exit_code = 16
+    sub_code = "FILE-UNRECORDED"
+
 
 class IntegrityError(Exception):
     """Raised when a pinned file is on disk but its size or sha256 differs from its
@@ -83,6 +87,9 @@ class IntegrityError(Exception):
 
     The message shows both values and the three ways back.
     """
+
+    exit_code = 16
+    sub_code = "PINNED-FILE-CHANGED"
 
 
 # These three lines are shown when the file's size or sha256 differs from its

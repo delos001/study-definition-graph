@@ -24,15 +24,24 @@ Usage:       find_unrecorded_files
              find_unrecorded_files --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (every file under inputs/ is recorded)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             3   a manifest is missing or cannot be read
-             6   the command is not running from inside the repo
-             10  a file under inputs/ is recorded by no manifest
-             66  a manifest records a location that does not stay under inputs/
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (every file under inputs/ is
+                 recorded)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest
+             13  MANIFEST-UNREADABLE  a manifest is on disk but cannot be opened
+             14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
+             15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a
+                 location that does not stay under inputs/
+             16  FILE-UNRECORDED  a file under inputs/ is recorded by no
+                 manifest
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-09-09
 Owner:       Jason Delosh
@@ -46,10 +55,10 @@ import sys
 # The manifests are read through the sdg package, so this script needs the
 # editable install (pip install -e ., README.md step 4) the same as the
 # pipeline does.
+from sdg.exit_codes import fail, finish, problem_line
 from sdg.sources import (
     ManifestError,
     NotInRepoError,
-    OutsideInputsError,
     manifests,
 )
 from sdg.sources.read_manifests import REPO_ROOT, Manifest
@@ -127,34 +136,27 @@ def main(argv: list[str] | None = None) -> int:
 
     # The manifest reader, src/sdg/sources/read_manifests.py, confirms the sdg package is running from inside its repo before it
     # looks for any manifest, so the wrong install is reported as that.
+    def say(message: str) -> None:
+        """Print a line, unless --quiet was given."""
+        if not args.quiet:
+            print(message)
+
+    # Each manifest error carries its own exit number and sub-code.
     try:
         found = manifests()
-    except NotInRepoError as exc:
-        if not args.quiet:
-            print(exc)
-        return 6
-    # A location outside inputs/ is a kind of manifest error with its own number,
-    # so it is caught first.
-    except OutsideInputsError as exc:
-        if not args.quiet:
-            print(exc)
-        return 66
-    except ManifestError as exc:
-        if not args.quiet:
-            print(exc)
-        return 3
+    except (NotInRepoError, ManifestError) as exc:
+        return fail(say, exc.exit_code, exc.sub_code, exc)
 
     stray = unrecorded_files(found)
 
-    if not args.quiet:
-        for local in stray:
-            print(local)
-        if stray:
-            print(
-                f"\n{len(stray)} file(s) no manifest records. They cannot be restored from a clone."
-            )
-
-    return 10 if stray else 0
+    for local in stray:
+        say(problem_line("FILE-UNRECORDED", local))
+    if not stray:
+        return 0
+    say(
+        f"\n{len(stray)} file(s) no manifest records. They cannot be restored from a clone."
+    )
+    return finish(say, 16, "FILE-UNRECORDED")
 
 
 if __name__ == "__main__":

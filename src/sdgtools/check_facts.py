@@ -46,30 +46,50 @@ Usage:       check_facts
              check_facts --verbose
                  also show facts that match
 
-Exit codes:  0   the command succeeded (every recorded figure is stated, and
-                 every statement matches the source it came from)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             3   a manifest is missing or cannot be read (or two manifest
-                 entries record the file name a measurement looks up)
-             4   the pinned model file is not shaped like the pinned USDM model
-             6   the command is not running from inside the repo
-             8   a pinned file has not been downloaded
-             9   a pinned file on disk does not match its manifest entry
-             10  a file under inputs/ is recorded by no manifest
-             13  a file on disk cannot be read (a workbook another program has
-                 locked, for example)
-             14  a stated figure has drifted from the pinned files
-             22  a tool could not be run at all (git, which lists the tracked
-                 Markdown files, could not be run or did not answer)
-             42  a pinned file is not shaped the way a measurement expects (it
-                 was read, but lacks what the measurement reaches for)
-             65  a recorded figure is stated in no document
-             66  a manifest records a location that does not stay under inputs/
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv. A measurement stops at the
-             first file it cannot use, so the run reports one cause at a time.
-             14 outranks 65, because a figure stated wrongly misleads a reader
+Exit codes:  0   SUCCEEDED  the command succeeded (every recorded figure is
+                 stated, and every statement matches the source it came from)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             6   GIT-NOT-FOUND  git cannot be found on the path (it lists the
+                 tracked Markdown files)
+             7   GIT-FAILED  git was found but did not answer (the folder is not
+                 a git clone, for example)
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest
+             12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been
+                 downloaded
+             13  MANIFEST-UNREADABLE  a manifest is on disk but cannot be opened
+             13  PINNED-FILE-UNREADABLE  a pinned file is on disk but cannot be
+                 opened (a workbook another program has locked, for example)
+             14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
+             14  USDM-MODEL-UNPARSEABLE  the pinned model file is not valid YAML
+             14  PINNED-FILE-UNPARSEABLE  a pinned file a measurement reads is
+                 not valid in its format
+             15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a
+                 location that does not stay under inputs/
+             15  MANIFEST-NAME-SHARED  two manifest entries record the same file
+                 name (the name a measurement looks up)
+             15  USDM-MODEL-WRONG-SHAPE  the pinned model file is not shaped
+                 like the pinned USDM model
+             15  PINNED-FILE-WRONG-SHAPE  a pinned file is not shaped the way a
+                 measurement expects (it was read, but lacks what the
+                 measurement reaches for)
+             16  PINNED-FILE-CHANGED  a pinned file on disk no longer matches
+                 its manifest entry
+             16  FILE-UNRECORDED  a file under inputs/ is recorded by no
+                 manifest (or a measurement names a file no manifest records)
+             16  FIGURE-DRIFTED  a stated figure has drifted from the pinned
+                 files
+             16  FIGURE-UNSTATED  a recorded figure is stated in no document
+             The wording is the table in docs/exit_codes.csv. A measurement
+             stops at the first file it cannot use, so the run reports one
+             cause at a time. FIGURE-DRIFTED decides the exit line before
+             FIGURE-UNSTATED, because a figure stated wrongly misleads a reader
              now. Both are still named.
 
 Date:        2026-08-18
@@ -87,14 +107,14 @@ from pathlib import Path
 
 import openpyxl
 
-# The model loader, and the ways it can refuse the pinned file. The six exception
-# classes are imported here so the measurement loop can give each cause its own
-# exit code.
+# The model loader, and the ways it can refuse the pinned file. The exception
+# classes are imported here so the measurement loop can report each cause with the
+# exit number and sub-code it carries.
 from sdg.console_output import use_utf8_output
+from sdg.exit_codes import fail, finish, problem_line
 from sdg.sources.read_manifests import (
     ManifestError,
     NotInRepoError,
-    OutsideInputsError,
     entry_named,
 )
 from sdg.sources.verify_pinned import (
@@ -126,7 +146,21 @@ GIT = "git"
 
 
 class GitError(Exception):
-    """Raised when git cannot be run, or does not answer, so the tracked files are unknown."""
+    """Raised when git was found but does not answer, so the tracked files are unknown.
+
+    It carries the exit number and sub-code the command reports it with, from
+    docs/exit_codes.csv.
+    """
+
+    exit_code = 7
+    sub_code = "GIT-FAILED"
+
+
+class GitNotFoundError(GitError):
+    """Raised when git cannot be found on the path."""
+
+    exit_code = 6
+    sub_code = "GIT-NOT-FOUND"
 
 
 #######################################################################################
@@ -204,11 +238,16 @@ def concepts_newest_package_date() -> str:
         The date as text, in the form 2026-07-14.
 
     Raises:
-        ManifestError: No manifest records the export, or two entries record its name.
+        UnrecordedFileError: No manifest records the export.
+        ManifestError: Two entries record its name.
     """
     entry = entry_named(CONCEPTS_NAME)
     if entry is None:
-        raise ManifestError(f"no manifest entry is named {CONCEPTS_NAME}")
+        raise UnrecordedFileError(
+            f"no manifest entry is named {CONCEPTS_NAME}\n"
+            "  fix -> record the file in manifests/, or correct CONCEPTS_NAME in "
+            "src/sdgtools/check_facts.py"
+        )
     workbook = openpyxl.load_workbook(verify_pinned(entry.path).path, read_only=True)
     rows = workbook["Biomedical Concepts"].iter_rows(values_only=True)
     column = list(next(rows)).index("package_date")
@@ -262,10 +301,12 @@ def tracked_documents() -> list[str]:
         The files' paths from the repo root, with forward slashes, sorted.
 
     Raises:
-        GitError: git could not be run, or it did not answer.
+        GitNotFoundError: git could not be found on the path.
+        GitError: git was found but did not answer.
     """
     # A missing git and a git that refuses the folder both leave the tracked files
-    # unknown, and both are fixed by making git work here, so they share one error.
+    # unknown, but the first is fixed by installing git and the second by running
+    # from inside the clone, so each has its own error.
     try:
         listing = subprocess.run(
             [GIT, "ls-files", "-z", "--", "*.md"],
@@ -278,7 +319,7 @@ def tracked_documents() -> list[str]:
     except subprocess.CalledProcessError as exc:
         raise GitError(f"git did not answer: {exc.stderr.strip()}") from exc
     except OSError as exc:
-        raise GitError(f"git could not be run: {exc}") from exc
+        raise GitNotFoundError(f"git could not be run: {exc}") from exc
     return sorted(
         name for name in listing.split("\0") if name and name not in EXCLUDED_DOCUMENTS
     )
@@ -351,64 +392,61 @@ def main(argv: list[str] | None = None) -> int:
     # no figure can be compared.
     try:
         documents = tracked_documents()
+    except GitNotFoundError as exc:
+        return fail(print, exc.exit_code, exc.sub_code, f"{exc}\n  fix -> install git")
     except GitError as exc:
-        print(f"  NO DOCUMENTS   {exc}")
-        print("  fix -> install git, or run check_facts from inside the repo's clone")
-        return 22
+        return fail(
+            print,
+            exc.exit_code,
+            exc.sub_code,
+            f"{exc}\n  fix -> run check_facts from inside the repo's clone",
+        )
 
     drifted = unasserted = 0
 
     for label, measure, pattern in FACTS:
         # Each way a measurement can fail is a different root cause with a
-        # different remedy, so each gets its own exit code (see header). None
-        # can be reported as drift, because nothing was measured.
+        # different remedy, so each has its own sub-code (see header). None can be
+        # reported as drift, because nothing was measured.
         try:
             actual = measure()
         except FileNotFoundError as exc:
-            print(f"  NOT DOWNLOADED {label}: {exc}")
-            return 8
+            return fail(print, 12, "PINNED-FILE-NOT-DOWNLOADED", f"{label}: {exc}")
+        except json.JSONDecodeError as exc:
+            # JSON that does not parse is a kind of ValueError, so it is caught
+            # before the shape errors below and keeps its own sub-code.
+            return fail(print, 14, "PINNED-FILE-UNPARSEABLE", f"{label}: {exc}")
         except (KeyError, IndexError, TypeError, AttributeError, ValueError) as exc:
             # The file was read but does not hold what the measurement reaches
-            # for: a worked example lacking its study designs, a design that is
-            # not an object, or JSON that does not parse, which the json module
-            # reports as a ValueError. Neither a re-download nor the network
-            # would change any of those.
-            print(f"  UNEXPECTED SHAPE {label}: {exc}")
-            return 42
+            # for: a worked example lacking its study designs, or a design that
+            # is not an object. Neither a re-download nor the network would change
+            # either of those.
+            return fail(print, 15, "PINNED-FILE-WRONG-SHAPE", f"{label}: {exc}")
         except OSError as exc:
             # The file is there but cannot be opened, as a workbook Excel has
             # locked. Listed after the missing-file case, which is one kind
-            # of OSError, so that case keeps its own number.
-            print(f"  CANNOT READ    {label}: {exc}")
-            return 13
-        except NotInRepoError as exc:
-            print(f"  NOT IN REPO    {label}: {exc}")
-            return 6
-        # A location outside inputs/ is a kind of manifest error with its own
-        # number, so it is caught first.
-        except OutsideInputsError as exc:
-            print(f"  BAD LOCATION   {label}: {exc}")
-            return 66
-        except ManifestError as exc:
-            print(f"  BAD MANIFEST   {label}: {exc}")
-            return 3
-        except UnrecordedFileError as exc:
-            print(f"  UNRECORDED     {label}: {exc}")
-            return 10
-        except IntegrityError as exc:
-            print(f"  MISMATCH       {label}: {exc}")
-            return 9
-        except SpecShapeError as exc:
-            print(f"  WRONG SHAPE    {label}: {exc}")
-            return 4
+            # of OSError, so that case keeps its own sub-code.
+            return fail(print, 13, "PINNED-FILE-UNREADABLE", f"{label}: {exc}")
+        except (
+            NotInRepoError,
+            ManifestError,
+            UnrecordedFileError,
+            IntegrityError,
+            SpecShapeError,
+        ) as exc:
+            return fail(print, exc.exit_code, exc.sub_code, f"{label}: {exc}")
 
         occurrences = stated_values(pattern, documents)
 
         if not occurrences:
-            print(f"  NOT ASSERTED  {label}: measured {actual}, no document states it")
             print(
-                "  fix -> state the figure again where the project reasons from it, "
-                "or remove its measurement from FACTS in src/sdgtools/check_facts.py"
+                problem_line(
+                    "FIGURE-UNSTATED",
+                    f"{label}: measured {actual}, no document states it\n"
+                    "  fix -> state the figure again where the project reasons from "
+                    "it, or remove its measurement from FACTS in "
+                    "src/sdgtools/check_facts.py",
+                )
             )
             unasserted += 1
             continue
@@ -416,7 +454,10 @@ def main(argv: list[str] | None = None) -> int:
         for name, stated in occurrences:
             if stated != str(actual):
                 print(
-                    f"  DRIFTED       {label} in {name}: says {stated}, actual {actual}"
+                    problem_line(
+                        "FIGURE-DRIFTED",
+                        f"{label} in {name}: says {stated}, actual {actual}",
+                    )
                 )
                 drifted += 1
             elif args.verbose:
@@ -431,9 +472,9 @@ def main(argv: list[str] | None = None) -> int:
     # would report every figure confirmed while one is compared with nothing. Drift
     # outranks it, because a figure stated wrongly misleads a reader now.
     if drifted:
-        return 14
+        return finish(print, 16, "FIGURE-DRIFTED")
     if unasserted:
-        return 65
+        return finish(print, 16, "FIGURE-UNSTATED")
     return 0
 
 

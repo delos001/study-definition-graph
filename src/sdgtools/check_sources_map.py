@@ -43,19 +43,31 @@ Usage:       check_sources_map
              check_sources_map --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (the map and the manifests agree)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             3   a manifest is missing or cannot be read
-             6   the command is not running from inside the repo
-             13  a file on disk cannot be read (the sources map)
-             35  a pinned file has no document heading in the sources map
-             36  the sources map names a location no manifest records
-             66  a manifest records a location that does not stay under inputs/
-             35 outranks 36, because a file nobody can find is worse than a
-             heading pointing at an empty folder. Every problem is still named.
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (the map and the manifests
+                 agree)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             3   NOT-IN-REPO  the sdg package is not running from inside its
+                 repo
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest
+             13  MANIFEST-UNREADABLE  a manifest is on disk but cannot be opened
+             14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
+             15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a
+                 location that does not stay under inputs/
+             12  SOURCES-MAP-MISSING  docs/sources_index.md is missing
+             13  SOURCES-MAP-UNREADABLE  docs/sources_index.md cannot be opened
+             16  SOURCES-MAP-HEADING-MISSING  a pinned file has no document
+                 heading in the sources map
+             16  SOURCES-MAP-LOCATION-UNRECORDED  the sources map names a
+                 location no manifest records
+             SOURCES-MAP-HEADING-MISSING decides the exit line before
+             SOURCES-MAP-LOCATION-UNRECORDED, because a file nobody can find is
+             worse than a heading pointing at an empty folder. Every problem is
+             still named. The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-09-15
 Owner:       Jason Delosh
@@ -68,10 +80,10 @@ import re
 import sys
 from fnmatch import fnmatchcase
 
+from sdg.exit_codes import fail, finish, problem_line
 from sdg.sources import (
     ManifestError,
     NotInRepoError,
-    OutsideInputsError,
     manifests,
 )
 from sdg.sources.read_manifests import REPO_ROOT, Manifest
@@ -244,47 +256,62 @@ def main(argv: list[str] | None = None) -> int:
 
     # The manifest reader, src/sdg/sources/read_manifests.py, confirms the sdg package is running from inside its repo before it
     # looks for any manifest, so the wrong install is reported as that.
+    def say(message: str) -> None:
+        """Print a line, unless --quiet was given."""
+        if not args.quiet:
+            print(message)
+
+    # Each manifest error carries its own exit number and sub-code.
     try:
         found = manifests()
-    except NotInRepoError as exc:
-        if not args.quiet:
-            print(exc)
-        return 6
-    # A location outside inputs/ is a kind of manifest error with its own number,
-    # so it is caught first.
-    except OutsideInputsError as exc:
-        if not args.quiet:
-            print(exc)
-        return 66
-    except ManifestError as exc:
-        if not args.quiet:
-            print(exc)
-        return 3
+    except (NotInRepoError, ManifestError) as exc:
+        return fail(say, exc.exit_code, exc.sub_code, exc)
 
-    # A map that cannot be read is reported with the operating system's reason
-    # and exit 13, rather than being compared as though it were empty.
+    # A map that is missing or cannot be opened is reported with the operating
+    # system's reason, rather than being compared as though it were empty. The two
+    # have different fixes, so each has its own sub-code.
     try:
         text = MAP_FILE.read_text(encoding="utf-8")
+    except FileNotFoundError as exc:
+        return fail(
+            say,
+            12,
+            "SOURCES-MAP-MISSING",
+            f"{MAP_FILE.name} is missing: {exc}\n  fix -> restore it from git",
+        )
     except OSError as exc:
-        if not args.quiet:
-            print(f"{MAP_FILE.name} cannot be read: {exc}")
-        return 13
+        return fail(
+            say,
+            13,
+            "SOURCES-MAP-UNREADABLE",
+            f"{MAP_FILE.name} cannot be opened: {exc}\n"
+            "  fix -> close any program holding the file, then run this again",
+        )
 
     missing = unmapped_files(found, map_patterns(text))
     empty = empty_locations(found, map_locations(text))
 
-    if not args.quiet:
-        for local in missing:
-            print(
-                f"{local} is recorded in a manifest but no heading in the map covers it"
+    for local in missing:
+        say(
+            problem_line(
+                "SOURCES-MAP-HEADING-MISSING",
+                f"{local} is recorded in a manifest but no heading in the map covers it",
             )
-        for location in empty:
-            print(f"the map names {location}, which no manifest records a file in")
+        )
+    for location in empty:
+        say(
+            problem_line(
+                "SOURCES-MAP-LOCATION-UNRECORDED",
+                f"the map names {location}, which no manifest records a file in",
+            )
+        )
 
+    # A file nobody can find is worse than a heading pointing at an empty folder, so
+    # it decides the exit line.
     if missing:
-        return 35
+        return finish(say, 16, "SOURCES-MAP-HEADING-MISSING")
     if empty:
-        return 36
+        return finish(say, 16, "SOURCES-MAP-LOCATION-UNRECORDED")
     return 0
 
 

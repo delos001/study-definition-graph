@@ -820,3 +820,25 @@ The validation audit of 2026-09-28 found two ways the manifest reader, `src/sdg/
 - A lookup by a name that more than one record holds is refused. The message names every record that holds it, and says that the code asking for the name has to choose one version.
 - Callers go on naming a pinned file by its name alone, because a file's location is recorded in its manifest and nowhere else. Naming files by their full location in `lookup_documents.yml` and in `check_facts` was built on 2026-09-29 and reversed the same day for that reason.
 - Every command that reads the manifests refuses a `local` location that does not stay under `inputs/` once resolved, under exit 66.
+
+## Exit numbers name a broad group of failure, and a sub-code names the failure itself, decided 2026-09-29
+
+The entry "One exit code per cause across the whole repo, decided 2026-09-14" gave every cause of failure its own number. By 2026-09-29 the table held 66 causes, the ceiling set by the entry "Exit numbers stop at 125, decided 2026-09-28" was 125, and every pipeline phase still to come adds commands. The numbers would run out. The purpose stays the one the 2026-09-14 entry gave it: a person must never have to work out what a failure means, or apply the wrong fix because they misread the number.
+
+Three published sets of exit numbers were looked at first, and none was adopted.
+
+- The sysexits list, numbers 64 to 78, is the only general-purpose set. Its groups were written around mail software and are too vague to tell a person where to look, and FreeBSD, which publishes it, has marked it deprecated for its own software since version 8.0.
+- The Linux Standard Base numbers, 1 to 7, are written only for scripts that start and stop system services.
+- The gRPC status codes are a well-designed set with written rules for choosing between neighbours, but they are built for calls between programs. Under them, most of this repo's causes would fall into one group, failed precondition. Their decision rules were borrowed for the groups below.
+
+No standard fits, so the choice is **unguided**.
+
+- The exit number is one of a short list of groups, each naming a kind of failure without naming a technology, such as "a service did not respond" or "a setting is missing". Each group has a test that separates it from its neighbours, so a new failure is placed by answering the tests rather than by judgment.
+- The groups are asked in two steps. The first asks what the problem is with: the repo's own code, the command line, the working folder, a setting, an outside program, a service, a file, the content of a file or a service's answer, what was asked for, an output, or the run's result. The second asks what went wrong with it.
+- Each failure also has a sub-code, a short name in capitals such as `NEO4J-UNREACHABLE`. Two failures share a sub-code only when they share an explanation and a fix.
+- When a command fails, each problem line starts with its sub-code, followed by the specific message with the details known only at run time, such as the address it tried. The last line names the exit number, its group and the sub-code that decided it, as in `Exit 9: a service did not respond (NEO4J-UNREACHABLE)`. The exit line comes last because a command that reports several problems chooses its number only once it has seen them all.
+- `docs/exit_codes.csv` is a reference for people. It holds one row per sub-code, with the exit number, the group, what happened and what to do. Commands do not read it while they run.
+- The group sentences are written once in code, in `src/sdg/exit_codes.py`, which every command uses to print the exit line. `src/sdgtools/verify_headers.py` confirms that the two agree.
+- 1 and 2 keep Python's own meanings, widened to the groups "this repo's own code failed" and "the command line is wrong".
+
+This reverses the 2026-09-14 entry's rule of one number per cause. The rule it keeps is that one number means the same thing in every command.

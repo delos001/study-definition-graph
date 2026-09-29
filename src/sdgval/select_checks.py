@@ -96,6 +96,7 @@ from typing import NoReturn
 import pytest
 import yaml
 
+from sdg.exit_codes import problem_line
 from sdgval.build_inventory import (
     ASPECT_OF,
     CATEGORIES,
@@ -187,7 +188,8 @@ class Refusal(enum.Enum):
 
     Each refusal stops the run with pytest's usage error, which a plain pytest run
     reports as 4 whatever the cause. src/sdgval/aspect_run.py turns each cause into
-    the repo's own exit number, so an aspect's command says which cause it was.
+    the exit number and sub-code in REFUSAL_EXITS, so an aspect's command says which
+    cause it was.
     """
 
     ASPECT_GIVEN = enum.auto()
@@ -198,7 +200,25 @@ class Refusal(enum.Enum):
     GROUP_OF_MIXED_ASPECTS = enum.auto()
     GROUP_WITH_UNKNOWN_ID = enum.auto()
     UNCOMMITTED_CHANGES = enum.auto()
+    GIT_NOT_FOUND = enum.auto()
     GIT_SILENT = enum.auto()
+
+
+# The exit number and sub-code each refusal is reported with, from docs/exit_codes.csv.
+# The sub-code opens the refusal's message, and src/sdgval/aspect_run.py ends the run
+# on the number.
+REFUSAL_EXITS: dict[Refusal, tuple[int, str]] = {
+    Refusal.ASPECT_GIVEN: (2, "ASPECT-OPTION-GIVEN"),
+    Refusal.UNCOMMITTED_CHANGES: (3, "UNCOMMITTED-CHANGES"),
+    Refusal.GIT_NOT_FOUND: (6, "GIT-NOT-FOUND"),
+    Refusal.GIT_SILENT: (7, "GIT-FAILED"),
+    Refusal.GROUPS_FILE_MISSING: (12, "GROUPS-FILE-MISSING"),
+    Refusal.GROUP_OF_MIXED_ASPECTS: (15, "GROUP-MIXES-ASPECTS"),
+    Refusal.GROUP_WITHOUT_IDS: (15, "GROUP-HAS-NO-IDS"),
+    Refusal.GROUP_WITH_UNKNOWN_ID: (16, "GROUP-ID-UNKNOWN"),
+    Refusal.NOTHING_SELECTED: (17, "SELECTION-MATCHES-NOTHING"),
+    Refusal.NO_CHECK_COLLECTED: (18, "NO-CHECKS-COLLECTED"),
+}
 
 
 # Where a refusal leaves its cause, in pytest's stash, for an aspect's command to read
@@ -215,10 +235,11 @@ def refuse(config: pytest.Config, cause: Refusal, message: str) -> NoReturn:
         message: What the person reads, saying what is wrong and what to do.
 
     Raises:
-        pytest.UsageError: Always, carrying the message.
+        pytest.UsageError: Always, carrying the message with the cause's sub-code in
+            front of it.
     """
     config.stash[REFUSAL] = cause
-    raise pytest.UsageError(message)
+    raise pytest.UsageError(problem_line(REFUSAL_EXITS[cause][1], message))
 
 
 #######################################################################################

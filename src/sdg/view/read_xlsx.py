@@ -35,15 +35,19 @@ Usage:       read_xlsx <workbook>
              read_xlsx --all --find "epoch"
                  search every workbook under inputs/
 
-Exit codes:  0   the command succeeded
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line (this covers
-                 --all without --find, and no workbook named)
-             25  the named sheet does not exist in the workbook
-             26  no workbook under inputs/ matches the name given
-             46  the named header row is past the end of the sheet
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line (this covers --all without --find, and no workbook named)
+             17  WORKBOOK-NOT-FOUND  no workbook under inputs/ matches the name
+                 given
+             17  WORKBOOK-NAME-AMBIGUOUS  the name given matches more than one
+                 workbook under inputs/
+             17  SHEET-NOT-FOUND  the named sheet does not exist in the workbook
+             17  HEADER-ROW-PAST-END  the named header row is past the end of
+                 the sheet
+             The wording is the table in docs/exit_codes.csv.
 
 Date:        2026-08-17
 Owner:       Jason Delosh
@@ -59,6 +63,7 @@ import openpyxl
 from openpyxl.worksheet.worksheet import Worksheet
 
 from sdg.console_output import use_utf8_output
+from sdg.exit_codes import fail
 from sdg.sources.read_manifests import REPO_ROOT
 
 #######################################################################################
@@ -97,8 +102,8 @@ def find_workbooks() -> list[Path]:
     )
 
 
-def resolve_workbook(argument: str) -> Path | None:
-    """Turn a user-supplied workbook argument into a real path.
+def resolve_workbook(argument: str) -> list[Path]:
+    """Turn a user-supplied workbook argument into the workbooks it matches.
 
     A full path, a path relative to the repo root, or just a filename is accepted,
     because typing the full path to a nested example workbook is tedious. A bare
@@ -109,29 +114,20 @@ def resolve_workbook(argument: str) -> Path | None:
         argument: What the user typed.
 
     Returns:
-        The workbook's path, or None when nothing matches or a partial name is
-            ambiguous. The caller reports the failure.
+        Every workbook the argument matches. One means the workbook is found. None
+            means nothing matches, and more than one means a partial name is
+            ambiguous. The caller reports either failure.
     """
     direct = Path(argument)
     if direct.is_file():
-        return direct
+        return [direct]
 
     relative = REPO_ROOT / argument
     if relative.is_file():
-        return relative
+        return [relative]
 
     needle = argument.lower()
-    matches = [p for p in find_workbooks() if needle in p.name.lower()]
-
-    if len(matches) == 1:
-        return matches[0]
-
-    if len(matches) > 1:
-        print(f"{argument!r} matches {len(matches)} workbooks:", file=sys.stderr)
-        for path in matches:
-            print(f"  {path.relative_to(REPO_ROOT)}", file=sys.stderr)
-
-    return None
+    return [p for p in find_workbooks() if needle in p.name.lower()]
 
 
 #######################################################################################
@@ -329,6 +325,17 @@ def search_workbook(path: Path, term: str) -> list[str]:
 ### Command line ###
 
 
+def _say_error(message: str) -> None:
+    """Print one line to standard error, where this command writes every problem.
+
+    Standard error keeps a problem out of the text a person may be piping to a file.
+
+    Args:
+        message: The line to print.
+    """
+    print(message, file=sys.stderr)
+
+
 def main(argv: list[str] | None = None) -> int:
     """Parse the arguments, run one mode, and give back the exit code.
 
@@ -404,10 +411,26 @@ def main(argv: list[str] | None = None) -> int:
         )
         parser.error(f"name a workbook. Those under inputs/ are:\n{listing}")
 
-    workbook_path = resolve_workbook(args.workbook)
-    if workbook_path is None:
-        print(f"No workbook matching {args.workbook!r}.", file=sys.stderr)
-        return 26
+    # A name that matches nothing and one that matches several have different fixes,
+    # so each has its own sub-code. The second lists what it matched, so the next
+    # attempt can be exact.
+    matches = resolve_workbook(args.workbook)
+    if not matches:
+        return fail(
+            _say_error,
+            17,
+            "WORKBOOK-NOT-FOUND",
+            f"No workbook matching {args.workbook!r}.",
+        )
+    if len(matches) > 1:
+        listing = "\n".join(f"  {path.relative_to(REPO_ROOT)}" for path in matches)
+        return fail(
+            _say_error,
+            17,
+            "WORKBOOK-NAME-AMBIGUOUS",
+            f"{args.workbook!r} matches {len(matches)} workbooks:\n{listing}",
+        )
+    workbook_path = matches[0]
 
     # This mode searches one workbook.
     if args.find:
@@ -442,12 +465,13 @@ def main(argv: list[str] | None = None) -> int:
             (n for n in workbook.sheetnames if n.lower() == args.sheet.lower()), None
         )
         if actual is None:
-            print(
+            return fail(
+                _say_error,
+                17,
+                "SHEET-NOT-FOUND",
                 f"No sheet named {args.sheet!r} in {workbook_path.name}. "
-                f"Run without --sheet to list them.",
-                file=sys.stderr,
+                "Run without --sheet to list them.",
             )
-            return 25
 
         rows = read_rows(workbook[actual], args.header_row)
 
@@ -455,12 +479,13 @@ def main(argv: list[str] | None = None) -> int:
         # which is a different thing from an empty sheet and gets its own refusal so
         # the number can be corrected rather than the sheet doubted.
         if args.header_row > 1 and not rows:
-            print(
+            return fail(
+                _say_error,
+                17,
+                "HEADER-ROW-PAST-END",
                 f"Sheet {actual!r} in {workbook_path.name} has no rows at or below "
                 f"row {args.header_row}. Run without --header-row to see the sheet.",
-                file=sys.stderr,
             )
-            return 46
 
         width = max((len(row) for _row_number, row in rows), default=0)
         heading = f"### {workbook_path.name} | sheet {actual}"

@@ -39,6 +39,7 @@ from sdg.sources.read_manifests import (
     AmbiguousNameError,
     Entry,
     ManifestError,
+    ManifestUnparseableError,
     NotInRepoError,
     OutsideInputsError,
     as_local,
@@ -353,8 +354,8 @@ def test_unreadable_manifest_stops_the_read_and_names_the_file(fake_repo):
     manifest is fine. The message names the bad file and says to restore it from git."""
     fake_repo.manifest("good", [])
     fake_repo.manifest("broken", "{ not json")
-    message = refused_with(ManifestError)
-    assert message.startswith("broken.json: cannot read")
+    message = refused_with(ManifestUnparseableError)
+    assert message.startswith("broken.json: is not valid JSON")
     assert "git checkout" in message
 
 

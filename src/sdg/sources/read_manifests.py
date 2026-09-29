@@ -30,20 +30,28 @@ Usage:       This file is not run directly; other code imports it.
                   or None, and a refusal when two entries share the name
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it stops
-             and hands an error to the program using it, which decides what to
-             do. The errors it can hand back:
-             NotInRepoError      the sdg package is not running from inside its repo
-             ManifestError       a manifest cannot be read, an entry lacks a required
-                                 field, or a field holds a value that can never be
-                                 right: a size that is not a whole number, or a
-                                 sha256 that is not 64 lowercase hex characters
-             OutsideInputsError  an entry's local location does not stay under
-                                 inputs/ once resolved, as a full path or one
-                                 that steps back up with .. does not
-             AmbiguousNameError  a file name asked for is recorded by more than
-                                 one entry
-             The last two are kinds of ManifestError, so a program that does not
-             tell them apart still stops on them.
+             and hands an error to the program using it. Each error carries the
+             exit number and sub-code a command reports it with, from
+             docs/exit_codes.csv. The errors it can hand back:
+             NotInRepoError            the sdg package is not running from inside
+                                       its repo
+             ManifestMissingError      the manifests folder is missing or empty
+             ManifestNameError         no manifest has the name asked for
+             ManifestUnreadableError   a manifest cannot be opened
+             ManifestUnparseableError  a manifest is not valid JSON
+             ManifestError             a manifest is JSON of the wrong shape, an
+                                       entry lacks a required field, or a field
+                                       holds a value that can never be right: a
+                                       size that is not a whole number, or a
+                                       sha256 that is not 64 lowercase hex
+                                       characters
+             OutsideInputsError        an entry's local location does not stay
+                                       under inputs/ once resolved, as a full path
+                                       or one that steps back up with .. does not
+             AmbiguousNameError        a file name asked for is recorded by more
+                                       than one entry
+             Every error but the first is a kind of ManifestError, so a program
+             that does not tell them apart still stops on them.
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -97,16 +105,55 @@ class NotInRepoError(Exception):
     Python's own library folder instead of pointing at the repo.
     """
 
+    exit_code = 3
+    sub_code = "NOT-IN-REPO"
+
 
 class ManifestError(Exception):
-    """Raised when a manifest cannot be read, or an entry can never match a file.
+    """Raised when a manifest's content breaks a requirement, and the base of every
+    manifest error.
 
-    That covers a manifests folder that is missing or empty, a manifest that is not
-    valid JSON or is valid JSON of the wrong shape, an entry that lacks a required
-    field, and a field holding a value that can never be right: a size that is not a
-    whole number, or a sha256 that is not 64 lowercase hex characters. The message
-    names the file and the cause, quoting a bad value as written.
+    Raised as itself, it covers a manifest that is valid JSON of the wrong shape, an
+    entry that lacks a required field, and a field holding a value that can never be
+    right: a size that is not a whole number, or a sha256 that is not 64 lowercase hex
+    characters. The message names the file and the cause, quoting a bad value as
+    written.
+
+    Each kind of manifest error carries the exit number and sub-code a command reports
+    it with, from docs/exit_codes.csv, so every command reports the same problem the
+    same way.
     """
+
+    exit_code = 15
+    sub_code = "MANIFEST-INVALID"
+
+
+class ManifestMissingError(ManifestError):
+    """Raised when the manifests folder is missing, or holds no manifest."""
+
+    exit_code = 12
+    sub_code = "MANIFEST-MISSING"
+
+
+class ManifestNameError(ManifestError):
+    """Raised when no manifest has the name a person asked for."""
+
+    exit_code = 17
+    sub_code = "MANIFEST-NAME-NOT-FOUND"
+
+
+class ManifestUnreadableError(ManifestError):
+    """Raised when a manifest is on disk but cannot be opened."""
+
+    exit_code = 13
+    sub_code = "MANIFEST-UNREADABLE"
+
+
+class ManifestUnparseableError(ManifestError):
+    """Raised when a manifest is not valid JSON."""
+
+    exit_code = 14
+    sub_code = "MANIFEST-UNPARSEABLE"
 
 
 class OutsideInputsError(ManifestError):
@@ -117,6 +164,9 @@ class OutsideInputsError(ManifestError):
     download anywhere on the machine, so the entry is refused before anything uses it.
     """
 
+    exit_code = 15
+    sub_code = "MANIFEST-LOCATION-OUTSIDE-INPUTS"
+
 
 class AmbiguousNameError(ManifestError):
     """Raised when a file name asked for is recorded by more than one entry.
@@ -125,6 +175,9 @@ class AmbiguousNameError(ManifestError):
     share a name. Picking either one would be a guess, so the lookup refuses and names
     the location of each. A name is answered again once one entry records it.
     """
+
+    exit_code = 15
+    sub_code = "MANIFEST-NAME-SHARED"
 
 
 #######################################################################################
@@ -274,18 +327,29 @@ def _read_one(path: Path) -> Manifest:
         A Manifest holding the file's entries.
 
     Raises:
-        ManifestError: The file is not valid JSON, is JSON of the wrong shape, or one of
-            its entries is malformed.
+        ManifestUnreadableError: The file cannot be opened.
+        ManifestUnparseableError: The file is not valid JSON.
+        ManifestError: The file is JSON of the wrong shape, or one of its entries is
+            malformed.
     """
 
-    # A manifest that is not valid JSON and one that cannot be opened are the
-    # same problem: nothing in it can be trusted. The message names the file,
-    # because the usual fix is to restore that file with git.
+    # A manifest that cannot be opened and one that is not valid JSON are told
+    # apart, because the first is often a program holding the file and the second
+    # is a damaged file. The message names the file, because the usual fix for a
+    # damaged one is to restore it with git.
     try:
-        raw = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError) as exc:
-        raise ManifestError(
-            f"{path.name}: cannot read ({exc})\n"
+        text = path.read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ManifestUnreadableError(
+            f"{path.name}: cannot be opened ({exc})\n"
+            "  fix -> close any program holding the file, or restore manifests/ "
+            "(git checkout), then re-run"
+        ) from exc
+    try:
+        raw = json.loads(text)
+    except json.JSONDecodeError as exc:
+        raise ManifestUnparseableError(
+            f"{path.name}: is not valid JSON ({exc})\n"
             "  fix -> restore manifests/ (git checkout), then re-run"
         ) from exc
 
@@ -331,13 +395,15 @@ def manifests(only: str | None = None) -> list[Manifest]:
 
     Raises:
         NotInRepoError: The sdg package is not running from inside its repo.
-        ManifestError: The manifests folder is missing or empty, the named manifest does
-            not exist, or a manifest cannot be read.
+        ManifestMissingError: The manifests folder is missing or empty.
+        ManifestNameError: No manifest has the name asked for.
+        ManifestError: A manifest cannot be opened, is not valid JSON, or breaks a
+            requirement. Each has its own kind of ManifestError.
     """
     require_repo()
 
     if not MANIFEST_DIR.is_dir():
-        raise ManifestError(
+        raise ManifestMissingError(
             f"no manifests folder at {MANIFEST_DIR}\n"
             "  fix -> restore manifests/ (git checkout), then re-run"
         )
@@ -353,8 +419,8 @@ def manifests(only: str | None = None) -> list[Manifest]:
 
     if not paths:
         if wanted:
-            raise ManifestError(f"no manifest named {wanted} in manifests/")
-        raise ManifestError(
+            raise ManifestNameError(f"no manifest named {wanted} in manifests/")
+        raise ManifestMissingError(
             f"no manifests found in {MANIFEST_DIR}\n"
             "  fix -> restore manifests/ (git checkout), then re-run"
         )

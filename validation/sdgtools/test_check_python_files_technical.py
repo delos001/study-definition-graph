@@ -36,6 +36,7 @@ from types import SimpleNamespace
 
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgtools import check_python_files as script
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -239,12 +240,13 @@ def test_quiet_keeps_the_verdicts_and_drops_the_progress_lines(stage, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_failing_tool_exits_21_and_is_named(stage, capsys):
-    """When one tool reports a problem, the run exits 21, and that tool's line says
+def test_a_failing_tool_exits_15_and_is_named(stage, capsys):
+    """When one tool reports a problem, the run exits 15, and that tool's line says
     FAILED while the others say passed."""
     stage.failing = {"ruff check"}
     outcome = run_tool(capsys)
-    assert outcome.exit_code == 21
+    assert outcome.exit_code == 15
+    assert exit_line(15, "RUFF-OR-MYPY-PROBLEM") in outcome.printed
     assert "ruff check: FAILED" in outcome.printed
     assert "ruff format: passed" in outcome.printed
     assert "mypy: passed" in outcome.printed
@@ -266,12 +268,13 @@ def test_every_tool_still_runs_after_one_fails(stage, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_no_tool_and_no_conda_exits_22(stage, capsys):
-    """When neither the tool nor conda is on the path, the run exits 22, names the
+def test_no_tool_and_no_conda_exits_6(stage, capsys):
+    """When neither the tool nor conda is on the path, the run exits 6, names the
     tool, gives the fix, and runs nothing."""
     stage.on_path = set()
     outcome = run_tool(capsys)
-    assert outcome.exit_code == 22
+    assert outcome.exit_code == 6
+    assert exit_line(6, "TOOL-NOT-FOUND") in outcome.printed
     assert "ruff format: cannot run" in outcome.printed
     assert "conda activate sdg" in outcome.printed
     assert stage.commands == []
@@ -302,10 +305,10 @@ FAILED_STARTS = [
 @objective("functionality")
 @negative
 @pytest.mark.parametrize(("on_path", "not_answering", "not_launching"), FAILED_STARTS)
-def test_a_tool_that_does_not_start_exits_22_and_is_named(
+def test_a_tool_that_does_not_start_exits_7_and_is_named(
     stage, capsys, on_path, not_answering, not_launching
 ):
-    """When a tool does not answer when asked for its version, the run exits 22,
+    """When a tool does not answer when asked for its version, the run exits 7,
     names that tool and says to confirm or recreate the sdg environment. Each run
     stages one way a tool can fail to start: through conda, on the path with an
     error, or not launchable at all."""
@@ -314,7 +317,8 @@ def test_a_tool_that_does_not_start_exits_22_and_is_named(
     stage.not_launching = not_launching
     program = next(iter(not_answering | not_launching))
     outcome = run_tool(capsys)
-    assert outcome.exit_code == 22
+    assert outcome.exit_code == 7
+    assert exit_line(7, "TOOL-FAILED-TO-START") in outcome.printed
     assert f"cannot run; {program} did not answer" in outcome.printed
     assert "recreate it from environment.yml" in outcome.printed
 

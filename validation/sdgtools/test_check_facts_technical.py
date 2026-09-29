@@ -41,6 +41,7 @@ from typing import NoReturn
 import openpyxl
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdg.sources.read_manifests import (
     ManifestError,
     NotInRepoError,
@@ -143,13 +144,14 @@ def test_matching_figure_exits_0(fact, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_drifted_figure_exits_14(fact, capsys):
+def test_drifted_figure_exits_16(fact, capsys):
     """A document stating a different number is reported as drifted, with the stated and
-    measured values, and the run exits 14."""
+    measured values, and the run exits 16."""
     fact(lambda: 3, "We hold 4 widgets.\n")
-    assert cf.main([]) == 14
+    assert cf.main([]) == 16
     out = capsys.readouterr().out
-    assert "DRIFTED       widgets in facts.md: says 4, actual 3" in out
+    assert exit_line(16, "FIGURE-DRIFTED") in out
+    assert "FIGURE-DRIFTED  widgets in facts.md: says 4, actual 3" in out
     assert "1 drifted" in out
 
 
@@ -161,21 +163,24 @@ def test_every_occurrence_is_checked(fact, capsys):
     """When the same figure appears twice and one copy is out of date, that copy is
     reported. A correct first copy does not hide it."""
     fact(lambda: 3, "We hold 3 widgets. Elsewhere: 5 widgets.\n")
-    assert cf.main([]) == 14
-    assert "says 5, actual 3" in capsys.readouterr().out
+    assert cf.main([]) == 16
+    out = capsys.readouterr().out
+    assert exit_line(16, "FIGURE-DRIFTED") in out
+    assert "says 5, actual 3" in out
 
 
 @code("SA00594")
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_figure_stated_nowhere_exits_65(fact, capsys):
-    """A recorded figure that no document states makes the run exit 65, and the report
+def test_a_figure_stated_nowhere_exits_16(fact, capsys):
+    """A recorded figure that no document states makes the run exit 16, and the report
     names the fact, its measured value and the fix."""
     fact(lambda: 3, "Nothing about them here.\n")
-    assert cf.main([]) == 65
+    assert cf.main([]) == 16
     out = capsys.readouterr().out
-    assert "NOT ASSERTED  widgets: measured 3, no document states it" in out
+    assert exit_line(16, "FIGURE-UNSTATED") in out
+    assert "FIGURE-UNSTATED  widgets: measured 3, no document states it" in out
     assert "fix -> state the figure again where the project reasons from it" in out
 
 
@@ -184,8 +189,8 @@ def test_a_figure_stated_nowhere_exits_65(fact, capsys):
 @objective("functionality")
 @negative
 def test_a_drifted_figure_outranks_one_stated_nowhere(fact, monkeypatch, capsys):
-    """When one figure has drifted and another is stated in no document, the run exits
-    14, and the report still names both."""
+    """When one figure has drifted and another is stated in no document, the drifted
+    figure decides the exit line, and the report still names both."""
     fact(lambda: 3, "We hold 4 widgets.\n")
     monkeypatch.setattr(
         cf,
@@ -195,10 +200,11 @@ def test_a_drifted_figure_outranks_one_stated_nowhere(fact, monkeypatch, capsys)
             ("gadgets", lambda: 2, r"(\d+) gadgets"),
         ],
     )
-    assert cf.main([]) == 14
+    assert cf.main([]) == 16
     out = capsys.readouterr().out
-    assert "DRIFTED       widgets in facts.md: says 4, actual 3" in out
-    assert "NOT ASSERTED  gadgets: measured 2, no document states it" in out
+    assert exit_line(16, "FIGURE-DRIFTED") in out
+    assert "FIGURE-DRIFTED  widgets in facts.md: says 4, actual 3" in out
+    assert "FIGURE-UNSTATED  gadgets: measured 2, no document states it" in out
 
 
 @code("SA00278")
@@ -233,69 +239,87 @@ def test_a_date_is_compared_as_text(fact):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_drifted_date_exits_14(fact, capsys):
+def test_a_drifted_date_exits_16(fact, capsys):
     """A document naming a different date from the measured one is reported as drifted
-    with both dates, and the run exits 14. That is how a folder named for the wrong date
+    with both dates, and the run exits 16. That is how a folder named for the wrong date
     is caught."""
     fact(
         lambda: "2026-07-14",
         "The folder is widgets_2026-07-21.\n",
         pattern=r"widgets_(\d{4}-\d{2}-\d{2})",
     )
-    assert cf.main([]) == 14
-    assert "says 2026-07-21, actual 2026-07-14" in capsys.readouterr().out
+    assert cf.main([]) == 16
+    out = capsys.readouterr().out
+    assert exit_line(16, "FIGURE-DRIFTED") in out
+    assert "says 2026-07-21, actual 2026-07-14" in out
 
 
 #######################################################################################
-### When a measurement cannot be made, one exit code per cause ###
+### When a measurement cannot be made, one sub-code per cause ###
 
 
 @code("SA00281")
 @category("repository")
 @objective("functionality")
 @pytest.mark.parametrize(
-    "raised, code, word",
+    "raised, code, sub_code",
     [
-        (FileNotFoundError("gone.pdf"), 8, "NOT DOWNLOADED"),
-        (PermissionError("locked by another program"), 13, "CANNOT READ"),
-        (KeyError("studyDesigns"), 42, "UNEXPECTED SHAPE"),
-        (json.JSONDecodeError("Expecting value", "", 0), 42, "UNEXPECTED SHAPE"),
-        (AttributeError("'str' object has no attribute 'get'"), 42, "UNEXPECTED SHAPE"),
-        (ManifestError("set_a.json: cannot read"), 3, "BAD MANIFEST"),
+        (FileNotFoundError("gone.pdf"), 12, "PINNED-FILE-NOT-DOWNLOADED"),
+        (PermissionError("locked by another program"), 13, "PINNED-FILE-UNREADABLE"),
+        (KeyError("studyDesigns"), 15, "PINNED-FILE-WRONG-SHAPE"),
+        (
+            json.JSONDecodeError("Expecting value", "", 0),
+            14,
+            "PINNED-FILE-UNPARSEABLE",
+        ),
+        (
+            AttributeError("'str' object has no attribute 'get'"),
+            15,
+            "PINNED-FILE-WRONG-SHAPE",
+        ),
+        (ManifestError("set_a.json: entry x lacks url"), 15, "MANIFEST-INVALID"),
         (
             OutsideInputsError('set_a.json: entry x has local "inputs/../x"'),
-            66,
-            "BAD LOCATION",
+            15,
+            "MANIFEST-LOCATION-OUTSIDE-INPUTS",
         ),
         (
             UnrecordedFileError("cannot verify x: no manifest entry records it"),
-            10,
-            "UNRECORDED",
+            16,
+            "FILE-UNRECORDED",
         ),
-        (IntegrityError("x: sha256 differs; manifest says 0000"), 9, "MISMATCH"),
-        (SpecShapeError("class 'X' is missing Modifier"), 4, "WRONG SHAPE"),
-        (NotInRepoError("sdg is not running from inside its repo"), 6, "NOT IN REPO"),
+        (
+            IntegrityError("x: sha256 differs; manifest says 0000"),
+            16,
+            "PINNED-FILE-CHANGED",
+        ),
+        (
+            SpecShapeError("class 'X' is missing Modifier"),
+            15,
+            "USDM-MODEL-WRONG-SHAPE",
+        ),
+        (NotInRepoError("sdg is not running from inside its repo"), 3, "NOT-IN-REPO"),
     ],
     ids=[
-        "not-downloaded-8",
-        "cannot-read-13",
-        "unexpected-shape-42",
-        "malformed-json-42",
-        "not-an-object-42",
-        "bad-manifest-3",
-        "outside-inputs-66",
-        "unrecorded-10",
-        "mismatch-9",
-        "wrong-shape-4",
-        "not-in-repo-6",
+        "not downloaded",
+        "cannot be opened",
+        "unexpected shape",
+        "malformed json",
+        "not an object",
+        "manifest breaks a requirement",
+        "outside inputs",
+        "unrecorded",
+        "changed file",
+        "wrong model shape",
+        "not in repo",
     ],
 )
 @negative
-def test_each_measurement_failure_has_its_own_exit_code(
-    fact, capsys, raised, code, word
+def test_each_measurement_failure_has_its_own_sub_code(
+    fact, capsys, raised, code, sub_code
 ):
-    """A measurement that fails is reported under a label naming the cause, with the
-    error's own message. The run exits with that cause's number from
+    """A measurement that fails is reported under the sub-code naming its cause, with
+    the error's own message, and the run exits with that sub-code's number from
     docs/exit_codes.csv. It runs once for each cause."""
 
     def measure() -> NoReturn:
@@ -305,7 +329,7 @@ def test_each_measurement_failure_has_its_own_exit_code(
     fact(measure, "We hold 3 widgets.\n")
     assert cf.main([]) == code
     out = capsys.readouterr().out
-    assert f"{word}" in out and str(raised) in out
+    assert exit_line(code, sub_code) in out and str(raised) in out
 
 
 #######################################################################################
@@ -358,13 +382,14 @@ def test_an_untracked_document_is_not_read(tracked):
 @category("repository")
 @objective("functionality")
 @negative
-def test_git_that_cannot_be_run_exits_22(tracked, monkeypatch, capsys):
-    """When git cannot be run, the run exits 22 before any measurement, and the report
+def test_git_that_cannot_be_run_exits_6(tracked, monkeypatch, capsys):
+    """When git cannot be found, the run exits 6 before any measurement, and the report
     says git could not be run and to install it."""
     tracked({"facts.md": "We hold 3 widgets.\n"})
     monkeypatch.setattr(cf, "GIT", "git-that-does-not-exist")
-    assert cf.main([]) == 22
+    assert cf.main([]) == 6
     out = capsys.readouterr().out
+    assert exit_line(6, "GIT-NOT-FOUND") in out
     assert "git could not be run" in out
     assert "fix -> install git" in out
 
@@ -373,17 +398,18 @@ def test_git_that_cannot_be_run_exits_22(tracked, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_git_that_does_not_answer_exits_22(tracked, monkeypatch, capsys):
+def test_git_that_does_not_answer_exits_7(tracked, monkeypatch, capsys):
     """When git runs but refuses to list the tracked files, as it does outside a
-    repository, the run exits 22 before any measurement, and the report says git did
+    repository, the run exits 7 before any measurement, and the report says git did
     not answer and to run check_facts from inside the repo's clone.
 
     git is pointed at a repository folder that does not exist, which makes it stop
     with an error instead of listing files."""
     tracked({"facts.md": "We hold 3 widgets.\n"})
     monkeypatch.setenv("GIT_DIR", str(cf.REPO_ROOT / "no_such_repository"))
-    assert cf.main([]) == 22
+    assert cf.main([]) == 7
     out = capsys.readouterr().out
+    assert exit_line(7, "GIT-FAILED") in out
     assert "git did not answer" in out
     assert "run check_facts from inside the repo's clone" in out
 
@@ -471,7 +497,7 @@ def test_no_entry_named_for_the_concepts_export_is_refused(fake_repo):
     write_concepts(fake_repo.root / local, "2027-01-01")
     fake_repo.manifest("concepts", [fake_repo.entry(local, name="renamed.xlsx")])
     with pytest.raises(
-        ManifestError, match=f"no manifest entry is named {cf.CONCEPTS_NAME}"
+        UnrecordedFileError, match=f"no manifest entry is named {cf.CONCEPTS_NAME}"
     ):
         cf.concepts_newest_package_date()
 

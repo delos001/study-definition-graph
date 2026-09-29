@@ -32,31 +32,41 @@ Usage:       validate_technical
              validate_technical validation/sdg/sources
                  run only the technical checks in that folder
 
-Exit codes:  0   the command succeeded
-             1   Python stopped on an error that nothing handled (pytest's
-                 internal error is one too)
-             2   the argument parser refused the command line (pytest refused
-                 the command line, such as an option it does not know)
-             13  a file on disk cannot be read (--group was given and
-                 validation/validation_groups.yml is missing)
-             52  one or more checks failed (a check whose set-up or clean-up
-                 broke counts as failed)
-             53  the check run stopped before every check ran (it was stopped by
-                 hand, or a check file could not be loaded)
-             54  no check was collected
-             55  an aspect's command was given --aspect
-             56  the selection options leave no check to run
-             57  a validation report was refused because the working folder has
-                 uncommitted changes
-             58  a validation report was refused because git did not answer
-             59  a group in validation/validation_groups.yml lists checks of more
-                 than one aspect
-             60  a group in validation/validation_groups.yml lists no ids
-             61  a group in validation/validation_groups.yml lists an id no check
-                 has
+Exit codes:  0   SUCCEEDED  the command succeeded
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             1   PYTEST-INTERNAL-ERROR  pytest stopped on an error inside pytest
+                 or one of the project's plugins
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line (pytest refused the command line, such as an option it
+                 does not know)
+             2   ASPECT-OPTION-GIVEN  an aspect's command was given --aspect
+             3   UNCOMMITTED-CHANGES  a validation report was refused because
+                 the working folder has changes that are not committed
+             6   GIT-NOT-FOUND  git cannot be found on the path (a validation
+                 report was asked for)
+             7   GIT-FAILED  git was found but did not answer (a validation
+                 report was asked for)
+             12  GROUPS-FILE-MISSING  validation/validation_groups.yml, which
+                 --group reads, is missing
+             15  GROUP-MIXES-ASPECTS  a group in validation/validation_groups.yml
+                 lists checks of more than one aspect
+             15  GROUP-HAS-NO-IDS  a group in validation/validation_groups.yml
+                 lists no ids
+             16  GROUP-ID-UNKNOWN  a group in validation/validation_groups.yml
+                 lists an id no check has
+             17  SELECTION-MATCHES-NOTHING  the selection options leave no check
+                 to run
+             18  NO-CHECKS-COLLECTED  no check was collected
+             21  CHECKS-FAILED  one or more validation checks failed (a check
+                 whose set-up or clean-up broke counts as failed)
+             23  RUN-INTERRUPTED  the check run was interrupted before every
+                 check ran (it was stopped by hand, or a check file could not
+                 be loaded)
              src/sdgval/aspect_run.py turns pytest's own exit status into these
-             numbers. A plain pytest run of the same checks keeps pytest's own
-             numbers. The numbers are the repo-wide table in docs/exit_codes.csv.
+             numbers and prints the exit line. A plain pytest run of the same
+             checks keeps pytest's own numbers. The wording is the table in
+             docs/exit_codes.csv.
 
 Date:        2026-09-25
 Owner:       Jason Delosh

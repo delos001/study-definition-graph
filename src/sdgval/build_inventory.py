@@ -128,36 +128,53 @@ Usage:       build_inventory
              build_inventory --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (the inventory was written, or a check
-                 found it in order)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             16  the validation inventory is stale or missing (--check and
-                 --check-status only)
-             18  a check's markers, id or first sentence are missing or wrong, or
-                 its id is a duplicate
-             19  a Python file could not be parsed
-             20  no files were found to work on
-             45  a hand-kept column of the validation inventory breaks its rules
-             47  a check file's name has no aspect of quality or holds a check of
-                 another aspect
-             48  a check file is in a code folder the inventory has no place for
-             49  a check file could not be loaded
-             50  a check's code changed but its version in the validation
-                 inventory did not (only once a validation report has been
-                 filed, and a change to its docstring or labels counts)
-             51  a check is not written as a function at the top level of its
-                 check file
-             62  the fingerprints in the validation inventory were made by another
-                 Python version (only once a validation report has been filed,
-                 and not with --python-changed)
-             63  a check's fingerprint in the validation inventory is missing or
-                 unreadable (only once a validation report has been filed)
-             19 outranks 49, 49 outranks 20, 20 outranks 62, 62 outranks 18, 18
-             outranks 51, 51 outranks 48, 48 outranks 47, 47 outranks 45, 45
-             outranks 63, and 63 outranks 50. A run that finds 19, 49, 20 or 62
-             stops there and names only those. Every other problem is still
-             named. The numbers are the repo-wide table in docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (the inventory was written,
+                 or a check found it in order)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             1   CHECK-FILE-LOAD-ERROR  a check file is valid Python but raised
+                 an error while it was loaded
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             8   PYTHON-VERSION-CHANGED  the fingerprints in the validation
+                 inventory were made by another Python version (only once a
+                 validation report has been filed, and not with
+                 --python-changed)
+             12  VALIDATION-FOLDER-MISSING  the validation/ folder is missing
+             12  INVENTORY-MISSING  validation/validation_inventory.csv is
+                 missing (--check and --check-status only)
+             14  PYTHON-UNPARSEABLE  a Python file is not valid Python
+             15  CHECK-MARKERS-WRONG  a check's markers, id or first sentence
+                 are missing or wrong, or its id is a duplicate
+             15  CHECK-INSIDE-CLASS  a check is not written as a function at the
+                 top level of its check file
+             15  CHECK-FILE-MISPLACED  a check file is in a code folder the
+                 inventory has no place for
+             15  CHECK-FILE-NAME-WRONG  a check file's name has no aspect of
+                 quality, or it holds a check of another aspect
+             15  INVENTORY-COLUMN-INVALID  a hand-kept column of the validation
+                 inventory breaks its rules
+             15  FINGERPRINT-MISSING  a check's fingerprint in the validation
+                 inventory is missing or unreadable (only once a validation
+                 report has been filed)
+             16  INVENTORY-ROW-MISMATCH  a row of the validation inventory
+                 disagrees with the check files (a row whose check is gone is
+                 not marked retired or superseded, a retired or superseded
+                 row's check is still there, or a new check carries a retired
+                 id)
+             16  CHECK-CHANGED-VERSION-SAME  a check's code changed but its
+                 version in the validation inventory did not (only once a
+                 validation report has been filed, and a change to its
+                 docstring or labels counts)
+             16  INVENTORY-STALE  validation/validation_inventory.csv is stale
+                 (--check only)
+             18  NO-CHECK-FILES  no check files were found under validation/
+             The exit line names the first sub-code of EXIT_PRECEDENCE below
+             that any problem carries. A run that finds PYTHON-UNPARSEABLE,
+             CHECK-FILE-LOAD-ERROR, VALIDATION-FOLDER-MISSING, NO-CHECK-FILES or
+             PYTHON-VERSION-CHANGED stops there and names only those. Every
+             other problem is still named. The wording is the table in
+             docs/exit_codes.csv.
 
 Date:        2026-09-11
 Owner:       Jason Delosh
@@ -181,6 +198,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+
+from sdg.exit_codes import fail, finish, problem_line
 
 #######################################################################################
 ### Settings ###
@@ -323,14 +342,33 @@ FINGERPRINT_SHAPE = re.compile(r"v([0-9]+):py([0-9]+\.[0-9]+):([0-9a-f]{16})")
 # A patch release does not change how Python writes code out, so it is left out.
 RUNNING_PYTHON = f"{sys.version_info.major}.{sys.version_info.minor}"
 
-# When several kinds of problem are found in one run, the exit code is the first of
-# these that any problem carries. Every problem is still printed.
-EXIT_PRECEDENCE = (19, 49, 20, 62, 18, 51, 48, 47, 45, 63, 50)
+# When several kinds of problem are found in one run, the exit line names the first
+# of these sub-codes that any problem carries. Every problem is still printed.
+EXIT_PRECEDENCE = (
+    "PYTHON-UNPARSEABLE",
+    "CHECK-FILE-LOAD-ERROR",
+    "VALIDATION-FOLDER-MISSING",
+    "NO-CHECK-FILES",
+    "PYTHON-VERSION-CHANGED",
+    "CHECK-MARKERS-WRONG",
+    "CHECK-INSIDE-CLASS",
+    "CHECK-FILE-MISPLACED",
+    "CHECK-FILE-NAME-WRONG",
+    "INVENTORY-COLUMN-INVALID",
+    "INVENTORY-ROW-MISMATCH",
+    "FINGERPRINT-MISSING",
+    "CHECK-CHANGED-VERSION-SAME",
+)
 
 # The problems that stop a run before anything else is looked at. Without every
 # check file loaded, the checks read are not the whole set, so every row whose
 # check was not read would look removed.
-STOPPING = (19, 49, 20)
+STOPPING = (
+    "PYTHON-UNPARSEABLE",
+    "CHECK-FILE-LOAD-ERROR",
+    "VALIDATION-FOLDER-MISSING",
+    "NO-CHECK-FILES",
+)
 
 
 #######################################################################################
@@ -342,14 +380,15 @@ STOPPING = (19, 49, 20)
 
 @dataclass(frozen=True)
 class Problem:
-    """One thing wrong, with the exit code its kind of problem carries.
+    """One thing wrong, with the exit number and sub-code its kind of problem carries.
 
-    The code travels with the problem from where it is found, so the exit code
-    never depends on how a message is worded.
+    The number and sub-code travel with the problem from where it is found, so the
+    exit line never depends on how a message is worded.
     """
 
     message: str
     code: int
+    sub_code: str
 
 
 @dataclass(frozen=True)
@@ -653,14 +692,21 @@ def load_problems(record: CollectionRecord, status: int, printed: str) -> list[P
     problems = []
     for path, error in record.failures:
         if isinstance(error, SyntaxError):
-            problems.append(Problem(f"{_name(path)}: cannot parse ({error})", 19))
+            problems.append(
+                Problem(
+                    f"{_name(path)}: cannot parse ({error})",
+                    14,
+                    "PYTHON-UNPARSEABLE",
+                )
+            )
         else:
             problems.append(
                 Problem(
                     f"{_name(path)} could not be loaded, so the checks in it cannot "
                     f"be read ({type(error).__name__}: {error}). Fix the error, then "
                     "run build_inventory again",
-                    49,
+                    1,
+                    "CHECK-FILE-LOAD-ERROR",
                 )
             )
     if problems:
@@ -671,11 +717,18 @@ def load_problems(record: CollectionRecord, status: int, printed: str) -> list[P
             Problem(
                 f"pytest could not collect the checks under {_name(VALIDATION_DIR)} "
                 f"(exit {status}): {said}",
-                49,
+                1,
+                "CHECK-FILE-LOAD-ERROR",
             )
         ]
     if not record.files:
-        return [Problem(f"no check files found under {_name(VALIDATION_DIR)}", 20)]
+        return [
+            Problem(
+                f"no check files found under {_name(VALIDATION_DIR)}",
+                18,
+                "NO-CHECK-FILES",
+            )
+        ]
     return []
 
 
@@ -690,7 +743,13 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
     # pytest refuses a folder that is not there as a bad command line, so a missing
     # folder is caught first and reported like an empty one.
     if not VALIDATION_DIR.is_dir():
-        return [], [Problem(f"no check files found under {_name(VALIDATION_DIR)}", 20)]
+        return [], [
+            Problem(
+                f"the folder {_name(VALIDATION_DIR)} is missing",
+                12,
+                "VALIDATION-FOLDER-MISSING",
+            )
+        ]
     record, status, printed = collect()
     stopping = load_problems(record, status, printed)
     if stopping:
@@ -718,7 +777,8 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
                     f"{where} is not a function at the top level of its check file. "
                     "The inventory and a validation report name a check by its "
                     "function's name alone, so move it out of its class",
-                    51,
+                    15,
+                    "CHECK-INSIDE-CLASS",
                 )
             )
 
@@ -735,7 +795,8 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
                     f"{where} carries different labels on different runs. A check is "
                     "one row of the inventory, so put its labels on the function "
                     "rather than on its values",
-                    18,
+                    15,
+                    "CHECK-MARKERS-WRONG",
                 )
             )
         first = items[0]
@@ -752,7 +813,8 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
                 Problem(
                     f"{where} has no docstring, or its first paragraph is empty. "
                     "Write the sentence that must be true for the check to pass",
-                    18,
+                    15,
+                    "CHECK-MARKERS-WRONG",
                 )
             )
         elif not expected[0].isalnum():
@@ -760,7 +822,8 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
                 Problem(
                     f"{where} has a first sentence starting with {expected[0]!r}; "
                     "start it with a letter or a digit",
-                    18,
+                    15,
+                    "CHECK-MARKERS-WRONG",
                 )
             )
         checks.append(
@@ -787,7 +850,8 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
                     f"{_name(path)} is in the code folder {code_folder}, which "
                     "CODE_FOLDER_ORDER in src/sdgval/build_inventory.py does not "
                     "list; add the folder there, where it belongs in the order",
-                    48,
+                    15,
+                    "CHECK-FILE-MISPLACED",
                 )
             )
         in_file = [check for check in checks if check.check_file == _name(path)]
@@ -813,25 +877,33 @@ def label_problems(
     """
     problems = []
     if not code:
-        problems.append(Problem(f"{where} has no @code marker", 18))
+        problems.append(
+            Problem(f"{where} has no @code marker", 15, "CHECK-MARKERS-WRONG")
+        )
     if not category:
-        problems.append(Problem(f"{where} has no @category marker", 18))
+        problems.append(
+            Problem(f"{where} has no @category marker", 15, "CHECK-MARKERS-WRONG")
+        )
     elif category not in CATEGORIES:
         problems.append(
             Problem(
                 f"{where} has @category({category!r}), which is not one of "
                 f"{', '.join(CATEGORIES)}",
-                18,
+                15,
+                "CHECK-MARKERS-WRONG",
             )
         )
     if not objective:
-        problems.append(Problem(f"{where} has no @objective marker", 18))
+        problems.append(
+            Problem(f"{where} has no @objective marker", 15, "CHECK-MARKERS-WRONG")
+        )
     elif objective not in OBJECTIVES:
         problems.append(
             Problem(
                 f"{where} has @objective({objective!r}), which is not one of "
                 f"{', '.join(OBJECTIVES)}",
-                18,
+                15,
+                "CHECK-MARKERS-WRONG",
             )
         )
     # A check stages a working situation or a broken one, never both. The reader in
@@ -842,7 +914,8 @@ def label_problems(
             Problem(
                 f"{where} carries both @positive and @negative. A check stages either "
                 "a working situation or a broken one, so keep the one that is true",
-                18,
+                15,
+                "CHECK-MARKERS-WRONG",
             )
         )
     return problems
@@ -886,7 +959,8 @@ def aspect_problems(check_file: Path, checks: list[Check]) -> list[Problem]:
             Problem(
                 f"{name} has no aspect in its name; it must end with one of "
                 + ", ".join(f"_{a}" for a in ASPECTS),
-                47,
+                15,
+                "CHECK-FILE-NAME-WRONG",
             )
         ]
     problems = []
@@ -900,7 +974,8 @@ def aspect_problems(check_file: Path, checks: list[Check]) -> list[Problem]:
                     f"{name}: {check.check_name} has the objective "
                     f"{check.objective}, which belongs to {belongs}, in a file "
                     f"named for {aspect}",
-                    47,
+                    15,
+                    "CHECK-FILE-NAME-WRONG",
                 )
             )
     return problems
@@ -999,7 +1074,8 @@ def build_rows(
                 Problem(
                     f"{check.check_id} is carried by both {seen[check.check_id]} "
                     f"and {check.check_name}",
-                    18,
+                    15,
+                    "CHECK-MARKERS-WRONG",
                 )
             )
         elif check.check_id:
@@ -1107,7 +1183,8 @@ def fingerprint_cell(
             f"fingerprint recorded in {_name(INVENTORY_PATH)}, or one that cannot be "
             "read, so whether the check changed cannot be told. Put its fingerprint "
             "back as git last recorded it, then run build_inventory again",
-            63,
+            15,
+            "FINGERPRINT-MISSING",
         )
     was, python, digest = int(recorded[1]), recorded[2], recorded[3]
     if python != RUNNING_PYTHON and python_changed:
@@ -1118,7 +1195,8 @@ def fingerprint_cell(
             f"since version {was} was recorded, and its version in "
             f"{_name(INVENTORY_PATH)} is still {version}. Raise its version to "
             f"{was + 1} there, then run build_inventory again",
-            50,
+            16,
+            "CHECK-CHANGED-VERSION-SAME",
         )
     return cell, None
 
@@ -1170,7 +1248,8 @@ def id_problems(rows: list[dict[str, str]]) -> list[Problem]:
                 Problem(
                     f"{where} has the id {check_id!r}, which is not S, a capital "
                     "letter and five digits, such as SA00042",
-                    18,
+                    15,
+                    "CHECK-MARKERS-WRONG",
                 )
             )
         elif check_id[:2] not in SUITES:
@@ -1178,7 +1257,8 @@ def id_problems(rows: list[dict[str, str]]) -> list[Problem]:
                 Problem(
                     f"{where} has the id {check_id}, and {check_id[:2]} is not one "
                     f"of the suites {', '.join(SUITES)}",
-                    18,
+                    15,
+                    "CHECK-MARKERS-WRONG",
                 )
             )
     return problems
@@ -1210,12 +1290,14 @@ def status_problems(
         filed: Whether a validation report has been filed, as report_filed() says.
 
     Returns:
-        One problem per rule broken, naming the check and what is wrong, each
-        carrying exit code 45.
+        One problem per rule broken, naming the check and what is wrong. A rule the
+        row breaks on its own carries INVENTORY-COLUMN-INVALID, and a row that
+        disagrees with the check files carries INVENTORY-ROW-MISMATCH.
     """
     ids = {row["id"] for row in rows}
     reasons = f"{', '.join(NEEDS_REASON[:-1])} and {NEEDS_REASON[-1]}"
     messages: list[str] = []
+    mismatches: list[str] = []
     for row in rows:
         check_id, status = row["id"], row["status"]
         successors = [s.strip() for s in row["superseded_by"].split(";") if s.strip()]
@@ -1262,8 +1344,10 @@ def status_problems(
                 f"{check_id} has version {row['version']!r}, which is not a whole "
                 "number from 1 up"
             )
-        messages.extend(_presence_problems(row, live, filed))
-    return [Problem(message, 45) for message in messages]
+        mismatches.extend(_presence_problems(row, live, filed))
+    return [
+        Problem(message, 15, "INVENTORY-COLUMN-INVALID") for message in messages
+    ] + [Problem(message, 16, "INVENTORY-ROW-MISMATCH") for message in mismatches]
 
 
 def _presence_problems(
@@ -1340,17 +1424,20 @@ def render(rows: list[dict[str, str]]) -> str:
 ### Command line ###
 
 
-def exit_code(problems: list[Problem]) -> int:
-    """Pick the exit code for a run that found problems.
+def deciding_problem(problems: list[Problem]) -> Problem:
+    """Pick the problem that decides the exit line for a run that found problems.
 
     Args:
         problems: Every problem found, at least one.
 
     Returns:
-        The first code in EXIT_PRECEDENCE that any problem carries.
+        A problem carrying the first sub-code in EXIT_PRECEDENCE that any problem
+            carries.
     """
-    codes = {problem.code for problem in problems}
-    return next(code for code in EXIT_PRECEDENCE if code in codes)
+    by_sub_code = {problem.sub_code: problem for problem in problems}
+    return next(
+        by_sub_code[sub_code] for sub_code in EXIT_PRECEDENCE if sub_code in by_sub_code
+    )
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -1400,15 +1487,27 @@ def main(argv: list[str] | None = None) -> int:
         if not args.quiet:
             print(message)
 
+    def report(problems: list[Problem]) -> int:
+        """Print every problem with its sub-code, and end on the one that decides.
+
+        Args:
+            problems: Every problem found, at least one.
+
+        Returns:
+            The exit number of the deciding problem.
+        """
+        for problem in problems:
+            say(problem_line(problem.sub_code, problem.message))
+        say("Inventory not written.")
+        deciding = deciding_problem(problems)
+        return finish(say, deciding.code, deciding.sub_code)
+
     inventory = _name(INVENTORY_PATH)
 
     found, problems = read_checks()
-    stopping = [p for p in problems if p.code in STOPPING]
+    stopping = [p for p in problems if p.sub_code in STOPPING]
     if stopping:
-        for problem in stopping:
-            say(problem.message)
-        say("Inventory not written.")
-        return exit_code(stopping)
+        return report(stopping)
     live = {
         check.check_id: (check.check_file, check.check_name)
         for _, _, check in found
@@ -1418,13 +1517,18 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.check_status:
         if not INVENTORY_PATH.is_file():
-            say(f"{inventory} is missing. Run: build_inventory")
-            return 16
+            return fail(
+                say,
+                12,
+                "INVENTORY-MISSING",
+                f"{inventory} is missing. Run: build_inventory",
+            )
         status = status_problems(list(existing_rows().values()), live, filed)
-        for problem in status:
-            say(problem.message)
         if status:
-            return exit_code(status)
+            for problem in status:
+                say(problem_line(problem.sub_code, problem.message))
+            deciding = deciding_problem(status)
+            return finish(say, deciding.code, deciding.sub_code)
         say(f"{inventory}: the hand-kept columns are in order")
         return 0
 
@@ -1435,25 +1539,25 @@ def main(argv: list[str] | None = None) -> int:
     others = other_pythons(previous)
     if filed and others and not args.python_changed:
         say(
-            f"The fingerprints in {inventory} were made by Python "
-            f"{' and '.join(others)}, and this is Python {RUNNING_PYTHON}. A new "
-            "Python can write a check's code out differently, so every fingerprint "
-            "may move although no check changed. Run build_inventory "
-            "--python-changed to record new fingerprints, and commit the result "
-            "alone, in a commit that changes nothing else."
+            problem_line(
+                "PYTHON-VERSION-CHANGED",
+                f"The fingerprints in {inventory} were made by Python "
+                f"{' and '.join(others)}, and this is Python {RUNNING_PYTHON}. A new "
+                "Python can write a check's code out differently, so every fingerprint "
+                "may move although no check changed. Run build_inventory "
+                "--python-changed to record new fingerprints, and commit the result "
+                "alone, in a commit that changes nothing else.",
+            )
         )
         say("Inventory not written.")
-        return 62
+        return finish(say, 8, "PYTHON-VERSION-CHANGED")
     rows, row_problems = build_rows(found, previous, filed, args.python_changed)
     problems.extend(row_problems)
     status = status_problems(rows, live, filed)
-    for problem in problems + status:
-        say(problem.message)
     if problems or status:
-        # Each kind of problem needs a different fix, so each carries its own code,
-        # and the most basic one found decides the exit code.
-        say("Inventory not written.")
-        return exit_code(problems + status)
+        # Each kind of problem needs a different fix, so each carries its own
+        # sub-code, and the most basic one found decides the exit line.
+        return report(problems + status)
 
     text = render(rows)
 
@@ -1466,8 +1570,16 @@ def main(argv: list[str] | None = None) -> int:
         if current == text:
             say(f"{inventory} is current, {len(rows)} check(s)")
             return 0
-        say(f"{inventory} is stale. Run: build_inventory")
-        return 16
+        if current is None:
+            return fail(
+                say,
+                12,
+                "INVENTORY-MISSING",
+                f"{inventory} is missing. Run: build_inventory",
+            )
+        return fail(
+            say, 16, "INVENTORY-STALE", f"{inventory} is stale. Run: build_inventory"
+        )
 
     INVENTORY_PATH.write_text(text, encoding="utf-8", newline="")
     say(f"{inventory} written, {len(rows)} check(s)")

@@ -37,6 +37,7 @@ from pathlib import Path
 import neo4j
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgtools import check_neo4j as script
 from sdgval.labels import category, code, negative, objective, positive
 
@@ -242,12 +243,12 @@ def test_quiet_prints_nothing_when_the_database_matches(repo, monkeypatch, capsy
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_missing_settings_exit_37_and_print_nothing(repo, monkeypatch, capsys):
-    """With the quiet option, missing settings still exit 37, and nothing at all is
+def test_quiet_missing_settings_exit_4_and_print_nothing(repo, monkeypatch, capsys):
+    """With the quiet option, missing settings still exit 4, and nothing at all is
     printed."""
     write_env(repo, "NEO4J_URI=\n")
     outcome = run(capsys, "--quiet")
-    assert outcome.exit_code == 37
+    assert outcome.exit_code == 4
     assert outcome.printed == ""
 
 
@@ -256,10 +257,11 @@ def test_quiet_missing_settings_exit_37_and_print_nothing(repo, monkeypatch, cap
 @objective("functionality")
 @negative
 def test_missing_env_file_is_refused(repo, capsys):
-    """With no .env file at all, the run exits 27 and the message says to create it
+    """With no .env file at all, the run exits 4 and the message says to create it
     from the example."""
     outcome = run(capsys)
-    assert outcome.exit_code == 27
+    assert outcome.exit_code == 4
+    assert exit_line(4, "ENV-FILE-MISSING") in outcome.printed
     assert ".env does not exist" in outcome.printed
     assert "Copy-Item .env.example .env" in outcome.printed
 
@@ -269,11 +271,12 @@ def test_missing_env_file_is_refused(repo, capsys):
 @objective("functionality")
 @negative
 def test_missing_settings_are_refused_by_name(repo, capsys):
-    """With a .env holding only one of the Neo4j lines, the run exits 37 and the
+    """With a .env holding only one of the Neo4j lines, the run exits 4 and the
     message names both missing settings."""
     write_env(repo, f"NEO4J_URI={URI}\n")
     outcome = run(capsys)
-    assert outcome.exit_code == 37
+    assert outcome.exit_code == 4
+    assert exit_line(4, "NEO4J-SETTINGS-MISSING") in outcome.printed
     assert "NEO4J_USER, NEO4J_PASSWORD" in outcome.printed
     assert "copy the NEO4J_ lines from .env.example" in outcome.printed
 
@@ -283,11 +286,12 @@ def test_missing_settings_are_refused_by_name(repo, capsys):
 @objective("functionality")
 @negative
 def test_missing_compose_file_is_refused(repo, capsys):
-    """With no docker-compose.yml, the run exits 13 and the message says to restore
+    """With no docker-compose.yml, the run exits 12 and the message says to restore
     it from git."""
     write_env(repo)
     outcome = run(capsys)
-    assert outcome.exit_code == 13
+    assert outcome.exit_code == 12
+    assert exit_line(12, "COMPOSE-FILE-MISSING") in outcome.printed
     assert "docker-compose.yml does not exist" in outcome.printed
     assert "restore it from git" in outcome.printed
 
@@ -298,15 +302,32 @@ def test_missing_compose_file_is_refused(repo, capsys):
 @negative
 def test_compose_file_without_an_image_is_refused(repo, capsys):
     """With a docker-compose.yml that names no image for the neo4j service, the run
-    exits 64 and the message names the missing line."""
+    exits 15 and the message names the missing line."""
     write_env(repo)
     (repo / "docker-compose.yml").write_text(
         "services:\n  neo4j:\n    container_name: sdg-neo4j\n", encoding="utf-8"
     )
     outcome = run(capsys)
-    assert outcome.exit_code == 64
+    assert outcome.exit_code == 15
+    assert exit_line(15, "COMPOSE-FILE-NO-IMAGE") in outcome.printed
     assert "names no image for the neo4j service" in outcome.printed
     assert "services.neo4j.image" in outcome.printed
+
+
+@code("SA00652")
+@category("repository")
+@objective("functionality")
+@negative
+def test_compose_file_that_is_not_yaml_is_refused(repo, capsys):
+    """With a docker-compose.yml that is not valid YAML, the run exits 14 and the
+    message says the file is not valid YAML and to restore it from git."""
+    write_env(repo)
+    (repo / "docker-compose.yml").write_text("services: [unclosed\n", encoding="utf-8")
+    outcome = run(capsys)
+    assert outcome.exit_code == 14
+    assert exit_line(14, "COMPOSE-FILE-UNPARSEABLE") in outcome.printed
+    assert "docker-compose.yml is not valid YAML" in outcome.printed
+    assert "restore it from git" in outcome.printed
 
 
 @code("SA00295")
@@ -314,12 +335,13 @@ def test_compose_file_without_an_image_is_refused(repo, capsys):
 @objective("functionality")
 @negative
 def test_unpinned_image_tag_is_refused(repo, capsys):
-    """With an image written without a version, the run exits 64 and the message
+    """With an image written without a version, the run exits 15 and the message
     shows the form the tag has to take."""
     write_env(repo)
     write_compose(repo, "neo4j")
     outcome = run(capsys)
-    assert outcome.exit_code == 64
+    assert outcome.exit_code == 15
+    assert exit_line(15, "COMPOSE-FILE-NO-IMAGE") in outcome.printed
     assert "not in the form neo4j:<version>-<edition>" in outcome.printed
 
 
@@ -328,13 +350,14 @@ def test_unpinned_image_tag_is_refused(repo, capsys):
 @objective("functionality")
 @negative
 def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, capsys):
-    """When nothing answers at the address, the run exits 38 and the message says to
+    """When nothing answers at the address, the run exits 9 and the message says to
     start the container with docker compose."""
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.ServiceUnavailable("connection refused"))
     outcome = run(capsys)
-    assert outcome.exit_code == 38
+    assert outcome.exit_code == 9
+    assert exit_line(9, "NEO4J-UNREACHABLE") in outcome.printed
     assert f"could not be reached at {URI}" in outcome.printed
     assert "docker compose up -d" in outcome.printed
 
@@ -344,14 +367,15 @@ def test_unreachable_database_is_reported_as_unreachable(repo, monkeypatch, caps
 @objective("functionality")
 @negative
 def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
-    """When the database driver fails with its general error, the run still exits 38 and
+    """When the database driver fails with its general error, the run still exits 9 and
     says to start the container, because that is what the driver gives when a connection
     drops part way."""
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.DriverError("connection lost"))
     outcome = run(capsys)
-    assert outcome.exit_code == 38
+    assert outcome.exit_code == 9
+    assert exit_line(9, "NEO4J-UNREACHABLE") in outcome.printed
     assert "docker compose up -d" in outcome.printed
 
 
@@ -361,13 +385,14 @@ def test_a_driver_error_is_reported_as_unreachable(repo, monkeypatch, capsys):
 @negative
 def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsys):
     """When the driver refuses the database address before trying to connect, the run
-    exits 44 and the message names the address line in .env, rather than saying the
+    exits 5 and the message names the address line in .env, rather than saying the
     database is off."""
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.ConfigurationError("URI scheme missing"))
     outcome = run(capsys)
-    assert outcome.exit_code == 44
+    assert outcome.exit_code == 5
+    assert exit_line(5, "NEO4J-ADDRESS-INVALID") in outcome.printed
     assert "NEO4J_URI" in outcome.printed
     assert "docker compose" not in outcome.printed
 
@@ -377,13 +402,14 @@ def test_a_malformed_address_is_reported_as_the_address(repo, monkeypatch, capsy
 @objective("functionality")
 @negative
 def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
-    """When the database refuses the user or password, the run exits 39 and the
+    """When the database refuses the user or password, the run exits 10 and the
     message says to match .env to the compose file."""
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.AuthError("unauthorized"))
     outcome = run(capsys)
-    assert outcome.exit_code == 39
+    assert outcome.exit_code == 10
+    assert exit_line(10, "NEO4J-LOGIN-REJECTED") in outcome.printed
     assert "rejected the login" in outcome.printed
     assert "match the NEO4J_AUTH line" in outcome.printed
     assert PASSWORD not in outcome.printed
@@ -394,13 +420,14 @@ def test_rejected_login_is_reported_as_rejected(repo, monkeypatch, capsys):
 @objective("functionality")
 @negative
 def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys):
-    """When the database answers with a version other than the pin, the run exits 40
+    """When the database answers with a version other than the pin, the run exits 8
     and the message names both the running and the pinned version."""
     write_env(repo)
     write_compose(repo)
     answer(monkeypatch, script.Release("5.27.0", "community"))
     outcome = run(capsys)
-    assert outcome.exit_code == 40
+    assert outcome.exit_code == 8
+    assert exit_line(8, "NEO4J-VERSION-WRONG") in outcome.printed
     assert "5.27.0 community" in outcome.printed
     assert str(PINNED) in outcome.printed
 
@@ -411,12 +438,13 @@ def test_other_version_is_reported_with_both_versions(repo, monkeypatch, capsys)
 @negative
 def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys):
     """When the database is the pinned version number but another edition, the run
-    exits 40, because the pin names the edition too."""
+    exits 8, because the pin names the edition too."""
     write_env(repo)
     write_compose(repo)
     answer(monkeypatch, script.Release("5.26.29", "enterprise"))
     outcome = run(capsys)
-    assert outcome.exit_code == 40
+    assert outcome.exit_code == 8
+    assert exit_line(8, "NEO4J-VERSION-WRONG") in outcome.printed
     assert "5.26.29 enterprise" in outcome.printed
     assert "docker-compose.yml pins" in outcome.printed
 
@@ -426,7 +454,7 @@ def test_other_edition_is_reported_as_another_version(repo, monkeypatch, capsys)
 @objective("functionality")
 @negative
 def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
-    """When the sdg package is installed from outside the repo, the run exits 6 before it
+    """When the sdg package is installed from outside the repo, the run exits 3 before it
     looks for a .env file."""
 
     def not_in_repo() -> Path:
@@ -436,7 +464,8 @@ def test_outside_the_repo_is_refused(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(script, "REPO_ROOT", tmp_path)
     monkeypatch.setattr(script, "require_repo", not_in_repo)
     outcome = run(capsys)
-    assert outcome.exit_code == 6
+    assert outcome.exit_code == 3
+    assert exit_line(3, "NOT-IN-REPO") in outcome.printed
     assert "not running from inside its repo" in outcome.printed
 
 
@@ -455,18 +484,18 @@ def outside_the_repo(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
         raise script.NotInRepoError("sdg is not running from inside its repo")
 
     monkeypatch.setattr(script, "require_repo", not_in_repo)
-    return 6
+    return 3
 
 
 def no_env_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a repo with no .env file, and give the code expected."""
-    return 27
+    return 4
 
 
 def no_compose_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a .env with no docker-compose.yml beside it, and give the code expected."""
     write_env(repo)
-    return 13
+    return 12
 
 
 def compose_without_an_image(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -475,7 +504,7 @@ def compose_without_an_image(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int
     (repo / "docker-compose.yml").write_text(
         "services:\n  neo4j:\n    container_name: sdg-neo4j\n", encoding="utf-8"
     )
-    return 64
+    return 15
 
 
 def unreachable_database(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -483,7 +512,7 @@ def unreachable_database(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.ServiceUnavailable("connection refused"))
-    return 38
+    return 9
 
 
 def malformed_address(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -491,7 +520,7 @@ def malformed_address(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.ConfigurationError("URI scheme missing"))
-    return 44
+    return 5
 
 
 def rejected_login(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -499,7 +528,7 @@ def rejected_login(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     write_env(repo)
     write_compose(repo)
     refuse(monkeypatch, neo4j.exceptions.AuthError("unauthorized"))
-    return 39
+    return 10
 
 
 def other_version(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
@@ -507,7 +536,7 @@ def other_version(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     write_env(repo)
     write_compose(repo)
     answer(monkeypatch, script.Release("5.27.0", "community"))
-    return 40
+    return 8
 
 
 @code("SA00617")

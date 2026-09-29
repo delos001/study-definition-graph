@@ -36,13 +36,17 @@ Usage:       This file is not run directly; other code imports it.
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
-             do. The errors it can hand back:
-             FetchError   the url could not be reached or is not one the Hypertext
-                          Transfer Protocol (HTTP) library can parse, the server
-                          answered with an error, the download stopped part way,
-                          or the destination's folder could not be created; the
-                          message names the
-                          url and the cause
+             do. Every error is a kind of FetchError, carrying the exit number and
+             sub-code a command reports it with, from docs/exit_codes.csv, and a
+             message naming the url and the cause. The errors it can hand back:
+             FetchNoAnswerError    the server could not be reached, did not
+                                   answer in time, or stopped part way
+             FetchRefusedError     the server refused access to the file
+             FetchErrorAnswerError the server answered with any other error
+             FetchBadUrlError      the url is not one the Hypertext Transfer
+                                   Protocol (HTTP) library can use
+             FetchNotWrittenError  the download or its folder could not be
+                                   written to disk
 
 Date:        2026-09-08
 Owner:       Jason Delosh
@@ -73,16 +77,55 @@ PARTIAL_SUFFIX = ".part"
 
 
 #######################################################################################
-### Error Class ###
+### Error Classes ###
 
 
 class FetchError(Exception):
-    """Raised when a download did not complete.
+    """Raised when a download did not complete, and the base of every download error.
 
-    The message names the url and the cause: the url could not be parsed, the server
-    could not be reached, it answered with an error, the transfer stopped part way, or
-    the destination's folder could not be created.
+    The message names the url and the cause. Each kind carries the exit number and
+    sub-code a command reports it with, from docs/exit_codes.csv.
     """
+
+    exit_code = 9
+    sub_code = "DOWNLOAD-NO-ANSWER"
+
+
+class FetchNoAnswerError(FetchError):
+    """Raised when the server could not be reached, did not answer in time, or stopped
+    sending part way."""
+
+    exit_code = 9
+    sub_code = "DOWNLOAD-NO-ANSWER"
+
+
+class FetchRefusedError(FetchError):
+    """Raised when the server refused access to the file, with status 401 or 403."""
+
+    exit_code = 10
+    sub_code = "DOWNLOAD-REFUSED"
+
+
+class FetchErrorAnswerError(FetchError):
+    """Raised when the server answered with any other error status, such as 404 for
+    a file that is not there."""
+
+    exit_code = 11
+    sub_code = "DOWNLOAD-ERROR-ANSWER"
+
+
+class FetchBadUrlError(FetchError):
+    """Raised when the url is not one the HTTP library can use."""
+
+    exit_code = 15
+    sub_code = "MANIFEST-URL-INVALID"
+
+
+class FetchNotWrittenError(FetchError):
+    """Raised when the download, or the folder it goes in, could not be written."""
+
+    exit_code = 20
+    sub_code = "DOWNLOAD-NOT-WRITTEN"
 
 
 #######################################################################################
@@ -119,15 +162,14 @@ def fetch(url: str, destination: Path) -> Path:
         The path of the .part file that was written.
 
     Raises:
-        FetchError: The url could not be parsed, the server could not be reached, it
-            answered with an error, the transfer stopped part way, or the destination's
-            folder could not be created.
+        FetchError: The download did not complete. The kind raised says why, as
+            download_error() sorts it.
     """
     partial = partial_path(destination)
 
-    # Every way a download can fail is turned into one FetchError. The program
-    # using this module treats them all the same way, by counting the failure
-    # and moving on, so it needs one error type with the cause in the message.
+    # Every way a download can fail is turned into a kind of FetchError. The
+    # program using this module counts each failure and moves on, so it needs one
+    # family of errors, and the kind says which group of failure it reports.
     # Creating the folder sits inside the try for the same reason: a file where
     # the folder should be is a failure of this download, not of the whole run.
     # InvalidURL is named on its own because the HTTP library does not count it
@@ -151,6 +193,34 @@ def fetch(url: str, destination: Path) -> Path:
         # and the failure worth reporting is the download's, not the cleanup's.
         with contextlib.suppress(OSError):
             partial.unlink()
-        raise FetchError(f"{url}\n  cause -> {exc}") from exc
+        raise download_error(exc)(f"{url}\n  cause -> {exc}") from exc
 
     return partial
+
+
+def download_error(exc: Exception) -> type[FetchError]:
+    """Sort a failed download into the kind of FetchError that names its group.
+
+    The HTTP library's own errors are sorted by what the person reading the report
+    has to do. A status of 401 or 403 means access was refused, and any other status
+    is an error answer. A url the library cannot use is a mistake in the manifest. A
+    failure to write is a problem on this machine. Everything else, such as a refused
+    connection, a timeout or a server that stopped part way, means no answer came.
+
+    Args:
+        exc: The error the download raised.
+
+    Returns:
+        The kind of FetchError to raise.
+    """
+    if isinstance(exc, httpx.HTTPStatusError):
+        if exc.response.status_code in (401, 403):
+            return FetchRefusedError
+        return FetchErrorAnswerError
+    if isinstance(exc, httpx.InvalidURL | httpx.UnsupportedProtocol):
+        return FetchBadUrlError
+    if isinstance(exc, httpx.TooManyRedirects | httpx.DecodingError):
+        return FetchErrorAnswerError
+    if isinstance(exc, OSError):
+        return FetchNotWrittenError
+    return FetchNoAnswerError

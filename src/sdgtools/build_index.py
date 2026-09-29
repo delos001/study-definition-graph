@@ -47,29 +47,41 @@ Usage:       build_index
              build_index --quiet
                  print nothing; use the exit code
 
-Exit codes:  0   the command succeeded (the page was written, or --check found
-                 it current)
-             1   Python stopped on an error that nothing handled
-             2   the argument parser refused the command line
-             13  a file on disk cannot be read (pyproject.toml)
-             15  docs/commands.md is stale or missing (--check only)
-             17  a header block is missing, incomplete, out of order, or has a
-                 bad Date (here only a missing or incomplete block; field order
-                 and the Date are confirmed by verify_headers)
-             19  a Python file could not be parsed (it is not valid Python, or
-                 is not saved as UTF-8 text)
-             20  no files were found to work on (pyproject.toml installs no
-                 command)
-             64  a required file was read but holds the wrong content
-                 (pyproject.toml cannot be parsed, its [project.scripts] table
-                 is not a list of commands, or it names a command whose file
-                 does not exist or whose package has no heading on the page)
-             64 outranks 19, 19 outranks 17, and 17 outranks 15. The list of
-             commands decides which headers are read, and a page generated
-             from a wrong list or an incomplete header would be wrong rather
-             than merely out of date.
-             The numbers are the repo-wide table in
-             docs/exit_codes.csv.
+Exit codes:  0   SUCCEEDED  the command succeeded (the page was written, or
+                 --check found it current)
+             1   UNHANDLED-ERROR  Python stopped on an error that nothing
+                 handled
+             2   COMMAND-LINE-REFUSED  the argument parser refused the command
+                 line
+             12  PYPROJECT-MISSING  pyproject.toml is missing
+             12  COMMAND-FILE-MISSING  pyproject.toml installs a command from a
+                 file that does not exist
+             12  COMMANDS-PAGE-MISSING  docs/commands.md is missing (--check
+                 only)
+             13  PYPROJECT-UNREADABLE  pyproject.toml cannot be opened
+             13  PYTHON-FILE-UNREADABLE  a Python file cannot be opened
+             14  PYPROJECT-UNPARSEABLE  pyproject.toml is not valid TOML
+             14  PYTHON-UNPARSEABLE  a Python file is not valid Python
+             14  PYTHON-NOT-UTF8  a Python file is not saved as UTF-8 text
+             15  PYPROJECT-SCRIPTS-INVALID  the [project.scripts] table of
+                 pyproject.toml does not name each command with the module and
+                 function it runs
+             15  HEADER-MISSING  a Python file has no header block
+             15  HEADER-INCOMPLETE  a header block is incomplete, out of order,
+                 has a bad Date, or lists no exit code though the file has a
+                 main() (here only a missing field; field order and the Date are
+                 confirmed by verify_headers)
+             16  COMMAND-GROUP-UNKNOWN  pyproject.toml installs a command from a
+                 package that has no heading on the page
+             16  COMMANDS-PAGE-STALE  docs/commands.md does not match the
+                 commands' headers (--check only)
+             18  NO-COMMANDS-INSTALLED  pyproject.toml installs no command
+             A problem with the list of commands decides the exit line first,
+             then a file that cannot be read, then an incomplete header, then a
+             stale or missing page. The list of commands decides which headers
+             are read, and a page generated from a wrong list or an incomplete
+             header would be wrong rather than merely out of date. The wording
+             is the table in docs/exit_codes.csv.
 
 Date:        2026-08-24
 Owner:       Jason Delosh
@@ -84,6 +96,8 @@ import sys
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
+
+from sdg.exit_codes import fail, finish, problem_line
 
 # Resolved from this file's own location rather than the working directory, so
 # the page is the same whichever folder the command is run from. This file sits in
@@ -146,14 +160,16 @@ GENERATED_NOTICE = (
 
 @dataclass(frozen=True)
 class HeaderProblem:
-    """One reason a script's header block cannot be read, with the exit code it carries.
+    """One reason a script's header block cannot be read, with the exit number and
+    sub-code it carries.
 
-    The code travels with the message from where the problem is found, so the exit
-    code never depends on how the message is worded.
+    The number and sub-code travel with the message from where the problem is found,
+    so the exit line never depends on how the message is worded.
     """
 
     message: str
     code: int
+    sub_code: str
 
 
 def parse_header(
@@ -172,26 +188,36 @@ def parse_header(
 
     Returns:
         A pair of the fields and the problem found, exactly one of which is None. The
-            fields map each header field to its lines. A file that cannot be parsed
-            carries exit code 19, and a file with no docstring carries 17.
+            fields map each header field to its lines. A file that cannot be opened,
+            one that is not valid Python, one not saved as UTF-8 text, and one with
+            no docstring each carry their own sub-code.
     """
     # A file that will not parse is reported rather than raised, so that one bad
     # script does not hide the state of the rest. A file saved in another text
-    # encoding fails while it is decoded, before Python reads it, and is reported
-    # the same way, because its fix is also to repair the file itself.
+    # encoding fails while it is decoded, before Python reads it, and a file that
+    # cannot be opened fails before that. Each is reported with its own sub-code,
+    # because each has its own fix.
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"))
     except UnicodeDecodeError as exc:
         return None, HeaderProblem(
-            f"cannot parse, because it is not saved as UTF-8 text ({exc})", 19
+            f"cannot parse, because it is not saved as UTF-8 text ({exc})",
+            14,
+            "PYTHON-NOT-UTF8",
         )
-    except (SyntaxError, OSError) as exc:
-        return None, HeaderProblem(f"cannot parse ({exc})", 19)
+    except SyntaxError as exc:
+        return None, HeaderProblem(f"cannot parse ({exc})", 14, "PYTHON-UNPARSEABLE")
+    except OSError as exc:
+        return None, HeaderProblem(
+            f"cannot be opened ({exc})", 13, "PYTHON-FILE-UNREADABLE"
+        )
 
     docstring = ast.get_docstring(tree, clean=False)
 
     if not docstring:
-        return None, HeaderProblem("no module docstring, so no header block", 17)
+        return None, HeaderProblem(
+            "no module docstring, so no header block", 15, "HEADER-MISSING"
+        )
 
     fields: dict[str, list[str]] = {}
     current: str | None = None
@@ -298,20 +324,39 @@ def read_commands() -> tuple[list[Command], list[HeaderProblem]]:
 
     Returns:
         A pair of the commands, in name order, and the problems found. A
-            pyproject.toml that cannot be read carries exit code 13. One that cannot
-            be parsed, or that names a command the page cannot place, carries 64.
+            pyproject.toml that is missing, cannot be opened or cannot be parsed,
+            and one that names a command the page cannot place, each carry their
+            own sub-code.
     """
     pyproject = REPO_ROOT / PYPROJECT_NAME
 
-    # A missing or unreadable file and a file whose content is not TOML, the
-    # settings format pyproject.toml is written in, have different fixes, so each
-    # is reported with its own exit code.
+    # A missing file, a file that cannot be opened, and a file whose content is not
+    # TOML, the settings format pyproject.toml is written in, have different fixes,
+    # so each is reported with its own sub-code.
     try:
         settings = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError) as exc:
-        return [], [HeaderProblem(f"{PYPROJECT_NAME} cannot be read ({exc})", 13)]
-    except tomllib.TOMLDecodeError as exc:
-        return [], [HeaderProblem(f"{PYPROJECT_NAME} cannot be parsed ({exc})", 64)]
+    except FileNotFoundError as exc:
+        return [], [
+            HeaderProblem(
+                f"{PYPROJECT_NAME} is missing ({exc})", 12, "PYPROJECT-MISSING"
+            )
+        ]
+    except (UnicodeDecodeError, tomllib.TOMLDecodeError) as exc:
+        return [], [
+            HeaderProblem(
+                f"{PYPROJECT_NAME} cannot be parsed ({exc})",
+                14,
+                "PYPROJECT-UNPARSEABLE",
+            )
+        ]
+    except OSError as exc:
+        return [], [
+            HeaderProblem(
+                f"{PYPROJECT_NAME} cannot be opened ({exc})",
+                13,
+                "PYPROJECT-UNREADABLE",
+            )
+        ]
 
     scripts = settings.get("project", {}).get("scripts", {})
 
@@ -323,7 +368,8 @@ def read_commands() -> tuple[list[Command], list[HeaderProblem]]:
                 f"the [project.scripts] table of {PYPROJECT_NAME} must name each "
                 "command with the module and function it runs, as in "
                 "sdg.sources.acquire_sources:main",
-                64,
+                15,
+                "PYPROJECT-SCRIPTS-INVALID",
             )
         ]
 
@@ -341,7 +387,8 @@ def read_commands() -> tuple[list[Command], list[HeaderProblem]]:
                     f"{PYPROJECT_NAME} installs {name} from the package {package}, "
                     "which has no heading on the page. Add the package to "
                     "COMMAND_GROUPS in src/sdgtools/build_index.py.",
-                    64,
+                    16,
+                    "COMMAND-GROUP-UNKNOWN",
                 )
             )
             continue
@@ -352,7 +399,8 @@ def read_commands() -> tuple[list[Command], list[HeaderProblem]]:
                     f"{PYPROJECT_NAME} installs {name} from {module}, but "
                     f"{_shown(path)} does not exist. Correct the entry in "
                     f"{PYPROJECT_NAME} or restore the file.",
-                    64,
+                    12,
+                    "COMMAND-FILE-MISSING",
                 )
             )
             continue
@@ -476,29 +524,40 @@ def main(argv: list[str] | None = None) -> int:
 
     commands, listing = read_commands()
 
-    # A pyproject.toml that cannot be read leaves no list to work from, so the run
-    # stops there.
-    if any(problem.code == 13 for problem in listing):
-        say(listing[0].message)
-        return 13
+    # A pyproject.toml that is missing or cannot be opened leaves no list to work
+    # from, so the run stops there.
+    stopping = [
+        problem
+        for problem in listing
+        if problem.sub_code in ("PYPROJECT-MISSING", "PYPROJECT-UNREADABLE")
+    ]
+    if stopping:
+        return fail(say, stopping[0].code, stopping[0].sub_code, stopping[0].message)
 
     if not commands and not listing:
-        say(f"{PYPROJECT_NAME} installs no commands")
-        return 20
+        return fail(
+            say,
+            18,
+            "NO-COMMANDS-INSTALLED",
+            f"{PYPROJECT_NAME} installs no commands",
+        )
 
     entries: list[tuple[Command, dict[str, list[str]]]] = []
-    unparseable: list[str] = []
-    incomplete: list[str] = []
+    unreadable: list[HeaderProblem] = []
+    incomplete: list[HeaderProblem] = []
 
     for command in commands:
         fields, error = parse_header(command.path)
 
         if error:
-            # A file that cannot be parsed is a broken file, and a missing
+            # A file that cannot be opened or parsed is a broken file, and a missing
             # docstring is a broken header. They are kept apart because they need
-            # different fixes, and the exit code each carries says which it is.
-            (unparseable if error.code == 19 else incomplete).append(
-                f"{_shown(command.path)}: {error.message}"
+            # different fixes, and the sub-code each carries says which it is.
+            where = HeaderProblem(
+                f"{_shown(command.path)}: {error.message}", error.code, error.sub_code
+            )
+            (incomplete if error.sub_code == "HEADER-MISSING" else unreadable).append(
+                where
             )
             continue
 
@@ -511,27 +570,32 @@ def main(argv: list[str] | None = None) -> int:
 
         if missing:
             incomplete.append(
-                f"{_shown(command.path)}: header missing {', '.join(missing)}"
+                HeaderProblem(
+                    f"{_shown(command.path)}: header missing {', '.join(missing)}",
+                    15,
+                    "HEADER-INCOMPLETE",
+                )
             )
             continue
 
         entries.append((command, fields))
 
-    for message in [problem.message for problem in listing] + unparseable + incomplete:
-        say(message)
+    for problem in listing + unreadable + incomplete:
+        say(problem_line(problem.sub_code, problem.message))
 
-    if listing:
-        return 64
-
-    if unparseable:
-        return 19
+    # The list of commands decides which headers are read, so a problem with it
+    # decides the exit line first, then a file that cannot be read, then a header
+    # that is incomplete.
+    for found in (listing, unreadable):
+        if found:
+            return finish(say, found[0].code, found[0].sub_code)
 
     if incomplete:
         say()
         say(
             "The rule in .claude/rules/writing_python_files.md requires the full header block on every script. Page not written."
         )
-        return 17
+        return finish(say, incomplete[0].code, incomplete[0].sub_code)
 
     generated = render(entries)
     index_path = REPO_ROOT / INDEX_NAME
@@ -545,8 +609,16 @@ def main(argv: list[str] | None = None) -> int:
             say(f"{INDEX_NAME} is current, {len(entries)} command(s)")
             return 0
 
-        say(f"{INDEX_NAME} is stale. Run: build_index")
-        return 15
+        if current is None:
+            return fail(
+                say,
+                12,
+                "COMMANDS-PAGE-MISSING",
+                f"{INDEX_NAME} is missing. Run: build_index",
+            )
+        return fail(
+            say, 16, "COMMANDS-PAGE-STALE", f"{INDEX_NAME} is stale. Run: build_index"
+        )
 
     # Written with a bare line feed (LF) ending each line, as
     # validation/validation_inventory.csv is and as git stores it, so the file does

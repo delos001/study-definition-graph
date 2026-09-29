@@ -38,6 +38,7 @@ from typing import NoReturn
 import fitz
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdg.view import read_pdf
 from sdg.view.read_pdf import RegistryError, UnknownFileError, load_registry
 from sdgval.labels import category, code, negative, objective, positive
@@ -360,9 +361,9 @@ def test_a_default_that_is_not_listed_is_refused(repo, write_list):
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_file_name_two_entries_record_exits_3(repo, write_list, monkeypatch, capsys):
+def test_a_file_name_two_entries_record_exits_15(repo, write_list, monkeypatch, capsys):
     """A row naming a file name that two manifest entries record makes the command exit
-    3 rather than open either file. The message names the location of both, says the
+    15 rather than open either file. The message names the location of both, says the
     two pinned files share the name, and says the code asking for it has to choose one
     version.
 
@@ -372,7 +373,8 @@ def test_a_file_name_two_entries_record_exits_3(repo, write_list, monkeypatch, c
     repo.file(other, CONTENT)
     repo.manifest("another", [repo.entry(other)])
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
-    assert outcome.exit_code == 3
+    assert outcome.exit_code == 15
+    assert exit_line(15, "MANIFEST-NAME-SHARED") in outcome.printed
     assert GUIDE in outcome.printed and other in outcome.printed
     assert "two pinned files share this name" in outcome.printed
     assert "has to choose one version of the file" in outcome.printed
@@ -382,15 +384,16 @@ def test_a_file_name_two_entries_record_exits_3(repo, write_list, monkeypatch, c
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_boilerplate_pattern_that_is_not_a_regular_expression_exits_31(
+def test_a_boilerplate_pattern_that_is_not_a_regular_expression_exits_15(
     repo, write_list, monkeypatch, capsys
 ):
     """A boilerplate pattern that is not a valid regular expression makes the command
-    exit 31, and the message names the document and quotes the pattern, rather than
+    exit 15, and the message names the document and quotes the pattern, rather than
     stopping on a traceback."""
     text = LIST_TEXT.replace("'^ *Page [0-9]+ *$'", "'[unclosed'")
     outcome = run(write_list, monkeypatch, capsys, text, "--docs")
-    assert outcome.exit_code == 31
+    assert outcome.exit_code == 15
+    assert exit_line(15, "LOOKUP-LIST-INVALID") in outcome.printed
     assert "the boilerplate for guide holds '[unclosed'" in outcome.printed
     assert "not a valid regular expression" in outcome.printed
 
@@ -399,12 +402,13 @@ def test_a_boilerplate_pattern_that_is_not_a_regular_expression_exits_31(
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
-    """When the lookup document list is missing, the command exits 31 and says where the
+def test_a_missing_list_exits_12(repo, tmp_path, monkeypatch, capsys):
+    """When the lookup document list is missing, the command exits 12 and says where the
     file was expected and how to get it back."""
     monkeypatch.setattr(read_pdf, "REGISTRY_FILE", tmp_path / "gone.yml")
-    assert read_pdf.main(["--docs"]) == 31
+    assert read_pdf.main(["--docs"]) == 12
     printed = capsys.readouterr().err
+    assert exit_line(12, "LOOKUP-LIST-MISSING") in printed
     assert "is missing at" in printed and "gone.yml" in printed
     assert "restore it from git" in printed
 
@@ -413,12 +417,13 @@ def test_a_missing_list_exits_31(repo, tmp_path, monkeypatch, capsys):
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, capsys):
+def test_a_file_no_manifest_records_exits_16(repo, write_list, monkeypatch, capsys):
     """When the lookup document list names a file no manifest records, the command exits
-    32, a different cause from a list that cannot be read."""
+    16, a different cause from a list that cannot be read."""
     text = LIST_TEXT.replace("Example_Guide.pdf", "Nobody_Recorded_This.pdf")
     outcome = run(write_list, monkeypatch, capsys, text, "--docs")
-    assert outcome.exit_code == 32
+    assert outcome.exit_code == 16
+    assert exit_line(16, "LOOKUP-LIST-UNRECORDED-FILE") in outcome.printed
     assert "Nobody_Recorded_This.pdf" in outcome.printed
     assert "no manifest records" in outcome.printed
 
@@ -427,15 +432,16 @@ def test_a_file_no_manifest_records_exits_32(repo, write_list, monkeypatch, caps
 @category("processing")
 @objective("functionality")
 @negative
-def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys):
-    """When the sdg package is not running from inside its repo, the command exits 6
+def test_not_inside_repo_exits_3(repo, write_list, monkeypatch, tmp_path, capsys):
+    """When the sdg package is not running from inside its repo, the command exits 3
     and prints the install command, because the manifests that record each document
     cannot be found from anywhere else."""
     from sdg.sources import read_manifests
 
     monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
-    assert outcome.exit_code == 6
+    assert outcome.exit_code == 3
+    assert exit_line(3, "NOT-IN-REPO") in outcome.printed
     assert "pip install -e ." in outcome.printed
 
 
@@ -443,30 +449,32 @@ def test_not_inside_repo_exits_6(repo, write_list, monkeypatch, tmp_path, capsys
 @category("processing")
 @objective("functionality")
 @negative
-def test_an_unreadable_manifest_exits_3(repo, write_list, monkeypatch, capsys):
-    """When a manifest is not valid JSON, the command exits 3 and names that manifest as
-    what cannot be read, rather than blaming the document list or a document."""
+def test_an_unparseable_manifest_exits_14(repo, write_list, monkeypatch, capsys):
+    """When a manifest is not valid JSON, the command exits 14 and names that manifest as
+    what is not valid, rather than blaming the document list or a document."""
     (repo.root / "manifests" / "broken.json").write_text("{ not json", encoding="utf-8")
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
-    assert outcome.exit_code == 3
-    assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
+    assert outcome.exit_code == 14
+    assert exit_line(14, "MANIFEST-UNPARSEABLE") in outcome.printed
+    assert "broken.json" in outcome.printed and "is not valid JSON" in outcome.printed
 
 
 @code("SA00611")
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_manifest_location_outside_inputs_exits_66(
+def test_a_manifest_location_outside_inputs_exits_15(
     repo, write_list, monkeypatch, capsys
 ):
     """When a manifest records a location that does not stay under inputs/, the
-    command exits 66 and quotes the location, rather than reporting an unreadable
+    command exits 15 and quotes the location, rather than reporting an unreadable
     manifest."""
     repo.manifest(
         "stray", [repo.entry("inputs/../elsewhere.pdf", bytes=1, sha256="0" * 64)]
     )
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
-    assert outcome.exit_code == 66
+    assert outcome.exit_code == 15
+    assert exit_line(15, "MANIFEST-LOCATION-OUTSIDE-INPUTS") in outcome.printed
     assert (
         '"inputs/../elsewhere.pdf", which does not stay under inputs/'
         in outcome.printed
@@ -477,10 +485,10 @@ def test_a_manifest_location_outside_inputs_exits_66(
 @category("processing")
 @objective("functionality")
 @negative
-def test_docs_exits_8_when_a_document_is_not_downloaded(
+def test_docs_exits_12_when_a_document_is_not_downloaded(
     fake_repo, write_list, monkeypatch, capsys
 ):
-    """When a listed document is recorded but not on disk, listing the documents exits 8
+    """When a listed document is recorded but not on disk, listing the documents exits 12
     and says to run acquire_sources."""
     fake_repo.manifest(
         "example",
@@ -490,7 +498,8 @@ def test_docs_exits_8_when_a_document_is_not_downloaded(
         ],
     )
     outcome = run(write_list, monkeypatch, capsys, LIST_TEXT, "--docs")
-    assert outcome.exit_code == 8
+    assert outcome.exit_code == 12
+    assert exit_line(12, "PINNED-FILE-NOT-DOWNLOADED") in outcome.printed
     assert "acquire_sources" in outcome.printed
 
 
@@ -677,11 +686,12 @@ def test_raw_keeps_the_page_furniture(readable, capsys):
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_section_that_does_not_exist_exits_23(readable, capsys):
-    """Asking for a section the document does not hold exits 23, rather than printing
+def test_a_section_that_does_not_exist_exits_17(readable, capsys):
+    """Asking for a section the document does not hold exits 17, rather than printing
     nothing and reading as though the content were absent."""
     outcome = read(capsys, "99.99")
-    assert outcome.exit_code == 23
+    assert outcome.exit_code == 17
+    assert exit_line(17, "PDF-SECTION-NOT-FOUND") in outcome.printed
     assert "No section matching" in outcome.printed
     assert "--list" in outcome.printed
 
@@ -690,11 +700,12 @@ def test_a_section_that_does_not_exist_exits_23(readable, capsys):
 @category("processing")
 @objective("functionality")
 @negative
-def test_section_mode_on_a_document_without_bookmarks_exits_24(readable, capsys):
-    """Asking for a section of a document that carries no bookmarks exits 24 and names
+def test_section_mode_on_a_document_without_bookmarks_exits_17(readable, capsys):
+    """Asking for a section of a document that carries no bookmarks exits 17 and names
     the modes that do work on it."""
     outcome = read(capsys, "--doc", "plain", "--list")
-    assert outcome.exit_code == 24
+    assert outcome.exit_code == 17
+    assert exit_line(17, "PDF-HAS-NO-BOOKMARKS") in outcome.printed
     assert "--find" in outcome.printed
 
 
@@ -762,8 +773,8 @@ def test_a_page_range_ending_before_it_starts_is_a_usage_mistake(readable, capsy
 @category("processing")
 @objective("functionality")
 @negative
-def test_a_document_not_downloaded_exits_8(fake_repo, write_list, monkeypatch, capsys):
-    """Reading a document that is recorded but not on disk exits 8 and names the
+def test_a_document_not_downloaded_exits_12(fake_repo, write_list, monkeypatch, capsys):
+    """Reading a document that is recorded but not on disk exits 12 and names the
     manifest to restore it from."""
     fake_repo.manifest(
         "example",
@@ -774,7 +785,8 @@ def test_a_document_not_downloaded_exits_8(fake_repo, write_list, monkeypatch, c
     )
     monkeypatch.setattr(read_pdf, "REGISTRY_FILE", write_list(LIST_TEXT))
     outcome = read(capsys, "--pages", "1")
-    assert outcome.exit_code == 8
+    assert outcome.exit_code == 12
+    assert exit_line(12, "PINNED-FILE-NOT-DOWNLOADED") in outcome.printed
     assert "example.json" in outcome.printed
 
 

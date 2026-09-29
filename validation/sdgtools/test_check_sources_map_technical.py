@@ -32,6 +32,7 @@ from dataclasses import dataclass
 
 import pytest
 
+from sdg.exit_codes import exit_line
 from sdgtools import check_sources_map as script
 from sdgval.labels import category, code, negative, objective, positive
 from validation.shared.staged_manifests import CONTENT
@@ -195,15 +196,16 @@ def test_one_heading_may_name_two_files(repo, fake_repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_file_with_no_heading_exits_35(repo, fake_repo, capsys):
-    """A recorded file that no heading covers exits 35, and the line names the file,
+def test_a_file_with_no_heading_exits_16(repo, fake_repo, capsys):
+    """A recorded file that no heading covers exits 16, and the line names the file,
     which is the failure this tool was written for."""
     fake_repo.file("inputs/standards/example/Forgotten.xlsx", CONTENT)
     fake_repo.manifest(
         "extra", [fake_repo.entry("inputs/standards/example/Forgotten.xlsx")]
     )
     outcome = run(capsys, MAP)
-    assert outcome.exit_code == 35
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-HEADING-MISSING") in outcome.printed
     assert "Forgotten.xlsx" in outcome.printed
     assert "no heading in the map covers it" in outcome.printed
 
@@ -216,7 +218,7 @@ def test_a_placeholder_heading_does_not_reach_outside_its_group(
     repo, fake_repo, capsys
 ):
     """A placeholder heading in one group does not cover a file of the same shape in
-    another group, so the run exits 35 and names that file."""
+    another group, so the run exits 16 and names that file."""
     fake_repo.file("inputs/worked_examples/StudyOne/StudyOne.pdf", CONTENT)
     fake_repo.manifest(
         "examples", [fake_repo.entry("inputs/worked_examples/StudyOne/StudyOne.pdf")]
@@ -235,7 +237,8 @@ def test_a_placeholder_heading_does_not_reach_outside_its_group(
         ]
     )
     outcome = run(capsys, text)
-    assert outcome.exit_code == 35
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-HEADING-MISSING") in outcome.printed
     assert PINNED in outcome.printed
 
 
@@ -243,12 +246,13 @@ def test_a_placeholder_heading_does_not_reach_outside_its_group(
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_location_nothing_lives_in_exits_36(repo, capsys):
-    """A location line naming a folder no manifest records a file in exits 36, and the
+def test_a_location_nothing_lives_in_exits_16(repo, capsys):
+    """A location line naming a folder no manifest records a file in exits 16, and the
     line names the folder."""
     text = MAP + "\n- location: inputs/standards/nowhere/\n"
     outcome = run(capsys, text)
-    assert outcome.exit_code == 36
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-LOCATION-UNRECORDED") in outcome.printed
     assert "inputs/standards/nowhere" in outcome.printed
 
 
@@ -257,7 +261,7 @@ def test_a_location_nothing_lives_in_exits_36(repo, capsys):
 @objective("functionality")
 @negative
 def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
-    """When a file has no heading and a location holds nothing, the run exits 35,
+    """When a file has no heading and a location holds nothing, the run exits 16,
     because a file nobody can find is the worse problem."""
     fake_repo.file("inputs/standards/example/Forgotten.xlsx", CONTENT)
     fake_repo.manifest(
@@ -265,7 +269,8 @@ def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
     )
     text = MAP + "\n- location: inputs/standards/nowhere/\n"
     outcome = run(capsys, text)
-    assert outcome.exit_code == 35
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-HEADING-MISSING") in outcome.printed
     assert "Forgotten.xlsx" in outcome.printed
     assert "inputs/standards/nowhere" in outcome.printed
 
@@ -274,26 +279,29 @@ def test_a_missing_file_outranks_an_empty_location(repo, fake_repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_missing_map_exits_13(repo, capsys):
-    """With no map on disk, the run exits 13 and says the map cannot be read, rather
-    than reporting every recorded file as unmapped."""
+def test_a_missing_map_exits_12(repo, capsys):
+    """With no map on disk, the run exits 12, says the map is missing and to restore it
+    from git, rather than reporting every recorded file as unmapped."""
     outcome = Outcome(script.main([]), capsys.readouterr().out)
-    assert outcome.exit_code == 13
-    assert "cannot be read" in outcome.printed
+    assert outcome.exit_code == 12
+    assert exit_line(12, "SOURCES-MAP-MISSING") in outcome.printed
+    assert "is missing" in outcome.printed
+    assert "restore it from git" in outcome.printed
 
 
 @code("SA00326")
 @category("repository")
 @objective("functionality")
 @negative
-def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
-    """When the sdg package is not running from inside its repo, the run exits 6 with
+def test_not_inside_repo_exits_3(repo, tmp_path, monkeypatch, capsys):
+    """When the sdg package is not running from inside its repo, the run exits 3 with
     the install command, instead of reporting a file with no heading."""
     from sdg.sources import read_manifests
 
     monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
     outcome = run(capsys, MAP)
-    assert outcome.exit_code == 6
+    assert outcome.exit_code == 3
+    assert exit_line(3, "NOT-IN-REPO") in outcome.printed
     assert "pip install -e ." in outcome.printed
 
 
@@ -301,32 +309,33 @@ def test_not_inside_repo_exits_6(repo, tmp_path, monkeypatch, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_an_unreadable_manifest_exits_3(repo, fake_repo, capsys):
-    """When a manifest is not valid JSON, the run exits 3 and names that manifest as
-    what cannot be read, instead of comparing a map against nothing."""
+def test_an_unparseable_manifest_exits_14(repo, fake_repo, capsys):
+    """When a manifest is not valid JSON, the run exits 14 and names that manifest as
+    what is not valid, instead of comparing a map against nothing."""
     (fake_repo.root / "manifests" / "broken.json").write_text(
         "{ not json", encoding="utf-8"
     )
     outcome = run(capsys, MAP)
-    assert outcome.exit_code == 3
-    assert "broken.json" in outcome.printed and "cannot read" in outcome.printed
+    assert outcome.exit_code == 14
+    assert exit_line(14, "MANIFEST-UNPARSEABLE") in outcome.printed
+    assert "broken.json" in outcome.printed and "is not valid JSON" in outcome.printed
 
 
 @code("SA00328")
 @category("repository")
 @objective("functionality")
 @negative
-def test_quiet_file_with_no_heading_exits_35_and_prints_nothing(
+def test_quiet_file_with_no_heading_exits_16_and_prints_nothing(
     repo, fake_repo, capsys
 ):
     """With the quiet option, a recorded file that has no heading in the map still
-    exits 35, and nothing is printed."""
+    exits 16, and nothing is printed."""
     fake_repo.file("inputs/standards/example/Forgotten.xlsx", CONTENT)
     fake_repo.manifest(
         "extra", [fake_repo.entry("inputs/standards/example/Forgotten.xlsx")]
     )
     outcome = run(capsys, MAP, "--quiet")
-    assert outcome.exit_code == 35
+    assert outcome.exit_code == 16
     assert outcome.printed == ""
 
 
@@ -355,22 +364,22 @@ def test_every_refusal_is_silent_under_quiet(
 
     if refusal == "outside the repo":
         monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
-        outcome, expected = run(capsys, MAP, "--quiet"), 6
+        outcome, expected = run(capsys, MAP, "--quiet"), 3
     elif refusal == "unreadable manifest":
         (fake_repo.root / "manifests" / "broken.json").write_text(
             "{ not json", encoding="utf-8"
         )
-        outcome, expected = run(capsys, MAP, "--quiet"), 3
+        outcome, expected = run(capsys, MAP, "--quiet"), 14
     elif refusal == "location outside inputs":
         fake_repo.manifest(
             "stray",
             [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)],
         )
-        outcome, expected = run(capsys, MAP, "--quiet"), 66
+        outcome, expected = run(capsys, MAP, "--quiet"), 15
     else:
         outcome, expected = (
             Outcome(script.main(["--quiet"]), capsys.readouterr().out),
-            13,
+            12,
         )
     assert outcome.printed == ""
     assert outcome.exit_code == expected
@@ -386,10 +395,11 @@ def test_every_refusal_is_silent_under_quiet(
 @negative
 def test_a_heading_with_no_location_covers_no_file(repo, capsys):
     """A document heading with no location line above it covers no recorded file, so
-    the file it names is reported as having no heading and the run exits 35."""
+    the file it names is reported as having no heading and the run exits 16."""
     text = MAP.replace("- location: inputs/standards/example/\n", "")
     outcome = run(capsys, text)
-    assert outcome.exit_code == 35
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-HEADING-MISSING") in outcome.printed
     assert "Example_Guide.pdf" in outcome.printed
 
 
@@ -406,10 +416,11 @@ def test_a_heading_with_no_location_covers_no_file(repo, capsys):
 @negative
 def test_a_heading_in_another_case_covers_no_file(repo, capsys):
     """A document heading whose file name differs from the recorded file only in upper
-    and lower case does not cover it, so the run exits 35 and names the file."""
+    and lower case does not cover it, so the run exits 16 and names the file."""
     text = MAP.replace("Document: Example_Guide.pdf", "Document: example_guide.pdf")
     outcome = run(capsys, text)
-    assert outcome.exit_code == 35
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-HEADING-MISSING") in outcome.printed
     assert PINNED in outcome.printed
 
 
@@ -419,10 +430,11 @@ def test_a_heading_in_another_case_covers_no_file(repo, capsys):
 @negative
 def test_a_location_in_another_case_holds_no_file(repo, capsys):
     """A location line whose folder differs from a recorded folder only in upper and
-    lower case holds no recorded file, so the run exits 36 and names the location."""
+    lower case holds no recorded file, so the run exits 16 and names the location."""
     text = MAP + "\n- location: inputs/standards/EXAMPLE/\n"
     outcome = run(capsys, text)
-    assert outcome.exit_code == 36
+    assert outcome.exit_code == 16
+    assert exit_line(16, "SOURCES-MAP-LOCATION-UNRECORDED") in outcome.printed
     assert "inputs/standards/EXAMPLE" in outcome.printed
 
 
@@ -430,12 +442,13 @@ def test_a_location_in_another_case_holds_no_file(repo, capsys):
 @category("repository")
 @objective("functionality")
 @negative
-def test_a_manifest_location_outside_inputs_exits_66(repo, fake_repo, capsys):
+def test_a_manifest_location_outside_inputs_exits_15(repo, fake_repo, capsys):
     """When a manifest records a location that does not stay under inputs/, the run
-    exits 66 and quotes the location, instead of comparing a map against it."""
+    exits 15 and quotes the location, instead of comparing a map against it."""
     fake_repo.manifest(
         "stray", [fake_repo.entry("inputs/../elsewhere.txt", bytes=1, sha256="0" * 64)]
     )
     outcome = run(capsys, MAP)
-    assert outcome.exit_code == 66
+    assert outcome.exit_code == 15
+    assert exit_line(15, "MANIFEST-LOCATION-OUTSIDE-INPUTS") in outcome.printed
     assert "does not stay under inputs/" in outcome.printed

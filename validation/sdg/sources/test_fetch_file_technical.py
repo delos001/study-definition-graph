@@ -37,7 +37,16 @@ import httpx
 import pytest
 
 from sdg.sources import fetch_file
-from sdg.sources.fetch_file import FetchError, fetch, partial_path
+from sdg.sources.fetch_file import (
+    FetchBadUrlError,
+    FetchError,
+    FetchErrorAnswerError,
+    FetchNoAnswerError,
+    FetchNotWrittenError,
+    FetchRefusedError,
+    fetch,
+    partial_path,
+)
 from sdgval.labels import category, code, negative, objective, positive
 from validation.shared.fake_server import CHUNKS, URL, FakeResponse
 
@@ -290,11 +299,12 @@ def test_unparseable_url_raises_fetch_error_naming_url_and_cause(tmp_path, serve
 @negative
 def test_file_where_the_folder_should_be_raises_fetch_error(tmp_path, server):
     """A plain file sitting where the destination's folder should be makes the download
-    fail with a message naming the address, and the file is left as it was."""
+    fail as one that could not be written, with a message naming the address, and the
+    file is left as it was."""
     server(FakeResponse(CHUNKS))
     blocker = tmp_path / "folder"
     blocker.write_bytes(b"not a folder")
-    with pytest.raises(FetchError) as caught:
+    with pytest.raises(FetchNotWrittenError) as caught:
         fetch(URL, blocker / "file.pdf")
     assert URL in str(caught.value)
     assert blocker.read_bytes() == b"not a folder"
@@ -337,3 +347,72 @@ def test_broken_transfer_removes_the_half_written_part_file(tmp_path, server):
     removed, so it cannot be mistaken for a finished download."""
     failed = attempt(server, tmp_path, FakeResponse(CHUNKS, break_after=1))
     assert not partial_path(failed.destination).exists()
+
+
+def status_error(status: int) -> httpx.HTTPStatusError:
+    """Build the error httpx raises when a server answers with the given status.
+
+    Args:
+        status: The error status the server answers with.
+
+    Returns:
+        The error, ready to be raised by the fake response.
+    """
+    return httpx.HTTPStatusError(
+        f"{status} error",
+        request=httpx.Request("GET", URL),
+        response=httpx.Response(status),
+    )
+
+
+@code("SA00651")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    ("behavior", "kind"),
+    [
+        (lambda: httpx.ConnectError("no such host"), FetchNoAnswerError),
+        (lambda: httpx.ReadTimeout("timed out"), FetchNoAnswerError),
+        (lambda: FakeResponse(CHUNKS, break_after=1), FetchNoAnswerError),
+        (
+            lambda: FakeResponse(CHUNKS, status_error=status_error(401)),
+            FetchRefusedError,
+        ),
+        (
+            lambda: FakeResponse(CHUNKS, status_error=status_error(403)),
+            FetchRefusedError,
+        ),
+        (
+            lambda: FakeResponse(CHUNKS, status_error=status_error(404)),
+            FetchErrorAnswerError,
+        ),
+        (
+            lambda: FakeResponse(CHUNKS, status_error=status_error(500)),
+            FetchErrorAnswerError,
+        ),
+        (lambda: httpx.TooManyRedirects("too many redirects"), FetchErrorAnswerError),
+        (lambda: httpx.InvalidURL("Invalid IPv6 URL"), FetchBadUrlError),
+        (lambda: httpx.UnsupportedProtocol("no such scheme"), FetchBadUrlError),
+    ],
+    ids=[
+        "no connection",
+        "timed out",
+        "stopped part way",
+        "status 401",
+        "status 403",
+        "status 404",
+        "status 500",
+        "too many redirects",
+        "invalid url",
+        "unknown scheme",
+    ],
+)
+def test_a_failed_download_raises_the_kind_that_names_its_group(
+    tmp_path, server, behavior, kind
+):
+    """A download that fails in the way each run names raises the kind of download
+    error whose exit number and sub-code name that group of failure."""
+    server(behavior())
+    with pytest.raises(kind):
+        fetch(URL, tmp_path / "file.pdf")

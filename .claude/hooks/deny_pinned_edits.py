@@ -34,7 +34,7 @@ Usage:       Not run by hand. Named in .claude/settings.json as a PreToolUse
              hook for Write and Edit.
                  echo '{"tool_input":{"file_path":"inputs/x.pdf"}}' | python .claude/hooks/deny_pinned_edits.py
 
-Exit codes:  0   the command succeeded (always; the decision is in the printed
+Exit codes:  0   SUCCEEDED  the command succeeded (always; the decision is in the printed
                  JSON, not the exit code)
 
 Date:        2026-09-09
