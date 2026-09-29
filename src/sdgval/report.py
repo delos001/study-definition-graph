@@ -116,7 +116,6 @@ import pytest
 # generator, src/sdgval/build_inventory.py, which fills the same column of the
 # inventory. Importing it means the inventory and a report can never disagree.
 from sdgval.build_inventory import (
-    ASPECT_OF,
     code_folder_and_target,
     first_paragraph,
     split_path,
@@ -138,6 +137,7 @@ from sdgval.select_checks import (
     refuse,
     wanted,
 )
+from sdgval.vocabulary import ASPECT_OF
 
 #######################################################################################
 ### Settings ###

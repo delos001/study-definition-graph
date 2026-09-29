@@ -22,6 +22,7 @@ check_facts = "sdgtools.check_facts:main"
 check_python_files = "sdgtools.check_python_files:main"
 build_index = "sdgtools.build_index:main"
 verify_headers = "sdgtools.verify_headers:main"
+check_import_loops = "sdgtools.check_import_loops:main"
 build_inventory = "sdgval.build_inventory:main"
 validate_technical = "sdgval.validate_technical:main"
 

@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import pytest
 
-from sdgval.build_inventory import ASPECT_OF
+from sdgval.vocabulary import ASPECT_OF
 
 #######################################################################################
 ### The short names a check file uses ###

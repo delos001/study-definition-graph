@@ -133,6 +133,19 @@ check_facts --verbose
     also show facts that match
 ```
 
+### check_import_loops
+
+Confirms that no two files of the project's packages import each other, directly or through other files, and names the files in each loop it finds.
+
+Its header block is in `src/sdgtools/check_import_loops.py`.
+
+```
+check_import_loops
+    confirm the packages have no import loop, and name each one found
+check_import_loops --quiet
+    print nothing; use the exit code
+```
+
 ### check_neo4j
 
 Confirms the project's Neo4j database is running, accepts the login in .env, and is the version pinned in docker-compose.yml, so a database that is off, was started the wrong way, or has drifted to another version is found at setup rather than part way through a graph load.

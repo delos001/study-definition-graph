@@ -97,13 +97,13 @@ import pytest
 import yaml
 
 from sdg.exit_codes import problem_line
-from sdgval.build_inventory import (
+from sdgval.labels import aspect_of, category_of, code_of, objective_of
+from sdgval.vocabulary import (
     ASPECT_OF,
     CATEGORIES,
     OBJECTIVES,
     OBJECTIVES_BY_ASPECT,
 )
-from sdgval.labels import aspect_of, category_of, code_of, objective_of
 
 #######################################################################################
 ### Settings ###

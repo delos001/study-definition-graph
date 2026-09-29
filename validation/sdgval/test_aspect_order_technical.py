@@ -32,8 +32,8 @@ import re
 import pytest
 
 from sdgval import aspect_order
-from sdgval.build_inventory import OBJECTIVES_BY_ASPECT
 from sdgval.labels import category, code, negative, objective, positive
+from sdgval.vocabulary import OBJECTIVES_BY_ASPECT
 
 #######################################################################################
 ### Staging a suite ###

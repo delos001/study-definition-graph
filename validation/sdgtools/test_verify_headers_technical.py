@@ -522,7 +522,10 @@ def test_a_missing_table_exits_12(folder, monkeypatch, capsys):
             "is not a whole number from 0 to 125",
         ),
         (["126", GROUPS[13], "A-B", "x", ""], "is not a whole number from 0 to 125"),
-        (["24", "a group nobody made", "A-B", "x", ""], "is not a group in GROUPS"),
+        (
+            [str(max(GROUPS) + 1), "a group nobody made", "A-B", "x", ""],
+            "is not a group in GROUPS",
+        ),
         (["13", GROUPS[13], "not a sub code", "x", ""], "is not words in capitals"),
         (["13", GROUPS[13], "SUCCEEDED", "x", ""], "SUCCEEDED is listed twice"),
     ],

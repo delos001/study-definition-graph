@@ -45,3 +45,4 @@ hook_conformance:
     - SA00373
     - SA00374
     - SA00538
+    - SA00670

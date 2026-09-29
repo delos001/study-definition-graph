@@ -200,6 +200,14 @@ from typing import Any
 import pytest
 
 from sdg.exit_codes import fail, finish, problem_line
+from sdgval.labels import case_of, category_of, code_of, objective_of
+from sdgval.vocabulary import (
+    ASPECT_OF,
+    ASPECTS,
+    CASES,
+    CATEGORIES,
+    OBJECTIVES,
+)
 
 #######################################################################################
 ### Settings ###
@@ -239,47 +247,6 @@ HAND_KEPT = {
     "status_reason": "",
     "version": "1",
 }
-
-# What kind of thing a check confirms. validation/validation_inventory_dictionary.md
-# defines each one.
-CATEGORIES = ("repository", "sources", "processing", "products")
-
-# The objectives each aspect of quality holds. A check carries only its objective,
-# and the generator looks the aspect up here, so an objective can never be filed
-# under an aspect it does not belong to. Adding an objective means adding it here,
-# which is what keeps the two in step. The dictionary defines every one of them.
-OBJECTIVES_BY_ASPECT = {
-    "conformance": ("conformance",),
-    "integrity": ("correctness", "completeness", "stability", "consistency"),
-    "technical": (
-        "functionality",
-        "performance",
-        "reliability",
-        "security",
-        "compatibility",
-        "maintainability",
-        "portability",
-    ),
-}
-
-# Every objective, and the aspect each one belongs to. Both are worked out from the
-# table above rather than typed a second time, so neither can drift from it.
-ASPECT_OF = {
-    objective: aspect
-    for aspect, objectives in OBJECTIVES_BY_ASPECT.items()
-    for objective in objectives
-}
-OBJECTIVES = tuple(ASPECT_OF)
-
-# The aspects, in the order the vocabulary lists them. A check file's name ends with
-# one of them, so the names come from the vocabulary rather than a list of their own.
-ASPECTS = tuple(OBJECTIVES_BY_ASPECT)
-
-# A check that staged its own situation carries one of these, saying whether the
-# situation was a working one or a broken one. A check that looked at something real
-# carries neither. The case says how the check was set up, which is a separate thing
-# from the question it asks, so any objective may carry one.
-CASES = ("positive", "negative")
 
 # The suites a check's id may belong to, and what each one holds. An id is a plain
 # unique key: where a check lives and what it covers are columns of their own, so
@@ -754,11 +721,6 @@ def read_checks() -> tuple[list[tuple[str, str, Check]], list[Problem]]:
     stopping = load_problems(record, status, printed)
     if stopping:
         return [], stopping
-
-    # The label readers are imported here rather than at the top, because
-    # src/sdgval/labels.py imports ASPECT_OF from this file, and a module that
-    # imports it at the top would find this one half loaded.
-    from sdgval.labels import case_of, category_of, code_of, objective_of
 
     problems: list[Problem] = []
     # The runs of one check function are gathered under the function, in the

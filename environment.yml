@@ -17,7 +17,7 @@ dependencies:
   - pymupdf>=1.28,<2        # PDF text extraction with layout and bounding boxes
   - pandas>=3.0,<4          # tables from the pinned workbooks, and scoring against eval/
   - openpyxl>=3.1,<4        # reads the pinned workbooks: the controlled terminology (CT), the CDISC Open Rules Engine (CORE) conformance rules, the crosswalks, the worked examples
-  - grimp>=3.17,<4          # maps which project file imports which, for the order between scripts' checks
+  - grimp>=3.17,<4          # maps which project file imports which, so check_import_loops can refuse a loop
   - ruff==0.16.9            # confirms the Python files follow the standard layout and style; run by check_python_files
   - mypy==2.3.1             # confirms functions take and return the kinds of values they declare; run by check_python_files
   - pip

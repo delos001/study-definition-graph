@@ -57,6 +57,15 @@ repos:
         pass_filenames: false
         always_run: true
 
+      # Refuses the commit if two files of the packages under src/ import each other,
+      # directly or through other files. The refusal names the files in each loop.
+      - id: check_import_loops
+        name: no two files of the packages import each other
+        entry: conda run -n sdg --no-capture-output check_import_loops
+        language: unsupported
+        pass_filenames: false
+        always_run: true
+
       # Refuses the commit if validation/validation_inventory.csv is out of date with
       # the check files under validation/ it is generated from. The fix is to run
       # build_inventory and stage the file.

@@ -41,34 +41,71 @@ from collections.abc import Callable
 #######################################################################################
 ### The groups ###
 
-# Each exit number and the group of failure it names. The separating test for each
-# group, and every sub-code in it, are in docs/exit_codes.csv. A new group is added
-# here and to that table in the same commit.
+# Each exit number and the group of failure it names. Every sub-code in a group is
+# in docs/exit_codes.csv. The comment above each group is its separating test, which
+# places a new failure in exactly one group, so a failure is placed by answering the
+# tests rather than by judgment. A new group is added only when no group's test fits,
+# here and to the table in the same commit.
 GROUPS: dict[int, str] = {
+    # Nothing failed.
     0: "the command succeeded",
+    # A fault in this repo's own code, whether nothing handled the error or the code
+    # caught it, as when a check file errors while it loads.
     1: "this repo's own code failed",
+    # What was typed is wrong, whatever the files, settings or folder hold.
     2: "the command line is wrong",
+    # The same command, typed the same way, works once the folder changes, as by
+    # moving into the repo or committing.
     3: "the working folder is not in the state the command needs",
+    # .env does not exist, or has no line for the setting.
     4: "a setting is missing",
+    # The setting is there, and the command can see it cannot be right before it
+    # contacts anything.
     5: "a setting is invalid",
+    # A program the command runs is not on the path, because it is not installed or
+    # its environment is not active.
     6: "an outside program cannot be found",
+    # The program was found, then errored or did not answer.
     7: "an outside program was found but failed to run",
+    # The program answered, and its version is not the one the repo fixes.
     8: "an outside program is not the pinned version",
+    # No answer came from a service reached over a connection, or none in time.
     9: "a service did not respond",
+    # A service answered by refusing the login, key or permission it was given.
     10: "a service refused the login, key or permission",
+    # A service answered with any other error, such as a missing page or a rate limit.
     11: "a service answered with an error",
+    # Nothing is at the path.
     12: "a file does not exist",
+    # The path exists and opening it fails.
     13: "a file exists but cannot be opened",
+    # A file's content or a service's answer breaks the rules of its format, such as
+    # JSON, YAML, TOML, Python or PDF.
     14: "content cannot be parsed",
+    # The content parses, but a required part is missing or a value is not allowed,
+    # found by looking at that content alone.
     15: "content breaks a requirement",
+    # A record or document disagrees with the thing it describes, found only by
+    # comparing the two.
     16: "a description does not match the thing it describes",
+    # A name, number or pattern the person typed matched nothing.
     17: "the parameters given yielded no results",
+    # The place the command looks exists, and nothing in it can be acted on.
     18: "the command found no target to act on",
+    # The output is already there, and the command refuses on purpose to replace it.
     19: "an output already exists and is not overwritten",
+    # Writing the output failed, as on a full disk.
     20: "an output could not be written",
+    # A command whose job is to run the validation checks found one or more failing.
     21: "one or more validation checks failed",
+    # A run scored against the answer keys in eval/ came in under its agreed
+    # threshold.
     22: "an evaluation score fell below its threshold",
+    # The run was stopped by a person or by the test runner before it finished.
     23: "the run was interrupted before it finished",
+    # The fault is only in how two or more parts relate, such as files that import
+    # each other. Each part is fine on its own, and none describes another.
+    24: "a relationship breaks a rule",
 }
 
 

@@ -46,7 +46,7 @@ The one exception is `__init__.py`, which carries a one-paragraph docstring nami
 
 A command's exit number names a broad group of failure, such as 9, "a service did not respond". The groups are `GROUPS` in `src/sdg/exit_codes.py`, and one number means the same group in every command. A sub-code, a short name in capitals such as `NEO4J-UNREACHABLE`, names the failure itself. Two failures share a sub-code only when they share an explanation and a fix.
 
-`docs/exit_codes.csv` is the reference a person reads. It holds one row per sub-code, with the exit number, the group, what happened and what to do. A new failure gets a new row, and its group is chosen by the separating tests in the `DECISIONS.md` entry "Exit numbers name a broad group of failure, and a sub-code names the failure itself, decided 2026-09-29". A new group is added only when no group's test fits, to `GROUPS` and to the table in the same commit.
+`docs/exit_codes.csv` is the reference a person reads. It holds one row per sub-code, with the exit number, the group, what happened and what to do. A new failure gets a new row, and its group is chosen by the separating test written above each group in `GROUPS`. A new group is added only when no group's test fits, to `GROUPS` and to the table in the same commit.
 
 A command reports a failure through `fail()` or `finish()` in `src/sdg/exit_codes.py`. Each problem line starts with its sub-code, and the last line names the exit number, its group and the sub-code that decided it, as in `Exit 9: a service did not respond (NEO4J-UNREACHABLE)`. The code names each failure by its number and sub-code written together, as in `fail(say, 9, "NEO4J-UNREACHABLE", message)`, or by an error class's `exit_code` and `sub_code`.
 

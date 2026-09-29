@@ -108,3 +108,4 @@ code,group,sub_code,what_happened,what_to_do
 21,one or more validation checks failed,CHECKS-FAILED,one or more validation checks failed,"Read the failed checks pytest listed, then fix what each names."
 22,an evaluation score fell below its threshold,,no command fails this way yet,
 23,the run was interrupted before it finished,RUN-INTERRUPTED,the check run was interrupted before every check ran,"Run the command again, and let it finish."
+24,a relationship breaks a rule,IMPORT-LOOP,"two or more files import each other, directly or through other files","Move what both files need into a file of its own, which each can import."
