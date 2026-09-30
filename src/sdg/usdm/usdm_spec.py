@@ -157,10 +157,11 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     YAML in native form.
 
     The result is a dict keyed by class name, where each value is the class's own dict
-    of National Cancer Institute (NCI) code, definition, modifier and attributes. Nothing is reshaped. Four
+    of National Cancer Institute (NCI) code, definition, modifier and attributes. Nothing is reshaped. These
     things about the file's shape are confirmed before the dict is returned, so a
     structurally different file fails here instead of deep inside a caller.
 
+    - The file is a mapping that holds at least one class.
     - Every class has Modifier and Attributes.
     - Every Modifier is Concrete or Abstract.
     - Every class's Attributes is a mapping, and every attribute has Type,

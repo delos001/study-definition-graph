@@ -34,7 +34,7 @@ from validation.shared.usdm_model import needs_pinned_file
 @objective("conformance")
 @needs_pinned_file
 def test_pinned_file_is_shaped_the_way_the_loader_expects():
-    """The pinned USDM model file passes the loader's four shape tests, so what the
+    """The pinned USDM model file passes the loader's shape tests, so what the
     loader expects of USDM v4 matches the real file. The file is read without its
     fingerprint being confirmed, which the stability check covers."""
     assert usdm_spec.load(verify=False)

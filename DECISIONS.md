@@ -861,7 +861,7 @@ No standard covered either choice, so both are **unguided**.
 
 ## A refusal's message names its cause, and the exit-code table holds its fix, decided 2026-09-30
 
-The rule for a check of a refusal said the message must name the cause and its fix. Many refusals in the header checker and the two document readers print no fix, so their checks could not meet the rule.
+The rule in `.claude/rules/writing_python_files.md` for a check of a refusal said the message must name the cause and its fix. Many refusals in `src/sdgtools/verify_headers.py`, `src/sdg/view/read_pdf.py` and `src/sdg/view/read_xlsx.py` print no fix, so their checks could not meet the rule.
 
 - The check confirms that the message names the cause and the exit line names its sub-code.
 - The fix for each sub-code stays in `docs/exit_codes.csv`, the one place that holds it. A message may still print a fix, and its check may confirm it.

@@ -531,6 +531,7 @@ def test_a_missing_table_exits_12(folder, monkeypatch, capsys):
         (["13", GROUPS[13], "not a sub code", "x", ""], "is not words in capitals"),
         (["13", GROUPS[13], "SUCCEEDED", "x", ""], "SUCCEEDED is listed twice"),
         (["13"], "has fewer columns than the table's header"),
+        (["13", GROUPS[13], "A-B", "x"], "has fewer columns than the table's header"),
     ],
     ids=[
         "a code that is not a number",
@@ -539,6 +540,7 @@ def test_a_missing_table_exits_12(folder, monkeypatch, capsys):
         "a sub-code of the wrong form",
         "a sub-code listed twice",
         "a row with too few columns",
+        "a row missing only what to do",
     ],
 )
 def test_a_table_row_that_breaks_the_rules_exits_15(folder, capsys, row, said):

@@ -805,8 +805,8 @@ TWO_TECHNICAL_CHECKS = '''
 
 # Two runs of the shared code in one process: the first covering both checks and
 # writing nothing, the second narrowed to one check and writing its report. The
-# second run reports fewer checks than the first ran, so anything carried over from
-# the first would show in the second run's counts.
+# second run reports fewer checks than the first ran, so a check the first run ran,
+# if carried over, would show in the second run's counts.
 TWO_RUNS_IN_ONE_PROCESS = (
     "import sys\n"
     "from sdgval.aspect_run import run_aspect\n"
@@ -825,7 +825,7 @@ def test_a_second_run_in_the_same_process_reports_on_itself_alone(
     staged_suite, pytester
 ):
     """When two runs happen in one process, the second run's own file counts only
-    its own checks, so nothing the first run dropped or ran is carried into it."""
+    its own checks, so no check the first run ran is carried into it."""
     staged_suite.commit(TWO_TECHNICAL_CHECKS, aspect_conftest=False)
     result = pytester.run(
         sys.executable, "-c", TWO_RUNS_IN_ONE_PROCESS, str(staged_suite.report_dir)

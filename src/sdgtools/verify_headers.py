@@ -232,8 +232,9 @@ def exit_code_table(path: Path | None = None) -> dict[str, Row]:
                 )
             # A row with fewer columns than the table's header has no value at all in
             # the columns it lacks, so it is refused here rather than failing on them
-            # below.
-            if None in (row["group"], row["sub_code"], row["what_happened"]):
+            # below. Every column is tested, so a column added to the table later is
+            # covered too.
+            if None in row.values():
                 raise TableError(
                     f"the row for code {number} has fewer columns than the table's "
                     "header"
