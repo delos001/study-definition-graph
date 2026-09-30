@@ -52,7 +52,7 @@ The run stops rather than reporting a clean run of nothing, and no report is wri
 For example, `pytest --category sources --objective performance` stops with this message, where `<n>` is however many sources checks there are.
 
 ```
-ERROR: no check matches every option given: --category matched <n>, --objective matched 0, in combination 0. Drop or widen the option that matched fewest.
+ERROR: SELECTION-MATCHES-NOTHING  no check matches every option given: --category matched <n>, --objective matched 0, in combination 0. Drop or widen the option that matched fewest.
 ```
 
 ## Seeing what a selection would run, without running it

@@ -110,7 +110,7 @@ def can_start(program: str) -> bool:
         started or answered with an error.
     """
     command = command_for([program, "--version"])
-    # main() stops with exit 22 before asking, when neither the tool nor conda is
+    # main() stops with exit 6, TOOL-NOT-FOUND, before asking, when neither the tool nor conda is
     # found, so this answer is kept only for a caller that asks directly.
     if command is None:  # pragma: no cover
         return False

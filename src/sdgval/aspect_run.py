@@ -19,8 +19,10 @@ Description: Holds one pytest run to one aspect of quality. It is the part every
              and prints the exit line when the run did not succeed. pytest's
              usage error, 4, covers every refusal this package makes, so each
              refusal leaves its cause in pytest's stash, and the number is chosen
-             by that cause. A plain pytest run is not changed and keeps pytest's
-             numbers.
+             by that cause. pytest reports a check file that failed to load as an
+             interrupted run, the same as a run stopped by hand, so the error that
+             stopped the file is kept and the number is chosen by it. A plain
+             pytest run is not changed and keeps pytest's numbers.
 
 Inputs:      validation/**/test_*.py (read-only; the checks the run collects)
 
@@ -71,6 +73,14 @@ PYTEST_EXITS: dict[int, tuple[int, str]] = {
     pytest.ExitCode.NO_TESTS_COLLECTED: (18, "NO-CHECKS-COLLECTED"),
 }
 
+# The repo's number and sub-code for a check file that failed to load, the same ones
+# src/sdgval/build_inventory.py gives it. pytest reports such a run as interrupted,
+# as it does a run stopped by hand, so the errors the plugin kept are what tell the
+# two apart. A file that is not valid Python comes first when both kinds are found,
+# as it does in build_inventory.
+UNPARSEABLE = (14, "PYTHON-UNPARSEABLE")
+LOAD_ERROR = (1, "CHECK-FILE-LOAD-ERROR")
+
 
 #######################################################################################
 ### Naming the report and refusing a second aspect ###
@@ -83,7 +93,9 @@ class AspectRun:
     it refuses any aspect the person named. The refusal is raised inside pytest as its
     usage error, so nothing runs, the same way the report writer refuses a report on
     uncommitted changes. It keeps pytest's configuration, so the cause of a refusal
-    can be read once the run has ended.
+    can be read once the run has ended. It also keeps the error that stopped each
+    check file that failed to load, so that failure can be told apart from a run
+    stopped by hand.
     """
 
     def __init__(self, aspect: str) -> None:
@@ -94,6 +106,7 @@ class AspectRun:
         """
         self.aspect = aspect
         self.config: pytest.Config | None = None
+        self.load_errors: list[BaseException] = []
 
     def pytest_configure(self, config: pytest.Config) -> None:
         """Leave the aspect in pytest's stash, for the report writer and the refusals.
@@ -122,6 +135,29 @@ class AspectRun:
                 "it does not accept --aspect. Run it without --aspect.",
             )
 
+    def pytest_exception_interact(
+        self,
+        node: pytest.Item | pytest.Collector,
+        call: pytest.CallInfo[object],
+        report: pytest.CollectReport | pytest.TestReport,
+    ) -> None:
+        """Keep the error that stopped a check file from loading.
+
+        pytest calls this for a check that failed as well as for a file that failed
+        to load, so only an error met while reading a file or folder is kept. pytest
+        wraps the error it met in one of its own, so the error underneath is kept,
+        because that is the one that says what is wrong with the file.
+
+        Args:
+            node: The check, or the file or folder, that failed.
+            call: How it ended, with the error.
+            report: pytest's report of the failure.
+        """
+        if not isinstance(node, pytest.Collector) or call.excinfo is None:
+            return
+        error = call.excinfo.value
+        self.load_errors.append(error.__cause__ or error)
+
     def refusal(self) -> Refusal | None:
         """Say why the run was refused, when a refusal of this package stopped it.
 
@@ -138,13 +174,16 @@ class AspectRun:
 ### Running the checks ###
 
 
-def exit_number(status: int, refusal: Refusal | None) -> tuple[int, str]:
+def exit_number(
+    status: int, refusal: Refusal | None, load_errors: list[BaseException]
+) -> tuple[int, str]:
     """Turn pytest's exit status into the repo's own number and sub-code for the same
     cause.
 
     Args:
         status: pytest's exit status for the run.
         refusal: The cause a refusal of this package left, or None.
+        load_errors: The error that stopped each check file that failed to load.
 
     Returns:
         The number and sub-code from docs/exit_codes.csv. A number pytest does not
@@ -154,6 +193,10 @@ def exit_number(status: int, refusal: Refusal | None) -> tuple[int, str]:
     """
     if status == pytest.ExitCode.USAGE_ERROR and refusal is not None:
         return REFUSAL_EXITS[refusal]
+    if status == pytest.ExitCode.INTERRUPTED and load_errors:
+        if any(isinstance(error, SyntaxError) for error in load_errors):
+            return UNPARSEABLE
+        return LOAD_ERROR
     return PYTEST_EXITS.get(status, (1, "UNHANDLED-ERROR"))
 
 
@@ -170,7 +213,7 @@ def run_aspect(aspect: str, args: list[str]) -> int:
     """
     plugin = AspectRun(aspect)
     status = int(pytest.main(["--aspect", aspect, *args], plugins=[plugin]))
-    code, sub_code = exit_number(status, plugin.refusal())
+    code, sub_code = exit_number(status, plugin.refusal(), plugin.load_errors)
     if code == 0:
         return 0
     return finish(print, code, sub_code)

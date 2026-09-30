@@ -34,7 +34,7 @@ Its header block is in `src/sdg/view/read_pdf.py`.
 ```
 read_pdf --docs
     list the registered documents and whether each is downloaded,
-    exiting 8 when any of them is missing
+    exiting 12 when any of them is missing
 read_pdf 4.23
     print one section of the USDM IG, by number
 read_pdf "Extension"

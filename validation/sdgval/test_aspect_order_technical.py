@@ -135,11 +135,16 @@ def test_a_mixed_run_runs_technical_then_conformance_then_integrity(pytester):
 @objective("functionality")
 @positive
 def test_a_stage_runs_in_full_after_one_of_its_checks_fails(pytester):
-    """A failed check does not stop the rest of its own stage, so every failure in that
-    stage is shown."""
+    """In a run of more than one aspect, a failed check does not stop the rest of its
+    own stage, so every failure in that stage is shown. The conformance check is held
+    back, which shows the run was staged."""
     second = staged("tech_two", "XYZ0102", "functionality")
-    result = run_suite(pytester, FAILING_TECHNICAL, second)
-    assert outcome_lines(result) == ["test_tech FAILED", "test_tech_two PASSED"]
+    result = run_suite(pytester, CONFORMANCE, FAILING_TECHNICAL, second)
+    assert outcome_lines(result) == [
+        "test_tech FAILED",
+        "test_tech_two PASSED",
+        "test_conform SKIPPED",
+    ]
 
 
 @code("SA00663")

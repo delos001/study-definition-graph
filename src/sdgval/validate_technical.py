@@ -35,6 +35,8 @@ Usage:       validate_technical
 Exit codes:  0   SUCCEEDED  the command succeeded
              1   UNHANDLED-ERROR  Python stopped on an error that nothing
                  handled
+             1   CHECK-FILE-LOAD-ERROR  a check file is valid Python but raised
+                 an error while it was loaded
              1   PYTEST-INTERNAL-ERROR  pytest stopped on an error inside pytest
                  or one of the project's plugins
              2   COMMAND-LINE-REFUSED  the argument parser refused the command
@@ -49,6 +51,7 @@ Exit codes:  0   SUCCEEDED  the command succeeded
                  report was asked for)
              12  GROUPS-FILE-MISSING  validation/validation_groups.yml, which
                  --group reads, is missing
+             14  PYTHON-UNPARSEABLE  a Python file is not valid Python
              15  GROUP-MIXES-ASPECTS  a group in validation/validation_groups.yml
                  lists checks of more than one aspect
              15  GROUP-HAS-NO-IDS  a group in validation/validation_groups.yml
@@ -61,8 +64,7 @@ Exit codes:  0   SUCCEEDED  the command succeeded
              21  CHECKS-FAILED  one or more validation checks failed (a check
                  whose set-up or clean-up broke counts as failed)
              23  RUN-INTERRUPTED  the check run was interrupted before every
-                 check ran (it was stopped by hand, or a check file could not
-                 be loaded)
+                 check ran
              src/sdgval/aspect_run.py turns pytest's own exit status into these
              numbers and prints the exit line. A plain pytest run of the same
              checks keeps pytest's own numbers. The wording is the table in

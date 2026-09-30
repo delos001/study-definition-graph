@@ -18,5 +18,5 @@ The checks that prove the packages work live in `validation/`.
 | --- | --- |
 | `sdg/` | This is the `sdg` package, the pipeline. Its own `README.md` lists the folders inside it. |
 | `sdgtools/` | This is the `sdgtools` package, the repo tools that keep the repository's own files in order. Each is installed as a command. |
-| `sdgval/` | This is the `sdgval` package, the validation package. It holds the commands that build the inventory and run the checks. It also holds the pytest plugins, which declare the labels, select and skip the checks, and write the report. A pytest plugin is an extension that pytest loads on its own when it starts. |
+| `sdgval/` | This is the `sdgval` package, the validation package. It holds the commands that build the inventory and run the checks. It also holds the pytest plugins, which declare the labels, select the checks, put them in order, skip them, and write the report. A pytest plugin is an extension that pytest loads on its own when it starts. |
 | `sdg.egg-info/` | `pip install -e .` writes this folder. It holds a few small text files that tell Python the packages are installed and where. It is not source and is not committed. It is safe to delete, because the next install recreates it. |

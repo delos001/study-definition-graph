@@ -27,7 +27,7 @@ from __future__ import annotations
 import csv
 from pathlib import Path
 
-from sdgval.build_inventory import INVENTORY_PATH
+from sdgval.build_inventory import INVENTORY_PATH, OUT_OF_USE
 from sdgval.labels import category, code, objective
 from validation.shared.validation_groups import read_groups
 
@@ -39,11 +39,15 @@ from validation.shared.validation_groups import read_groups
 @category("repository")
 @objective("conformance")
 def test_every_group_lists_only_ids_the_inventory_holds():
-    """Every id each group in validation/validation_groups.yml lists is a check in
-    validation/validation_inventory.csv, so no group names a check that does not
-    exist."""
+    """Every id each group in validation/validation_groups.yml lists is a check
+    validation/validation_inventory.csv lists as in use, so no group names a check
+    that does not exist."""
     with Path(INVENTORY_PATH).open(encoding="utf-8", newline="") as fh:
-        known = {row["id"] for row in csv.DictReader(fh)}
+        known = {
+            row["id"]
+            for row in csv.DictReader(fh)
+            if row.get("status") not in OUT_OF_USE
+        }
     unknown = {
         name: sorted(set(map(str, group.get("ids") or [])) - known)
         for name, group in read_groups().items()

@@ -642,8 +642,8 @@ def _name(path: Path) -> str:
 def load_problems(record: CollectionRecord, status: int, printed: str) -> list[Problem]:
     """Name each file that failed to load, or the folder when nothing was found.
 
-    A file that is not valid Python carries 19, as every file that cannot be parsed
-    does. Any other failure carries 49. A conftest.py that fails before collecting
+    A file that is not valid Python carries 14, PYTHON-UNPARSEABLE, as every file that cannot be parsed
+    does. Any other failure carries 1, CHECK-FILE-LOAD-ERROR. A conftest.py that fails before collecting
     starts leaves no record, only pytest's exit number and what it printed, which
     names the file.
 
@@ -835,7 +835,7 @@ def label_problems(
         objective: The value of its @objective label, or an empty string.
 
     Returns:
-        One problem per rule broken, each carrying exit code 18.
+        One problem per rule broken, each carrying exit code 15, CHECK-MARKERS-WRONG.
     """
     problems = []
     if not code:

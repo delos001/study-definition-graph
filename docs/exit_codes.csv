@@ -1,6 +1,6 @@
 code,group,sub_code,what_happened,what_to_do
 0,the command succeeded,SUCCEEDED,the command succeeded,Nothing.
-1,this repo's own code failed,CHECK-FILE-LOAD-ERROR,a check file is valid Python but raised an error while it was loaded,"Fix the error the message names in that check file, then run build_inventory again."
+1,this repo's own code failed,CHECK-FILE-LOAD-ERROR,a check file is valid Python but raised an error while it was loaded,"Fix the error the message names in that check file, then run the command again."
 1,this repo's own code failed,PYTEST-INTERNAL-ERROR,pytest stopped on an error inside pytest or one of the project's plugins,"Read the traceback pytest printed, then fix the plugin or conftest.py it names."
 1,this repo's own code failed,UNHANDLED-ERROR,Python stopped on an error that nothing handled,"Read the last lines of the traceback Python printed, then fix the code it names."
 2,the command line is wrong,ASPECT-OPTION-GIVEN,an aspect's command was given --aspect,Run the command again without --aspect.

@@ -97,6 +97,7 @@ import pytest
 import yaml
 
 from sdg.exit_codes import problem_line
+from sdgval.build_inventory import OUT_OF_USE
 from sdgval.labels import aspect_of, category_of, code_of, objective_of
 from sdgval.vocabulary import (
     ASPECT_OF,
@@ -354,10 +355,11 @@ def group_members(config: pytest.Config, name: str, defined: dict) -> list[str]:
 
 
 def inventory_ids(config: pytest.Config) -> set[str]:
-    """Read every id validation/validation_inventory.csv lists.
+    """Read the id of every check validation/validation_inventory.csv lists as in use.
 
     It tells an id that exists, but lies outside the files a run was given, apart
-    from an id that no check has at all.
+    from an id that no check has at all. A superseded or retired row is left out,
+    because its row is kept after its check is removed, so no check has its id.
 
     Args:
         config: pytest's configuration for the run, which knows the root folder.
@@ -369,7 +371,11 @@ def inventory_ids(config: pytest.Config) -> set[str]:
     if not path.is_file():
         return set()
     with path.open(encoding="utf-8", newline="") as fh:
-        return {row["id"] for row in csv.DictReader(fh)}
+        return {
+            row["id"]
+            for row in csv.DictReader(fh)
+            if row.get("status") not in OUT_OF_USE
+        }
 
 
 #######################################################################################
@@ -538,7 +544,7 @@ def missing_id_message(value: str, known: set[str], group_of: dict[str, str]) ->
 
     Args:
         value: The id.
-        known: Every id the inventory lists.
+        known: Every id the inventory lists as in use.
         group_of: The group each id came from, for the ids a group supplied.
 
     Returns:

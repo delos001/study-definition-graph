@@ -405,6 +405,30 @@ def test_an_interrupted_run_exits_23(staged_suite, pytester):
     assert exit_line(23, "RUN-INTERRUPTED") in result.stdout.str()
 
 
+@code("SA00671")
+@category("repository")
+@objective("functionality")
+@negative
+@pytest.mark.parametrize(
+    ("suite", "number", "sub_code"),
+    [
+        ("def test_broken(:\n    pass\n", 14, "PYTHON-UNPARSEABLE"),
+        ('raise RuntimeError("breaks while loading")\n', 1, "CHECK-FILE-LOAD-ERROR"),
+    ],
+    ids=["a file that is not valid Python", "a file that raises while loading"],
+)
+def test_a_check_file_that_fails_to_load_exits_with_its_cause(
+    staged_suite, pytester, suite, number, sub_code
+):
+    """A run whose check file fails to load exits with the repo's number for that
+    cause, the same one build_inventory gives, rather than 23 for a run stopped by
+    hand. It runs once for a file that is not valid Python, which exits 14, and once
+    for a file that raises an error while it loads, which exits 1."""
+    result, _ = run_command(staged_suite, pytester, report=False, suite=suite)
+    assert result.ret == number
+    assert exit_line(number, sub_code) in result.stdout.str()
+
+
 @code("SA00566")
 @category("repository")
 @objective("functionality")

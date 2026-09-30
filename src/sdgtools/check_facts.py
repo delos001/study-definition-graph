@@ -173,7 +173,7 @@ class GitNotFoundError(GitError):
 # Every file is obtained through verify_pinned(), which confirms it matches
 # its manifest before it is read. A figure certified here is only worth
 # something if it was derived from the file that was actually pinned; a swapped
-# or edited copy stops the run (exit 9) instead of quietly certifying the
+# or edited copy stops the run (exit 16, PINNED-FILE-CHANGED) instead of quietly certifying the
 # documents against the wrong source.
 
 
@@ -184,7 +184,7 @@ def usdm_concrete_classes() -> int:
     re-parsing dataStructure.yml here, so a single place reads the model.
     extensionAttributes sits on every one of these classes, which is the claim
     docs/standards_read_record.md makes. The loader also confirms the file is shaped like USDM v4, the
-    one failure only this measurement can raise (exit 4).
+    one failure only this measurement can raise (exit 15, USDM-MODEL-WRONG-SHAPE).
 
     Returns:
         The concrete class count.

@@ -101,7 +101,7 @@ GROUPS: dict[int, str] = {
     # A run scored against the answer keys in eval/ came in under its agreed
     # threshold.
     22: "an evaluation score fell below its threshold",
-    # The run was stopped by a person or by the test runner before it finished.
+    # The run was stopped by a person before it finished.
     23: "the run was interrupted before it finished",
     # The fault is only in how two or more parts relate, such as files that import
     # each other. Each part is fine on its own, and none describes another.

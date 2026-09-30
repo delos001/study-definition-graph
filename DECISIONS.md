@@ -851,3 +851,10 @@ The entry "A validation report covers one aspect of quality, and a run that hold
 - A check marked `pending` has never been switched on, so it was never relied on to confirm anything.
 - A check marked `inactive` is switched off for now, and may never come back, so it is not relied on either.
 - `src/sdgval/aspect_order.py` builds the rule, issue #45.
+
+## Exit group 24 is added, and group 23 is narrowed, decided 2026-09-30
+
+- Group 24, "a relationship breaks a rule", holds a fault that lies only in how two or more parts relate, such as files that import each other. No existing group's test fit, because each part is fine on its own and none describes another. It was added with `check_import_loops`, issue #52.
+- Group 23 now means a run stopped by a person. It also said "or by the test runner", which let a check file that failed to load exit 23 under `validate_technical` and 1 under `build_inventory`. `validate_technical` now exits 14 or 1 for that failure, as `build_inventory` does.
+
+No standard covered either choice, so both are **unguided**.
