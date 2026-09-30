@@ -803,13 +803,15 @@ TWO_TECHNICAL_CHECKS = '''
         """A second technical check."""
     '''
 
-# Two runs of the shared code in one process: the first narrowed to one check and
-# writing nothing, the second covering both and writing its report.
+# Two runs of the shared code in one process: the first covering both checks and
+# writing nothing, the second narrowed to one check and writing its report. The
+# second run reports fewer checks than the first ran, so anything carried over from
+# the first would show in the second run's counts.
 TWO_RUNS_IN_ONE_PROCESS = (
     "import sys\n"
     "from sdgval.aspect_run import run_aspect\n"
-    "first = run_aspect('technical', ['--id', 'XYZ0301'])\n"
-    "second = run_aspect('technical', ['--validation-report', "
+    "first = run_aspect('technical', [])\n"
+    "second = run_aspect('technical', ['--id', 'XYZ0301', '--validation-report', "
     "'--validation-report-dir', sys.argv[1]])\n"
     "sys.exit(first or second)\n"
 )
@@ -831,7 +833,7 @@ def test_a_second_run_in_the_same_process_reports_on_itself_alone(
     assert result.ret == 0
     second = staged_suite.run_details(staged_suite.technical_dir)
     assert second["checks_collected"] == "2"
-    assert second["checks_reported"] == "2"
+    assert second["checks_reported"] == "1"
 
 
 #######################################################################################
@@ -894,6 +896,22 @@ def test_a_report_run_that_collects_no_check_is_refused(staged_suite):
     printed = result.stdout.str() + result.stderr.str()
     assert result.ret == 4
     assert "because no checks were collected" in printed
+    assert not out.exists()
+
+
+@code("SA00673")
+@category("repository")
+@objective("functionality")
+@negative
+def test_a_report_run_given_a_missing_file_says_the_file_is_not_found(staged_suite):
+    """A report run given a check file that does not exist stops with pytest's usage
+    error, exit 4, and pytest's own message names the file as not found, rather than
+    saying no checks were collected. No report is written."""
+    result, out = staged_suite.run(PASSING_SUITE, "validation/test_typo.py")
+    printed = result.stdout.str() + result.stderr.str()
+    assert result.ret == 4
+    assert "file or directory not found: validation/test_typo.py" in printed
+    assert "because no checks were collected" not in printed
     assert not out.exists()
 
 

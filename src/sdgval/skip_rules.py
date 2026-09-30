@@ -29,8 +29,8 @@ Description: A pytest plugin holding the rules that skip a check before it runs,
              though nothing had switched it off.
 
 Inputs:      validation/validation_inventory.csv   (read-only; each check's status)
-             manifests/*.json, manifests/study_documents/*.json   (read-only, through
-                 src/sdg/sources/read_manifests.py)
+             every manifest, read through src/sdg/sources/read_manifests.py
+                 (read-only)
              inputs/**   (read-only; only the files a @needs_pinned check names,
                  which are measured)
              validation/fixtures/   (read-only; only whether each file a

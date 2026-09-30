@@ -563,8 +563,9 @@ def pytest_deselected(items: list[pytest.Item]) -> None:
 def pytest_sessionstart(session: pytest.Session) -> None:
     """Note the moment the run started, and refuse a report that cannot be written.
 
-    Every refusal happens here, before any check is collected, so it costs seconds
-    rather than the whole run. A report comes only from an aspect's command, which
+    Each refusal this hook makes happens before any check is collected, so it costs
+    seconds rather than the whole run. The refusal of a report run with no check left
+    to run comes after collection, in pytest_collection_modifyitems(). A report comes only from an aspect's command, which
     leaves its aspect in pytest's stash before the run starts. A report also names
     the commit it validated, so it needs git's answer, and a folder with uncommitted
     changes matches no commit.
@@ -627,28 +628,29 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_collection_finish(session: pytest.Session) -> None:
+def pytest_collection_modifyitems(
+    session: pytest.Session, config: pytest.Config, items: list[pytest.Item]
+) -> None:
     """Refuse a report run that has no check left once every filter has run.
 
     The project's own selection options refuse an empty selection themselves. pytest's
     -k and -m filters run after them, so a run they empty would otherwise end with
     pytest's "no tests collected" and write a report saying no check ran. Refusing
-    it here, once collection is finished, keeps an empty report run to pytest's
-    usage error, as every other empty selection is. A run whose check file failed to
-    load is left alone, because its report must still say FAIL.
+    it here, after every other plugin has filtered the checks, keeps an empty report
+    run to pytest's usage error, as every other empty selection is. A run whose check
+    file failed to load is left alone, because its report must still say FAIL.
+    pytest never reaches this step when a file or folder it was given does not
+    exist, so its own message naming that path is the one shown.
 
     Args:
         session: The pytest run.
+        config: pytest's configuration for the run.
+        items: The checks left once every other plugin has filtered them.
 
     Raises:
         pytest.UsageError: A report was asked for and no check is left to run.
     """
-    config = session.config
-    if (
-        session.items
-        or session.testsfailed
-        or not config.getoption("--validation-report")
-    ):
+    if items or session.testsfailed or not config.getoption("--validation-report"):
         return
     if config.getoption("keyword") or config.getoption("markexpr"):
         refuse(

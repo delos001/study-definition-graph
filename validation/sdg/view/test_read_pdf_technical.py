@@ -235,7 +235,7 @@ def test_docs_exits_0_when_every_document_is_present(
 ### Negative checks ###
 #
 # The wrong thing is refused. Each check breaks one thing, and asserts the error raised
-# and that its message names that cause and its remedy.
+# and that its message names that cause.
 
 
 @code("SA00164")
@@ -511,12 +511,17 @@ def test_docs_exits_12_when_a_document_is_not_downloaded(
 # split the command is designed around.
 
 
-def build_pdf(path: Path, with_bookmarks: bool) -> None:
+def build_pdf(
+    path: Path,
+    with_bookmarks: bool,
+    titles: tuple[str, str] = ("1 First Section", "2 Second Section"),
+) -> None:
     """Write a two-page PDF, with or without the bookmarks a section lookup needs.
 
     Args:
         path: Where the document is written. Parent folders are created.
         with_bookmarks: Whether to give the document a table of contents.
+        titles: The bookmark titles of the two pages.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     document = fitz.open()
@@ -528,7 +533,7 @@ def build_pdf(path: Path, with_bookmarks: bool) -> None:
         # the stripping checks have something real to strip.
         page.insert_text((72, 700), f"Page {number}")
     if with_bookmarks:
-        document.set_toc([[1, "1 First Section", 1], [1, "2 Second Section", 2]])
+        document.set_toc([[1, titles[0], 1], [1, titles[1], 2]])
     document.save(str(path))
     document.close()
 
@@ -596,10 +601,21 @@ def usage_mistake(capsys: pytest.CaptureFixture[str], *argv: str) -> Outcome:
 @objective("functionality")
 @positive
 def test_a_section_is_found_by_number(readable, capsys):
-    """Asking for a section by its number prints that section's text."""
-    outcome = read(capsys, "1")
+    """Asking for a section by its number prints that section's text.
+
+    The first section's title mentions the second section's number, so a search of the
+    titles would find the first section, and only a match on the number finds the
+    second."""
+    build_pdf(
+        readable.root / GUIDE,
+        with_bookmarks=True,
+        titles=("1 Scope of part 2", "2 Second Section"),
+    )
+    readable.manifest("example", [readable.entry(GUIDE), readable.entry(PLAIN)])
+    outcome = read(capsys, "2")
     assert outcome.exit_code == 0
-    assert "alpha content" in outcome.printed
+    assert "beta content" in outcome.printed
+    assert "alpha content" not in outcome.printed
 
 
 @code("SA00178")
@@ -707,6 +723,7 @@ def test_section_mode_on_a_document_without_bookmarks_exits_17(readable, capsys)
     assert outcome.exit_code == 17
     assert exit_line(17, "PDF-HAS-NO-BOOKMARKS") in outcome.printed
     assert "--find" in outcome.printed
+    assert "--pages" in outcome.printed
 
 
 @code("SA00187")

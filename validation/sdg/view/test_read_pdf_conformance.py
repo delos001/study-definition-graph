@@ -6,7 +6,8 @@ Description: The conformance checks for src/sdg/view/read_pdf.py. They confirm t
              beside this file.
 
 Inputs:      src/sdg/view/lookup_documents.yml (read-only)
-             manifests/*.json                  (read-only)
+             every manifest, read through src/sdg/sources/read_manifests.py
+                                               (read-only)
 
 Outputs:     Writes nothing to disk.
 

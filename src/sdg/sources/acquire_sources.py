@@ -17,8 +17,8 @@ Description: Acquires one or more needed source file(s) from their external loca
 
              A file already on disk is never replaced by this script.
 
-Inputs:      manifests/*.json   (read-only)
-             manifests/study_documents/*.json   (read-only)
+Inputs:      every manifest, read through src/sdg/sources/read_manifests.py
+             (read-only)
              URL for each file named (read-only)
 
 Outputs:     The files each entry names, under inputs/. Nothing

@@ -11,9 +11,10 @@ Description: Holds the groups of failure a command exits with, and prints the
              number, its group and the sub-code that decided it.
 
              docs/exit_codes.csv is the reference a person reads. It holds one
-             row per sub-code with what happened and what to do. Nothing reads
-             it while a command runs. src/sdgtools/verify_headers.py confirms
-             that the groups here match the groups in that table.
+             row per sub-code with what happened and what to do. No command
+             reads it to word what it prints. src/sdgtools/verify_headers.py
+             is the one command that reads it, to confirm that the groups here
+             match the groups in that table.
 
 Inputs:      It reads nothing.
 

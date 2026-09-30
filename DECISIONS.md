@@ -858,3 +858,12 @@ The entry "A validation report covers one aspect of quality, and a run that hold
 - Group 23 now means a run stopped by a person. It also said "or by the test runner", which let a check file that failed to load exit 23 under `validate_technical` and 1 under `build_inventory`. `validate_technical` now exits 14 or 1 for that failure, as `build_inventory` does.
 
 No standard covered either choice, so both are **unguided**.
+
+## A refusal's message names its cause, and the exit-code table holds its fix, decided 2026-09-30
+
+The rule for a check of a refusal said the message must name the cause and its fix. Many refusals in the header checker and the two document readers print no fix, so their checks could not meet the rule.
+
+- The check confirms that the message names the cause and the exit line names its sub-code.
+- The fix for each sub-code stays in `docs/exit_codes.csv`, the one place that holds it. A message may still print a fix, and its check may confirm it.
+
+Adding a fix to each message would have written every fix twice. No standard covered the question, so the choice is **unguided**.

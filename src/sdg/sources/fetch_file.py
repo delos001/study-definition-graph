@@ -203,7 +203,9 @@ def download_error(exc: Exception) -> type[FetchError]:
 
     The HTTP library's own errors are sorted by what the person reading the report
     has to do. A status of 401 or 403 means access was refused, and any other status
-    is an error answer. A url the library cannot use is a mistake in the manifest. A
+    is an error answer. So are too many redirects and an answer that cannot be
+    decoded, because the server did answer. A url the library cannot use is a mistake
+    in the manifest. A
     failure to write is a problem on this machine. Everything else, such as a refused
     connection, a timeout or a server that stopped part way, means no answer came.
 

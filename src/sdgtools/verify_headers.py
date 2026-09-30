@@ -65,8 +65,9 @@ Exit codes:  0   SUCCEEDED  the command succeeded (every header is complete and
              14  PYTHON-NOT-UTF8  a Python file is not saved as UTF-8 text
              15  EXIT-TABLE-INVALID  a row of docs/exit_codes.csv breaks the
                  table's rules (a number that is not a whole number from 0 to
-                 125, a sub-code of the wrong form or listed twice, or a number
-                 GROUPS does not hold)
+                 125, a sub-code of the wrong form or listed twice, a number
+                 GROUPS does not hold, or a row with fewer columns than the
+                 header)
              15  HEADER-MISSING  a Python file has no header block
              15  HEADER-INCOMPLETE  a header block is incomplete, out of order,
                  has a bad Date, or lists no exit code though the file has a
@@ -207,8 +208,8 @@ def exit_code_table(path: Path | None = None) -> dict[str, Row]:
     Raises:
         OSError: The table cannot be opened.
         TableError: A row's number is not a whole number from 0 to 125, its
-            sub-code is of the wrong form or listed twice, or its number is not
-            one GROUPS holds.
+            number is not one GROUPS holds, it has fewer columns than the header,
+            or its sub-code is of the wrong form or listed twice.
         GroupsDisagreeError: A row's group is worded differently from GROUPS, or
             a group in GROUPS has no row.
     """
@@ -228,6 +229,14 @@ def exit_code_table(path: Path | None = None) -> dict[str, Row]:
             if number not in GROUPS:
                 raise TableError(
                     f"the code {number} is not a group in GROUPS in src/sdg/exit_codes.py"
+                )
+            # A row with fewer columns than the table's header has no value at all in
+            # the columns it lacks, so it is refused here rather than failing on them
+            # below.
+            if None in (row["group"], row["sub_code"], row["what_happened"]):
+                raise TableError(
+                    f"the row for code {number} has fewer columns than the table's "
+                    "header"
                 )
             if row["group"].strip() != GROUPS[number]:
                 raise GroupsDisagreeError(

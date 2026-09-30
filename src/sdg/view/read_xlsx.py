@@ -279,7 +279,7 @@ def print_records(rows: list[tuple[int, list[str]]]) -> None:
 
 
 def search_workbook(path: Path, term: str) -> list[str]:
-    """Find every cell in every sheet of one workbook containing the term.
+    """Find every row in every sheet of one workbook with a cell containing the term.
 
     Row numbers are 1-indexed to match what Excel shows, so a hit can be looked up by
     hand. Printing is left to the caller so that --all can group output per workbook.
@@ -289,8 +289,9 @@ def search_workbook(path: Path, term: str) -> list[str]:
         term: What to look for.
 
     Returns:
-        One formatted line per hit: the sheet name, the row number and the full cell
-            text.
+        One formatted line per row: the sheet name, the row number and the text of
+            the first cell in the row that holds the term, cut to 120 characters with
+            an ellipsis when it is longer.
     """
     needle = term.lower()
     hits = []

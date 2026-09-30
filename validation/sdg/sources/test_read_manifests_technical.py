@@ -12,7 +12,8 @@ Description: Automated checks for src/sdg/sources/read_manifests.py, the step th
              temporary folder through the fake_repo fixture in conftest.py, so
              the real manifests/ is never written.
 
-Inputs:      manifests/*.json   (read-only; the checks against the real repo)
+Inputs:      every manifest, read through src/sdg/sources/read_manifests.py
+             (read-only; the checks against the real repo)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 
@@ -192,7 +193,9 @@ def test_entry_for_finds_a_recorded_file(recorded_file):
 @positive
 def test_entry_for_accepts_backslashes(recorded_file):
     """A repo-relative path written with backslashes finds the same entry."""
-    assert entry_for("inputs\\set_a\\file.txt") == entry_for(LOCAL)
+    found = entry_for("inputs\\set_a\\file.txt")
+    assert found is not None
+    assert found == entry_for(LOCAL)
 
 
 @code("SA00088")
@@ -201,7 +204,9 @@ def test_entry_for_accepts_backslashes(recorded_file):
 @positive
 def test_entry_for_accepts_a_full_path(recorded_file):
     """A full Path to the file finds the same entry."""
-    assert entry_for(recorded_file) == entry_for(LOCAL)
+    found = entry_for(recorded_file)
+    assert found is not None
+    assert found == entry_for(LOCAL)
 
 
 @code("SA00089")
@@ -259,7 +264,9 @@ def test_a_relative_path_is_read_from_the_repo_root(
     elsewhere = tmp_path / "elsewhere"
     elsewhere.mkdir()
     monkeypatch.chdir(elsewhere)
-    assert entry_for(Path(LOCAL)) == entry_for(LOCAL)
+    found = entry_for(Path(LOCAL))
+    assert found is not None
+    assert found == entry_for(LOCAL)
 
 
 @code("SA00094")

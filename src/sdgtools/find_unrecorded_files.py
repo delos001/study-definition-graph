@@ -13,11 +13,13 @@ Description: Lists every file under inputs/ that no manifest records, since
              A .part file is reported, because it is an unfinished download
              that acquire_sources did not get to finish.
 
-Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
+Inputs:      every manifest, read through src/sdg/sources/read_manifests.py
+                                                   (read-only)
              inputs/                                           (read-only, names only)
 
-Outputs:     Nothing on disk. Prints one repo-relative path per unrecorded
-             file, or nothing when there are none.
+Outputs:     Nothing on disk. Prints one line per unrecorded file, starting
+             with its sub-code and naming its repo-relative path, then how many
+             there are and the exit line. Prints nothing when there are none.
 
 Usage:       find_unrecorded_files
                  list every unrecorded file

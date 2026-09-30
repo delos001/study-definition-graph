@@ -388,12 +388,14 @@ def test_a_bracketed_aside_is_allowed(folder, capsys):
 @positive
 def test_a_wrapped_entry_is_read_as_one(folder, capsys):
     """An entry too long for one line is joined before it is compared, so wrapping it
-    does not make it disagree."""
+    does not make it disagree. The entry wraps inside the table's wording, and another
+    entry follows it."""
     folder(
         {
             "alpha.py": with_codes(
-                NOT_DOWNLOADED
-                + " (a dry run\n                 only; a real run fetches it)"
+                "12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not\n"
+                "                 been downloaded\n"
+                "             0   SUCCEEDED  the command succeeded"
             )
         }
     )
@@ -528,6 +530,7 @@ def test_a_missing_table_exits_12(folder, monkeypatch, capsys):
         ),
         (["13", GROUPS[13], "not a sub code", "x", ""], "is not words in capitals"),
         (["13", GROUPS[13], "SUCCEEDED", "x", ""], "SUCCEEDED is listed twice"),
+        (["13"], "has fewer columns than the table's header"),
     ],
     ids=[
         "a code that is not a number",
@@ -535,20 +538,25 @@ def test_a_missing_table_exits_12(folder, monkeypatch, capsys):
         "a code with no group",
         "a sub-code of the wrong form",
         "a sub-code listed twice",
+        "a row with too few columns",
     ],
 )
 def test_a_table_row_that_breaks_the_rules_exits_15(folder, capsys, row, said):
     """A row of docs/exit_codes.csv that breaks the table's rules makes the run exit 15
     before any file is read, and the message names what is wrong with the row and says
     to correct it, rather than ending in a Python error. It runs once for each rule a
-    row can break."""
-    folder({"alpha.py": GOOD_HEADER})
+    row can break.
+
+    A file with no header block is staged too, and nothing about it is printed, which
+    shows no file was read."""
+    folder({"alpha.py": GOOD_HEADER, "beta.py": "x = 1\n"})
     script.EXIT_CODES_FILE.write_text(table_text(row), encoding="utf-8")
     outcome = run(capsys)
     assert outcome.exit_code == 15
     assert exit_line(15, "EXIT-TABLE-INVALID") in outcome.printed
     assert said in outcome.printed
     assert "correct that row" in outcome.printed
+    assert "beta.py" not in outcome.printed
 
 
 @code("SA00654")
@@ -566,13 +574,17 @@ def test_a_table_row_that_breaks_the_rules_exits_15(folder, capsys, row, said):
 def test_a_table_that_disagrees_with_the_groups_exits_16(folder, capsys, groups, said):
     """A table whose groups disagree with GROUPS in src/sdg/exit_codes.py, because one
     is worded differently or one has no row, makes the run exit 16 before any file is
-    read, and the message names the group. It runs once for each way to disagree."""
-    folder({"alpha.py": GOOD_HEADER})
+    read, and the message names the group. It runs once for each way to disagree.
+
+    A file with no header block is staged too, and nothing about it is printed, which
+    shows no file was read."""
+    folder({"alpha.py": GOOD_HEADER, "beta.py": "x = 1\n"})
     script.EXIT_CODES_FILE.write_text(table_text(groups=groups), encoding="utf-8")
     outcome = run(capsys)
     assert outcome.exit_code == 16
     assert exit_line(16, "EXIT-GROUPS-DISAGREE") in outcome.printed
     assert said in outcome.printed
+    assert "beta.py" not in outcome.printed
 
 
 @code("SA00587")
@@ -812,7 +824,10 @@ def test_both_sides_of_a_one_line_choice_are_read(folder, capsys, choice):
     """A return written as a one-line choice is read on both sides, so the branch that
     is not listed is still caught whichever side it sits on."""
     folder({"alpha.py": with_main(choice)})
-    assert run(capsys).exit_code == 16
+    outcome = run(capsys)
+    assert outcome.exit_code == 16
+    assert exit_line(16, "HEADER-EXIT-CODE-UNLISTED") in outcome.printed
+    assert "exit code 8 is returned by main()" in outcome.printed
 
 
 @code("SA00371")

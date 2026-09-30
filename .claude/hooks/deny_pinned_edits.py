@@ -152,12 +152,15 @@ def main() -> int:
     Returns:
         Always 0. The decision is in what is printed, not in the exit code.
     """
-    # A message that is not JSON, or that carries no path, is not a Write or Edit
-    # the hook can judge, so it is allowed rather than blocking ordinary work.
+    # A message that is not JSON, or that carries no path or a path that is not text,
+    # is not a Write or Edit the hook can judge, so it is allowed rather than blocking
+    # ordinary work.
     try:
         call = json.load(sys.stdin)
         file_path = call["tool_input"]["file_path"]
     except (json.JSONDecodeError, KeyError, TypeError):
+        return 0
+    if not isinstance(file_path, str):
         return 0
 
     relative = repo_relative(file_path, repo_root(call))

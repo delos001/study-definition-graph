@@ -34,12 +34,14 @@ from __future__ import annotations
 
 import json
 import subprocess
+import zipfile
 from collections.abc import Callable
 from pathlib import Path
 from typing import NoReturn
 
 import openpyxl
 import pytest
+from openpyxl.utils.exceptions import InvalidFileException
 
 from sdg.exit_codes import exit_line
 from sdg.sources.read_manifests import (
@@ -272,6 +274,12 @@ def test_a_drifted_date_exits_16(fact, capsys):
             14,
             "PINNED-FILE-UNPARSEABLE",
         ),
+        (zipfile.BadZipFile("File is not a zip file"), 14, "PINNED-FILE-UNPARSEABLE"),
+        (
+            InvalidFileException("not a supported workbook"),
+            14,
+            "PINNED-FILE-UNPARSEABLE",
+        ),
         (
             AttributeError("'str' object has no attribute 'get'"),
             15,
@@ -305,6 +313,8 @@ def test_a_drifted_date_exits_16(fact, capsys):
         "cannot be opened",
         "unexpected shape",
         "malformed json",
+        "a workbook that is not a zip archive",
+        "a file that is not a workbook",
         "not an object",
         "manifest breaks a requirement",
         "outside inputs",

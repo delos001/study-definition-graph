@@ -296,7 +296,7 @@ def test_an_excel_lock_file_is_not_a_workbook(inputs, capsys):
 ### Negative checks ###
 #
 # The wrong thing is refused. Each check breaks one thing, and asserts the exit code
-# and that the message names that cause and what to do instead.
+# and that the message names that cause.
 
 
 @code("SA00221")

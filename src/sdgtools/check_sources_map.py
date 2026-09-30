@@ -27,8 +27,8 @@ Description: Compares docs/sources_index.md with the manifests, so a pinned file
              could then be deleted without the tool noticing.
 
 Inputs:      docs/sources_index.md                              (read-only)
-             manifests/*.json, manifests/study_documents/*.json (read-only, through
-                                                                 src/sdg/sources/read_manifests.py)
+             every manifest, read through src/sdg/sources/read_manifests.py
+                                                                (read-only)
 
 Outputs:     Nothing on disk. Prints one line per disagreement, or nothing when
              the map and the manifests agree.

@@ -22,8 +22,9 @@ Description: Reads part of any pinned PDF standard in this repo and prints it as
              than silently producing incomplete text.
 
 Inputs:      src/sdg/view/lookup_documents.yml   (read-only, the list of documents)
-             manifests/*.json                     (read-only, through src/sdg/sources/read_manifests.py,
-                                                   which owns each document's path)
+             every manifest, read through src/sdg/sources/read_manifests.py,
+                                                  which owns each document's path
+                                                  (read-only)
              the listed PDFs under inputs/        (read-only, pinned)
              Section numbers and page ranges come from each PDF's own bookmarks.
 
@@ -873,7 +874,7 @@ def main(argv: list[str] | None = None) -> int:
         if missing:
             print()
             return fail(
-                print,
+                _say_error,
                 12,
                 "PINNED-FILE-NOT-DOWNLOADED",
                 f"{missing} document(s) not downloaded.\n  fix -> run acquire_sources",

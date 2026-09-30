@@ -382,16 +382,17 @@ def _read_one(path: Path) -> Manifest:
 def manifests(only: str | None = None) -> list[Manifest]:
     """Read every manifest, or only the one named.
 
-    The hand-written manifests in manifests/ and the study manifests under
-    manifests/study_documents/ are read together and sorted by path, so every run lists
-    them in the same order.
+    The hand-written manifests in manifests/ come first, sorted by path, and the study
+    manifests under manifests/study_documents/ follow them, sorted by path, so every
+    run lists them in the same order.
 
     Args:
         only: The name of one manifest, with or without its .json suffix, or None for
             all of them.
 
     Returns:
-        The manifests, in path order.
+        The hand-written manifests in path order, then the study manifests in path
+        order.
 
     Raises:
         NotInRepoError: The sdg package is not running from inside its repo.

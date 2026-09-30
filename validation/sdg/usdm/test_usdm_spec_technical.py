@@ -19,8 +19,8 @@ Description: Checks for src/sdg/usdm/usdm_spec.py, the one module that reads
              (the broken thing fails, and the error names the right cause).
 
 Inputs:      validation/fixtures/usdm_three_classes.yml  (read-only)
-             manifests/*.json                            (read-only, through
-                                                          src/sdg/sources/read_manifests.py)
+             every manifest, read through src/sdg/sources/read_manifests.py
+                                                         (read-only)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
              src/sdgval/report.py writes a report to validation/reports/ when asked.
@@ -40,6 +40,7 @@ Owner:       Jason Delosh
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, NoReturn
@@ -399,6 +400,8 @@ def test_fingerprint_mismatch_is_refused_through_load(fake_repo, manifest_record
     with pytest.raises(usdm_spec.IntegrityError) as caught:
         usdm_spec.load(staged)
     message = str(caught.value)
+    found = hashlib.sha256(FIXTURE.read_bytes()).hexdigest()[:16]
+    assert f"sha256 {found}" in message
     assert "manifest says 0000" in message and "--allow-unpinned" in message
 
 
@@ -415,12 +418,13 @@ def test_fingerprint_mismatch_is_refused_through_load(fake_repo, manifest_record
 @category("processing")
 @objective("functionality")
 @negative
-def test_cli_no_mode_exits_2():
+def test_cli_no_mode_exits_2(capsys):
     """Running with no mode option is a usage error. The usage is printed and the run
     exits 2."""
     with pytest.raises(SystemExit) as caught:
         usdm_spec.main([])
     assert caught.value.code == 2
+    assert "usage:" in capsys.readouterr().err
 
 
 @code("SA00142")
@@ -478,6 +482,8 @@ def test_cli_fingerprint_mismatch_exits_16(
     assert usdm_spec.main(["--list-classes"]) == 16
     err = capsys.readouterr().err
     assert exit_line(16, "PINNED-FILE-CHANGED") in err
+    found = hashlib.sha256(FIXTURE.read_bytes()).hexdigest()[:16]
+    assert f"sha256 {found}" in err
     assert "manifest says 0000" in err and "--allow-unpinned" in err
 
 
@@ -612,6 +618,7 @@ def test_cli_attributes_prints_type_cardinality_kind(monkeypatch, capsys):
     assert usdm_spec.main(["--attributes", "StudyIdentifier", "--allow-unpinned"]) == 0
     out = capsys.readouterr().out
     assert "StudyIdentifier  (concrete)" in out
+    assert "type        Organization" in out
     assert "kind        Ref  (inherited from Identifier)" in out
     assert "cardinality 0..*" in out
 

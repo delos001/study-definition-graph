@@ -110,7 +110,7 @@ The check columns carry the same names as `validation/validation_inventory.csv`,
 - Hold the versions and the platform string as the tools report them.
 
 ### `installed_packages`
-- Records every package installed where the run ran, with its version. `environment.yml` fixes no package's version, so a package can change between two runs without anything in the repository changing, and a package the project never imports can still break it through one that does.
+- Records every package installed where the run ran, with its version. `environment.yml` fixes an exact version only for the tools that decide whether the code passes. Every other package it names can move within its major version, and a package it does not name can move freely. So a package can change between two runs without anything in the repository changing, and a package the project never imports can still break it through one that does.
 - Read by the writer from each installed package's own record of its version.
 - Holds a JSON object of package name to version, in name order.
 

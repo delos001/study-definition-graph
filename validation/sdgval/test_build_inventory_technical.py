@@ -386,10 +386,15 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
         {
             "conftest.py": '"""The record writer."""\n',
             # One file per group, each with its own band of numbers, so that the
-            # three files hold six ids between them and none repeats.
+            # four files hold eight ids between them and none repeats. The hooks'
+            # folder comes first by name and third in the pipeline's order, so the
+            # rows are in the pipeline's order only if they were sorted into it.
             "test_conftest_conformance.py": TWO_CHECKS.replace("SA99", "SA97"),
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS,
             "sdg/sources/test_beta_conformance.py": TWO_CHECKS.replace("SA99", "SA98"),
+            "claude_hooks/test_gamma_conformance.py": TWO_CHECKS.replace(
+                "SA99", "SA96"
+            ),
         }
     )
     assert run(capsys).exit_code == 0
@@ -398,6 +403,8 @@ def test_groups_follow_the_pipeline_order(tests_folder, capsys):
         "validation/sdg/sources",
         "validation/sdgtools",
         "validation/sdgtools",
+        "validation/claude_hooks",
+        "validation/claude_hooks",
         "validation",
         "validation",
     ]
@@ -487,10 +494,10 @@ def test_check_status_passes_a_superseded_check_with_an_active_successor(
     rows = rows_of(written)
     rows.append(removed_row("SA99009", status="superseded", superseded_by="SA99001"))
     write_rows(written, rows)
-    before = written.read_text(encoding="utf-8")
+    before = written.stat().st_mtime_ns
     outcome = run(capsys, "--check-status")
     assert outcome.exit_code == 0
-    assert written.read_text(encoding="utf-8") == before
+    assert written.stat().st_mtime_ns == before
     assert "the hand-kept columns are in order" in outcome.printed
 
 
@@ -861,11 +868,11 @@ def test_a_status_not_in_the_list_exits_15(written, capsys):
     """A row whose status is not one of the five makes the run exit 15, quoting the
     status, and the inventory is not rewritten."""
     with_hand_kept(written, "SA99002", status="archived")
-    before = written.read_text(encoding="utf-8")
+    before = written.stat().st_mtime_ns
     outcome = run(capsys)
     assert outcome.exit_code == 15
     assert exit_line(15, "INVENTORY-COLUMN-INVALID") in outcome.printed
-    assert written.read_text(encoding="utf-8") == before
+    assert written.stat().st_mtime_ns == before
     assert "SA99002 has status 'archived', which is not one of" in outcome.printed
 
 
@@ -1417,7 +1424,7 @@ def test_a_check_inside_a_class_that_runs_once_per_value_is_named_once(
 @negative
 def test_a_check_carrying_both_cases_exits_15(tests_folder, capsys):
     """A check carrying both the positive and the negative label makes the run exit
-    18, and the message names the check and says to keep the one that is true."""
+    15, and the message names the check and says to keep the one that is true."""
     tests_folder(
         {
             "sdgtools/test_alpha_conformance.py": TWO_CHECKS.replace(
@@ -1922,6 +1929,32 @@ def test_python_changed_records_new_fingerprints(tests_folder, tmp_path, capsys)
     tests_folder({"sdgtools/test_alpha_conformance.py": BODY_CHECK_CHANGED})
     assert run(capsys, "--python-changed").exit_code == 0
     assert fingerprint_of(inventory, "SA99007").startswith(f"v1:{RUNNING}:")
+
+
+@code("SA00672")
+@category("repository")
+@objective("functionality")
+@positive
+def test_a_retired_row_made_by_another_python_does_not_stop_the_run(
+    tests_folder, tmp_path, capsys
+):
+    """Once a validation report has been filed, a retired row whose check is gone and
+    whose fingerprint another Python made does not stop the run, because its
+    fingerprint is never compared, and the run exits 0."""
+    inventory = tests_folder({"sdgtools/test_alpha_conformance.py": BODY_CHECK})
+    assert run(capsys).exit_code == 0
+    rows = rows_of(inventory)
+    rows.append(
+        removed_row(
+            "SA99009",
+            status="retired",
+            status_reason="Gone.",
+            fingerprint="v1:py2.7:0123456789abcdef",
+        )
+    )
+    write_rows(inventory, rows)
+    file_a_report(tmp_path)
+    assert run(capsys).exit_code == 0
 
 
 @code("SA00584")

@@ -5,8 +5,8 @@ Description: The integrity checks for src/sdg/sources/fingerprint_file.py, the s
              measurement equals the true value, measured independently of the
              code under test.
 
-             Files are written to a temporary folder by the fixtures in
-             validation/sdg/sources/conftest.py.
+             Files are written to a temporary folder, by the file_on_disk
+             fixture in validation/conftest.py or by the check itself.
 
 Inputs:      none from the repo
 

@@ -24,7 +24,8 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
              -e .), or nothing under manifests/ can be found. The manifest
              reader confirms that before it looks for anything.
 
-Inputs:      manifests/*.json, manifests/study_documents/*.json   (read-only)
+Inputs:      every manifest, read through src/sdg/sources/read_manifests.py
+                                                    (read-only)
              the pinned file named                  (read-only, opened only to hash)
 
 Outputs:     Nothing on disk. Hands back the file with its identity: local

@@ -310,7 +310,8 @@ FINGERPRINT_SHAPE = re.compile(r"v([0-9]+):py([0-9]+\.[0-9]+):([0-9a-f]{16})")
 RUNNING_PYTHON = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 # When several kinds of problem are found in one run, the exit line names the first
-# of these sub-codes that any problem carries. Every problem is still printed.
+# of these sub-codes that any problem carries. Every problem found is printed, but a
+# run that stops early, as main() describes, finds only the problem that stopped it.
 EXIT_PRECEDENCE = (
     "PYTHON-UNPARSEABLE",
     "CHECK-FILE-LOAD-ERROR",
@@ -533,9 +534,12 @@ def fingerprint(function: Callable[..., Any], labels: tuple[str, ...]) -> str:
     """Give a fingerprint of everything about a check except how it is laid out.
 
     The fingerprint covers the check's whole function: its code, its docstring and
-    every decorator on it, the labels and the values a check runs once for
-    included. It also covers the labels pytest read for the check, so a label given
-    to the whole check file counts as well as one written on the function.
+    every decorator on it, the labels included. The values a check runs once for are
+    covered only as they are written in its decorator. When the decorator names a
+    list held elsewhere in the file, only that name is covered, so a change to the
+    list does not move the fingerprint. It also covers the labels pytest read for the
+    check, so a label given to the whole check file counts as well as one written on
+    the function.
 
     The check's source is read as Python and written back out in Python's one
     standard layout, with ast.unparse, before it is fingerprinted, and the
@@ -984,20 +988,28 @@ def existing_rows() -> dict[str, dict[str, str]]:
         return {row["id"]: row for row in csv.DictReader(fh)}
 
 
-def other_pythons(previous: dict[str, dict[str, str]]) -> list[str]:
+def other_pythons(
+    previous: dict[str, dict[str, str]], live: dict[str, tuple[str, str]]
+) -> list[str]:
     """List the Python versions, other than the running one, that made fingerprints.
+
+    Only the rows of checks still in the check files count. A row whose check is gone
+    is kept as it was, with its old fingerprint, and --python-changed never gives it a
+    new one, so counting it would refuse every run after a new Python for good.
 
     Args:
         previous: The inventory on disk, keyed by id.
+        live: The ids of the checks in the check files.
 
     Returns:
-        Each other version that made a recorded fingerprint, in order, or an empty
-        list when every recorded fingerprint was made by the running Python.
+        Each other version that made the recorded fingerprint of a check still in the
+        check files, in order, or an empty list when the running Python made them all.
     """
     made_by = {
         recorded[2]
-        for row in previous.values()
-        if (recorded := FINGERPRINT_SHAPE.fullmatch(row.get("fingerprint", "")))
+        for check_id, row in previous.items()
+        if check_id in live
+        and (recorded := FINGERPRINT_SHAPE.fullmatch(row.get("fingerprint", "")))
     }
     return sorted(made_by - {RUNNING_PYTHON})
 
@@ -1406,9 +1418,11 @@ def main(argv: list[str] | None = None) -> int:
     """Read every check, then write the inventory or confirm it is current.
 
     Problems are collected across every file before returning, so one run names
-    every check that needs fixing rather than stopping at the first. The exception
-    is a check file that fails to load, or no check file at all, which stops the
-    run at once.
+    every check that needs fixing rather than stopping at the first. Three things
+    stop the run at once and are the only problems it names. The first is a check
+    file that fails to load. The second is a validation folder that is missing or
+    holds no check file. The third is fingerprints made by another Python, once a
+    report has been filed, unless --python-changed is given.
 
     Args:
         argv: The command-line arguments, or None to read the real ones.
@@ -1498,7 +1512,7 @@ def main(argv: list[str] | None = None) -> int:
     # A new Python can move every fingerprint at once. Once a report has been filed,
     # that would refuse every check, so the run stops here with one message instead,
     # unless the person has said the Python changed.
-    others = other_pythons(previous)
+    others = other_pythons(previous, live)
     if filed and others and not args.python_changed:
         say(
             problem_line(

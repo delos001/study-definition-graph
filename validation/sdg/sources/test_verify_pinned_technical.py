@@ -14,8 +14,9 @@ Description: Automated checks for src/sdg/sources/verify_pinned.py, the workflow
              stability check itself, which reads the real pinned files, is in
              test_verify_pinned_integrity.py, beside this file.
 
-Inputs:      manifests/*.json  (read-only; read when the stability check's file
-                 is imported for its helper)
+Inputs:      every manifest, read through src/sdg/sources/read_manifests.py
+             (read-only; read when the stability check's file is imported for
+             its helper)
 
 Outputs:     Writes nothing to disk. Temporary files go to pytest's own folder.
 

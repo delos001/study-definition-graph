@@ -352,20 +352,26 @@ def test_quiet_file_with_no_heading_exits_16_and_prints_nothing(
 @negative
 @pytest.mark.parametrize(
     "refusal",
-    ["outside the repo", "unreadable manifest", "location outside inputs", "no map"],
+    [
+        "outside the repo",
+        "manifest that is not valid JSON",
+        "location outside inputs",
+        "no map",
+    ],
 )
 def test_every_refusal_is_silent_under_quiet(
     repo, fake_repo, tmp_path, monkeypatch, capsys, refusal
 ):
     """With the quiet option, a refusal prints nothing and still exits with its own
-    code. It runs once each for an install outside the repo, an unreadable manifest, a
-    manifest location that does not stay under inputs/, and an unreadable map."""
+    code. It runs once each for an install outside the repo, a manifest that is not
+    valid JSON, a manifest location that does not stay under inputs/, and a missing
+    map."""
     from sdg.sources import read_manifests
 
     if refusal == "outside the repo":
         monkeypatch.setattr(read_manifests, "REPO_ROOT", tmp_path / "elsewhere")
         outcome, expected = run(capsys, MAP, "--quiet"), 3
-    elif refusal == "unreadable manifest":
+    elif refusal == "manifest that is not valid JSON":
         (fake_repo.root / "manifests" / "broken.json").write_text(
             "{ not json", encoding="utf-8"
         )
@@ -452,3 +458,4 @@ def test_a_manifest_location_outside_inputs_exits_15(repo, fake_repo, capsys):
     assert outcome.exit_code == 15
     assert exit_line(15, "MANIFEST-LOCATION-OUTSIDE-INPUTS") in outcome.printed
     assert "does not stay under inputs/" in outcome.printed
+    assert '"inputs/../elsewhere.txt"' in outcome.printed

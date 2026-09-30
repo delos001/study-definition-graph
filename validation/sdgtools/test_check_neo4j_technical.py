@@ -498,6 +498,13 @@ def no_compose_file(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     return 12
 
 
+def compose_not_yaml(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
+    """Stage a docker-compose.yml that is not valid YAML, and give the code expected."""
+    write_env(repo)
+    (repo / "docker-compose.yml").write_text("services: [unclosed\n", encoding="utf-8")
+    return 14
+
+
 def compose_without_an_image(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
     """Stage a docker-compose.yml that names no image, and give the code expected."""
     write_env(repo)
@@ -549,6 +556,7 @@ def other_version(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
         outside_the_repo,
         no_env_file,
         no_compose_file,
+        compose_not_yaml,
         compose_without_an_image,
         unreachable_database,
         malformed_address,
@@ -559,6 +567,7 @@ def other_version(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
         "outside the repo",
         "no .env file",
         "no docker-compose.yml",
+        "compose file that is not YAML",
         "compose file without an image",
         "unreachable database",
         "malformed address",

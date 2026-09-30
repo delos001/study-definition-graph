@@ -224,10 +224,20 @@ def test_the_project_dir_outranks_the_message_cwd(
 @category("repository")
 @objective("functionality")
 @positive
-def test_a_malformed_message_is_allowed(repo, monkeypatch, capsys):
+@pytest.mark.parametrize(
+    "message",
+    [
+        "not json at all",
+        '{"tool_input": {}}',
+        '{"tool_input": {"file_path": null}}',
+    ],
+    ids=["not JSON", "no path", "a path that is not text"],
+)
+def test_a_malformed_message_is_allowed(repo, monkeypatch, capsys, message):
     """A message that is not the kind Claude Code sends is allowed, with nothing
-    printed, so a malformed message can never block ordinary work."""
-    outcome = send(monkeypatch, capsys, "not json at all")
+    printed, so a malformed message can never block ordinary work. It runs once for a
+    message that is not JSON, one with no path, and one whose path is not text."""
+    outcome = send(monkeypatch, capsys, message)
     assert outcome.exit_code == 0
     assert outcome.printed == ""
 

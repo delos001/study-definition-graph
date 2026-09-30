@@ -34,8 +34,9 @@ Description: Supplies the setups the test_*.py files under validation/ share. py
              point in pyproject.toml: the labels, the selection options, the skip
              rules and the report.
 
-Inputs:      manifests/*.json (read-only; real_manifests only). Every other fixture
-             writes to pytest's own temporary folder.
+Inputs:      every manifest, read through src/sdg/sources/read_manifests.py
+             (read-only; real_manifests only). Every other fixture writes to
+             pytest's own temporary folder.
 
 Outputs:     Nothing outside pytest's own temporary folder.
 
@@ -81,10 +82,19 @@ pytest_plugins = ["pytester"]
 # pytest creates and deletes for each test, so no test ever reads or writes the
 # real manifests/ or inputs/.
 #
-# The first two fixtures serve the tests of the model loader, src/sdg/usdm/usdm_spec.py, which stage one
-# manifest with one entry, broken in one chosen way. The third, fake_repo,
-# serves the tests of src/sdg/sources/ and of the tools in src/sdgtools/, which need a
-# whole small repo to walk.
+# Each fixture serves the checks named beside it.
+# - manifest_dir and manifest_recording serve the checks of the model loader,
+#   src/sdg/usdm/usdm_spec.py, which stage one manifest with one entry, broken in one
+#   chosen way.
+# - file_on_disk, part_file, placed, server and completed serve the checks of the
+#   download steps in src/sdg/sources/, which stage one file or one download.
+# - fake_repo and recorded_file serve the checks of src/sdg/sources/, src/sdg/usdm/,
+#   src/sdg/view/ and the tools in src/sdgtools/, which need a whole small repo to
+#   walk.
+# - real_manifests serves the checks of the manifest reader that read the real
+#   manifests.
+# - staged_suite serves the checks of the validation package, which run a small
+#   suite of checks of their own.
 
 
 @pytest.fixture

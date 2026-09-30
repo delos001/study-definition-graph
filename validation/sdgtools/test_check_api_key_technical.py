@@ -569,8 +569,7 @@ def api_error(repo: Path, monkeypatch: pytest.MonkeyPatch) -> int:
 )
 def test_every_refusal_is_silent_under_quiet(repo, monkeypatch, capsys, stage):
     """With the quiet option, a refusal prints nothing and still exits with its own
-    code. It runs once for each refusal the tool can give after its settings are
-    read."""
+    code. It runs once for each refusal the tool can give other than a missing key."""
     expected = stage(repo, monkeypatch)
     outcome = run(capsys, "--quiet")
     assert outcome.printed == ""

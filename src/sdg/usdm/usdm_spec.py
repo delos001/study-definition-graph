@@ -34,7 +34,8 @@ Description: The single way to access the pinned USDM model. It reads
              USDM sources we hold."
 
 Inputs:      inputs/standards/cdisc/usdm_v4/dataStructure.yml   (read-only, pinned)
-             manifests/*.json                    (read-only, through src/sdg/sources/read_manifests.py)
+             every manifest, read through src/sdg/sources/read_manifests.py
+                                                 (read-only)
 
 Outputs:     It prints plain text to standard output and writes nothing to disk.
 
@@ -156,10 +157,15 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     YAML in native form.
 
     The result is a dict keyed by class name, where each value is the class's own dict
-    of National Cancer Institute (NCI) code, definition, modifier and attributes. Nothing is reshaped. Two shape
-    checks run before the dict is returned: every class has Modifier and Attributes, and
-    every attribute has Type, Cardinality and Relationship Type, so a structurally
-    different file fails here instead of deep inside a caller.
+    of National Cancer Institute (NCI) code, definition, modifier and attributes. Nothing is reshaped. Four
+    things about the file's shape are confirmed before the dict is returned, so a
+    structurally different file fails here instead of deep inside a caller.
+
+    - Every class has Modifier and Attributes.
+    - Every Modifier is Concrete or Abstract.
+    - Every class's Attributes is a mapping, and every attribute has Type,
+      Cardinality and Relationship Type.
+    - Every Type, and every Inherited From that is present, is a list of references.
 
     With verify on, the default, the file is obtained through the pinned-file check,
     which proves it against its manifest before it is read, so a changed or swapped copy

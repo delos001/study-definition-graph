@@ -34,7 +34,8 @@ Description: Recomputes each figure its list of facts records, a count or a date
              history rather than a claim about the pinned files today.
 
 Inputs:      inputs/**              (read-only, pinned, each verified through verify_pinned)
-             manifests/*.json       (read-only, through src/sdg/sources/read_manifests.py)
+             every manifest, read through src/sdg/sources/read_manifests.py
+                                    (read-only)
              every Markdown file git tracks, apart from EXCLUDED_DOCUMENTS in
              this file   (read-only, scanned for the stated figures)
              git   (lists the tracked Markdown files)
@@ -102,10 +103,12 @@ import argparse
 import json
 import re
 import subprocess
+import zipfile
 from datetime import datetime
 from pathlib import Path
 
 import openpyxl
+from openpyxl.utils.exceptions import InvalidFileException
 
 # The model loader, and the ways it can refuse the pinned file. The exception
 # classes are imported here so the measurement loop can report each cause with the
@@ -412,9 +415,11 @@ def main(argv: list[str] | None = None) -> int:
             actual = measure()
         except FileNotFoundError as exc:
             return fail(print, 12, "PINNED-FILE-NOT-DOWNLOADED", f"{label}: {exc}")
-        except json.JSONDecodeError as exc:
+        except (json.JSONDecodeError, zipfile.BadZipFile, InvalidFileException) as exc:
             # JSON that does not parse is a kind of ValueError, so it is caught
-            # before the shape errors below and keeps its own sub-code.
+            # before the shape errors below and keeps its own sub-code. A workbook
+            # that is not a valid workbook raises either of the other two, which
+            # no branch below would catch.
             return fail(print, 14, "PINNED-FILE-UNPARSEABLE", f"{label}: {exc}")
         except (KeyError, IndexError, TypeError, AttributeError, ValueError) as exc:
             # The file was read but does not hold what the measurement reaches
