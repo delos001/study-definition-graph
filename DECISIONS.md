@@ -877,3 +877,7 @@ Adding a fix to each message would have written every fix twice. No standard cov
 - If the IB cannot be made to work, that result is recorded as a finding.
 
 This is a question about the plan, not about how data is structured, so the choice is **unguided**.
+
+## The pipeline does its own extraction, decided 2026-10-02
+
+The commercial products in `BACKGROUND.md` [4], [9] and [10] extract or author protocols only, and no product was found that extracts a SAP or an IB. The graph also needs every fact traced to its sentence, and no product was shown to provide that. The choice is **unguided**.
