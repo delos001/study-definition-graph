@@ -867,3 +867,13 @@ The rule in `.claude/rules/writing_python_files.md` for a check of a refusal sai
 - The fix for each sub-code stays in `docs/exit_codes.csv`, the one place that holds it. A message may still print a fix, and its check may confirm it.
 
 Adding a fix to each message would have written every fix twice. No standard covered the question, so the choice is **unguided**.
+
+## The Investigator's Brochure is in scope, and how well it fits USDM is found by trying, decided 2026-10-02
+
+`PLAN.md` said an Investigator's Brochure "largely does not" fit USDM. No source and no recorded reasoning stood behind that line, and it read as a finding that the IB would not be attempted.
+
+- The IB is in scope. How well it fits USDM, and which of the three approaches in `PLAN.md` it takes, is found by working through a real IB.
+- The constraint is access. The pipeline gets protocols and SAPs from ClinicalTrials.gov, and a real IB may have to come from somewhere else.
+- If the IB cannot be made to work, that result is recorded as a finding.
+
+This is a question about the plan, not about how data is structured, so the choice is **unguided**.

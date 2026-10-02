@@ -144,7 +144,8 @@ Reconstruct the timing graph from the flattened grid plus its footnotes and pros
   - Practitioner opinion leans prompt; this project produces evidence rather than inheriting the assumption.
   - The composition principle above is what makes the two axes separable enough to measure.
 - **How far USDM reaches beyond the protocol is deliberately undecided.**
-  - A protocol fits USDM, a SAP fits partly, an Investigator's Brochure largely does not.
+  - A protocol fits USDM, and a SAP fits partly. How well an Investigator's Brochure fits is not known until one is worked through.
+  - The IB is in scope. Work on it waits on access to a real IB, which the public sources used for protocols and SAPs may not provide.
   - Three approaches are visible, none chosen:
     - map only the parts that fit and drop the rest: simple, but silently loses content,
     - extend USDM through its own extension mechanism, section 6.4 of the implementation guide `inputs/standards/cdisc/usdm_v4/USDM-IG.pdf`: one model, but extensions are carried forever,
