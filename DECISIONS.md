@@ -884,7 +884,7 @@ The commercial products in `BACKGROUND.md` [4], [9] and [10] extract or author p
 
 ## The first studies are chosen by a starting set of filters, decided 2026-10-02
 
-These filters pick candidate studies from the ClinicalTrials.gov API. They are a starting point, and any of them changes if the pool turns out too wide, too narrow or short of estimands. The exact query text and rules are in `src/sdg/sources/ctgov_study_filters.yml`, which the selection script reads. The script saves each run's query, date and result.
+These filters pick candidate studies from the ClinicalTrials.gov API. They are a starting point, and any of them changes if the pool turns out too wide, too narrow or short of estimands. The exact query text and rules are in `src/sdg/sources/ctgov_study_filters.yml`, which `src/sdg/sources/find_ctgov_studies.py` reads. That script saves each run's query, date and result.
 
 The API query keeps a study that:
 - posted a protocol and a SAP,

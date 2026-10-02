@@ -1,6 +1,6 @@
 # The filters that choose candidate studies from the ClinicalTrials.gov API.
 #
-# The selection script reads this file. It sends the query to the API, then keeps
+# src/sdg/sources/find_ctgov_studies.py reads this file. It sends the query to the API, then keeps
 # only the studies that pass every rule under after_fetch, which the API cannot
 # apply itself. The reason for each filter is in DECISIONS.md, "The first studies
 # are chosen by a starting set of filters, decided 2026-10-02". A filter is changed
