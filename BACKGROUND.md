@@ -2,7 +2,7 @@
 
 USDM (Unified Study Definitions Model) is CDISC's clinical study plan data model developed with TransCelerate through the Digital Data Flow (DDF) initiative [1][2]. Version 4.0, released June 2025 [3], aligns with ICH M11, the harmonised protocol template [1], which the United States Food and Drug Administration (FDA) and the European Medicines Agency (EMA) are adopting at different paces; neither USDM nor M11 is mandatory as of Q3 2026 [7][8]. Complementary process guidance, conformance support, and relationship mapping to other industry standards have been developed concurrently [1].
 
-Development and release of these models and resources provide an opportunity to extract and transform the requirements in study planning and design documents to be utilized by almost all downstream processes within drug and device development.  Combined with technology, such as AI and careful deterministic programming, these standards and processes have the potential to disrupt the status quo, substantially improving the speed and safety with which the industry brings treatments to patients.  Commercial vendors already generate USDM-conformant outputs from clinical documents using AI and/or generate USDM standard documents from scratch [4].
+Development and release of these models and resources provide an opportunity to extract and transform the requirements in study planning and design documents to be utilized by almost all downstream processes within drug and device development.  Combined with technology, such as AI and careful deterministic programming, these standards and processes have the potential to disrupt the status quo, substantially improving the speed and safety with which the industry brings treatments to patients.  Commercial vendors already generate USDM-conformant outputs from clinical documents using AI and/or generate USDM standard documents from scratch [4][9][10].
 
 ## Why this project exists
 
@@ -19,7 +19,7 @@ To attack the premise, unstructured clinical documents will be ingested into a s
 
 The project is also partly exploratory. Learning the domains as the work goes will show in the methods and tools chosen.
 
-This project will utilize USDM and is not claiming to be a novel approach by such use.
+This project will utilize USDM and is not claiming to be a novel approach by such use. Storing USDM as a graph is not new either. A public demonstrator holds USDM in a Neo4j graph and links it to the Study Data Tabulation Model (SDTM), the data standard for submitting study data [11]. Its study designs are loaded from a spreadsheet, so it starts from structured input. Later work from the same group extends USDM from a structured study definition forward to participant data and SDTM [12]. CDISC's 360i program is building the link from protocol to SAP for documents authored in structured form. Its Analysis Concepts model is meant to take the place of narrative SAP content with an executable specification tied to USDM objectives and endpoints, and its current phase runs through 2026 [13].
 
 ## The problem
 
@@ -84,3 +84,13 @@ Web sources are living pages; each entry records the date it was accessed. Pinne
 [7] European Medicines Agency. "ICH M11 guideline, clinical study protocol template and technical specifications - Scientific guideline." https://www.ema.europa.eu/en/ich-m11-guideline-clinical-study-protocol-template-technical-specifications-scientific-guideline (accessed 2026-09-01). Supports the EMA side of M11 status: adopted at Step 5 (regional implementation), one half of the FDA/EMA difference in recommendation and implementation.
 
 [8] U.S. Food and Drug Administration. "ICH M11: Clinical Electronic Structured Harmonised Protocol (CeSHarP)." https://www.fda.gov/media/167334/download (accessed 2026-09-01). Supports the FDA side of M11 status: issued as guidance, which by FDA convention is non-binding (recommendations unless specific regulatory or statutory requirements are cited), hence not mandatory.
+
+[9] Faro Health. "Faro Wins CDISC 2025 AI Innovation Challenge for Protocol Library Solution." Press release, 29 September 2025. https://www.newswire.com/news/faro-wins-cdisc-2025-ai-innovation-challenge-for-protocol-library-22647080 (accessed 2026-10-01). Supports a commercial vendor converting existing protocol documents into USDM-aligned output with AI, in the CDISC award category "Protocol Library - Building USDM-Centric Repositories from Existing Protocols". This is the vendor's own release.
+
+[10] Nurocor. "Home." https://nurocor.com/ (accessed 2026-10-01). Supports a commercial vendor offering AI-assisted authoring of USDM-compliant digital protocols.
+
+[11] data4knowledge. "USDM in action – from protocol to SDTM." https://d4k.dk/2024/08/09/usdm-in-action_-from-protocol-to-sdtm/ (accessed 2026-10-01). Supports a public demonstrator storing USDM as a Neo4j property graph linked to SDTM, with study designs loaded from an Excel spreadsheet through CDISC's tooling rather than extracted from documents.
+
+[12] Iberson-Hurst, Dave (data4knowledge ApS). "USDM in Action: From Protocol to SDTM." CDISC 2025 Japan Academic Workshop, 21 November 2025. https://www.cdisc.org/sites/default/files/interchange/presentations/public/3.3%20USDM%20in%20Action.pdf (accessed 2026-10-01). Supports the same group extending USDM with a data contract, participant data points and SDTM links, producing SDTM, annotated case report forms and define.xml from the study definition (pp. 14-28), and describing the protocol as "a graph with explicit relationships" (p. 28). The text pages describe no extraction from documents and no SAP or IB; pages 3, 8 and 11 are images and were not read.
+
+[13] CDISC. "CDISC 360i." https://www.cdisc.org/standards/cdisc-360i (accessed 2026-10-01). Supports Phase 2 as the current stage of 360i, running through 2026, with an Analysis Concepts workstream whose model "replaces narrative-only SAP content with a standards-based, executable specification linked to USDM objectives and endpoints", built from structured standards such as USDM and biomedical concepts.
