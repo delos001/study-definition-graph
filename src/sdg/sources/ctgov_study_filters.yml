@@ -1,0 +1,53 @@
+# The filters that choose candidate studies from the ClinicalTrials.gov API.
+#
+# The selection script reads this file. It sends the query to the API, then keeps
+# only the studies that pass every rule under after_fetch, which the API cannot
+# apply itself. The reason for each filter is in DECISIONS.md, "The first studies
+# are chosen by a starting set of filters, decided 2026-10-02". A filter is changed
+# by editing this file.
+#
+# The query is written in the API's own query language. The API lists its field
+# names at /api/v2/studies/metadata and their allowed values at
+# /api/v2/studies/enums. The language reads ALL as an operator that matches every
+# study, so the value ALL is written \ALL.
+
+api: https://clinicaltrials.gov/api/v2/studies
+
+query: >-
+  AREA[LargeDocHasProtocol]true
+  AND AREA[LargeDocHasSAP]true
+  AND AREA[Phase]PHASE3
+  AND AREA[LeadSponsorClass]INDUSTRY
+  AND AREA[StartDate]RANGE[2020-01-01,MAX]
+  AND AREA[LargeDocDate]RANGE[2020-01-01,MAX]
+  AND AREA[DesignAllocation]RANDOMIZED
+  AND (AREA[OverallStatus]COMPLETED OR AREA[OverallStatus]TERMINATED)
+  AND AREA[HasResults]true
+  AND AREA[HealthyVolunteers]false
+  AND AREA[Sex]\ALL
+
+after_fetch:
+  # The protocol and the SAP are each posted as a file of their own. A study whose
+  # only protocol or only SAP sits inside a combined file is dropped.
+  separate_protocol_and_sap: true
+
+  # The SAP file's own date. The query's document date matches any posted file,
+  # so it cannot say which file carries the date.
+  sap_dated_on_or_after: 2020-01-01
+
+  # The number of distinct countries among the study's sites.
+  min_countries: 2
+
+  # The study is kept when any of its medical subject terms, or any broader term
+  # above them, is one of these. A study the registry has not tagged is dropped.
+  condition_terms_any:
+    - Cardiovascular Diseases
+    - Hemic and Lymphatic Diseases
+    - Neoplasms
+    - Infections
+    - Musculoskeletal Diseases
+
+  # Every treatment the study lists has one of these types, and at least one is a
+  # drug or a biologic. Sponsors enter placebo and standard care as OTHER.
+  intervention_types_allowed: [DRUG, BIOLOGICAL, OTHER]
+  intervention_types_required_any: [DRUG, BIOLOGICAL]

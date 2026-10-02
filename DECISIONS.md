@@ -881,3 +881,30 @@ This is a question about the plan, not about how data is structured, so the choi
 ## The pipeline does its own extraction, decided 2026-10-02
 
 The commercial products in `BACKGROUND.md` [4], [9] and [10] extract or author protocols only, and no product was found that extracts a SAP or an IB. The graph also needs every fact traced to its sentence, and no product was shown to provide that. The choice is **unguided**.
+
+## The first studies are chosen by a starting set of filters, decided 2026-10-02
+
+These filters pick candidate studies from the ClinicalTrials.gov API. They are a starting point, and any of them changes if the pool turns out too wide, too narrow or short of estimands. The exact query text and rules are in `src/sdg/sources/ctgov_study_filters.yml`, which the selection script reads. The script saves each run's query, date and result.
+
+The API query keeps a study that:
+- posted a protocol and a SAP,
+- is phase 3 with an industry lead sponsor, because those designs are generally the most complex,
+- started in 2020 or later and posted a document dated 2020 or later, because estimands entered practice with ICH E9(R1) at the end of 2019,
+- is randomized, because estimands matter most when treatment groups are compared,
+- is completed or terminated, so its SAP is the one the analysis was run against,
+- has posted results, which issue #56 compares against the SAP,
+- does not accept healthy volunteers, which removes mostly vaccine and cosmetic studies,
+- is open to all sexes.
+
+The script then keeps a study whose:
+- protocol and SAP are separate files,
+- SAP is itself dated 2020 or later,
+- sites are in two or more countries,
+- conditions fall under cardiovascular, hematology, oncology, infectious disease or musculoskeletal disease, matched by the registry's medical subject terms,
+- treatments are only drugs, biologics or other, which removes devices and procedures.
+
+The API's query language reads `ALL` as "match every study", so the sex filter is written `AREA[Sex]\ALL`. A study the registry has not tagged with subject terms is dropped by the therapeutic-area filter whatever its disease.
+
+At the final pick, a study with sites in more countries wins when all else is equal, then one that also posted an informed consent form (ICF). The chosen studies vary in therapeutic area, in rare disease or not, and in trial size.
+
+The choice is **unguided**.
