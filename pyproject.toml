@@ -11,6 +11,7 @@ requires-python = ">=3.12"
 # than python -m sdg.view.read_pdf. Each names the module and the function it runs.
 [project.scripts]
 acquire_sources = "sdg.sources.acquire_sources:main"
+find_ctgov_studies = "sdg.sources.find_ctgov_studies:main"
 read_pdf = "sdg.view.read_pdf:main"
 read_xlsx = "sdg.view.read_xlsx:main"
 usdm_spec = "sdg.usdm.usdm_spec:main"

@@ -29,7 +29,7 @@ query: >-
 after_fetch:
   # The protocol and the SAP are each posted as a file of their own. A study whose
   # only protocol or only SAP sits inside a combined file is dropped.
-  separate_protocol_and_sap: true
+  separate_protocol_sap: true
 
   # The SAP file's own date. The query's document date matches any posted file,
   # so it cannot say which file carries the date.
@@ -40,7 +40,7 @@ after_fetch:
 
   # The study is kept when any of its medical subject terms, or any broader term
   # above them, is one of these. A study the registry has not tagged is dropped.
-  condition_terms_any:
+  condition_terms:
     - Cardiovascular Diseases
     - Hemic and Lymphatic Diseases
     - Neoplasms
@@ -50,4 +50,4 @@ after_fetch:
   # Every treatment the study lists has one of these types, and at least one is a
   # drug or a biologic. Sponsors enter placebo and standard care as OTHER.
   intervention_types_allowed: [DRUG, BIOLOGICAL, OTHER]
-  intervention_types_required_any: [DRUG, BIOLOGICAL]
+  intervention_types_required: [DRUG, BIOLOGICAL]

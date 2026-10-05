@@ -185,6 +185,8 @@ study-definition-graph/
     interim/               #   files passed between pipeline stages
     processed/             #   finished pipeline output
   eval/                    # expected results the pipeline is scored against
+  searches/                # a record of each search run to find candidate studies
+    ctgov/                 #   one file per run of find_ctgov_studies
   prompts/                 # prompts sent to the model (e.g. classification and extraction)
   src/                     # Python source, one installed package per job
     sdg/                   #   pipeline package, one folder per group of work

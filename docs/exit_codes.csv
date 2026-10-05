@@ -18,6 +18,7 @@ code,group,sub_code,what_happened,what_to_do
 8,an outside program is not the pinned version,NEO4J-VERSION-WRONG,the running Neo4j is not the version docker-compose.yml pins,"Stop whatever answers at that address, then start the pinned container from the repo folder with docker compose up -d."
 8,an outside program is not the pinned version,PYTHON-VERSION-CHANGED,the fingerprints in the validation inventory were made by another Python version,"Run build_inventory --python-changed, and commit the result alone, in a commit that changes nothing else."
 9,a service did not respond,CLAUDE-API-UNREACHABLE,the Claude API could not be reached,"Confirm the network connection works, then run the command again."
+9,a service did not respond,CTGOV-NO-ANSWER,ClinicalTrials.gov could not be reached or did not answer in time,"Confirm the network connection works, then run the command again."
 9,a service did not respond,DOWNLOAD-NO-ANSWER,"a download's server could not be reached, did not answer in time, or stopped part way","Confirm the network connection works, then run acquire_sources again."
 9,a service did not respond,NEO4J-UNREACHABLE,Neo4j could not be reached at the address in .env,Start the container from the repo folder with docker compose up -d.
 10,"a service refused the login, key or permission",CLAUDE-API-ACCESS-REFUSED,the Claude API knows the key but refused it access to the model,The key is right. Look at the account it belongs to at https://console.anthropic.com/.
@@ -25,11 +26,13 @@ code,group,sub_code,what_happened,what_to_do
 10,"a service refused the login, key or permission",DOWNLOAD-REFUSED,a download's server refused access to the file,Confirm the url in the manifest still gives public access to the file.
 10,"a service refused the login, key or permission",NEO4J-LOGIN-REJECTED,Neo4j rejected the login in .env,Make NEO4J_USER and NEO4J_PASSWORD in .env match the NEO4J_AUTH line in docker-compose.yml.
 11,a service answered with an error,CLAUDE-API-ERROR,the Claude API answered with an error,"Act on the API's own message, which the command prints."
+11,a service answered with an error,CTGOV-ERROR-ANSWER,ClinicalTrials.gov answered with an error,"Act on the message the command prints. A rejected search usually means the query in src/sdg/sources/ctgov_study_filters.yml needs correcting."
 11,a service answered with an error,DOWNLOAD-ERROR-ANSWER,a download's server answered with an error,Confirm the url in the manifest still serves the file. A file that moved is a deliberate re-pin.
 12,a file does not exist,COMMAND-FILE-MISSING,pyproject.toml installs a command from a file that does not exist,"Correct the entry in pyproject.toml, or restore the file from git."
 12,a file does not exist,COMMANDS-PAGE-MISSING,docs/commands.md is missing,Run build_index.
 12,a file does not exist,COMPOSE-FILE-MISSING,docker-compose.yml is missing,Restore docker-compose.yml from git.
 12,a file does not exist,EXIT-TABLE-MISSING,docs/exit_codes.csv is missing,Restore docs/exit_codes.csv from git.
+12,a file does not exist,FILTERS-FILE-MISSING,the ClinicalTrials.gov filters file is missing,Restore src/sdg/sources/ctgov_study_filters.yml from git.
 12,a file does not exist,GROUPS-FILE-MISSING,"validation/validation_groups.yml, which --group reads, is missing","Restore validation/validation_groups.yml from git, or run without --group."
 12,a file does not exist,INVENTORY-MISSING,validation/validation_inventory.csv is missing,Run build_inventory.
 12,a file does not exist,LOOKUP-LIST-MISSING,the list of lookup documents is missing,Restore src/sdg/view/lookup_documents.yml from git.
@@ -39,6 +42,7 @@ code,group,sub_code,what_happened,what_to_do
 12,a file does not exist,SOURCES-MAP-MISSING,docs/sources_index.md is missing,Restore docs/sources_index.md from git.
 12,a file does not exist,VALIDATION-FOLDER-MISSING,the validation/ folder is missing,Restore validation/ from git.
 13,a file exists but cannot be opened,EXIT-TABLE-UNREADABLE,docs/exit_codes.csv cannot be opened,"Close any program holding the file, then run the command again."
+13,a file exists but cannot be opened,FILTERS-FILE-UNREADABLE,the ClinicalTrials.gov filters file is on disk but cannot be opened,"Close any program holding the file, then run the command again."
 13,a file exists but cannot be opened,LOOKUP-LIST-UNREADABLE,the list of lookup documents is on disk but cannot be opened,"Close any program holding the file, then run the command again."
 13,a file exists but cannot be opened,MANIFEST-UNREADABLE,a manifest is on disk but cannot be opened,"Close any program holding the file, or restore manifests/ from git."
 13,a file exists but cannot be opened,PINNED-FILE-UNREADABLE,a pinned file is on disk but cannot be opened,"Close the program holding the file, or remove what sits where the file should be, then run the command again."
@@ -46,6 +50,8 @@ code,group,sub_code,what_happened,what_to_do
 13,a file exists but cannot be opened,PYTHON-FILE-UNREADABLE,a Python file cannot be opened,"Close any program holding the file, then run the command again."
 13,a file exists but cannot be opened,SOURCES-MAP-UNREADABLE,docs/sources_index.md cannot be opened,"Close any program holding the file, then run the command again."
 14,content cannot be parsed,COMPOSE-FILE-UNPARSEABLE,docker-compose.yml is not valid YAML,Restore docker-compose.yml from git.
+14,content cannot be parsed,CTGOV-REPLY-UNPARSEABLE,the answer from ClinicalTrials.gov is not valid JSON,"Run the command again. If it keeps failing, ClinicalTrials.gov may be changing its service."
+14,content cannot be parsed,FILTERS-FILE-UNPARSEABLE,the ClinicalTrials.gov filters file is not valid YAML,"Correct the YAML the message names, or restore src/sdg/sources/ctgov_study_filters.yml from git."
 14,content cannot be parsed,LOOKUP-LIST-UNPARSEABLE,the list of lookup documents is not valid YAML,"Correct the YAML the message names, or restore the file from git."
 14,content cannot be parsed,MANIFEST-UNPARSEABLE,a manifest is not valid JSON,Restore manifests/ from git with git checkout.
 14,content cannot be parsed,PINNED-FILE-UNPARSEABLE,a pinned file a measurement reads is not valid in its format,"Remove the file and run acquire_sources, which fetches the pinned copy again."
@@ -59,6 +65,7 @@ code,group,sub_code,what_happened,what_to_do
 15,content breaks a requirement,CHECK-MARKERS-WRONG,"a check's markers, id or first sentence are missing or wrong, or its id is a duplicate","Correct the marker, id or first sentence the message names."
 15,content breaks a requirement,COMPOSE-FILE-NO-IMAGE,docker-compose.yml names no Neo4j image in the form neo4j:<version>-<edition>,"Write the image line as, for example, neo4j:5.26.29-community."
 15,content breaks a requirement,EXIT-TABLE-INVALID,a row of docs/exit_codes.csv breaks the table's rules,Correct the row the message names in docs/exit_codes.csv.
+15,content breaks a requirement,FILTERS-FILE-INVALID,"the ClinicalTrials.gov filters file is missing a setting the script needs, or has a filter the script does not apply","Correct the setting the message names in src/sdg/sources/ctgov_study_filters.yml, or restore the file from git."
 15,content breaks a requirement,FINGERPRINT-MISSING,a check's fingerprint in the validation inventory is missing or unreadable,"Put the check's fingerprint back as git last recorded it, then run build_inventory again."
 15,content breaks a requirement,GROUP-HAS-NO-IDS,a group in validation/validation_groups.yml lists no ids,Give the group an ids list naming at least one check.
 15,content breaks a requirement,GROUP-MIXES-ASPECTS,a group in validation/validation_groups.yml lists checks of more than one aspect,Keep the group to checks of one aspect.
@@ -91,6 +98,7 @@ code,group,sub_code,what_happened,what_to_do
 16,a description does not match the thing it describes,PINNED-FILE-CHANGED,a pinned file on disk no longer matches its manifest entry,Remove the file and run acquire_sources if it changed by accident. A real new version is a deliberate re-pin.
 16,a description does not match the thing it describes,SOURCES-MAP-HEADING-MISSING,a pinned file has no document heading in the sources map,Add a document heading for the file to docs/sources_index.md.
 16,a description does not match the thing it describes,SOURCES-MAP-LOCATION-UNRECORDED,the sources map names a location no manifest records,"Correct the location in docs/sources_index.md, or record a file there in manifests/."
+17,the parameters given yielded no results,CTGOV-NO-CANDIDATES,no study on ClinicalTrials.gov passed every filter,"Read the run record in searches/ctgov/ to see which filter removed the last studies, then loosen it in src/sdg/sources/ctgov_study_filters.yml."
 17,the parameters given yielded no results,HEADER-ROW-PAST-END,the named header row is past the end of the sheet,"Run without --header-row to see the sheet, then name a row it has."
 17,the parameters given yielded no results,MANIFEST-NAME-NOT-FOUND,no manifest has the name given,Name a manifest that exists in manifests/.
 17,the parameters given yielded no results,PDF-HAS-NO-BOOKMARKS,a section was asked for in a PDF that has no bookmarks,"Use --find to search the document, or --pages to read a known range."
@@ -104,6 +112,7 @@ code,group,sub_code,what_happened,what_to_do
 18,the command found no target to act on,NO-CHECKS-COLLECTED,no check was collected,Point the run at a folder or file that holds checks.
 18,the command found no target to act on,NO-COMMANDS-INSTALLED,pyproject.toml installs no command,Add the commands to the [project.scripts] table of pyproject.toml.
 19,an output already exists and is not overwritten,,no command fails this way yet,
+20,an output could not be written,CTGOV-RECORD-NOT-WRITTEN,"the ClinicalTrials.gov run record, or its folder, could not be written to disk","Free space on the disk, or remove what sits where searches/ctgov/ or the file should be, then run the command again."
 20,an output could not be written,DOWNLOAD-NOT-WRITTEN,"a download, or its folder, could not be written to disk","Free space on the disk, or remove what sits where the file or its folder should be, then run acquire_sources again."
 21,one or more validation checks failed,CHECKS-FAILED,one or more validation checks failed,"Read the failed checks pytest listed, then fix what each names."
 22,an evaluation score fell below its threshold,,no command fails this way yet,

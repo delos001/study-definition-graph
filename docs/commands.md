@@ -25,6 +25,19 @@ acquire_sources --quiet
     print nothing; use the exit code
 ```
 
+### find_ctgov_studies
+
+Finds the studies on ClinicalTrials.gov based on filters specified in src/sdg/sources/ctgov_study_filters.yml.
+
+Its header block is in `src/sdg/sources/find_ctgov_studies.py`.
+
+```
+find_ctgov_studies
+    search ClinicalTrials.gov, apply the filters, save the run record
+find_ctgov_studies --quiet
+    print nothing; use the exit code
+```
+
 ### read_pdf
 
 Reads part of any pinned PDF standard in this repo and prints it as plain text, so a working session can consult a specification without loading the whole document.
