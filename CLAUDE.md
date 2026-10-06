@@ -60,6 +60,10 @@ When you face a decision about how something should be modelled or handled, cate
 | No standard covers it, but the content must be captured | Check USDM's extension mechanism, section 6.4 of `inputs/standards/cdisc/usdm_<version>/USDM-IG.pdf`, to determine whether a method is described for it, and record every extension in [local_definitions/usdm_extensions/](local_definitions/usdm_extensions/README.md). |
 | It is a question about process or design rather than how data is structured | Decide, and record it in `DECISIONS.md` as a decision no standard guided. |
 
+### Recommendations
+
+A recommendation is made only when the information it depends on has been read. When that information is missing or has not been read, do not recommend. Say that a recommendation cannot be made yet, name the information that is missing, and suggest how to obtain it.
+
 ## Issue tracking
 
 GitHub Issues, `PLAN.md`, and `DECISIONS.md` must remain consistent.
