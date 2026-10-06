@@ -1,0 +1,4759 @@
+{
+  "ran_at": "2026-10-06T12:48:12-04:00",
+  "api": "https://clinicaltrials.gov/api/v2/studies",
+  "query": "AREA[LargeDocHasProtocol]true AND AREA[LargeDocHasSAP]true AND AREA[Phase]PHASE3 AND AREA[LeadSponsorClass]INDUSTRY AND AREA[StartDate]RANGE[2020-01-01,MAX] AND AREA[LargeDocDate]RANGE[2020-01-01,MAX] AND AREA[DesignAllocation]RANDOMIZED AND (AREA[OverallStatus]COMPLETED OR AREA[OverallStatus]TERMINATED) AND AREA[HasResults]true AND AREA[HealthyVolunteers]false AND AREA[Sex]\\ALL",
+  "fields": "ProtocolSection|DocumentSection|DerivedSection",
+  "additional_filters": {
+    "separate_protocol_sap": true,
+    "sap_dated_on_or_after": "2020-01-01",
+    "min_countries": 2,
+    "condition_terms": [
+      "Cardiovascular Diseases",
+      "Hemic and Lymphatic Diseases",
+      "Neoplasms",
+      "Infections",
+      "Musculoskeletal Diseases"
+    ],
+    "intervention_types_allowed": [
+      "DRUG",
+      "BIOLOGICAL",
+      "OTHER"
+    ],
+    "intervention_types_required": [
+      "DRUG",
+      "BIOLOGICAL"
+    ]
+  },
+  "returned": 850,
+  "remaining_after": {
+    "separate_protocol_sap": 728,
+    "recent_sap": 728,
+    "min_countries": 508,
+    "condition_terms": 197,
+    "intervention_types": 188
+  },
+  "candidates": [
+    {
+      "nct_id": "NCT05259917",
+      "title": "A Phase III, Crossover Trial Evaluating the Efficacy and Safety of KVD900 (Sebetralstat) for On-Demand Treatment of Angioedema Attacks in Adolescent and Adult Patients With Hereditary Angioedema (HAE)",
+      "sponsor": "KalVista Pharmaceuticals, Ltd.",
+      "conditions": [
+        "Hereditary Angioedema"
+      ],
+      "countries": [
+        "Australia",
+        "Bulgaria",
+        "Canada",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "New Zealand",
+        "North Macedonia",
+        "Poland",
+        "Portugal",
+        "Puerto Rico",
+        "Romania",
+        "Slovakia",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 136,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04737187",
+      "title": "Phase III Study of Trifluridine/Tipiracil With and Without Bevacizumab in Refractory Metastatic Colorectal Cancer Patients",
+      "sponsor": "Taiho Oncology, Inc.",
+      "conditions": [
+        "Refractory Metastatic Colorectal Cancer"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Poland",
+        "Puerto Rico",
+        "Russia",
+        "Spain",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 492,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04369469",
+      "title": "Efficacy and Safety Study of IV Ravulizumab in Patients With COVID-19 Severe Pneumonia",
+      "sponsor": "Alexion Pharmaceuticals, Inc.",
+      "conditions": [
+        "COVID-19 Severe Pneumonia",
+        "Acute Lung Injury",
+        "Acute Respiratory Distress Syndrome",
+        "Pneumonia, Viral"
+      ],
+      "countries": [
+        "France",
+        "Japan",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 202,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04752332",
+      "title": "A Study of Abemaciclib (LY2835219) Plus Hormone Therapy in Participants With Early Breast Cancer",
+      "sponsor": "Eli Lilly and Company",
+      "conditions": [
+        "Breast Neoplasms"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "China",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 111,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04256421",
+      "title": "A Study of Atezolizumab Plus Carboplatin and Etoposide With or Without Tiragolumab in Patients With Untreated Extensive-Stage Small Cell Lung Cancer",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Small Cell Lung Cancer"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Czechia",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 490,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05269355",
+      "title": "A Study of Unesbulin in Participants With Advanced Leiomyosarcoma (LMS)",
+      "sponsor": "PTC Therapeutics",
+      "conditions": [
+        "Leiomyosarcoma"
+      ],
+      "countries": [
+        "Australia",
+        "Brazil",
+        "Canada",
+        "France",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Netherlands",
+        "Poland",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 359,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04984278",
+      "title": "Evaluation of the Effect of Nabiximols Oromucosal Spray on Clinical Measures of Spasticity in Participants With Multiple Sclerosis",
+      "sponsor": "Jazz Pharmaceuticals",
+      "conditions": [
+        "Spasticity With Multiple Sclerosis"
+      ],
+      "countries": [
+        "Czechia",
+        "Poland",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 56,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04179175",
+      "title": "Extension Study to Assess Effects of Non-interrupted Versus Interrupted and Long Term Treatment of Two Dose Regimes of Secukinumab in Subjects With Hidradenitis Suppurativa",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Hidradenitis Suppurativa"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "Colombia",
+        "Croatia",
+        "Czechia",
+        "France",
+        "Germany",
+        "Greece",
+        "Guatemala",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Lebanon",
+        "Lithuania",
+        "Malaysia",
+        "Mexico",
+        "Netherlands",
+        "Philippines",
+        "Poland",
+        "Portugal",
+        "Russia",
+        "Singapore",
+        "Slovakia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 702,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04805671",
+      "title": "Evaluation of ADG20 for the Treatment of Mild or Moderate COVID-19",
+      "sponsor": "Invivyd, Inc.",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Bulgaria",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Moldova",
+        "Poland",
+        "Romania",
+        "South Africa",
+        "Ukraine"
+      ],
+      "enrollment": 399,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06079320",
+      "title": "A Study to Learn About the Study Medicine Sisunatovir in Adults With Respiratory Syncytial Virus (RSV) Infection",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "Respiratory Syncytial Virus Infection"
+      ],
+      "countries": [
+        "China",
+        "India",
+        "Japan",
+        "United States"
+      ],
+      "enrollment": 16,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04815967",
+      "title": "Efficacy and Safety Study of MYOBLOC\u00ae in the Treatment of Adult Upper Limb Spasticity",
+      "sponsor": "Solstice Neurosciences, LLC, a subsidiary of MDD US Operations, LLC",
+      "conditions": [
+        "Spasticity",
+        "Cerebrovascular Accident",
+        "Multiple Sclerosis",
+        "Traumatic Brain Injury",
+        "Cervical Spinal Cord Injury",
+        "Cerebral Palsy"
+      ],
+      "countries": [
+        "Hungary",
+        "Poland",
+        "United States"
+      ],
+      "enrollment": 32,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04674761",
+      "title": "Efficacy and Safety of Odevixibat in Patients With Alagille Syndrome",
+      "sponsor": "Albireo",
+      "conditions": [
+        "Alagille Syndrome"
+      ],
+      "countries": [
+        "Belgium",
+        "Canada",
+        "France",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Malaysia",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 52,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04471428",
+      "title": "Study of Atezolizumab in Combination With Cabozantinib Versus Docetaxel in Patients With Metastatic Non-Small Cell Lung Cancer Previously Treated With an Anti-PD-L1/PD-1 Antibody and Platinum-Containing Chemotherapy",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Carcinoma, Non-Small-Cell Lung"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "France",
+        "Germany",
+        "Greece",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Portugal",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 366,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04427072",
+      "title": "Study of Capmatinib Efficacy in Comparison With Docetaxel in Previously Treated Participants With Non-small Cell Lung Cancer Harboring MET Exon 14 Skipping Mutation",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Carcinoma, Non-Small-Cell Lung"
+      ],
+      "countries": [
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "France",
+        "Germany",
+        "Hungary",
+        "India",
+        "Italy",
+        "Lithuania",
+        "Malaysia",
+        "Netherlands",
+        "Portugal",
+        "Russia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Thailand",
+        "Vietnam"
+      ],
+      "enrollment": 22,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04612790",
+      "title": "A Study to Investigate the Use of Benralizumab in Patients With Bullous Pemphigoid.",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Bullous Pemphigoid"
+      ],
+      "countries": [
+        "Australia",
+        "Bulgaria",
+        "China",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 67,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04209205",
+      "title": "Study to Demonstrate the Efficacy, Safety and Tolerability of Intravenous Secukinumab up to 52 Weeks in Subjects With Active Psoriatic Arthritis",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Psoriatic Arthritis"
+      ],
+      "countries": [
+        "Brazil",
+        "Bulgaria",
+        "Colombia",
+        "Czechia",
+        "Greece",
+        "Guatemala",
+        "India",
+        "Malaysia",
+        "Philippines",
+        "Poland",
+        "Russia",
+        "South Africa",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 381,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04615949",
+      "title": "Cannabidiol in Patients With COVID-19 and Cardiovascular Disease or Risk Factors",
+      "sponsor": "Cardiol Therapeutics Inc.",
+      "conditions": [
+        "COVID-19",
+        "Cardiovascular Diseases",
+        "Cardiovascular Risk Factor"
+      ],
+      "countries": [
+        "Brazil",
+        "Mexico",
+        "United States"
+      ],
+      "enrollment": 90,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05226598",
+      "title": "Study of Pembrolizumab/Vibostolimab Coformulation (MK-7684A) in Combination With Chemotherapy Versus Pembrolizumab Plus Chemotherapy in Participants With Metastatic Non-Small Cell Lung Cancer (MK-7684A-007/KEYVIBE-007)",
+      "sponsor": "Merck Sharp & Dohme LLC",
+      "conditions": [
+        "Metastatic Non-Small Cell Lung Cancer"
+      ],
+      "countries": [
+        "Argentina",
+        "Austria",
+        "Brazil",
+        "Chile",
+        "China",
+        "Colombia",
+        "France",
+        "Germany",
+        "Israel",
+        "Japan",
+        "Mexico",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 739,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04816214",
+      "title": "Study Evaluating Efficacy and Safety of Capmatinib in Combination With Osimertinib in Adult Subjects With Non-small Cell Lung Cancers as Second Line Therapy",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Carcinoma, Non-Small-Cell Lung"
+      ],
+      "countries": [
+        "Japan",
+        "Singapore",
+        "South Korea"
+      ],
+      "enrollment": 6,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05715528",
+      "title": "Study of Obeldesivir in Nonhospitalized Participants With COVID-19",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Japan",
+        "United States"
+      ],
+      "enrollment": 2011,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05819398",
+      "title": "Lunsayil 1: A Study to Test Whether Spesolimab Helps People With a Skin Disease Called Hidradenitis Suppurativa",
+      "sponsor": "Boehringer Ingelheim",
+      "conditions": [
+        "Hidradenitis Suppurativa"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "Chile",
+        "China",
+        "Czechia",
+        "Denmark",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Lithuania",
+        "Malaysia",
+        "Mexico",
+        "Netherlands",
+        "New Zealand",
+        "Philippines",
+        "Poland",
+        "Singapore",
+        "Slovakia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 209,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04625725",
+      "title": "Phase III Double-blind, Placebo-controlled Study of AZD7442 for Pre-exposure Prophylaxis of COVID-19 in Adult.",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Belgium",
+        "France",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 5197,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05721573",
+      "title": "A Study to Evaluate the Efficacy and Safety of ABC008 for Inclusion Body Myositis",
+      "sponsor": "Abcuro, Inc.",
+      "conditions": [
+        "Inclusion Body Myositis"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Canada",
+        "France",
+        "Germany",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 272,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04963270",
+      "title": "A Study To Evaluate Efficacy, Safety, Pharmacokinetics, And Pharmacodynamics Of Satralizumab In Patients With Generalized Myasthenia Gravis",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Generalized Myasthenia Gravis"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Brazil",
+        "Canada",
+        "China",
+        "Denmark",
+        "France",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 188,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04889040",
+      "title": "Study to Evaluate the Effects of RO7496998 (AT-527) in Non-Hospitalized Adult and Adolescent Participants With Mild or Moderate COVID-19",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Belgium",
+        "Brazil",
+        "Denmark",
+        "Germany",
+        "Japan",
+        "Mexico",
+        "Portugal",
+        "Romania",
+        "Switzerland",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine"
+      ],
+      "enrollment": 216,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04173494",
+      "title": "A Study of Momelotinib Versus Danazol in Symptomatic and Anemic Myelofibrosis Participants (MOMENTUM)",
+      "sponsor": "Sierra Oncology LLC - a GSK company",
+      "conditions": [
+        "Primary Myelofibrosis",
+        "Post-polycythemia Vera Myelofibrosis",
+        "Post-essential Thrombocythemia Myelofibrosis"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "New Zealand",
+        "Poland",
+        "Romania",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 195,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05198934",
+      "title": "Sotorasib and Panitumumab Versus Investigator's Choice for Participants With Kirsten Rat Sarcoma (KRAS) p.G12C Mutation",
+      "sponsor": "Amgen",
+      "conditions": [
+        "Colorectal Cancer (CRC)"
+      ],
+      "countries": [
+        "Australia",
+        "France",
+        "Germany",
+        "Greece",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 160,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04411199",
+      "title": "D-PLEX 312 - Safety and Efficacy of D-PLEX in the Prevention of Post Abdominal Surgery Incisional Infection (SHIELD II)",
+      "sponsor": "PolyPid Ltd.",
+      "conditions": [
+        "Surgical Site Infection",
+        "Colon Surgery",
+        "Abdominal Surgery",
+        "Post-Op Infection"
+      ],
+      "countries": [
+        "Bosnia and Herzegovina",
+        "Georgia",
+        "Germany",
+        "Hungary",
+        "Ireland",
+        "Israel",
+        "Moldova",
+        "North Macedonia",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Serbia",
+        "United States"
+      ],
+      "enrollment": 975,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05629962",
+      "title": "SUNRISE-3: Efficacy and Safety of Bemnifosbuvir in High-Risk Outpatients With COVID-19",
+      "sponsor": "Atea Pharmaceuticals, Inc.",
+      "conditions": [
+        "Severe Acute Respiratory Syndrome Coronavirus 2 (SARS CoV 2 Infection)",
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Canada",
+        "Germany",
+        "India",
+        "Japan",
+        "Latvia",
+        "Mexico",
+        "Netherlands",
+        "Pakistan",
+        "Philippines",
+        "Romania",
+        "South Africa",
+        "Spain",
+        "Sweden",
+        "Tunisia",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 2285,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04921358",
+      "title": "Tislelizumab in Combination With Sitravatinib in Participants With Locally Advanced or Metastatic Non-Small Cell Lung Cancer",
+      "sponsor": "BeiGene",
+      "conditions": [
+        "Non-Small Cell Lung Cancer (NSCLC)"
+      ],
+      "countries": [
+        "Australia",
+        "China"
+      ],
+      "enrollment": 377,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04999020",
+      "title": "Ravulizumab Versus Placebo in Adult Participants With Dermatomyositis",
+      "sponsor": "Alexion Pharmaceuticals, Inc.",
+      "conditions": [
+        "Dermatomyositis"
+      ],
+      "countries": [
+        "Australia",
+        "Brazil",
+        "France",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 38,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04161885",
+      "title": "A Study Evaluating Safety and Efficacy of Venetoclax in Combination With Azacitidine Versus Standard of Care After Allogeneic Stem Cell Transplantation (SCT) in Participants With Acute Myeloid Leukemia (AML)",
+      "sponsor": "AbbVie",
+      "conditions": [
+        "Acute Myeloid Leukemia (AML)",
+        "Cancer"
+      ],
+      "countries": [
+        "Australia",
+        "Brazil",
+        "Canada",
+        "China",
+        "Czechia",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Japan",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 465,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04513925",
+      "title": "A Study of Atezolizumab and Tiragolumab Compared With Durvalumab in Participants With Locally Advanced, Unresectable Stage III Non-Small Cell Lung Cancer (NSCLC)",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Non-small Cell Lung Cancer (NSCLC)"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "China",
+        "France",
+        "Germany",
+        "Greece",
+        "Hong Kong",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Portugal",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 829,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04242498",
+      "title": "A Study to Evaluate the Efficacy and Safety of Bimekizumab in Study Participants With Moderate to Severe Hidradenitis Suppurativa",
+      "sponsor": "UCB Biopharma SRL",
+      "conditions": [
+        "Hidradenitis Suppurativa"
+      ],
+      "countries": [
+        "Australia",
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "France",
+        "Germany",
+        "Hungary",
+        "Ireland",
+        "Israel",
+        "Japan",
+        "Poland",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 509,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06034743",
+      "title": "A Study to Investigate the Efficacy and Safety of Baxdrostat in Participants With Uncontrolled Hypertension on Two or More Medications Including Participants With Resistant Hypertension",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Uncontrolled Hypertension",
+        "Resistant Hypertension"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Malaysia",
+        "Netherlands",
+        "Poland",
+        "Slovakia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 796,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05305040",
+      "title": "Study of Posoleucel (ALVR105,Viralym-M) for Multi-Virus Prevention in Patients Post-Allogeneic Hematopoietic Cell Transplant",
+      "sponsor": "AlloVir",
+      "conditions": [
+        "Adenovirus Infection",
+        "BK Virus Infection",
+        "Cytomegalovirus Infections",
+        "Epstein-Barr Virus Infections",
+        "Human Herpes Virus-6 Infection",
+        "JC Virus Infection"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Canada",
+        "France",
+        "Italy",
+        "South Korea",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 451,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05192382",
+      "title": "A Study to Evaluate the Safety and Efficacy of Paltusotine for the Treatment of Acromegaly (PATHFNDR-2)",
+      "sponsor": "Crinetics Pharmaceuticals Inc.",
+      "conditions": [
+        "Acromegaly"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Bulgaria",
+        "China",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Poland",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 111,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04472429",
+      "title": "Carboplatin-paclitaxel With Retifanlimab or Placebo in Participants With Locally Advanced or Metastatic Squamous Cell Anal Carcinoma (POD1UM-303/InterAACT 2).",
+      "sponsor": "Incyte Corporation",
+      "conditions": [
+        "Squamous Cell Carcinoma of the Anal Canal"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Denmark",
+        "France",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Norway",
+        "Puerto Rico",
+        "Spain",
+        "Sweden",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 308,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05598320",
+      "title": "A Clinical Trial to Evaluate Efficacy and Safety of TransCon CNP Compared With Placebo in Children With Achondroplasia",
+      "sponsor": "Ascendis Pharma Growth Disorders A/S",
+      "conditions": [
+        "Achondroplasia"
+      ],
+      "countries": [
+        "Australia",
+        "Canada",
+        "Denmark",
+        "Ireland",
+        "New Zealand",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 84,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05643573",
+      "title": "A Study to Learn How Well the Study Treatment Asundexian Works and How Safe it is Compared to Apixaban to Prevent Stroke or Systemic Embolism in People With Irregular and Often Rapid Heartbeat (Atrial Fibrillation), and at Risk for Stroke",
+      "sponsor": "Bayer",
+      "conditions": [
+        "Prevention of Stroke or Systemic Embolism",
+        "Atrial Fibrillation"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "China",
+        "Czechia",
+        "Denmark",
+        "Estonia",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Latvia",
+        "Lithuania",
+        "Malaysia",
+        "Netherlands",
+        "Norway",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Singapore",
+        "Slovakia",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 14830,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04518293",
+      "title": "Efficacy and Safety of GMRx2 Compared to Dual Combinations for the Treatment of Hypertension",
+      "sponsor": "George Medicines PTY Limited",
+      "conditions": [
+        "Hypertension"
+      ],
+      "countries": [
+        "Australia",
+        "Czechia",
+        "New Zealand",
+        "Poland",
+        "Sri Lanka",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 1385,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05327803",
+      "title": "Study of Epetraborole in Patients With Treatment-refractory MAC Lung Disease",
+      "sponsor": "AN2 Therapeutics, Inc",
+      "conditions": [
+        "MAC Lung Disease",
+        "Treatment Refractory MAC Lung Disease"
+      ],
+      "countries": [
+        "Australia",
+        "Japan",
+        "South Korea",
+        "United States"
+      ],
+      "enrollment": 177,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04642469",
+      "title": "Phase III Study to Determine Efficacy of Durvalumab in Stage II-III Non-small Cell Lung Cancer (NSCLC) After Curative Intent Therapy.",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Carcinoma, Non- Small Cell Lung"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "Czechia",
+        "France",
+        "Greece",
+        "Hong Kong",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Peru",
+        "Poland",
+        "Russia",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 30,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04233424",
+      "title": "D-PLEX 311: Safety and Efficacy of D-PLEX in the Prevention of Post Abdominal Surgery Incisional Infection",
+      "sponsor": "PolyPid Ltd.",
+      "conditions": [
+        "Surgical Site Infection",
+        "Colon Surgery",
+        "Abdominal Surgery",
+        "Post-Op Infection"
+      ],
+      "countries": [
+        "Bulgaria",
+        "Croatia",
+        "Czechia",
+        "Hungary",
+        "Israel",
+        "Moldova",
+        "Poland",
+        "Romania",
+        "Slovakia",
+        "United States"
+      ],
+      "enrollment": 977,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04266301",
+      "title": "Study of Efficacy and Safety of MBG453 in Combination With Azacitidine in Subjects With Intermediate, High or Very High Risk Myelodysplastic Syndrome (MDS) as Per IPSS-R, or Chronic Myelomonocytic Leukemia-2 (CMML-2)",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Myelodysplastic Syndromes",
+        "Leukemia, Myelomonocytic, Chronic"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "Chile",
+        "China",
+        "Colombia",
+        "Czechia",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Lebanon",
+        "Lithuania",
+        "Malaysia",
+        "Mexico",
+        "Netherlands",
+        "Oman",
+        "Portugal",
+        "Russia",
+        "Saudi Arabia",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 530,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05079230",
+      "title": "Study of Magrolimab Versus Placebo in Combination With Venetoclax and Azacitidine in Participants With Acute Myeloid Leukemia",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "Acute Myeloid Leukemia"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Canada",
+        "Czechia",
+        "France",
+        "Germany",
+        "Hong Kong",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Netherlands",
+        "Norway",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 378,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04592419",
+      "title": "A Study to Evaluate the Efficacy, Durability, and Safety of KSI-301 Compared to Aflibercept in Patients With Macular Edema Due to Retinal Vein Occlusion (RVO)",
+      "sponsor": "Kodiak Sciences Inc",
+      "conditions": [
+        "Macular Edema",
+        "Retinal Vein Occlusion"
+      ],
+      "countries": [
+        "Czechia",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Latvia",
+        "Poland",
+        "Puerto Rico",
+        "Slovakia",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 568,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04503551",
+      "title": "A Multicenter, Randomized Study in Participants With Diabetic Retinopathy Without Center-involved Diabetic Macular Edema To Evaluate the Efficacy, Safety, and Pharmacokinetics of Ranibizumab Delivered Via the Port Delivery System Relative to the Comparator Arm",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Diabetic Retinopathy"
+      ],
+      "countries": [
+        "Puerto Rico",
+        "United States"
+      ],
+      "enrollment": 174,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06059846",
+      "title": "A Study of Oral Tebipenem Pivoxil Hydrobromide (TBP-PI-HBr) Compared to Intravenous Imipenem-cilastatin in Participants With Complicated Urinary Tract Infection (cUTI) or Acute Pyelonephritis (AP)",
+      "sponsor": "Spero Therapeutics",
+      "conditions": [
+        "Urinary Tract Infection",
+        "Acute Pyelonephritis"
+      ],
+      "countries": [
+        "Argentina",
+        "Bosnia and Herzegovina",
+        "Brazil",
+        "Bulgaria",
+        "Croatia",
+        "Estonia",
+        "Georgia",
+        "Greece",
+        "Hungary",
+        "India",
+        "Latvia",
+        "Moldova",
+        "Poland",
+        "Romania",
+        "Serbia",
+        "Slovakia",
+        "South Africa",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 1690,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04615273",
+      "title": "A Trial to Compare the Efficacy and Safety of Once-weekly Lonapegsomatropin With Placebo and a Daily Somatropin Product in Adults With Growth Hormone Deficiency",
+      "sponsor": "Ascendis Pharma Endocrinology Division A/S",
+      "conditions": [
+        "Growth Hormone Deficiency",
+        "Endocrine System Diseases",
+        "Hormone Deficiency"
+      ],
+      "countries": [
+        "Armenia",
+        "Australia",
+        "Canada",
+        "Denmark",
+        "France",
+        "Georgia",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Malaysia",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Romania",
+        "Serbia",
+        "Slovakia",
+        "South Korea",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 264,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04377620",
+      "title": "Assessment of Efficacy and Safety of Ruxolitinib in Participants With COVID-19-Associated ARDS Who Require Mechanical Ventilation (RUXCOVID-DEVENT)",
+      "sponsor": "Incyte Corporation",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Russia",
+        "United States"
+      ],
+      "enrollment": 211,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05011513",
+      "title": "Evaluation of Protease Inhibition for COVID-19 in Standard-Risk Patients (EPIC-SR).",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Bulgaria",
+        "Colombia",
+        "Czechia",
+        "Hungary",
+        "Japan",
+        "Malaysia",
+        "Mexico",
+        "Poland",
+        "Puerto Rico",
+        "Romania",
+        "Slovakia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 1440,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04656418",
+      "title": "CSL312 (Garadacimab) in the Prevention of Hereditary Angioedema Attacks",
+      "sponsor": "CSL Behring",
+      "conditions": [
+        "Hereditary Angioedema"
+      ],
+      "countries": [
+        "Canada",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Japan",
+        "Netherlands",
+        "United States"
+      ],
+      "enrollment": 64,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04687072",
+      "title": "A Study to Evaluate the Efficacy and Safety of Efgartigimod PH20 Subcutaneous in Adult Patients With Primary Immune Thrombocytopenia",
+      "sponsor": "argenx",
+      "conditions": [
+        "Primary Immune Thrombocytopenia"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Bulgaria",
+        "Chile",
+        "China",
+        "Denmark",
+        "France",
+        "Georgia",
+        "Germany",
+        "Greece",
+        "Ireland",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Jordan",
+        "Mexico",
+        "New Zealand",
+        "Norway",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Russia",
+        "Serbia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "Tunisia",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 207,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04847232",
+      "title": "Effect of Sodium Zirconium Cyclosilicate on Arrythmia-related Cardiovascular Outcomes in Participants on Chronic Hemodialysis With Recurrent Hyperkalemia (DIALIZE-Outcomes)",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Hyperkalemia"
+      ],
+      "countries": [
+        "Argentina",
+        "Austria",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "China",
+        "Czechia",
+        "Germany",
+        "Hungary",
+        "India",
+        "Italy",
+        "Japan",
+        "Malaysia",
+        "Mexico",
+        "Peru",
+        "Poland",
+        "Russia",
+        "Slovakia",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United Kingdom",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 2690,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05047601",
+      "title": "A Study of a Potential Oral Treatment to Prevent COVID-19 in Adults Who Are Exposed to Household Member(s) With a Confirmed Symptomatic COVID-19 Infection",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Bulgaria",
+        "Colombia",
+        "Czechia",
+        "Hungary",
+        "Japan",
+        "Malaysia",
+        "Mexico",
+        "Poland",
+        "Russia",
+        "South Africa",
+        "Spain",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 2954,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05905783",
+      "title": "Hidradenitis Suppurativa Study of Izokibep",
+      "sponsor": "ACELYRIN Inc.",
+      "conditions": [
+        "Hidradenitis Suppurativa"
+      ],
+      "countries": [
+        "Canada",
+        "France",
+        "Germany",
+        "Hungary",
+        "Japan",
+        "Poland",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 258,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04880642",
+      "title": "A Trial to Investigate Recovery From COVID-19 With C21 in Adult Subjects",
+      "sponsor": "Vicore Pharma AB",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Colombia",
+        "Czechia",
+        "India",
+        "Philippines",
+        "Russia",
+        "South Africa",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 272,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04657666",
+      "title": "Trial to Evaluate the Effect of Nabiximols Oromucosal Spray on Clinical Measures of Spasticity in Participants With Multiple Sclerosis",
+      "sponsor": "Jazz Pharmaceuticals",
+      "conditions": [
+        "Spasticity in Participants With Multiple Sclerosis"
+      ],
+      "countries": [
+        "Czechia",
+        "Poland"
+      ],
+      "enrollment": 68,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04743804",
+      "title": "Ravulizumab in Thrombotic Microangiopathy Associated With a Trigger",
+      "sponsor": "Alexion Pharmaceuticals, Inc.",
+      "conditions": [
+        "Thrombotic Microangiopathy"
+      ],
+      "countries": [
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "France",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 16,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04435626",
+      "title": "Study to Evaluate the Efficacy (Effect on Disease) and Safety of Finerenone in Participants With Heart Failure and Left Ventricular Ejection Fraction (Proportion of Blood Expelled Per Heart Stroke) Greater or Equal to 40%",
+      "sponsor": "Bayer",
+      "conditions": [
+        "Heart Failure"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "China",
+        "Colombia",
+        "Czechia",
+        "Denmark",
+        "Finland",
+        "Germany",
+        "Greece",
+        "Hong Kong",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Latvia",
+        "Lithuania",
+        "Malaysia",
+        "Mexico",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Russia",
+        "Slovakia",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 6016,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04327388",
+      "title": "Sarilumab COVID-19",
+      "sponsor": "Sanofi",
+      "conditions": [
+        "Corona Virus Infection"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Canada",
+        "Chile",
+        "France",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Russia",
+        "Spain"
+      ],
+      "enrollment": 420,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05896761",
+      "title": "A Sub-study of Cabotegravir (CAB) and Rilpivirine (RPV) in Human Immunodeficiency Viruses (HIV)-Infected Participants",
+      "sponsor": "ViiV Healthcare",
+      "conditions": [
+        "Human Immunodeficiency Virus Type 1 (HIV-1)"
+      ],
+      "countries": [
+        "Argentina",
+        "Canada",
+        "Germany",
+        "Italy",
+        "Spain",
+        "Sweden",
+        "United States"
+      ],
+      "enrollment": 118,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04516967",
+      "title": "Avatrombopag for the Treatment of Thrombocytopenia in Pediatric Subjects With Immune Thrombocytopenia for \u22656 Months",
+      "sponsor": "Sobi, Inc.",
+      "conditions": [
+        "Immune Thrombocytopenia"
+      ],
+      "countries": [
+        "France",
+        "Germany",
+        "Hungary",
+        "Poland",
+        "Russia",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 75,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04936308",
+      "title": "Guselkumab in Active Psoriatic Arthritis Participants With Inadequate Response/Intolerance to One Prior Anti-TNF Alpha Agent",
+      "sponsor": "Janssen Research & Development, LLC",
+      "conditions": [
+        "Arthritis, Psoriatic"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Bulgaria",
+        "Czechia",
+        "Hungary",
+        "Israel",
+        "Malaysia",
+        "Poland",
+        "Puerto Rico",
+        "Russia",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 453,
+      "icf_posted": true
+    },
+    {
+      "nct_id": "NCT04779242",
+      "title": "Omadacycline vs. Moxifloxacin for the Treatment of Community-Acquired Bacterial Pneumonia",
+      "sponsor": "Paratek Pharmaceuticals Inc",
+      "conditions": [
+        "Community-acquired Pneumonia",
+        "Bacterial Pneumonia"
+      ],
+      "countries": [
+        "Bulgaria",
+        "Croatia",
+        "Georgia",
+        "Hungary",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "Ukraine"
+      ],
+      "enrollment": 670,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05096403",
+      "title": "A Study to Evaluate the Efficacy and Safety of Pegcetacoplan in Patients With Cold Agglutinin Disease (CAD)",
+      "sponsor": "Swedish Orphan Biovitrum",
+      "conditions": [
+        "Cold Agglutinin Disease"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "Canada",
+        "Finland",
+        "Georgia",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Norway",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 24,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04543409",
+      "title": "A Study of Benralizumab in Patients With Eosinophilic Esophagitis",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Eosinophilic Esophagitis"
+      ],
+      "countries": [
+        "Canada",
+        "France",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Russia",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 211,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04542070",
+      "title": "A Study to Evaluate Efficacy and Safety of Cabotegravir (CAB) Long Acting (LA) Plus (+) Rilpivirine (RPV) LA Versus BIKTARVY\u00ae (BIK) in Participants With Human Immunodeficiency Virus (HIV)-1 Who Are Virologically Suppressed",
+      "sponsor": "ViiV Healthcare",
+      "conditions": [
+        "HIV Infections"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Canada",
+        "France",
+        "Germany",
+        "Ireland",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Spain",
+        "Switzerland",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 687,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05238116",
+      "title": "Safety and Efficacy of PC945 (Opelconazole) in Combination With Other Antifungal Therapy for the Treatment of Refractory Invasive Pulmonary Aspergillosis (OPERA-T Study)",
+      "sponsor": "Pulmocide Ltd",
+      "conditions": [
+        "Refractory IPA"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "Chile",
+        "Colombia",
+        "France",
+        "Germany",
+        "Greece",
+        "India",
+        "Israel",
+        "Italy",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 85,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04590586",
+      "title": "Study of Multiple Candidate Agents for the Treatment of COVID-19 in Hospitalized Patients",
+      "sponsor": "Amgen",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Chile",
+        "Mexico",
+        "Russia",
+        "South Africa",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 515,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05179057",
+      "title": "Posoleucel (ALVR105) for the Treatment of Adenovirus Infection in Pediatric and Adult Participants Receiving Standard of Care Following Allogeneic Hematopoietic Cell Transplantation",
+      "sponsor": "AlloVir",
+      "conditions": [
+        "Adenovirus Infection"
+      ],
+      "countries": [
+        "Canada",
+        "Italy",
+        "Spain",
+        "Sweden",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 57,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04292899",
+      "title": "Study to Evaluate the Safety and Antiviral Activity of Remdesivir (GS-5734\u2122) in Participants With Severe Coronavirus Disease (COVID-19)",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "China",
+        "France",
+        "Germany",
+        "Hong Kong",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 4891,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05623345",
+      "title": "Psoriatic Arthritis Study of Izokibep",
+      "sponsor": "ACELYRIN Inc.",
+      "conditions": [
+        "Psoriatic Arthritis"
+      ],
+      "countries": [
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "Germany",
+        "Hungary",
+        "Poland",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 351,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05020665",
+      "title": "Entospletinib Plus Intensive Induction/Consolidation Chemotherapy in Newly Diagnosed NPM1-mutated AML",
+      "sponsor": "Kronos Bio",
+      "conditions": [
+        "Nucleophosmin 1-mutated Acute Myeloid Leukemia"
+      ],
+      "countries": [
+        "Brazil",
+        "Canada",
+        "Czechia",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 15,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04308590",
+      "title": "A Study of the Efficacy and Safety of Relacorilant in Patients With Cortisol-Secreting Adrenal Adenomas",
+      "sponsor": "Corcept Therapeutics",
+      "conditions": [
+        "Hypercortisolism"
+      ],
+      "countries": [
+        "Austria",
+        "Bulgaria",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Poland",
+        "Romania",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 137,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04828161",
+      "title": "A Dose Finding, Efficacy and Safety Study of Ensovibep (MP0420) in Ambulatory Adult Patients With Symptomatic COVID-19",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Hungary",
+        "India",
+        "Netherlands",
+        "South Africa",
+        "United States"
+      ],
+      "enrollment": 407,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05305547",
+      "title": "A Study to Compare S-217622 With Placebo in Non-Hospitalized Participants With COVID-19",
+      "sponsor": "Shionogi",
+      "conditions": [
+        "SARS-CoV-2 Infection"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Colombia",
+        "Ghana",
+        "India",
+        "Japan",
+        "Kenya",
+        "Malawi",
+        "Mexico",
+        "Pakistan",
+        "Peru",
+        "Philippines",
+        "Poland",
+        "South Africa",
+        "Thailand",
+        "Uganda",
+        "United States"
+      ],
+      "enrollment": 2093,
+      "icf_posted": true
+    },
+    {
+      "nct_id": "NCT04248829",
+      "title": "Clinical Trial of YH25448(Lazertinib) as the First-line Treatment in Patients With EGFR Mutation Positive Locally Advanced or Metastatic NSCLC (LASER301)",
+      "sponsor": "Yuhan Corporation",
+      "conditions": [
+        "Non-Small Cell Lung Cancer"
+      ],
+      "countries": [
+        "Australia",
+        "Greece",
+        "Hungary",
+        "Malaysia",
+        "Philippines",
+        "Russia",
+        "Serbia",
+        "Singapore",
+        "South Korea",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine"
+      ],
+      "enrollment": 393,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04540211",
+      "title": "A Study of Atezolizumab Plus Tiragolumab in Combination With Paclitaxel and Cisplatin Compared With Paclitaxel and Cisplatin as First-Line Treatment in Participants With Unresectable Locally Advanced, Unresectable Recurrent, or Metastatic Esophageal Carcinoma",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Esophageal Cancer"
+      ],
+      "countries": [
+        "China",
+        "Hong Kong",
+        "South Korea",
+        "Taiwan",
+        "Thailand"
+      ],
+      "enrollment": 461,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04224688",
+      "title": "A Study to Assess the Efficacy, Safety, and Tolerability of Rozanolixizumab in Adult Study Participants With Persistent or Chronic Primary Immune Thrombocytopenia (ITP)",
+      "sponsor": "UCB Biopharma SRL",
+      "conditions": [
+        "Primary Immune Thrombocytopenia"
+      ],
+      "countries": [
+        "Bulgaria",
+        "China",
+        "France",
+        "Germany",
+        "Poland",
+        "Russia",
+        "Spain",
+        "Taiwan",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 30,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04746924",
+      "title": "A Study of Ociperlimab With Tislelizumab Compared to Pembrolizumab in Participants With Untreated Lung Cancer",
+      "sponsor": "BeiGene",
+      "conditions": [
+        "Non-small Cell Lung Cancer",
+        "NSCLC"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Brazil",
+        "China",
+        "France",
+        "Georgia",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 669,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05186818",
+      "title": "Phase 3 Trial to Evaluate the Efficacy and Safety of Aficamten Compared to Placebo in Adults With Symptomatic oHCM",
+      "sponsor": "Cytokinetics",
+      "conditions": [
+        "Obstructive Hypertrophic Cardiomyopathy (oHCM)"
+      ],
+      "countries": [
+        "China",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Netherlands",
+        "Poland",
+        "Portugal",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 282,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06193200",
+      "title": "Evaluate the Neurological Effects of EryDex on Subjects With A-T",
+      "sponsor": "Quince Therapeutics S.p.A.",
+      "conditions": [
+        "Ataxia Telangiectasia"
+      ],
+      "countries": [
+        "Denmark",
+        "Germany",
+        "Italy",
+        "Norway",
+        "Poland",
+        "Spain",
+        "Switzerland",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 105,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05681715",
+      "title": "A Phase 3, Open-label, Crossover Study to Evaluate Self-administration of Rozanolixizumab by Study Participants With Generalized Myasthenia Gravis (gMG)",
+      "sponsor": "UCB Biopharma SRL",
+      "conditions": [
+        "Generalized Myasthenia Gravis"
+      ],
+      "countries": [
+        "Canada",
+        "Georgia",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Serbia",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 62,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04322708",
+      "title": "A Study of Lirentelimab (AK002) in Patients With Active Eosinophilic Esophagitis",
+      "sponsor": "Allakos Inc.",
+      "conditions": [
+        "Eosinophilic Esophagitis"
+      ],
+      "countries": [
+        "Australia",
+        "Netherlands",
+        "United States"
+      ],
+      "enrollment": 277,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04313881",
+      "title": "Magrolimab + Azacitidine Versus Azacitidine + Placebo in Untreated Participants With Myelodysplastic Syndrome (MDS)",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "Myelodysplastic Syndromes"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Canada",
+        "Czechia",
+        "Finland",
+        "France",
+        "Germany",
+        "Hong Kong",
+        "Hungary",
+        "Italy",
+        "Netherlands",
+        "New Zealand",
+        "Norway",
+        "Poland",
+        "Portugal",
+        "Spain",
+        "Switzerland",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 539,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04182204",
+      "title": "A Study to Evaluate the Safety and Efficacy of Polatuzumab Vedotin in Combination With Rituximab, Gemcitabine and Oxaliplatin Compared to Rituximab, Gemcitabine and Oxaliplatin Alone in Participants With Relapsed or Refractory Diffuse Large B-Cell Lymphoma",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Diffuse Large B-Cell Lymphoma"
+      ],
+      "countries": [
+        "Brazil",
+        "Canada",
+        "China",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "India",
+        "Ireland",
+        "Italy",
+        "Mexico",
+        "South Korea",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 270,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04723537",
+      "title": "Upamostat, a Serine Protease Inhibitor, or Placebo for Treatment of COVID-19 Disease",
+      "sponsor": "RedHill Biopharma Limited",
+      "conditions": [
+        "Covid19"
+      ],
+      "countries": [
+        "South Africa",
+        "United States"
+      ],
+      "enrollment": 61,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04723394",
+      "title": "Phase III Study of AZD7442 for Treatment of COVID-19 in Outpatient Adults",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Czechia",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "Peru",
+        "Poland",
+        "Russia",
+        "Spain",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 910,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04285567",
+      "title": "A Study to Compare the Efficacy and Safety of a Combined Regimen of Venetoclax and Obinutuzumab Versus Fludarabine, Cyclophosphamide, and Rituximab (FCR)/ Bendamustine And Rituximab (BR) in FIT Patients With Previously Untreated Chronic Lymphocytic Leukemia (CLL) Without DEL (17P) or TP53 Mutation",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Chronic Lymphocytic Leukemia (CLL)"
+      ],
+      "countries": [
+        "Australia",
+        "France",
+        "Italy",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 166,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04611152",
+      "title": "A Trial to Evaluate the Efficacy, Durability, and Safety of KSI-301 Compared to Aflibercept in Participants With Diabetic Macular Edema (DME)",
+      "sponsor": "Kodiak Sciences Inc",
+      "conditions": [
+        "Diabetic Macular Edema"
+      ],
+      "countries": [
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Latvia",
+        "Puerto Rico",
+        "Slovakia",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 460,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04822701",
+      "title": "A Study to Test BI 767551 in People With Mild to Moderate Symptoms of COVID-19",
+      "sponsor": "Boehringer Ingelheim",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 5,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04362137",
+      "title": "Study to Assess the Efficacy and Safety of Ruxolitinib in Patients With COVID-19 Associated Cytokine Storm",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Cytokine Storm (Covid-19)"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Colombia",
+        "France",
+        "Germany",
+        "Mexico",
+        "Peru",
+        "Russia",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 432,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04896008",
+      "title": "A Study of Sotatercept in Participants With PAH WHO FC III or FC IV at High Risk of Mortality (MK-7962-006/ZENITH)",
+      "sponsor": "Acceleron Pharma, Inc., a wholly-owned subsidiary of Merck & Co., Inc., Rahway, NJ USA",
+      "conditions": [
+        "Pulmonary Arterial Hypertension"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Canada",
+        "France",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Mexico",
+        "Netherlands",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 173,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06135415",
+      "title": "A Study to Evaluate the Efficacy and Safety of Tirbanibulin Ointment in Adult Participants With Actinic Keratosis",
+      "sponsor": "Almirall, S.A.",
+      "conditions": [
+        "Keratosis, Actinic"
+      ],
+      "countries": [
+        "Germany",
+        "Italy",
+        "Netherlands",
+        "Poland",
+        "Spain"
+      ],
+      "enrollment": 280,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04362813",
+      "title": "Study of Efficacy and Safety of Canakinumab Treatment for CRS in Participants With COVID-19-induced Pneumonia",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Cytokine Release Syndrome (CRS) in Patients With COVID-19-induced Pneumonia"
+      ],
+      "countries": [
+        "France",
+        "Italy",
+        "Russia",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 454,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06168409",
+      "title": "A Study to Investigate the Effect of Baxdrostat on Ambulatory Blood Pressure in Participants With Resistant Hypertension",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Resistant Hypertension"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Malaysia",
+        "Philippines",
+        "Poland",
+        "Saudi Arabia",
+        "Slovakia",
+        "South Africa",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 218,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04965636",
+      "title": "Study in Pediatrics With HypEREosinophilic Syndrome (SPHERE)",
+      "sponsor": "GlaxoSmithKline",
+      "conditions": [
+        "Hypereosinophilic Syndrome"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Israel",
+        "Netherlands",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 16,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04206605",
+      "title": "A Study of Lanadelumab in Teenagers and Adults to Prevent Acute Attacks of Non-histaminergic Angioedema With Normal C1-Inhibitor (C1-INH)",
+      "sponsor": "Takeda",
+      "conditions": [
+        "Angioedema"
+      ],
+      "countries": [
+        "Canada",
+        "France",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 77,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04551066",
+      "title": "To Evaluate the Efficacy and Safety of Parsaclisib and Ruxolitinib in Participants With Myelofibrosis (LIMBER-313)",
+      "sponsor": "Incyte Corporation",
+      "conditions": [
+        "Myelofibrosis",
+        "Primary Myelofibrosis",
+        "Post Essential Thrombocythemia Myelofibrosis",
+        "Post Polycythemia Vera Myelofibrosis"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "China",
+        "Denmark",
+        "Finland",
+        "France",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Norway",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 252,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT06057168",
+      "title": "Performance of Elucirem in DSC-MRI Perfusion of Brain Gliomas",
+      "sponsor": "Guerbet",
+      "conditions": [
+        "Brain Tumor, Primary",
+        "Brain Tumor, Recurrent"
+      ],
+      "countries": [
+        "Hungary",
+        "Italy",
+        "Poland"
+      ],
+      "enrollment": 138,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05254990",
+      "title": "Reparixin add-on Therapy to Standard Care to Limit Progression in Pts With COVID19 & Other Community Acquired Pneumonia",
+      "sponsor": "Domp\u00e9 Farmaceutici S.p.A",
+      "conditions": [
+        "Infectious Pneumonia",
+        "Severe COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Germany",
+        "Italy",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 414,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04650854",
+      "title": "A Study to Evaluate Rozanolixizumab in Study Participants With Generalized Myasthenia Gravis",
+      "sponsor": "UCB Biopharma SRL",
+      "conditions": [
+        "Generalized Myasthenia Gravis"
+      ],
+      "countries": [
+        "Canada",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Georgia",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "Spain",
+        "Taiwan",
+        "United States"
+      ],
+      "enrollment": 165,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04745351",
+      "title": "Study to Evaluate the Efficacy and Safety of Remdesivir in Participants With Severely Reduced Kidney Function Who Are Hospitalized for Coronavirus Disease 2019 (COVID-19)",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Brazil",
+        "Portugal",
+        "South Africa",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 249,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04551053",
+      "title": "To Evaluate Efficacy and Safety of Parsaclisib and Ruxolitinib in Participants With Myelofibrosis Who Have Suboptimal Response to Ruxolitinib (LIMBER-304)",
+      "sponsor": "Incyte Corporation",
+      "conditions": [
+        "Myelofibrosis",
+        "Primary Myelofibrosis",
+        "Post Essential Thrombocythemia Myelofibrosis",
+        "Post Polycythemia Vera Myelofibrosis"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "China",
+        "Finland",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Norway",
+        "Poland",
+        "Romania",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 177,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04969861",
+      "title": "BEMPEG With Pembrolizumab vs Pembrolizumab Alone in Patients With Metastatic or Recurrent HNSCC (PROPEL-36)",
+      "sponsor": "Nektar Therapeutics",
+      "conditions": [
+        "Metastatic Head and Neck Cancer",
+        "Recurrent Head and Neck Cancer"
+      ],
+      "countries": [
+        "Austria",
+        "Greece",
+        "Italy",
+        "United States"
+      ],
+      "enrollment": 1,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04745832",
+      "title": "Phase 3 Study of Zandelisib (ME-401) in Combination With Rituximab in Patients With iNHL - (COASTAL)",
+      "sponsor": "MEI Pharma, Inc.",
+      "conditions": [
+        "Follicular Lymphoma (FL)",
+        "Non Hodgkin Lymphoma",
+        "Marginal Zone Lymphoma"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Canada",
+        "France",
+        "Georgia",
+        "Greece",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Serbia",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 82,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05323734",
+      "title": "Adjunctive GNX Treatment Compared With Placebo in Children and Adults With TSC-related Epilepsy",
+      "sponsor": "Marinus Pharmaceuticals",
+      "conditions": [
+        "Tuberous Sclerosis Complex"
+      ],
+      "countries": [
+        "Australia",
+        "Canada",
+        "China",
+        "France",
+        "Germany",
+        "Israel",
+        "Italy",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 129,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04837040",
+      "title": "A Study to Evaluate the Safety and Efficacy of Paltusotine for the Treatment of Acromegaly",
+      "sponsor": "Crinetics Pharmaceuticals Inc.",
+      "conditions": [
+        "Acromegaly"
+      ],
+      "countries": [
+        "Argentina",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "France",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Peru",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 58,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05178862",
+      "title": "A Phase 3, Randomized, Double-blind Study for Patients With Invasive Candidiasis Treated With IV Echinocandin Followed by Either Oral Ibrexafungerp or Oral Fluconazole",
+      "sponsor": "Scynexis, Inc.",
+      "conditions": [
+        "Candidiasis, Invasive",
+        "Candidemia"
+      ],
+      "countries": [
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "China",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 68,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05603143",
+      "title": "Study of Obeldesivir in Participants With COVID-19 Who Have a High Risk of Developing Serious or Severe Illness",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "France",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Singapore",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom"
+      ],
+      "enrollment": 468,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04467840",
+      "title": "Opaganib, a Sphingosine Kinase-2 (SK2) Inhibitor in COVID-19 Pneumonia",
+      "sponsor": "RedHill Biopharma Limited",
+      "conditions": [
+        "COVID-19",
+        "Lung Infection"
+      ],
+      "countries": [
+        "Brazil",
+        "Colombia",
+        "Israel",
+        "Italy",
+        "Mexico",
+        "Peru",
+        "Poland",
+        "Russia",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 475,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04478266",
+      "title": "Amcenestrant (SAR439859) Plus Palbociclib as First Line Therapy for Patients With ER (+) HER2(-) Advanced Breast Cancer",
+      "sponsor": "Sanofi",
+      "conditions": [
+        "Breast Cancer"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "Chile",
+        "China",
+        "Czechia",
+        "Finland",
+        "France",
+        "Georgia",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Portugal",
+        "Russia",
+        "Singapore",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 1068,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05126901",
+      "title": "Evaluate the Safety and Efficacy of Ferric Maltol Oral Suspension vs. Ferrous Sulfate Oral Liquid in Children and Adolescents Aged 2 to 17 Years With Iron-deficiency Anaemia, With a Single Arm Study in Infants Aged 1 Month to Less Than 2 Years",
+      "sponsor": "Shield Therapeutics",
+      "conditions": [
+        "Anemia",
+        "Iron-deficiency"
+      ],
+      "countries": [
+        "Puerto Rico",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 65,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04518306",
+      "title": "Efficacy and Safety of GMRx2 Compared to Placebo for the Treatment of Hypertension",
+      "sponsor": "George Medicines PTY Limited",
+      "conditions": [
+        "Hypertension"
+      ],
+      "countries": [
+        "Australia",
+        "Nigeria",
+        "Sri Lanka",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 755,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04784559",
+      "title": "Trial to Determine the Efficacy/Safety of Plitidepsin vs Control in Patients With Moderate COVID-19 Infection",
+      "sponsor": "PharmaMar",
+      "conditions": [
+        "COVID-19 Infection"
+      ],
+      "countries": [
+        "Brazil",
+        "Bulgaria",
+        "Colombia",
+        "France",
+        "Greece",
+        "Mexico",
+        "Romania",
+        "Spain"
+      ],
+      "enrollment": 205,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05142722",
+      "title": "Randomized Study to Evaluate the Effect of Obicetrapib on Top of Maximum Tolerated Lipid-Modifying Therapies",
+      "sponsor": "NewAmsterdam Pharma",
+      "conditions": [
+        "Dyslipidemias",
+        "High Cholesterol",
+        "Hypercholesterolemia",
+        "Familial Hypercholesterolemia",
+        "Atherosclerotic Cardiovascular Disease"
+      ],
+      "countries": [
+        "China",
+        "Czechia",
+        "Denmark",
+        "Georgia",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "United States"
+      ],
+      "enrollment": 2530,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04603937",
+      "title": "A Study to Evaluate the Efficacy, Durability, and Safety of KSI-301 Compared to Aflibercept in Participants With Diabetic Macular Edema (DME)",
+      "sponsor": "Kodiak Sciences Inc",
+      "conditions": [
+        "Diabetic Macular Edema"
+      ],
+      "countries": [
+        "Czechia",
+        "France",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Poland",
+        "Puerto Rico",
+        "United States"
+      ],
+      "enrollment": 459,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04203498",
+      "title": "Safety and Effectiveness of Nabiximols Oromucosal Spray as Add-on Therapy in Participants With Spasticity Due to Multiple Sclerosis",
+      "sponsor": "Jazz Pharmaceuticals",
+      "conditions": [
+        "Multiple Sclerosis (MS)"
+      ],
+      "countries": [
+        "Czechia",
+        "Poland",
+        "Romania",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 139,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04625972",
+      "title": "Phase III Double-blind, Placebo-controlled Study of AZD7442 for Post- Exposure Prophylaxis of COVID-19 in Adults",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 1131,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04729387",
+      "title": "Alpelisib Plus Olaparib in Platinum-resistant/Refractory, High-grade Serous Ovarian Cancer, With no Germline BRCA Mutation Detected",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Ovarian Cancer"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "China",
+        "Czechia",
+        "Denmark",
+        "Finland",
+        "France",
+        "Germany",
+        "Italy",
+        "Malaysia",
+        "Mexico",
+        "Netherlands",
+        "Portugal",
+        "Russia",
+        "Singapore",
+        "Slovakia",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 358,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04842747",
+      "title": "VERU-111 in the Treatment of SARS-Cov-2 Infection by Assessing Its Effect on the Proportion of Patients Who Die on Study",
+      "sponsor": "Veru Inc.",
+      "conditions": [
+        "SARS-CoV Infection"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Bulgaria",
+        "Colombia",
+        "Mexico",
+        "United States"
+      ],
+      "enrollment": 204,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04776148",
+      "title": "Study of Lenvatinib (MK-7902/E7080) in Combination With Pembrolizumab (MK-3475) Versus Standard of Care in Participants With Metastatic Colorectal Cancer (MK-7902-017/E7080-G000-325/LEAP-017)",
+      "sponsor": "Merck Sharp & Dohme LLC",
+      "conditions": [
+        "Colorectal Neoplasms"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Canada",
+        "China",
+        "Denmark",
+        "Germany",
+        "Israel",
+        "Japan",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 563,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04986202",
+      "title": "Study to Evaluate the Efficacy and Safety of AZD4831 in Participants With Heart Failure With Left Ventricular Ejection Fraction > 40%",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Heart Failure With Preserved Ejection Fraction"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Hungary",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Russia",
+        "Slovakia",
+        "Sweden",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 711,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04935879",
+      "title": "A Study to Assess the Safety and Efficacy of Inclacumab in Participants With Sickle Cell Disease Experiencing Vaso-occlusive Crises",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "Sickle Cell Disease",
+        "Vaso-occlusive Pain Episode in Sickle Cell Disease",
+        "Vaso-occlusive Crisis"
+      ],
+      "countries": [
+        "Brazil",
+        "Colombia",
+        "Egypt",
+        "France",
+        "Kenya",
+        "Lebanon",
+        "Nigeria",
+        "Oman",
+        "Saudi Arabia",
+        "Tanzania",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 241,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04878055",
+      "title": "Study on Efficacy and Safety of Reparixin in the Treatment of Hospitalized Patients With Severe COVID-19 Pneumonia.",
+      "sponsor": "Domp\u00e9 Farmaceutici S.p.A",
+      "conditions": [
+        "Pneumonia, Viral"
+      ],
+      "countries": [
+        "Italy",
+        "United States"
+      ],
+      "enrollment": 287,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04979442",
+      "title": "Treatment of Milademetan Versus Trabectedin in Patient With Dedifferentiated Liposarcoma",
+      "sponsor": "Rain Oncology Inc",
+      "conditions": [
+        "Dedifferentiated Liposarcoma"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "Canada",
+        "France",
+        "Georgia",
+        "Germany",
+        "Hong Kong",
+        "Ireland",
+        "Italy",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 175,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04740918",
+      "title": "A Study of Trastuzumab Emtansine in Combination With Atezolizumab or Placebo as a Treatment for Participants With Human Epidermal Growth Factor 2 (HER2)-Positive and Programmed Death-ligand 1 (PD-L1)-Positive Locally Advanced (LABC) or Metastatic Breast Cancer (MBC)",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Metastatic Breast Cancer"
+      ],
+      "countries": [
+        "Australia",
+        "Brazil",
+        "Canada",
+        "China",
+        "Colombia",
+        "Croatia",
+        "Finland",
+        "France",
+        "Italy",
+        "Norway",
+        "Philippines",
+        "Poland",
+        "Portugal",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 96,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04501952",
+      "title": "Study to Evaluate the Efficacy and Safety of Remdesivir (GS-5734\u2122) Treatment of Coronavirus Disease 2019 (COVID-19) in an Outpatient Setting",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Denmark",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 584,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04472728",
+      "title": "Efficacy and Safety of BIO101 in the Prevention of Respiratory Deterioration in Hospitalized COVID-19 Patients",
+      "sponsor": "Biophytis",
+      "conditions": [
+        "Covid-19",
+        "SARS-CoV2"
+      ],
+      "countries": [
+        "Belgium",
+        "Brazil",
+        "France",
+        "Puerto Rico",
+        "United States"
+      ],
+      "enrollment": 238,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04475939",
+      "title": "Placebo-controlled Study Comparing Niraparib Plus Pembrolizumab Versus Placebo Plus Pembrolizumab as Maintenance Therapy in Participants With Advanced/Metastatic Non-Small Cell Lung Cancer",
+      "sponsor": "GlaxoSmithKline",
+      "conditions": [
+        "Lung Cancer, Non-Small Cell"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "Chile",
+        "Colombia",
+        "France",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "Ireland",
+        "Italy",
+        "Mexico",
+        "Netherlands",
+        "Norway",
+        "Peru",
+        "Poland",
+        "Romania",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 666,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05397470",
+      "title": "Efficacy and Safety of Losmapimod in Treating Participants With Facioscapulohumeral Muscular Dystrophy (FSHD) (REACH)",
+      "sponsor": "Fulcrum Therapeutics",
+      "conditions": [
+        "Facioscapulohumeral Muscular Dystrophy (FSHD)"
+      ],
+      "countries": [
+        "Canada",
+        "Denmark",
+        "France",
+        "Germany",
+        "Italy",
+        "Netherlands",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 260,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04421027",
+      "title": "A Study of Baricitinib (LY3009104) in Participants With COVID-19",
+      "sponsor": "Eli Lilly and Company",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Germany",
+        "India",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "Puerto Rico",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 1525,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04218084",
+      "title": "Study to Evaluate the Effect of GBT440 on TCD in Pediatrics With Sickle Cell Disease",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "Sickle Cell Disease"
+      ],
+      "countries": [
+        "Egypt",
+        "Ghana",
+        "Italy",
+        "Kenya",
+        "Nigeria",
+        "Oman",
+        "Saudi Arabia",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 236,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04428333",
+      "title": "Study of GSK3359609 With Pembrolizumab and 5-fluorouracil (5-FU)-Platinum Chemotherapy in Participants With Recurrent or Metastatic Head and Neck Squamous Cell Carcinoma",
+      "sponsor": "GlaxoSmithKline",
+      "conditions": [
+        "Neoplasms, Head and Neck"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "Denmark",
+        "France",
+        "Germany",
+        "Ireland",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Romania",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 117,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05074433",
+      "title": "A Study to Evaluate Efficacy and Safety of Casirivimab+Imdevimab (Monoclonal Antibodies) for Prevention of COVID-19 in Immunocompromised Adolescents and Adults",
+      "sponsor": "Regeneron Pharmaceuticals",
+      "conditions": [
+        "Immunocompromised"
+      ],
+      "countries": [
+        "Mexico",
+        "United States"
+      ],
+      "enrollment": 66,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04677543",
+      "title": "Validation of Patient Reported Outcome Measures in Participants With Nontuberculous Mycobacterial Lung Infection Caused by Mycobacterium Avium Complex",
+      "sponsor": "Insmed Incorporated",
+      "conditions": [
+        "Mycobacterium Infections, Nontuberculous"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Denmark",
+        "Germany",
+        "Israel",
+        "Italy",
+        "New Zealand",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "United States"
+      ],
+      "enrollment": 99,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04649060",
+      "title": "Study of Melflufen (Melphalan Flufenamide) in Combination With Daratumumab in Relapsed-Refractory Multiple Myeloma",
+      "sponsor": "Oncopeptides AB",
+      "conditions": [
+        "Relapsed Multiple Myeloma",
+        "Relapsed-Refractory Multiple Myeloma"
+      ],
+      "countries": [
+        "Bulgaria",
+        "Czechia",
+        "Georgia",
+        "Germany",
+        "Greece",
+        "Norway",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "Spain",
+        "Ukraine"
+      ],
+      "enrollment": 54,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05218499",
+      "title": "Brightline-1: A Study to Compare Brigimadlin (BI 907828) With Doxorubicin in People With a Type of Cancer Called Dedifferentiated Liposarcoma",
+      "sponsor": "Boehringer Ingelheim",
+      "conditions": [
+        "Liposarcoma, Dedifferentiated"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Canada",
+        "China",
+        "Czechia",
+        "Denmark",
+        "Finland",
+        "France",
+        "Germany",
+        "Greece",
+        "Hong Kong",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Norway",
+        "Portugal",
+        "Spain",
+        "Sweden",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 400,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04960202",
+      "title": "EPIC-HR: Study of Oral PF-07321332/Ritonavir Compared With Placebo in Nonhospitalized High Risk Adults With COVID-19",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "Bulgaria",
+        "Colombia",
+        "Czechia",
+        "Hungary",
+        "India",
+        "Japan",
+        "Malaysia",
+        "Mexico",
+        "Poland",
+        "Puerto Rico",
+        "Russia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 2091,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04564742",
+      "title": "Dapagliflozin Effects on Cardiometabolic Outcomes in Patients With an Acute Heart Attack.",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Acute Myocardial Infarction",
+        "Heart Failure"
+      ],
+      "countries": [
+        "Sweden",
+        "United Kingdom"
+      ],
+      "enrollment": 4017,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04410445",
+      "title": "Study to Compare Adjuvant Immunotherapy of Bempegaldesleukin Combined With Nivolumab Versus Nivolumab After Complete Resection of Melanoma in Patients at High Risk for Recurrence",
+      "sponsor": "Nektar Therapeutics",
+      "conditions": [
+        "Melanoma",
+        "Melanoma Stage III",
+        "Melanoma Stage IV",
+        "Melanoma (Skin)"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Czechia",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Netherlands",
+        "New Zealand",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Russia",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 765,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04512001",
+      "title": "MSB11456 in Participants With Moderately to Severely Active Rheumatoid Arthritis",
+      "sponsor": "Fresenius Kabi SwissBioSim GmbH",
+      "conditions": [
+        "Rheumatoid Arthritis"
+      ],
+      "countries": [
+        "Bulgaria",
+        "Czechia",
+        "Georgia",
+        "Hungary",
+        "Moldova",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "Slovakia"
+      ],
+      "enrollment": 604,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04655586",
+      "title": "Assessing Safety, Hospitalization and Efficacy of rNAPc2 in COVID-19",
+      "sponsor": "ARCA Biopharma, Inc.",
+      "conditions": [
+        "Covid19"
+      ],
+      "countries": [
+        "Argentina",
+        "Brazil",
+        "United States"
+      ],
+      "enrollment": 160,
+      "icf_posted": true
+    },
+    {
+      "nct_id": "NCT03594175",
+      "title": "Efficacy and Safety of CUSA-081 in the Restoration of Central Venous Access Device (CVAD) Functionality",
+      "sponsor": "Chiesi Farmaceutici S.p.A.",
+      "conditions": [
+        "Catheter Occlusion",
+        "Thrombosis"
+      ],
+      "countries": [
+        "Argentina",
+        "Belgium",
+        "Czechia",
+        "Poland",
+        "Romania",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 462,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05066230",
+      "title": "A Study to Evaluate the Efficacy and Safety of Intravitreal KSI-301 in Non-proliferative Diabetic Retinopathy (NPDR)",
+      "sponsor": "Kodiak Sciences Inc",
+      "conditions": [
+        "Non-proliferative Diabetic Retinopathy"
+      ],
+      "countries": [
+        "Czechia",
+        "Latvia",
+        "Poland",
+        "Puerto Rico",
+        "Slovakia",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 253,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04200456",
+      "title": "A Study to Evaluate the Efficacy, Safety, and Tolerability of Rozanolixizumab in Adult Study Participants With Persistent or Chronic Primary Immune Thrombocytopenia (ITP)",
+      "sponsor": "UCB Biopharma SRL",
+      "conditions": [
+        "Primary Immune Thrombocytopenia"
+      ],
+      "countries": [
+        "Bulgaria",
+        "France",
+        "Georgia",
+        "Greece",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Moldova",
+        "Poland",
+        "Romania",
+        "Russia",
+        "South Korea",
+        "Taiwan",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 33,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04292730",
+      "title": "Study to Evaluate the Safety and Antiviral Activity of Remdesivir (GS-5734\u2122) in Participants With Moderate Coronavirus Disease (COVID-19) Compared to Standard of Care Treatment",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "China",
+        "France",
+        "Germany",
+        "Hong Kong",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 1113,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04859517",
+      "title": "Evaluation of ADG20 for the Prevention of COVID-19",
+      "sponsor": "Invivyd, Inc.",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Czechia",
+        "Georgia",
+        "Germany",
+        "Moldova",
+        "Poland",
+        "Romania",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 2582,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04778397",
+      "title": "Study of Magrolimab in Combination With Azacitidine Versus Physician's Choice of Venetoclax in Combination With Azacitidine or Intensive Chemotherapy in Patients With TP53 Mutant Acute Myeloid Leukemia That Have Not Been Treated",
+      "sponsor": "Gilead Sciences",
+      "conditions": [
+        "Acute Myeloid Leukemia"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Canada",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hong Kong",
+        "Italy",
+        "Japan",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 258,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05561140",
+      "title": "Resolution of Sickle Cell Leg Ulcers With Voxelotor",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "Sickle Cell Disease",
+        "Leg Ulcers"
+      ],
+      "countries": [
+        "Brazil",
+        "Kenya",
+        "Nigeria"
+      ],
+      "enrollment": 88,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04583280",
+      "title": "A Study of Rilematovir in Infants and Children and Subsequently in Neonates Hospitalized With Acute Respiratory Tract Infection Due to Respiratory Syncytial Virus (RSV)",
+      "sponsor": "Janssen Research & Development, LLC",
+      "conditions": [
+        "Respiratory Tract Infections"
+      ],
+      "countries": [
+        "Argentina",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "China",
+        "Czechia",
+        "Estonia",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Latvia",
+        "Malaysia",
+        "Mexico",
+        "Panama",
+        "Poland",
+        "Slovakia",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 28,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04545060",
+      "title": "VIR-7831 for the Early Treatment of COVID-19 in Outpatients",
+      "sponsor": "Vir Biotechnology, Inc.",
+      "conditions": [
+        "Covid19"
+      ],
+      "countries": [
+        "Austria",
+        "Brazil",
+        "Canada",
+        "Peru",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 1057,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04913675",
+      "title": "Intramuscular and Intravenous VIR-7831 (Sotrovimab) for Mild/Moderate COVID-19.",
+      "sponsor": "Vir Biotechnology, Inc.",
+      "conditions": [
+        "Covid19"
+      ],
+      "countries": [
+        "France",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 1065,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04560998",
+      "title": "A Research Study to Compare a Medicine Called Semaglutide Against Placebo in People With Peripheral Arterial Disease and Type 2 Diabetes",
+      "sponsor": "Novo Nordisk A/S",
+      "conditions": [
+        "Diabetes Mellitus, Type 2",
+        "Peripheral Arterial Disease"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "Canada",
+        "China",
+        "Czechia",
+        "Denmark",
+        "Germany",
+        "Greece",
+        "Hungary",
+        "India",
+        "Japan",
+        "Latvia",
+        "Malaysia",
+        "Norway",
+        "Poland",
+        "Russia",
+        "Spain",
+        "Sweden",
+        "Taiwan",
+        "Thailand",
+        "United States"
+      ],
+      "enrollment": 792,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04472598",
+      "title": "Study of Oral Navitoclax Tablet In Combination With Oral Ruxolitinib Tablet When Compared With Oral Ruxolitinib Tablet To Assess Change In Spleen Volume In Adult Participants With Myelofibrosis",
+      "sponsor": "AbbVie",
+      "conditions": [
+        "Myelofibrosis (MF)"
+      ],
+      "countries": [
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "Croatia",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "New Zealand",
+        "Russia",
+        "Serbia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 252,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04980495",
+      "title": "An Open-label Study to Investigate the Clinical Efficacy of Different Dosing Regimens of Efgartigimod IV in Patients With Generalized Myasthenia Gravis",
+      "sponsor": "argenx",
+      "conditions": [
+        "Generalized Myasthenia Gravis",
+        "MG - Myasthenia Gravis",
+        "gMG"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "Canada",
+        "France",
+        "Georgia",
+        "Germany",
+        "Italy",
+        "Netherlands",
+        "Poland",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 69,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04511819",
+      "title": "Losmapimod Safety and Efficacy in COVID-19",
+      "sponsor": "Fulcrum Therapeutics",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Brazil",
+        "Mexico",
+        "Peru",
+        "United States"
+      ],
+      "enrollment": 52,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04400058",
+      "title": "Octagam 10% Therapy in COVID-19 Patients With Severe Disease Progression",
+      "sponsor": "Octapharma",
+      "conditions": [
+        "Covid-19"
+      ],
+      "countries": [
+        "Russia",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 207,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05172050",
+      "title": "Multicenter Double Blind, Parallel-group Phase 2/3 Trial, to Study Raloxifene in Adult COVID-19 Patients.",
+      "sponsor": "Domp\u00e9 Farmaceutici S.p.A",
+      "conditions": [
+        "SARS CoV 2 Infection"
+      ],
+      "countries": [
+        "France",
+        "Italy",
+        "Spain"
+      ],
+      "enrollment": 61,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04230213",
+      "title": "A Comparative Study Between PF-06410293 and Humira\u00ae in Combination With Methotrexate in Participants With Active Rheumatoid Arthritis",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "Rheumatoid Arthritis"
+      ],
+      "countries": [
+        "Bosnia and Herzegovina",
+        "Bulgaria",
+        "Czechia",
+        "Lithuania",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "South Africa",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 455,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04385368",
+      "title": "Phase III Study to Determine the Efficacy of Durvalumab in Combination With Chemotherapy in Completely Resected Stage II-III Non-small Cell Lung Cancer (NSCLC)",
+      "sponsor": "AstraZeneca",
+      "conditions": [
+        "Carcinoma, Non-Small-Cell Lung"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Belgium",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "Czechia",
+        "Denmark",
+        "France",
+        "Germany",
+        "Greece",
+        "Hong Kong",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "Netherlands",
+        "Peru",
+        "Poland",
+        "Romania",
+        "Russia",
+        "Singapore",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 89,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04123405",
+      "title": "Efficacy and Safety of Acetylcysteine for the Treatment of Acute Uncomplicated Rhinosinusitis",
+      "sponsor": "Sandoz",
+      "conditions": [
+        "Rhinosinusitis"
+      ],
+      "countries": [
+        "Bulgaria",
+        "Germany",
+        "Moldova",
+        "Russia"
+      ],
+      "enrollment": 944,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04338269",
+      "title": "A Study of Atezolizumab in Combination With Cabozantinib Compared to Cabozantinib Alone in Participants With Advanced Renal Cell Carcinoma After Immune Checkpoint Inhibitor Treatment",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Carcinoma, Renal Cell"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Canada",
+        "Denmark",
+        "France",
+        "Germany",
+        "Greece",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Russia",
+        "South Korea",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 522,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04394351",
+      "title": "Study to Investigate the Efficacy and Safety of Dupilumab in Pediatric Patients With Active Eosinophilic Esophagitis (EoE)",
+      "sponsor": "Regeneron Pharmaceuticals",
+      "conditions": [
+        "Eosinophilic Esophagitis (EoE)"
+      ],
+      "countries": [
+        "Canada",
+        "United States"
+      ],
+      "enrollment": 102,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04157751",
+      "title": "A Study to Test the Effect of Empagliflozin in Patients Who Are in Hospital for Acute Heart Failure",
+      "sponsor": "Boehringer Ingelheim",
+      "conditions": [
+        "Heart Failure"
+      ],
+      "countries": [
+        "Belgium",
+        "Canada",
+        "China",
+        "Czechia",
+        "Denmark",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Norway",
+        "Poland",
+        "Spain",
+        "Sweden",
+        "United States"
+      ],
+      "enrollment": 530,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04313153",
+      "title": "Trial Evaluating the Efficacy and Safety of Oral Vadadustat Once Daily (QD) and Three Times Weekly (TIW) for the Maintenance Treatment of Anemia in Hemodialysis Subjects Converting From Erythropoiesis-Stimulating Agents (ESAs)",
+      "sponsor": "Akebia Therapeutics",
+      "conditions": [
+        "Anemia"
+      ],
+      "countries": [
+        "Czechia",
+        "Hungary",
+        "Italy",
+        "Poland",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 319,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT03692312",
+      "title": "Efficacy and Safety of Tideglusib in Congenital Myotonic Dystrophy",
+      "sponsor": "AMO Pharma Limited",
+      "conditions": [
+        "Congenital Myotonic Dystrophy"
+      ],
+      "countries": [
+        "Australia",
+        "Canada",
+        "New Zealand",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 56,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04269395",
+      "title": "A Study to Assess Recurrence of Actinic Keratosis in Participants Treated With Methyl Aminolevulinate Hydrochloride Cream or Vehicle Cream Who Achieved Complete Response to Treated Lesions in Earlier Study",
+      "sponsor": "Galderma R&D",
+      "conditions": [
+        "Keratosis, Actinic"
+      ],
+      "countries": [
+        "Puerto Rico",
+        "United States"
+      ],
+      "enrollment": 125,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04469465",
+      "title": "Danicopan as Add-on Therapy to a C5 Inhibitor in Paroxysmal Nocturnal Hemoglobinuria (PNH) Participants Who Have Clinically Evident Extravascular Hemolysis (EVH)(ALPHA)",
+      "sponsor": "Alexion Pharmaceuticals, Inc.",
+      "conditions": [
+        "Paroxysmal Nocturnal Hemoglobinuria"
+      ],
+      "countries": [
+        "Brazil",
+        "Canada",
+        "Czechia",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Malaysia",
+        "Netherlands",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "Thailand",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 86,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04205812",
+      "title": "Platinum-Based Chemotherapy With/Without INCMGA00012, an Anti-PD-1 Antibody, in Non-Small Cell Lung Cancer",
+      "sponsor": "Incyte Corporation",
+      "conditions": [
+        "Metastatic Squamous Non-Small Cell Lung Cancer",
+        "Metastatic Nonsquamous Non-Small Cell Lung Cancer"
+      ],
+      "countries": [
+        "Brazil",
+        "Bulgaria",
+        "China",
+        "Czechia",
+        "Georgia",
+        "Hungary",
+        "Malaysia",
+        "Philippines",
+        "Poland",
+        "Romania",
+        "Russia",
+        "Serbia",
+        "South Africa",
+        "Turkey (T\u00fcrkiye)",
+        "Ukraine",
+        "United States",
+        "Vietnam"
+      ],
+      "enrollment": 583,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04735432",
+      "title": "Evaluating the Pharmacodynamic Noninferiority of Efgartigimod PH20 SC Administered Subcutaneously as Compared to Efgartigimod Administered Intravenously in Patients With Generalized Myasthenia Gravis",
+      "sponsor": "argenx",
+      "conditions": [
+        "Generalized Myasthenia Gravis"
+      ],
+      "countries": [
+        "Belgium",
+        "Georgia",
+        "Germany",
+        "Hungary",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Russia",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 110,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT05767346",
+      "title": "Phase 3 Trial to Evaluate the Efficacy and Safety of Aficamten Compared to Metoprolol Succinate in Adults With Symptomatic oHCM",
+      "sponsor": "Cytokinetics",
+      "conditions": [
+        "Obstructive Hypertrophic Cardiomyopathy (oHCM)"
+      ],
+      "countries": [
+        "Brazil",
+        "Canada",
+        "China",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Netherlands",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 175,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04794803",
+      "title": "Reparixin in COVID-19 Pneumonia - Efficacy and Safety",
+      "sponsor": "Domp\u00e9 Farmaceutici S.p.A",
+      "conditions": [
+        "Severe Pneumonia"
+      ],
+      "countries": [
+        "Brazil",
+        "Italy"
+      ],
+      "enrollment": 56,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04619797",
+      "title": "A Study of Tiragolumab in Combination With Atezolizumab Plus Pemetrexed and Carboplatin/Cisplatin Versus Pembrolizumab Plus Pemetrexed and Carboplatin/Cisplatin in Participants With Previously Untreated Advanced Non-Squamous Non-Small Cell Lung Cancer",
+      "sponsor": "Hoffmann-La Roche",
+      "conditions": [
+        "Non-small Cell Lung Cancer (NSCLC)"
+      ],
+      "countries": [
+        "Belgium",
+        "Brazil",
+        "Canada",
+        "China",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hong Kong",
+        "Italy",
+        "Japan",
+        "Mexico",
+        "New Zealand",
+        "Poland",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "Thailand",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 542,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04797780",
+      "title": "Tamibarotene Plus Azacitidine in Participants With Newly Diagnosed RARA-positive Higher-Risk Myelodysplastic Syndrome",
+      "sponsor": "Syros Pharmaceuticals",
+      "conditions": [
+        "Myelodysplastic Syndromes"
+      ],
+      "countries": [
+        "Austria",
+        "Belgium",
+        "Canada",
+        "Czechia",
+        "France",
+        "Germany",
+        "Hungary",
+        "Israel",
+        "Italy",
+        "Poland",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 246,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04242446",
+      "title": "A Study to Evaluate the Efficacy and Safety of Bimekizumab in Study Participants With Moderate to Severe Hidradenitis Suppurativa",
+      "sponsor": "UCB Biopharma SRL",
+      "conditions": [
+        "Hidradenitis Suppurativa"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Canada",
+        "Denmark",
+        "France",
+        "Germany",
+        "Greece",
+        "Israel",
+        "Italy",
+        "Netherlands",
+        "Norway",
+        "Spain",
+        "Switzerland",
+        "Turkey (T\u00fcrkiye)",
+        "United States"
+      ],
+      "enrollment": 505,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04378075",
+      "title": "A Study to Evaluate Efficacy and Safety of Vatiquinone for Treating Mitochondrial Disease in Participants With Refractory Epilepsy",
+      "sponsor": "PTC Therapeutics",
+      "conditions": [
+        "Mitochondrial Diseases",
+        "Drug Resistant Epilepsy",
+        "Leigh Disease",
+        "Leigh Syndrome",
+        "Mitochondrial Encephalopathy (MELAS)",
+        "Pontocerebellar Hypoplasia Type 6 (PCH6)",
+        "Alpers Disease",
+        "Alpers Syndrome"
+      ],
+      "countries": [
+        "Canada",
+        "France",
+        "Italy",
+        "Japan",
+        "Poland",
+        "Spain",
+        "Sweden",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 68,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04393038",
+      "title": "ABX464 in Treating Inflammation and Preventing Acute Respiratory Failure in Patients With COVID-19",
+      "sponsor": "Abivax S.A.",
+      "conditions": [
+        "COVID-19"
+      ],
+      "countries": [
+        "Belgium",
+        "Brazil",
+        "France",
+        "Germany",
+        "Italy",
+        "Mexico",
+        "Spain",
+        "United Kingdom"
+      ],
+      "enrollment": 509,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04732949",
+      "title": "Study to Assess Efficacy and Safety of Inhaled Interferon-\u03b2 Therapy for COVID-19",
+      "sponsor": "Synairgen Research Ltd.",
+      "conditions": [
+        "Severe Acute Respiratory Syndrome Coronavirus 2",
+        "COVID-19"
+      ],
+      "countries": [
+        "Argentina",
+        "Belgium",
+        "Brazil",
+        "Colombia",
+        "France",
+        "Germany",
+        "India",
+        "Israel",
+        "Italy",
+        "Mexico",
+        "Netherlands",
+        "Portugal",
+        "Romania",
+        "Serbia",
+        "Spain",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 623,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04509674",
+      "title": "EMPACT-MI: A Study to Test Whether Empagliflozin Can Lower the Risk of Heart Failure and Death in People Who Had a Heart Attack (Myocardial Infarction)",
+      "sponsor": "Boehringer Ingelheim",
+      "conditions": [
+        "Myocardial Infarction"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Brazil",
+        "Bulgaria",
+        "Canada",
+        "China",
+        "Denmark",
+        "France",
+        "Germany",
+        "Hungary",
+        "India",
+        "Israel",
+        "Japan",
+        "Netherlands",
+        "Poland",
+        "Romania",
+        "Russia",
+        "Serbia",
+        "South Korea",
+        "Spain",
+        "Ukraine",
+        "United States"
+      ],
+      "enrollment": 6522,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04927247",
+      "title": "A Study of a Single Dose of Inclacumab to Reduce Re-admission in Participants With Sickle Cell Disease and Recurrent Vaso-occlusive Crises",
+      "sponsor": "Pfizer",
+      "conditions": [
+        "Sickle Cell Disease",
+        "Vaso-occlusive Crisis",
+        "Vaso-occlusive Pain Episode in Sickle Cell Disease"
+      ],
+      "countries": [
+        "Brazil",
+        "Colombia",
+        "France",
+        "Germany",
+        "Italy",
+        "Kenya",
+        "Lebanon",
+        "Nigeria",
+        "Oman",
+        "Saudi Arabia",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States",
+        "Zambia"
+      ],
+      "enrollment": 72,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04607668",
+      "title": "Trilaciclib, a CDK 4/6 Inhibitor, in Patients Receiving FOLFOXIRI/Bevacizumab for Metastatic Colorectal Cancer (mCRC):",
+      "sponsor": "G1 Therapeutics, Inc.",
+      "conditions": [
+        "Colorectal Cancer Metastatic",
+        "Myelosuppression-Adult",
+        "Chemotherapeutic Toxicity"
+      ],
+      "countries": [
+        "China",
+        "Hungary",
+        "Italy",
+        "Poland",
+        "Spain",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 326,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04333147",
+      "title": "Long-term Safety and Efficacy of GSK3196165 (Otilimab) in the Treatment of Rheumatoid Arthritis (RA)",
+      "sponsor": "GlaxoSmithKline",
+      "conditions": [
+        "Arthritis, Rheumatoid"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Belgium",
+        "Bulgaria",
+        "Canada",
+        "China",
+        "Colombia",
+        "Czechia",
+        "Estonia",
+        "Germany",
+        "Hungary",
+        "India",
+        "Japan",
+        "Latvia",
+        "Lithuania",
+        "Malaysia",
+        "Mexico",
+        "Poland",
+        "Russia",
+        "Serbia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Thailand",
+        "Ukraine",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 2916,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04251533",
+      "title": "Study Assessing the Efficacy and Safety of Alpelisib + Nab-paclitaxel in Subjects With Advanced TNBC Who Carry Either a PIK3CA Mutation or Have PTEN Loss",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Triple Negative Breast Neoplasms"
+      ],
+      "countries": [
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Brazil",
+        "Bulgaria",
+        "China",
+        "Colombia",
+        "Croatia",
+        "France",
+        "Germany",
+        "Hungary",
+        "India",
+        "Israel",
+        "Italy",
+        "Malaysia",
+        "Mexico",
+        "Norway",
+        "Peru",
+        "Poland",
+        "Russia",
+        "Slovakia",
+        "Slovenia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Switzerland",
+        "Taiwan",
+        "Turkey (T\u00fcrkiye)",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 137,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04439071",
+      "title": "A Study to Evaluate Efficacy and Safety of PTC299 (Emvododstat) in Hospitalized Participants With Coronavirus (COVID-19)",
+      "sponsor": "PTC Therapeutics",
+      "conditions": [
+        "Pneumonia",
+        "COVID-19",
+        "Coronavirus"
+      ],
+      "countries": [
+        "Australia",
+        "Belgium",
+        "Brazil",
+        "Colombia",
+        "France",
+        "Mexico",
+        "Poland",
+        "Portugal",
+        "South Africa",
+        "Spain",
+        "United States"
+      ],
+      "enrollment": 189,
+      "icf_posted": false
+    },
+    {
+      "nct_id": "NCT04558918",
+      "title": "Study of Efficacy and Safety of Twice Daily Oral LNP023 in Adult PNH Patients With Residual Anemia Despite Anti-C5 Antibody Treatment",
+      "sponsor": "Novartis Pharmaceuticals",
+      "conditions": [
+        "Paroxysmal Nocturnal Hemoglobinuria (PNH)"
+      ],
+      "countries": [
+        "Brazil",
+        "Czechia",
+        "France",
+        "Germany",
+        "Italy",
+        "Japan",
+        "Netherlands",
+        "South Korea",
+        "Spain",
+        "Taiwan",
+        "United Kingdom",
+        "United States"
+      ],
+      "enrollment": 97,
+      "icf_posted": false
+    }
+  ]
+}

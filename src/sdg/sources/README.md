@@ -9,7 +9,7 @@ This folder gets and keeps the pipeline's inputs. It holds the workflows, each a
 | `acquire_sources.py` | Fetches every recorded file not yet on disk, and confirms every file already on disk still matches its entry. Run as `acquire_sources`. |
 | `verify_pinned.py` | Hands a pipeline stage one pinned file after proving it is the recorded one. It is built from the steps below. |
 | `update_sources.py` | Moves a source to a new version: fetch, fingerprint, write its entry. Not written yet; issue #18. |
-| `find_ctgov_studies.py` | Finds the studies on ClinicalTrials.gov that pass the filters in `ctgov_study_filters.yml`, and saves a record of each run. A draft with its sections laid out; issue #57. |
+| `find_ctgov_studies.py` | Finds the studies on ClinicalTrials.gov that pass the filters in `ctgov_study_filters.yml`, and saves a record of each search. Run as `find_ctgov_studies`. It is built from the four ClinicalTrials.gov steps below. |
 | `ctgov_study_filters.yml` | The query `find_ctgov_studies.py` sends to the ClinicalTrials.gov API, and the rules it applies to the reply that the API cannot apply itself. |
 
 ## Steps
@@ -21,3 +21,7 @@ This folder gets and keeps the pipeline's inputs. It holds the workflows, each a
 | `fingerprint_file.py` | Measures one file, size and sha256, and says whether it matches an entry. |
 | `finalize_file.py` | Brings a download to its final state: placed under its final name, or discarded. |
 | `write_manifests.py` | Writes or updates one entry. Header drafted; code waits for its first user. |
+| `fetch_ctgov_study_records.py` | Sends a query to the ClinicalTrials.gov API and collects the study record of every match. |
+| `parse_ctgov_study_records.py` | Pulls single pieces out of a study record, such as its documents or its countries with sites. |
+| `narrow_ctgov_study_records.py` | Reads `ctgov_study_filters.yml` and keeps the study records that pass its additional filters. |
+| `save_ctgov_search_records.py` | Writes the record of one search to `searches/ctgov/`. |

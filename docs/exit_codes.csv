@@ -98,7 +98,7 @@ code,group,sub_code,what_happened,what_to_do
 16,a description does not match the thing it describes,PINNED-FILE-CHANGED,a pinned file on disk no longer matches its manifest entry,Remove the file and run acquire_sources if it changed by accident. A real new version is a deliberate re-pin.
 16,a description does not match the thing it describes,SOURCES-MAP-HEADING-MISSING,a pinned file has no document heading in the sources map,Add a document heading for the file to docs/sources_index.md.
 16,a description does not match the thing it describes,SOURCES-MAP-LOCATION-UNRECORDED,the sources map names a location no manifest records,"Correct the location in docs/sources_index.md, or record a file there in manifests/."
-17,the parameters given yielded no results,CTGOV-NO-CANDIDATES,no study on ClinicalTrials.gov passed every filter,"Read the run record in searches/ctgov/ to see which filter removed the last studies, then loosen it in src/sdg/sources/ctgov_study_filters.yml."
+17,the parameters given yielded no results,CTGOV-NO-CANDIDATES,no study on ClinicalTrials.gov passed every filter,"Read the search record in searches/ctgov/ to see which filter removed the last studies, then loosen it in src/sdg/sources/ctgov_study_filters.yml."
 17,the parameters given yielded no results,HEADER-ROW-PAST-END,the named header row is past the end of the sheet,"Run without --header-row to see the sheet, then name a row it has."
 17,the parameters given yielded no results,MANIFEST-NAME-NOT-FOUND,no manifest has the name given,Name a manifest that exists in manifests/.
 17,the parameters given yielded no results,PDF-HAS-NO-BOOKMARKS,a section was asked for in a PDF that has no bookmarks,"Use --find to search the document, or --pages to read a known range."
@@ -112,7 +112,7 @@ code,group,sub_code,what_happened,what_to_do
 18,the command found no target to act on,NO-CHECKS-COLLECTED,no check was collected,Point the run at a folder or file that holds checks.
 18,the command found no target to act on,NO-COMMANDS-INSTALLED,pyproject.toml installs no command,Add the commands to the [project.scripts] table of pyproject.toml.
 19,an output already exists and is not overwritten,,no command fails this way yet,
-20,an output could not be written,CTGOV-RECORD-NOT-WRITTEN,"the ClinicalTrials.gov run record, or its folder, could not be written to disk","Free space on the disk, or remove what sits where searches/ctgov/ or the file should be, then run the command again."
+20,an output could not be written,CTGOV-RECORD-NOT-WRITTEN,"the ClinicalTrials.gov search record, or its folder, could not be written to disk","Free space on the disk, or remove what sits where searches/ctgov/ or the file should be, then run the command again."
 20,an output could not be written,DOWNLOAD-NOT-WRITTEN,"a download, or its folder, could not be written to disk","Free space on the disk, or remove what sits where the file or its folder should be, then run acquire_sources again."
 21,one or more validation checks failed,CHECKS-FAILED,one or more validation checks failed,"Read the failed checks pytest listed, then fix what each names."
 22,an evaluation score fell below its threshold,,no command fails this way yet,

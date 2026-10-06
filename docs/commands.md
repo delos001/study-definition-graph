@@ -33,7 +33,7 @@ Its header block is in `src/sdg/sources/find_ctgov_studies.py`.
 
 ```
 find_ctgov_studies
-    search ClinicalTrials.gov, apply the filters, save the run record
+    search ClinicalTrials.gov, apply the filters, save the search record
 find_ctgov_studies --quiet
     print nothing; use the exit code
 ```

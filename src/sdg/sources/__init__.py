@@ -8,6 +8,13 @@ See README.md.
 # in. A function not listed can still be imported from its own file. Only the
 # short form is missing. The list grows as each file's code is written.
 
+from .fetch_ctgov_study_records import (
+    CtgovBadAnswerError,
+    CtgovError,
+    CtgovNoAnswerError,
+    CtgovReplyUnparseableError,
+    fetch_ctgov_study_records,
+)
 from .fetch_file import (
     FetchBadUrlError,
     FetchError,
@@ -20,6 +27,20 @@ from .fetch_file import (
 )
 from .finalize_file import discard, place
 from .fingerprint_file import Comparison, Fingerprint, compare, fingerprint
+from .narrow_ctgov_study_records import (
+    FiltersError,
+    FiltersInvalidError,
+    FiltersMissingError,
+    FiltersUnparseableError,
+    FiltersUnreadableError,
+    narrow_ctgov_study_records,
+    read_filters,
+)
+from .parse_ctgov_study_records import (
+    describe_candidate,
+    list_study_countries,
+    list_study_documents,
+)
 from .read_manifests import (
     AmbiguousNameError,
     Entry,
@@ -36,6 +57,7 @@ from .read_manifests import (
     manifests,
     require_repo,
 )
+from .save_ctgov_search_records import RecordNotWrittenError, save_ctgov_search_records
 from .verify_pinned import (
     IntegrityError,
     PinnedFile,
@@ -46,6 +68,10 @@ from .verify_pinned import (
 __all__ = [
     "AmbiguousNameError",
     "Comparison",
+    "CtgovBadAnswerError",
+    "CtgovError",
+    "CtgovNoAnswerError",
+    "CtgovReplyUnparseableError",
     "Entry",
     "FetchBadUrlError",
     "FetchError",
@@ -53,6 +79,11 @@ __all__ = [
     "FetchNoAnswerError",
     "FetchNotWrittenError",
     "FetchRefusedError",
+    "FiltersError",
+    "FiltersInvalidError",
+    "FiltersMissingError",
+    "FiltersUnparseableError",
+    "FiltersUnreadableError",
     "Fingerprint",
     "IntegrityError",
     "Manifest",
@@ -63,17 +94,25 @@ __all__ = [
     "ManifestUnreadableError",
     "NotInRepoError",
     "OutsideInputsError",
+    "RecordNotWrittenError",
     "UnrecordedFileError",
     "compare",
+    "describe_candidate",
     "discard",
     "entry_for",
     "entry_named",
     "fetch",
+    "fetch_ctgov_study_records",
     "fingerprint",
+    "list_study_countries",
+    "list_study_documents",
     "manifests",
+    "narrow_ctgov_study_records",
     "partial_path",
     "place",
     "PinnedFile",
+    "read_filters",
     "require_repo",
+    "save_ctgov_search_records",
     "verify_pinned",
 ]
