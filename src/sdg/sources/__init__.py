@@ -64,6 +64,11 @@ from .verify_pinned import (
     UnrecordedFileError,
     verify_pinned,
 )
+from .write_manifests import (
+    ManifestEntryExistsError,
+    ManifestNotWrittenError,
+    write_manifests,
+)
 
 __all__ = [
     "AmbiguousNameError",
@@ -87,9 +92,11 @@ __all__ = [
     "Fingerprint",
     "IntegrityError",
     "Manifest",
+    "ManifestEntryExistsError",
     "ManifestError",
     "ManifestMissingError",
     "ManifestNameError",
+    "ManifestNotWrittenError",
     "ManifestUnparseableError",
     "ManifestUnreadableError",
     "NotInRepoError",
@@ -115,4 +122,5 @@ __all__ = [
     "require_repo",
     "save_ctgov_search_records",
     "verify_pinned",
+    "write_manifests",
 ]

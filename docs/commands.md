@@ -25,6 +25,23 @@ acquire_sources --quiet
     print nothing; use the exit code
 ```
 
+### download_ctgov_study_documents
+
+Downloads the protocol and the SAP of each study you name, from ClinicalTrials.gov, into your local (non-repo) review folder, so you can decide whether to use the study for this project.
+
+Its header block is in `src/sdg/sources/download_ctgov_study_documents.py`.
+
+```
+download_ctgov_study_documents NCT05259917
+    download one study's protocol and SAP to the review folder
+download_ctgov_study_documents NCT05259917 NCT04573309
+    download several studies in one run
+download_ctgov_study_documents NCT05259917 --accept
+    pin the study's protocol and SAP, and record them in its manifest
+download_ctgov_study_documents NCT05259917 --quiet
+    print nothing; use the exit code
+```
+
 ### find_ctgov_studies
 
 Finds the studies on ClinicalTrials.gov based on filters specified in src/sdg/sources/ctgov_study_filters.yml.

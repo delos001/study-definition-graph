@@ -8,8 +8,10 @@ code,group,sub_code,what_happened,what_to_do
 3,the working folder is not in the state the command needs,NOT-IN-REPO,the sdg package is not running from inside its repo,Install the package from the repo checkout with pip install -e .
 3,the working folder is not in the state the command needs,UNCOMMITTED-CHANGES,a validation report was refused because the working folder has changes that are not committed,"Commit the changes, or set them aside with git stash, then run the report again."
 4,a setting is missing,API-KEY-MISSING,.env has no Anthropic API key,Open .env and paste your key after ANTHROPIC_API_KEY=.
+4,a setting is missing,CTGOV-REVIEW-DIR-MISSING,.env has no review folder for ClinicalTrials.gov downloads,"Copy the CTGOV_REVIEW_DIR line from .env.example into .env, and set it to a folder outside the repo."
 4,a setting is missing,ENV-FILE-MISSING,the .env file has not been created,"Create .env from the example with Copy-Item .env.example .env, then fill in its values."
 4,a setting is missing,NEO4J-SETTINGS-MISSING,.env has no Neo4j connection settings,Copy the NEO4J_ lines from .env.example into .env.
+5,a setting is invalid,CTGOV-REVIEW-DIR-INVALID,the review folder in .env is not a full path outside the repo,"Set CTGOV_REVIEW_DIR in .env to a full path, starting with a drive letter, of a folder outside the repo."
 5,a setting is invalid,NEO4J-ADDRESS-INVALID,the Neo4j address in .env is not a valid address,"Make the NEO4J_URI line in .env match .env.example, for example bolt://localhost:7687."
 6,an outside program cannot be found,GIT-NOT-FOUND,git cannot be found on the path,Install git.
 6,an outside program cannot be found,TOOL-NOT-FOUND,"ruff, mypy or conda cannot be found on the path","Run conda activate sdg, or install conda."
@@ -41,6 +43,7 @@ code,group,sub_code,what_happened,what_to_do
 12,a file does not exist,PYPROJECT-MISSING,pyproject.toml is missing,Restore pyproject.toml from git.
 12,a file does not exist,SOURCES-MAP-MISSING,docs/sources_index.md is missing,Restore docs/sources_index.md from git.
 12,a file does not exist,VALIDATION-FOLDER-MISSING,the validation/ folder is missing,Restore validation/ from git.
+13,a file exists but cannot be opened,CTGOV-DOWNLOAD-UNREADABLE,a downloaded file cannot be opened to confirm its size or measure its fingerprint,"Close any program holding the file, such as antivirus software, then run the command again."
 13,a file exists but cannot be opened,EXIT-TABLE-UNREADABLE,docs/exit_codes.csv cannot be opened,"Close any program holding the file, then run the command again."
 13,a file exists but cannot be opened,FILTERS-FILE-UNREADABLE,the ClinicalTrials.gov filters file is on disk but cannot be opened,"Close any program holding the file, then run the command again."
 13,a file exists but cannot be opened,LOOKUP-LIST-UNREADABLE,the list of lookup documents is on disk but cannot be opened,"Close any program holding the file, then run the command again."
@@ -84,6 +87,7 @@ code,group,sub_code,what_happened,what_to_do
 16,a description does not match the thing it describes,CHECK-CHANGED-VERSION-SAME,a check's code changed but its version in the validation inventory did not,"Raise the check's version in validation/validation_inventory.csv, then run build_inventory again."
 16,a description does not match the thing it describes,COMMAND-GROUP-UNKNOWN,pyproject.toml installs a command from a package that has no heading on the page,Add the package to COMMAND_GROUPS in src/sdgtools/build_index.py.
 16,a description does not match the thing it describes,COMMANDS-PAGE-STALE,docs/commands.md does not match the commands' headers,Run build_index.
+16,a description does not match the thing it describes,CTGOV-DOWNLOAD-SIZE-MISMATCH,a downloaded file's size differs from the size ClinicalTrials.gov lists,"The sponsor may have posted a new version since ClinicalTrials.gov answered. Run the command again, and compare the file by hand if it fails again."
 16,a description does not match the thing it describes,DOWNLOAD-MISMATCH,a downloaded file does not match its manifest entry,"The publisher may have changed the file. Compare the two, and re-pin deliberately if it is a new version."
 16,a description does not match the thing it describes,EXIT-GROUPS-DISAGREE,a group in docs/exit_codes.csv is worded differently from src/sdg/exit_codes.py,Word the group the same way in docs/exit_codes.csv and in GROUPS in src/sdg/exit_codes.py.
 16,a description does not match the thing it describes,FIGURE-DRIFTED,a stated figure has drifted from the pinned files,Correct the figure in the document the message names.
@@ -99,6 +103,7 @@ code,group,sub_code,what_happened,what_to_do
 16,a description does not match the thing it describes,SOURCES-MAP-HEADING-MISSING,a pinned file has no document heading in the sources map,Add a document heading for the file to docs/sources_index.md.
 16,a description does not match the thing it describes,SOURCES-MAP-LOCATION-UNRECORDED,the sources map names a location no manifest records,"Correct the location in docs/sources_index.md, or record a file there in manifests/."
 17,the parameters given yielded no results,CTGOV-NO-CANDIDATES,no study on ClinicalTrials.gov passed every filter,"Read the search record in searches/ctgov/ to see which filter removed the last studies, then loosen it in src/sdg/sources/ctgov_study_filters.yml."
+17,the parameters given yielded no results,CTGOV-STUDY-NOT-FOUND,an NCT number given is not on ClinicalTrials.gov,"Confirm the NCT number against the search record in searches/ctgov/, then run again."
 17,the parameters given yielded no results,HEADER-ROW-PAST-END,the named header row is past the end of the sheet,"Run without --header-row to see the sheet, then name a row it has."
 17,the parameters given yielded no results,MANIFEST-NAME-NOT-FOUND,no manifest has the name given,Name a manifest that exists in manifests/.
 17,the parameters given yielded no results,PDF-HAS-NO-BOOKMARKS,a section was asked for in a PDF that has no bookmarks,"Use --find to search the document, or --pages to read a known range."
@@ -108,12 +113,14 @@ code,group,sub_code,what_happened,what_to_do
 17,the parameters given yielded no results,USDM-CLASS-NOT-FOUND,the class named is not in the model,"Run usdm_spec --list-classes to see the classes, then name one of them."
 17,the parameters given yielded no results,WORKBOOK-NAME-AMBIGUOUS,the name given matches more than one workbook under inputs/,"Give more of the name, so it matches one of the workbooks listed."
 17,the parameters given yielded no results,WORKBOOK-NOT-FOUND,no workbook under inputs/ matches the name given,"Run read_xlsx with no name to list the workbooks, then name one of them."
+18,the command found no target to act on,CTGOV-NO-STUDY-DOCUMENTS,a study has posted no protocol or SAP,Choose another study. This one has nothing to download.
 18,the command found no target to act on,NO-CHECK-FILES,no check files were found under validation/,"Add a check file under validation/, or restore the check files from git."
 18,the command found no target to act on,NO-CHECKS-COLLECTED,no check was collected,Point the run at a folder or file that holds checks.
 18,the command found no target to act on,NO-COMMANDS-INSTALLED,pyproject.toml installs no command,Add the commands to the [project.scripts] table of pyproject.toml.
-19,an output already exists and is not overwritten,,no command fails this way yet,
+19,an output already exists and is not overwritten,MANIFEST-ENTRY-EXISTS,"a manifest already records the file, and replacing it was not asked for","Run acquire_sources if the recorded file is missing from inputs/. A new version of the file is a deliberate re-pin."
 20,an output could not be written,CTGOV-RECORD-NOT-WRITTEN,"the ClinicalTrials.gov search record, or its folder, could not be written to disk","Free space on the disk, or remove what sits where searches/ctgov/ or the file should be, then run the command again."
 20,an output could not be written,DOWNLOAD-NOT-WRITTEN,"a download, or its folder, could not be written to disk","Free space on the disk, or remove what sits where the file or its folder should be, then run acquire_sources again."
+20,an output could not be written,MANIFEST-NOT-WRITTEN,"a manifest, or its folder, could not be written to disk","Free space on the disk, or close any program holding the manifest, then run the command again."
 21,one or more validation checks failed,CHECKS-FAILED,one or more validation checks failed,"Read the failed checks pytest listed, then fix what each names."
 22,an evaluation score fell below its threshold,,no command fails this way yet,
 23,the run was interrupted before it finished,RUN-INTERRUPTED,the check run was interrupted before every check ran,"Run the command again, and let it finish."
