@@ -27,7 +27,7 @@ acquire_sources --quiet
 
 ### download_ctgov_study_documents
 
-Downloads the protocol and the SAP of each study you name, from ClinicalTrials.gov, into your local (non-repo) review folder, so you can decide whether to use the study for this project.
+Downloads the protocol and the SAP of each study you name from ClinicalTrials.gov. Without --accept, they go into your review folder outside the repo, so you can decide whether to use the study. With --accept, they are pinned under inputs/study_documents/ and recorded in the study's manifest.
 
 Its header block is in `src/sdg/sources/download_ctgov_study_documents.py`.
 

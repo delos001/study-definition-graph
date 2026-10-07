@@ -8,6 +8,8 @@ That one rule, everything under `inputs/` is pinned, is what the Claude Code hoo
 | --- | --- |
 | `standards/` | Published standards the project depends on, by publisher: CDISC, ICH, and the crosswalks between them. |
 | `worked_examples/` | CDISC's worked examples, one folder per study, each holding a real protocol, the spreadsheet a person filled in from it, and the USDM output generated from that spreadsheet. |
-| `study_documents/` | Protocols and SAPs fetched from ClinicalTrials.gov, one folder per study, recorded in `manifests/study_documents/`. Empty until Phase 1. |
+| `study_documents/` | Protocols and SAPs fetched from ClinicalTrials.gov, one folder per study, recorded in `manifests/study_documents/`. |
+
+A study's documents are first downloaded outside the repo for review with `download_ctgov_study_documents`, then pinned here with `download_ctgov_study_documents --accept`. There is no reject mode.
 
 What the pipeline produces from these is in `data/`, and what its output is scored against is in `eval/`. Which file answers which question is `docs/sources_index.md`.

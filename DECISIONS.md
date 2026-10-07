@@ -1,6 +1,6 @@
 # Decisions
 
-The document contains the record of choices made and why. This is an append-only log: entries are added as decisions are made and are not rewritten as work progresses.
+The document contains the record of choices made and why. Each entry records what was decided at the time. When a decision later changes, the change is added to that decision's entry, below what was first decided. An entry written incorrectly is corrected where it stands.
 
 Some entries mark a decision as **unguided**. That means no published standard covered the question, so the choice was the project's own; the categories are in `CLAUDE.md` under Grounding.
 
@@ -901,7 +901,7 @@ The script then keeps a study whose:
 - SAP is itself dated 2020 or later,
 - sites are in two or more countries,
 - conditions fall under cardiovascular, hematology, oncology, infectious disease or musculoskeletal disease, matched by the registry's medical subject terms,
-- treatments are only drugs, biologics or other, which removes devices and procedures.
+- treatments are only drugs, biologics or other, and at least one is a drug or a biologic. Sponsors enter placebo and standard care as other. The filter removes devices, procedures and drug-device combination products, and a study whose only treatments are other.
 
 The API's query language reads `ALL` as "match every study", so the sex filter is written `AREA[Sex]\ALL`. A study the registry has not tagged with subject terms is dropped by the therapeutic-area filter whatever its disease.
 

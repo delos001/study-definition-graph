@@ -7,8 +7,8 @@ Description: Finds the studies on ClinicalTrials.gov based on filters specified 
                ClinicalTrials.gov and matching studies and associated details are
                returned via the API.
              - based on the returned study information, the script then applies
-               additional filters that cannot be applied by the API;
-               (defined in after_fetch section).
+               the additional filters in the after_fetch section of the filters
+               file, which the API cannot apply.
              - each run saves a record of the search sent to ClinicalTrials.gov,
                the date it ran, how many studies ClinicalTrials.gov returned, how
                many remained after each additional filter, and the final list of
@@ -103,8 +103,9 @@ FIELDS = "ProtocolSection|DocumentSection|DerivedSection"
 def main(argv: list[str] | None = None) -> int:
     """Run the steps of this script in order and report the results or the failure.
 
-    Steps:
-    - read_filters reads ctgov_study_filters.yml and confirms it is complete.
+    The steps run in this order.
+    - read_filters reads ctgov_study_filters.yml and confirms it is complete and that
+      each setting holds the right kind of value.
     - fetch_study_records sends the search to ClinicalTrials.gov and collects
       every matching study record.
     - narrow_study_records keeps the studies that pass every additional filter,
@@ -142,8 +143,8 @@ def main(argv: list[str] | None = None) -> int:
     # The time is noted first, so the record is named by when the run started.
     ran_at = datetime.now().astimezone()
 
-    # The repo check runs before anything else, because the record is saved
-    # inside the repo.
+    # require_repo confirms before anything else that the package runs from inside
+    # its repo, because the record is saved inside the repo.
     try:
         require_repo()
     except NotInRepoError as exc:

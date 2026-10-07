@@ -1,15 +1,17 @@
 """
 Script:      download_ctgov_study_documents.py
-Description: Downloads the protocol and the SAP of each study you name, from
-             ClinicalTrials.gov, into your local (non-repo) review folder, so you can
-             decide whether to use the study for this project.
+Description: Downloads the protocol and the SAP of each study you name from
+             ClinicalTrials.gov. Without --accept, they go into your review folder
+             outside the repo, so you can decide whether to use the study. With
+             --accept, they are pinned under inputs/study_documents/ and recorded in
+             the study's manifest.
 
-             With --accept, the same files are pinned instead. They are saved under
-             inputs/study_documents/<NCT number>/, and each one is recorded in
-             manifests/study_documents/<NCT number>.json. Before a file is pinned, its
-             size must match the size ClinicalTrials.gov lists, and its manifest entry
-             is written before the file gets its final name, so a pinned file is never
-             on disk without a record.
+             Each study is named by its NCT number, the National Clinical Trial
+             number ClinicalTrials.gov gives every study, such as NCT05259917. A
+             study's manifest is manifests/study_documents/<NCT number>.json. Before
+             a file is pinned, its size must match the size ClinicalTrials.gov lists,
+             and its manifest entry is written before the file gets its final name, so
+             a pinned file is never on disk without a record.
 
              You name the studies by their NCT numbers on the command line. The
              script asks ClinicalTrials.gov for those studies only, in one request.
@@ -24,7 +26,8 @@ Description: Downloads the protocol and the SAP of each study you name, from
 
              Each file is saved in <folder>/<NCT number>/, under the file name
              ClinicalTrials.gov uses. <folder> is your local review folder, or
-             inputs/study_documents/ if --accept is used.
+             inputs/study_documents/ if --accept is used. A pinned file's name has
+             its spaces replaced by underscores, as CLAUDE.md requires.
 
              Your review folder is set by the CTGOV_REVIEW_DIR line in .env. It must
              be a full path to a folder outside the repo.
@@ -32,7 +35,9 @@ Description: Downloads the protocol and the SAP of each study you name, from
              A file that is already saved is not downloaded again, and the script
              reports that it skipped it. With --accept, a file already under inputs/
              is skipped only when its study's manifest records it. One that is not
-             recorded is reported and left in place.
+             recorded is reported and left in place. A file the manifest records
+             but that is missing from inputs/ is reported and not downloaded,
+             because acquire_sources restores it against its recorded fingerprint.
 
              When one study or one file fails, the script reports the problem and
              carries on with the rest.
@@ -80,6 +85,9 @@ Exit codes:  0   SUCCEEDED  the command succeeded
              11  CTGOV-ERROR-ANSWER  ClinicalTrials.gov answered with an error
              11  CTGOV-DOWNLOAD-ERROR-ANSWER  ClinicalTrials.gov's file server
                  answered with an error
+             12  PINNED-FILE-NOT-DOWNLOADED  a pinned file has not been downloaded
+                 (with --accept, a file the study's manifest records that is missing
+                 from inputs/study_documents/)
              12  MANIFEST-MISSING  the manifests folder is missing or holds no
                  manifest (with --accept, when a study's manifest is read to
                  confirm a file already in inputs/study_documents/)
@@ -196,6 +204,7 @@ PRECEDENCE = (
     "MANIFEST-LOCATION-OUTSIDE-INPUTS",
     "MANIFEST-ENTRY-EXISTS",
     "FILE-UNRECORDED",
+    "PINNED-FILE-NOT-DOWNLOADED",
     "CTGOV-DOWNLOAD-NOT-PLACED",
     "CTGOV-DOWNLOAD-SIZE-MISMATCH",
     "CTGOV-DOWNLOAD-UNREADABLE",
@@ -383,6 +392,26 @@ def document_url(nct_id: str, document: dict[str, Any]) -> str:
 
 
 #######################################################################################
+### Naming a pinned file ###
+
+
+def pinned_name(filename: str) -> str:
+    """Give the name a file is pinned under in inputs/study_documents/.
+
+    A pinned file keeps its publisher's name with spaces replaced by underscores, as
+    CLAUDE.md requires. The download address keeps the original name, because that is
+    the name ClinicalTrials.gov serves the file under.
+
+    Args:
+        filename: The file's name as ClinicalTrials.gov gives it, from protocol_and_sap.
+
+    Returns:
+        The name with every space replaced by an underscore.
+    """
+    return filename.replace(" ", "_")
+
+
+#######################################################################################
 ### Confirming a download's size ###
 
 
@@ -417,7 +446,7 @@ def recorded_in_manifest(nct_id: str, filename: str) -> bool:
 
     Args:
         nct_id: The study's NCT number, which is also its manifest's name.
-        filename: The file's name, as ClinicalTrials.gov gives it.
+        filename: The file's pinned name, from pinned_name.
 
     Returns:
         True when the study's manifest has an entry for the file. False when it has no
@@ -506,7 +535,7 @@ def manifest_entry(
         The entry, with the fields every manifest entry holds, plus the label and dates
         ClinicalTrials.gov gives the file.
     """
-    filename = document["filename"]
+    filename = pinned_name(document["filename"])
 
     # The version is made from the two dates ClinicalTrials.gov gives the file. A date
     # it leaves out is left out here too, so the entry never records a missing date as
@@ -601,14 +630,15 @@ def main(argv: list[str] | None = None) -> int:
     - protocol_and_sap keeps each study's protocol and SAP files, and drops its other
       files.
     - A file already in the folder is skipped. With --accept, recorded_in_manifest
-      first confirms that the study's manifest records it, and one that is not
-      recorded is reported instead.
+      first says whether the study's manifest records the file. A file on disk that
+      is not recorded is reported instead of skipped, and a recorded file missing
+      from disk is reported instead of downloaded.
     - fetch downloads each other file under a temporary name, from the address
       document_url builds.
     - With --accept, confirm_size confirms each file's size, fingerprint measures it,
       and write_entry writes the entry manifest_entry builds into the study's
-      manifest. A file that fails the size check, cannot be opened, or cannot be
-      recorded is deleted by remove_download.
+      manifest. A file whose size does not match, that cannot be opened, or that
+      cannot be recorded is deleted by remove_download.
     - place renames each file to its final name. With --accept, a file that cannot
       be renamed is already in its manifest, so it is reported, deleted by
       remove_download, and left for acquire_sources to download again.
@@ -649,8 +679,8 @@ def main(argv: list[str] | None = None) -> int:
     # decide the exit number at the end.
     seen: dict[str, int] = {}
 
-    # The repo check runs first, because .env and inputs/ are both found from the
-    # repo root.
+    # require_repo confirms first that the package runs from inside its repo,
+    # because .env and inputs/ are both found from the repo root.
     try:
         require_repo()
     except NotInRepoError as exc:
@@ -707,42 +737,66 @@ def main(argv: list[str] | None = None) -> int:
             continue
 
         for document in documents:
+            # A pinned file is saved, recorded and looked up under its pinned name. A
+            # review copy keeps the name ClinicalTrials.gov gives it, because it is not
+            # pinned.
             filename = document["filename"]
+            if args.accept:
+                filename = pinned_name(filename)
             destination = folder / nct_id / filename
 
-            # place() refuses to replace a file that is already there, so a file
-            # already saved is skipped instead of being downloaded again for nothing.
-            # With --accept, a file already under inputs/ is skipped only when its
-            # study's manifest records it. One that is not recorded is reported and
-            # left in place, for a person to record or remove.
+            # With --accept, whether the study's manifest records the file decides what
+            # happens to it, together with whether the file is on disk.
+            # - On disk and recorded, it is skipped as already saved.
+            # - On disk and not recorded, it is reported and left in place, for a
+            #   person to record or remove.
+            # - Recorded but missing, it is reported and not downloaded, because
+            #   acquire_sources restores a recorded file against its fingerprint, and
+            #   a new entry for it would be refused.
+            # - Neither, it is downloaded and recorded below.
+            # Without --accept, a file already saved is skipped, because place()
+            # refuses to replace a file that is already there.
+            recorded = False
+            if args.accept:
+                try:
+                    recorded = recorded_in_manifest(nct_id, filename)
+                except ManifestError as exc:
+                    report(
+                        say,
+                        seen,
+                        "  ",
+                        exc.sub_code,
+                        exc.exit_code,
+                        f"FAILED  {exc}",
+                    )
+                    continue
             if destination.exists():
-                if args.accept:
-                    try:
-                        recorded = recorded_in_manifest(nct_id, filename)
-                    except ManifestError as exc:
-                        report(
-                            say,
-                            seen,
-                            "  ",
-                            exc.sub_code,
-                            exc.exit_code,
-                            f"FAILED  {exc}",
-                        )
-                        continue
-                    if not recorded:
-                        report(
-                            say,
-                            seen,
-                            "  ",
-                            "FILE-UNRECORDED",
-                            16,
-                            f"{filename} is already in {destination.parent}, and "
-                            f"manifests/study_documents/{nct_id}.json does not "
-                            "record it. It was left in place.",
-                        )
-                        continue
+                if args.accept and not recorded:
+                    report(
+                        say,
+                        seen,
+                        "  ",
+                        "FILE-UNRECORDED",
+                        16,
+                        f"{filename} is already in {destination.parent}, and "
+                        f"manifests/study_documents/{nct_id}.json does not "
+                        "record it. It was left in place.",
+                    )
+                    continue
                 say(f"  already saved  {filename}")
                 skipped += 1
+                continue
+            if recorded:
+                report(
+                    say,
+                    seen,
+                    "  ",
+                    "PINNED-FILE-NOT-DOWNLOADED",
+                    12,
+                    f"{filename} is recorded in manifests/study_documents/{nct_id}.json "
+                    f"but is not in {destination.parent}. Run acquire_sources to "
+                    "restore it.",
+                )
                 continue
 
             say(f"  downloading  {filename}")

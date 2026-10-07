@@ -83,22 +83,22 @@ def save_search_record(
     them in a file name.
 
     Args:
-      filters: The filters returned by read_filters in narrow_ctgov_study_records.py.
-      fields: The parts of each study record the search asked for, as passed to
-        fetch_study_records in fetch_ctgov_study_records.py.
-      returned: How many studies fetch_study_records in fetch_ctgov_study_records.py
-        returned.
-      remaining: How many studies were left after each filter, from
-        narrow_study_records in narrow_ctgov_study_records.py.
-      candidates: One description per candidate study, from describe_candidate in
-        parse_ctgov_study_records.py.
-      ran_at: When the search started.
+        filters: The filters returned by read_filters in narrow_ctgov_study_records.py.
+        fields: The parts of each study record the search asked for, as passed to
+            fetch_study_records in fetch_ctgov_study_records.py.
+        returned: How many studies fetch_study_records in fetch_ctgov_study_records.py
+            returned.
+        remaining: How many studies were left after each filter, from
+            narrow_study_records in narrow_ctgov_study_records.py.
+        candidates: One description per candidate study, from describe_candidate in
+            parse_ctgov_study_records.py.
+        ran_at: When the search started.
 
     Returns:
-      The path of the file written.
+        The path of the file written.
 
     Raises:
-      RecordNotWrittenError: The folder or file could not be written.
+        RecordNotWrittenError: The folder or file could not be written.
     """
 
     record = {

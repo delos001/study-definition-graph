@@ -168,6 +168,13 @@ def write_entry(
         )
         partial.replace(path)
     except OSError as exc:
+        # The .part file is removed so it is not left beside the manifest. When it
+        # cannot be removed either, it stays, because the error raised below already
+        # says what went wrong.
+        try:
+            partial.unlink(missing_ok=True)
+        except OSError:
+            pass
         raise ManifestNotWrittenError(f"{path} could not be written ({exc}).") from exc
     return path
 

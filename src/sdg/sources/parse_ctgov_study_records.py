@@ -42,7 +42,8 @@ def list_study_documents(study: dict[str, Any]) -> list[dict[str, Any]]:
     """List the documents associated with a study.
 
     Args:
-        study: One study as ClinicalTrials.gov sent it.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
 
     Returns:
         One entry per document, or an empty list when the study has none.
@@ -55,7 +56,8 @@ def list_study_countries(study: dict[str, Any]) -> set[str]:
     """List the countries where the study has sites, each country once.
 
     Args:
-        study: One study from ClinicalTrials.gov.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
 
     Returns:
         The names of the countries, or an empty set when the study lists no sites.
@@ -70,7 +72,8 @@ def describe_candidate(study: dict[str, Any]) -> dict[str, Any]:
     """Gather details a person needs to choose between candidate studies.
 
     Args:
-        study: One study that passed every filter.
+        study: One study record that passed every filter, from narrow_study_records
+            in narrow_ctgov_study_records.py.
 
     Returns:
         The study's ID, title, lead sponsor, conditions, countries with sites,

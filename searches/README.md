@@ -6,4 +6,4 @@ The records are committed, because a source such as ClinicalTrials.gov changes d
 
 | Folder | What it holds |
 | --- | --- |
-| `ctgov/` | One JSON file per run of `find_ctgov_studies`, named by the date and time the run started. Each file holds the search as sent, the filters as they were set, how many studies were left after each filter, and the details of each candidate study. |
+| `ctgov/` | One JSON file per run of `find_ctgov_studies`, named by the date and time the run started. Each file holds the search as sent, the filters as they were set, how many studies ClinicalTrials.gov returned, how many were left after each filter, and the details of each candidate study. |

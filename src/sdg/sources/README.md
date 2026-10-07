@@ -11,7 +11,6 @@ This folder gets and keeps the pipeline's inputs. It holds the workflows, each a
 | `update_sources.py` | Moves a source to a new version: fetch, fingerprint, write its entry. Not written yet; issue #18. |
 | `find_ctgov_studies.py` | Finds the studies on ClinicalTrials.gov that pass the filters in `ctgov_study_filters.yml`, and saves a record of each search. Run as `find_ctgov_studies`. It is built from the four ClinicalTrials.gov steps below. |
 | `download_ctgov_study_documents.py` | Downloads the protocol and SAP of each study named on the command line into the review folder set in `.env`. With `--accept`, it pins them under `inputs/study_documents/` and records them in `manifests/study_documents/`. Run as `download_ctgov_study_documents`. |
-| `ctgov_study_filters.yml` | The query `find_ctgov_studies.py` sends to the ClinicalTrials.gov API, and the rules it applies to the reply that the API cannot apply itself. |
 
 ## Steps
 
@@ -26,3 +25,9 @@ This folder gets and keeps the pipeline's inputs. It holds the workflows, each a
 | `parse_ctgov_study_records.py` | Pulls single pieces out of a study record, such as its documents or its countries with sites. |
 | `narrow_ctgov_study_records.py` | Reads `ctgov_study_filters.yml` and keeps the study records that pass its additional filters. |
 | `save_ctgov_search_records.py` | Writes the record of one search to `searches/ctgov/`. |
+
+## Settings
+
+| File | What it does |
+| --- | --- |
+| `ctgov_study_filters.yml` | The query `find_ctgov_studies.py` sends to the ClinicalTrials.gov API, and the rules it applies to the reply that the API cannot apply itself. |

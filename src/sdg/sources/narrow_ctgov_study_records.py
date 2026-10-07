@@ -10,8 +10,9 @@ Description: Reads src/sdg/sources/ctgov_study_filters.yml and keeps the study r
              - narrow_study_records runs the filter functions in order and counts
                how many records are left after each one.
 
-             The filters file and the filter functions are kept in one file, because
-             ADDITIONAL_FILTER_SETTINGS is the table that confirms the two agree.
+             read_filters and the filter functions are kept in this one file,
+             because ADDITIONAL_FILTER_SETTINGS is the table that confirms the
+             filters file and the filter functions agree.
 
 Inputs:      src/sdg/sources/ctgov_study_filters.yml (read-only)
              the study records from fetch_ctgov_study_records.py
@@ -112,7 +113,8 @@ ADDITIONAL_FILTER_SETTINGS: dict[str, tuple[Callable[[Any], bool], str]] = {
 # docs/exit_codes.csv.
 
 
-# Filters: Opening the filters file can fail in multiple ways.
+# Reading the filters file can fail in several ways, from a missing file to a wrong
+# setting, and each has its own error below.
 class FiltersError(Exception):
     """Raised when the filters file cannot be used.
 
@@ -163,18 +165,19 @@ def read_filters(path: Path = FILTERS_FILE) -> dict[str, Any]:
     """Read the filters file and confirm it holds the settings the script needs.
 
     Args:
-      path: The filters file.
+        path: The filters file.
 
     Returns:
-      The settings in the filters file including api, query and after_fetch specs.
+        The settings in the filters file including api, query and after_fetch specs.
 
     Raises:
-      FiltersMissingError: The filters file is missing.
-      FiltersUnreadableError: The filters file is on disk but cannot be read.
-      FiltersUnparseableError: The filters file is not a valid YAML.
-      FiltersInvalidError: The filters file is missing a setting the script needs, its
-        after_fetch section does not match ADDITIONAL_FILTER_SETTINGS, or one of those
-        settings has a value of the wrong kind.
+        FiltersMissingError: The filters file is missing.
+        FiltersUnreadableError: The filters file is on disk but cannot be read.
+        FiltersUnparseableError: The filters file is not a valid YAML.
+        FiltersInvalidError: The filters file is missing a setting the script needs, its
+            after_fetch section does not match ADDITIONAL_FILTER_SETTINGS, or a setting has
+            a value of the wrong kind, including an api that is not an https:// address
+            and an empty query.
     """
 
     # If a failure occurs, it is reported by the program using this module with its
@@ -203,6 +206,20 @@ def read_filters(path: Path = FILTERS_FILE) -> dict[str, Any]:
     missing = [name for name in ("api", "query", "after_fetch") if name not in filters]
     if missing:
         raise FiltersInvalidError(f"{path.name} is missing {', '.join(missing)}.")
+
+    # api and query are sent to ClinicalTrials.gov as they are written. A mistake in
+    # either is reported here with the setting's name, because once sent it would look
+    # like ClinicalTrials.gov failing to answer.
+    api, query = filters["api"], filters["query"]
+    if not (isinstance(api, str) and api.startswith("https://")):
+        raise FiltersInvalidError(
+            f"{path.name}: api must be a web address starting with https://, "
+            f"and it is {api!r}."
+        )
+    if not (isinstance(query, str) and query.strip()):
+        raise FiltersInvalidError(
+            f"{path.name}: query must be text that is not empty, and it is {query!r}."
+        )
 
     # The settings in the after_fetch section of the ctgov_study_filters.yml must match
     # the settings listed in the ADDITIONAL_FILTER_SETTINGS.
@@ -253,7 +270,8 @@ def separate_protocol_sap(
     holding both. A combined file counts as neither.
 
     Args:
-        study: One study from ClinicalTrials.gov.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
         additional_filters: The after_fetch section of ctgov_study_filters.yml. This
             function reads its separate_protocol_sap value, which turns the
             filter on or off.
@@ -278,7 +296,8 @@ def recent_sap(study: dict[str, Any], additional_filters: dict[str, Any]) -> boo
     separate SAP. A file with a missing or malformed date does not count.
 
     Args:
-        study: One study from ClinicalTrials.gov.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
         additional_filters: The after_fetch section of ctgov_study_filters.yml. This
             function reads its sap_dated_on_or_after date.
 
@@ -308,7 +327,8 @@ def min_countries(study: dict[str, Any], additional_filters: dict[str, Any]) -> 
     Each country is counted once, however many sites the study has in it.
 
     Args:
-        study: One study from ClinicalTrials.gov.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
         additional_filters: The after_fetch section of ctgov_study_filters.yml. This
             function reads its min_countries number.
 
@@ -328,7 +348,8 @@ def condition_terms(study: dict[str, Any], additional_filters: dict[str, Any]) -
     Neoplasms also carries Neoplasms. A study with no terms is dropped.
 
     Args:
-        study: One study from ClinicalTrials.gov.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
         additional_filters: The after_fetch section of ctgov_study_filters.yml. This
             function reads its condition_terms list.
 
@@ -353,7 +374,8 @@ def intervention_types(
     treatment listed, or a treatment with no type, is dropped.
 
     Args:
-        study: One study from ClinicalTrials.gov.
+        study: One study record from fetch_study_records in
+            fetch_ctgov_study_records.py.
         additional_filters: The after_fetch section of ctgov_study_filters.yml. This
             function reads its intervention_types_allowed and
             intervention_types_required lists.

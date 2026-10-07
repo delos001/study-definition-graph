@@ -59,7 +59,8 @@ TIMEOUT_SECONDS = 60.0
 # docs/exit_codes.csv.
 
 
-# CTGov: The script can fail multiple ways when it asks ClinicalTrials.gov for studies.
+# Asking ClinicalTrials.gov for studies can fail in several ways, and each has its own
+# error below.
 class CtgovError(Exception):
     """Raised when the studies cannot be collected from ClinicalTrials.gov.
 
@@ -106,19 +107,19 @@ def fetch_study_records(api: str, query: str, fields: str) -> list[dict[str, Any
     to get the next page.
 
     Args:
-      api: The api web address, such as the api entry in ctgov_study_filters.yml.
-      query: The search, written in the API's query language, such as the query entry
-        in ctgov_study_filters.yml.
-      fields: The parts of each study record to ask for, joined by |, such as
-        ProtocolSection|DocumentSection.
+        api: The api web address, such as the api entry in ctgov_study_filters.yml.
+        query: The search, written in the API's query language, such as the query entry
+            in ctgov_study_filters.yml.
+        fields: The parts of each study record to ask for, joined by |, such as
+            ProtocolSection|DocumentSection.
 
     Returns:
-      A list of the study record of every study that matched the search.
+        A list of the study record of every study that matched the search.
 
     Raises:
-      CtgovNoAnswerError: ClinicalTrials.gov cannot be reached or did not answer in time.
-      CtgovBadAnswerError: ClinicalTrials.gov answers with an error.
-      CtgovReplyUnparseableError: The answer from ClinicalTrials.gov is not valid JSON.
+        CtgovNoAnswerError: ClinicalTrials.gov cannot be reached or did not answer in time.
+        CtgovBadAnswerError: ClinicalTrials.gov answers with an error.
+        CtgovReplyUnparseableError: The answer from ClinicalTrials.gov is not valid JSON.
     """
 
     params: dict[str, str | int] = {
