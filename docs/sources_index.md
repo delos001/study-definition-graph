@@ -245,7 +245,7 @@ These resources were looked at and not pinned. They are listed so the same quest
 | Resource | Where | Why not pinned |
 | --- | --- | --- |
 | cdisc-rules-engine | github.com/cdisc-org | The CDISC Open Rules Engine (CORE), the conformance engine. It is a tool rather than data, so if it is adopted it will be pinned by version like the other software, not fingerprinted. Whether it can be used without a membership is issue #35. |
-| ClinicalTrials.gov API v2 | live | Phase 1 fetches protocols and SAPs from it. The documents it returns are pinned under `inputs/study_documents/`; the API responses are not kept. |
+| ClinicalTrials.gov API v2 | live | `find_ctgov_studies` searches it for candidate studies, and `download_ctgov_study_documents` reads the list of documents each study posted. The documents are downloaded from ClinicalTrials.gov's file server and pinned under `inputs/study_documents/`. The full API replies are not kept. A record of each search, with its candidates, is kept in `searches/ctgov/`. |
 
 ### Reviewed and not taken
 

@@ -5,26 +5,27 @@ Description: Reads src/sdg/sources/ctgov_study_filters.yml and keeps the study r
              ClinicalTrials.gov API cannot apply itself.
 
              - read_filters reads the filters file and confirms it holds every setting
-               the filter functions need, and no setting none of them reads.
-             - narrow_ctgov_study_records runs the filter functions in order and counts
+               the filter functions need, no setting none of them reads, and a value
+               of the right kind in each setting.
+             - narrow_study_records runs the filter functions in order and counts
                how many records are left after each one.
 
              The filters file and the filter functions are kept in one file, because
-             ADDITIONAL_FILTER_SETTINGS is the list that confirms the two agree.
+             ADDITIONAL_FILTER_SETTINGS is the table that confirms the two agree.
 
 Inputs:      src/sdg/sources/ctgov_study_filters.yml (read-only)
              the study records from fetch_ctgov_study_records.py
 
 Outputs:     Nothing on disk.
              read_filters hands back the settings in the filters file.
-             narrow_ctgov_study_records hands back the records that passed every
+             narrow_study_records hands back the records that passed every
              filter, and how many were left after each one.
 
 Usage:       This file is not run directly; other code imports it.
              from sdg.sources.narrow_ctgov_study_records import (
-                 narrow_ctgov_study_records, read_filters)
+                 narrow_study_records, read_filters)
                 read_filters()                                  -> the filters file's settings
-                narrow_ctgov_study_records(studies, after_fetch) -> (kept records, counts)
+                narrow_study_records(studies, after_fetch) -> (kept records, counts)
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
@@ -35,14 +36,16 @@ Exit codes:  There are none, because this file is not run on its own. On a probl
              FiltersUnreadableError   the filters file is on disk but cannot be read
              FiltersUnparseableError  the filters file is not valid YAML
              FiltersInvalidError      the filters file is missing a setting the
-                                      filter functions need, or has a setting none
-                                      of them reads
+                                      filter functions need, has a setting none
+                                      of them reads, or has a setting with a value
+                                      of the wrong kind
 
 Date:        2026-10-06
 Owner:       Jason Delosh
 """
 
-from datetime import date
+from collections.abc import Callable
+from datetime import date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -57,19 +60,50 @@ from .parse_ctgov_study_records import list_study_countries, list_study_document
 # there, whatever folder the script is run from.
 FILTERS_FILE = Path(__file__).with_name("ctgov_study_filters.yml")
 
-# This is a list of filters in the filters file. Each name is used by one of the
-# filter functions in "Applying additional filters" section.
-# The script stops if the filters file has a field or list name that is not in this
-# list because that means the filter file and the filter functions are out of sync.
-# This script stops if a name on this list is not present in the filters file.
-ADDITIONAL_FILTER_SETTINGS = (
-    "separate_protocol_sap",
-    "sap_dated_on_or_after",
-    "min_countries",
-    "condition_terms",
-    "intervention_types_allowed",
-    "intervention_types_required",
-)
+
+def _is_text_list(value: Any) -> bool:
+    """Say whether a setting is a list whose items are all text.
+
+    Args:
+        value: One setting from the after_fetch section of ctgov_study_filters.yml.
+
+    Returns:
+        True when the setting is a list of text items.
+    """
+    return isinstance(value, list) and all(isinstance(item, str) for item in value)
+
+
+# This table names each setting in the after_fetch section of the filters file, the
+# test its value must pass, and that test in plain words for the error message. Each
+# setting is read by one of the filter functions in the "Applying additional filters"
+# section.
+# - The script stops if the filters file has a setting that is not in this table,
+#   because that means the filters file and the filter functions are out of step.
+# - The script stops if a setting in this table is not in the filters file.
+# - The script stops if a setting's value fails its test, because a filter function
+#   would otherwise stop on it part way through a run with a raw Python error.
+#
+# The YAML reader turns 2020-01-01 into a date, but "2020-01-01" in quotes stays text,
+# and 2020-01-01 10:00 becomes a date and time. Only a plain date can be compared with
+# the SAP dates. true is excluded from the whole numbers, because Python counts it as
+# the number 1.
+ADDITIONAL_FILTER_SETTINGS: dict[str, tuple[Callable[[Any], bool], str]] = {
+    "separate_protocol_sap": (
+        lambda value: isinstance(value, bool),
+        "true or false",
+    ),
+    "sap_dated_on_or_after": (
+        lambda value: isinstance(value, date) and not isinstance(value, datetime),
+        "a date written as year-month-day, without quotes",
+    ),
+    "min_countries": (
+        lambda value: isinstance(value, int) and not isinstance(value, bool),
+        "a whole number",
+    ),
+    "condition_terms": (_is_text_list, "a list of terms"),
+    "intervention_types_allowed": (_is_text_list, "a list of treatment types"),
+    "intervention_types_required": (_is_text_list, "a list of treatment types"),
+}
 
 #######################################################################################
 ### Failures ###
@@ -112,7 +146,8 @@ class FiltersUnparseableError(FiltersError):
 
 
 class FiltersInvalidError(FiltersError):
-    """Raised when the filters file is missing a setting the script needs."""
+    """Raised when the filters file is missing a setting the script needs, has a
+    setting no filter reads, or has a setting with a value of the wrong kind."""
 
     exit_code = 15
     sub_code = "FILTERS-FILE-INVALID"
@@ -137,8 +172,9 @@ def read_filters(path: Path = FILTERS_FILE) -> dict[str, Any]:
       FiltersMissingError: The filters file is missing.
       FiltersUnreadableError: The filters file is on disk but cannot be read.
       FiltersUnparseableError: The filters file is not a valid YAML.
-      FiltersInvalidError: The filters file is missing a setting the script needs, or
-        its after_fetch section does not match ADDITIONAL_FILTER_SETTINGS.
+      FiltersInvalidError: The filters file is missing a setting the script needs, its
+        after_fetch section does not match ADDITIONAL_FILTER_SETTINGS, or one of those
+        settings has a value of the wrong kind.
     """
 
     # If a failure occurs, it is reported by the program using this module with its
@@ -184,6 +220,19 @@ def read_filters(path: Path = FILTERS_FILE) -> dict[str, Any]:
     if absent:
         raise FiltersInvalidError(
             f"{path.name} is missing after_fetch settings: {', '.join(absent)}."
+        )
+
+    # Each setting's value is tested here, so a wrong kind of value is reported with
+    # the setting's name before ClinicalTrials.gov is asked anything.
+    wrong = [
+        f"{name} must be {meaning}, and it is {additional_filters[name]!r}"
+        for name, (passes, meaning) in ADDITIONAL_FILTER_SETTINGS.items()
+        if not passes(additional_filters[name])
+    ]
+    if wrong:
+        raise FiltersInvalidError(
+            f"{path.name} has after_fetch settings of the wrong kind: "
+            f"{'; '.join(wrong)}."
         )
     return filters
 
@@ -334,7 +383,7 @@ FILTER_FUNCTIONS = (
 )
 
 
-def narrow_ctgov_study_records(
+def narrow_study_records(
     studies: list[dict[str, Any]], additional_filters: dict[str, Any]
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     """Obtain just the studies that meet the criteria defined by the additional filters.
@@ -343,7 +392,7 @@ def narrow_ctgov_study_records(
     then writes down how many are left.
 
     Args:
-        studies: The study records returned by fetch_ctgov_study_records in
+        studies: The study records returned by fetch_study_records in
             fetch_ctgov_study_records.py.
         additional_filters: All filter criteria present in the after_fetch section of
             ctgov_study_filters.yml. This function passes them to each filter function.

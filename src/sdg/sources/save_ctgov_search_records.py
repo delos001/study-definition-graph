@@ -18,8 +18,8 @@ Outputs:     One JSON file in searches/ctgov/, and the folder if it did not exis
              Hands back the path of the file written.
 
 Usage:       This file is not run directly; other code imports it.
-             from sdg.sources.save_ctgov_search_records import save_ctgov_search_records
-                save_ctgov_search_records(filters, fields, returned, remaining,
+             from sdg.sources.save_ctgov_search_records import save_search_record
+                save_search_record(filters, fields, returned, remaining,
                                           candidates, ran_at)   -> path of the file
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it stops
@@ -68,7 +68,7 @@ class RecordNotWrittenError(Exception):
 # Writes the query as sent, the date, the counts and the studies that passed.
 
 
-def save_ctgov_search_records(
+def save_search_record(
     filters: dict[str, Any],
     fields: str,
     returned: int,
@@ -85,10 +85,11 @@ def save_ctgov_search_records(
     Args:
       filters: The filters returned by read_filters in narrow_ctgov_study_records.py.
       fields: The parts of each study record the search asked for, as passed to
-        fetch_ctgov_study_records.
-      returned: How many studies fetch_ctgov_study_records returned.
+        fetch_study_records in fetch_ctgov_study_records.py.
+      returned: How many studies fetch_study_records in fetch_ctgov_study_records.py
+        returned.
       remaining: How many studies were left after each filter, from
-        narrow_ctgov_study_records.
+        narrow_study_records in narrow_ctgov_study_records.py.
       candidates: One description per candidate study, from describe_candidate in
         parse_ctgov_study_records.py.
       ran_at: When the search started.

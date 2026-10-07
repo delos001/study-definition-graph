@@ -39,9 +39,9 @@ Outputs:     The manifest file with the entry added or replaced, and its folder 
              Hands back the path of the manifest written.
 
 Usage:       This file is not run directly; other code imports it.
-             from sdg.sources.write_manifests import write_manifests
-                write_manifests(path, set_details, entry)                -> path written
-                write_manifests(path, set_details, entry, replace=True)  -> path written
+             from sdg.sources.write_manifests import write_entry
+                write_entry(path, set_details, entry)                -> path written
+                write_entry(path, set_details, entry, replace=True)  -> path written
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it
              stops and hands an error to the program using it, which decides what to
@@ -101,7 +101,7 @@ class ManifestNotWrittenError(ManifestError):
 ### Writing an entry ###
 
 
-def write_manifests(
+def write_entry(
     path: Path,
     set_details: dict[str, Any],
     entry: dict[str, Any],
@@ -141,9 +141,9 @@ def write_manifests(
     manifest = _read_or_start(path, set_details)
 
     # A new entry's local path is compared with each existing entry's local path. When
-    # one matches, and if this function is called by an 'update sources' script, the
-    # existing entry is replaced where it stands so the order of the files does not
-    # change. Otherwise the write is refused.
+    # one matches and replace is True, the existing entry is replaced where it stands,
+    # so the order of the files does not change. When replace is False, the write is
+    # refused.
     files = manifest["files"]
     for position, existing in enumerate(files):
         if existing.get("local") == entry["local"]:
@@ -183,7 +183,7 @@ def _read_or_start(path: Path, set_details: dict[str, Any]) -> dict[str, Any]:
     Args:
         path: The manifest file.
         set_details: The fields that describe the whole set rather than one file,
-            from write_manifests.
+            from write_entry.
 
     Returns:
         The manifest as a dictionary, holding a list under files.

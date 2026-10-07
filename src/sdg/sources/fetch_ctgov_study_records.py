@@ -19,8 +19,8 @@ Outputs:     Nothing on disk.
              Hands back the list of study records that matched the query.
 
 Usage:       This file is not run directly; other code imports it.
-             from sdg.sources.fetch_ctgov_study_records import fetch_ctgov_study_records
-                fetch_ctgov_study_records(api, query, fields)   -> list of study records
+             from sdg.sources.fetch_ctgov_study_records import fetch_study_records
+                fetch_study_records(api, query, fields)   -> list of study records
 
 Exit codes:  There are none, because this file is not run on its own. On a problem it stops
              and hands an error to the program using it, which decides what to
@@ -98,9 +98,7 @@ class CtgovReplyUnparseableError(CtgovError):
 # Sends the query to ClinicalTrials.gov and collects every page of the reply.
 
 
-def fetch_ctgov_study_records(
-    api: str, query: str, fields: str
-) -> list[dict[str, Any]]:
+def fetch_study_records(api: str, query: str, fields: str) -> list[dict[str, Any]]:
     """Send the query to ClinicalTrials.gov and collect the study records from every page.
 
     ClinicalTrials.gov returns one page at a time and a maximum of 1000 studies per

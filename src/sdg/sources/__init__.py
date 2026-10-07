@@ -13,7 +13,7 @@ from .fetch_ctgov_study_records import (
     CtgovError,
     CtgovNoAnswerError,
     CtgovReplyUnparseableError,
-    fetch_ctgov_study_records,
+    fetch_study_records,
 )
 from .fetch_file import (
     FetchBadUrlError,
@@ -33,7 +33,7 @@ from .narrow_ctgov_study_records import (
     FiltersMissingError,
     FiltersUnparseableError,
     FiltersUnreadableError,
-    narrow_ctgov_study_records,
+    narrow_study_records,
     read_filters,
 )
 from .parse_ctgov_study_records import (
@@ -57,7 +57,7 @@ from .read_manifests import (
     manifests,
     require_repo,
 )
-from .save_ctgov_search_records import RecordNotWrittenError, save_ctgov_search_records
+from .save_ctgov_search_records import RecordNotWrittenError, save_search_record
 from .verify_pinned import (
     IntegrityError,
     PinnedFile,
@@ -67,7 +67,7 @@ from .verify_pinned import (
 from .write_manifests import (
     ManifestEntryExistsError,
     ManifestNotWrittenError,
-    write_manifests,
+    write_entry,
 )
 
 __all__ = [
@@ -109,18 +109,18 @@ __all__ = [
     "entry_for",
     "entry_named",
     "fetch",
-    "fetch_ctgov_study_records",
+    "fetch_study_records",
     "fingerprint",
     "list_study_countries",
     "list_study_documents",
     "manifests",
-    "narrow_ctgov_study_records",
+    "narrow_study_records",
     "partial_path",
     "place",
     "PinnedFile",
     "read_filters",
     "require_repo",
-    "save_ctgov_search_records",
+    "save_search_record",
     "verify_pinned",
-    "write_manifests",
+    "write_entry",
 ]

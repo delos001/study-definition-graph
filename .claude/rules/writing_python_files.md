@@ -62,7 +62,7 @@ A file is divided into named sections, each marked with a two-line banner: a ful
 
 ## Names, layout and types
 
-Layout and naming follow PEP 8: four spaces per indent, `snake_case` for functions and variables, `PascalCase` for classes, `UPPER_CASE` for constants, and imports grouped as standard library, then third party, then this project. ruff enforces all of this, so none of it is done by hand.
+Layout and naming follow PEP 8: four spaces per indent, `snake_case` for functions and variables, `PascalCase` for classes, `UPPER_CASE` for constants, and imports grouped as standard library, then third party, then this project. ruff enforces all of this, so none of it is done by hand. A function is never named the same as the file it is in, because listing it in the package's `__init__.py` would then hide the file behind the function.
 
 Every function signature carries a type hint on each argument and on the return. Checks and pytest fixtures are exempt, because their arguments are the situation pytest staged for them, and a hint on each would only repeat its name.
 
@@ -95,7 +95,7 @@ Each part of a function's docstring has its own job, and no part repeats another
 
 - The summary line says what the function is for, in plain words. What the function hands back is the job of `Returns:`, so the summary line does not restate it.
 - An argument that holds values read from a file names, in `Args:`, the entry the function reads and the file it comes from, as in "the min_countries entry in the after_fetch section of ctgov_study_filters.yml".
-- An argument that comes from another function names that function, and its file when the function is in a different file, as in "the studies returned by fetch_studies in fetch_studies.py".
+- An argument that comes from another function names that function, and its file when the function is in a different file, as in "the studies returned by fetch_studies in study_search.py".
 - `Returns:` says only what comes back.
 
 A check's docstring opens with one paragraph saying what must be true for the check to pass. `src/sdgval/build_inventory.py` copies that paragraph, and only that paragraph, into the `expected_result` column of `validation/validation_inventory.csv`, so it has to stand on its own. Anything the opening paragraph needs, put in it. A further paragraph is welcome where the check needs one, usually to say how the situation was staged, and it stays in the file rather than going into the table. It starts with a letter or a digit, never with `=`, `+`, `-` or `@`, because a spreadsheet reads a cell opening with one of those as a formula, and `src/sdgval/build_inventory.py` refuses it. Whitespace at the front of the docstring is fine, because the generator strips it before it looks at the sentence.

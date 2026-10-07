@@ -21,13 +21,14 @@ code,group,sub_code,what_happened,what_to_do
 8,an outside program is not the pinned version,PYTHON-VERSION-CHANGED,the fingerprints in the validation inventory were made by another Python version,"Run build_inventory --python-changed, and commit the result alone, in a commit that changes nothing else."
 9,a service did not respond,CLAUDE-API-UNREACHABLE,the Claude API could not be reached,"Confirm the network connection works, then run the command again."
 9,a service did not respond,CTGOV-NO-ANSWER,ClinicalTrials.gov could not be reached or did not answer in time,"Confirm the network connection works, then run the command again."
-9,a service did not respond,DOWNLOAD-NO-ANSWER,"a download's server could not be reached, did not answer in time, or stopped part way","Confirm the network connection works, then run acquire_sources again."
+9,a service did not respond,DOWNLOAD-NO-ANSWER,"a download's server could not be reached, did not answer in time, or stopped part way","Confirm the network connection works, then run the command again."
 9,a service did not respond,NEO4J-UNREACHABLE,Neo4j could not be reached at the address in .env,Start the container from the repo folder with docker compose up -d.
 10,"a service refused the login, key or permission",CLAUDE-API-ACCESS-REFUSED,the Claude API knows the key but refused it access to the model,The key is right. Look at the account it belongs to at https://console.anthropic.com/.
 10,"a service refused the login, key or permission",CLAUDE-API-KEY-REJECTED,the Claude API rejected the key,Confirm the key at https://console.anthropic.com/ and paste it into .env again.
-10,"a service refused the login, key or permission",DOWNLOAD-REFUSED,a download's server refused access to the file,Confirm the url in the manifest still gives public access to the file.
+10,"a service refused the login, key or permission",DOWNLOAD-REFUSED,a download's server refused access to the file,Confirm the url the message names still gives public access to the file.
 10,"a service refused the login, key or permission",NEO4J-LOGIN-REJECTED,Neo4j rejected the login in .env,Make NEO4J_USER and NEO4J_PASSWORD in .env match the NEO4J_AUTH line in docker-compose.yml.
 11,a service answered with an error,CLAUDE-API-ERROR,the Claude API answered with an error,"Act on the API's own message, which the command prints."
+11,a service answered with an error,CTGOV-DOWNLOAD-ERROR-ANSWER,ClinicalTrials.gov's file server answered with an error,"Open the study's page on ClinicalTrials.gov and confirm the file still downloads. If its address no longer follows DOCUMENT_URL in src/sdg/sources/download_ctgov_study_documents.py, update DOCUMENT_URL."
 11,a service answered with an error,CTGOV-ERROR-ANSWER,ClinicalTrials.gov answered with an error,"Act on the message the command prints. A rejected search usually means the query in src/sdg/sources/ctgov_study_filters.yml needs correcting."
 11,a service answered with an error,DOWNLOAD-ERROR-ANSWER,a download's server answered with an error,Confirm the url in the manifest still serves the file. A file that moved is a deliberate re-pin.
 12,a file does not exist,COMMAND-FILE-MISSING,pyproject.toml installs a command from a file that does not exist,"Correct the entry in pyproject.toml, or restore the file from git."
@@ -68,7 +69,7 @@ code,group,sub_code,what_happened,what_to_do
 15,content breaks a requirement,CHECK-MARKERS-WRONG,"a check's markers, id or first sentence are missing or wrong, or its id is a duplicate","Correct the marker, id or first sentence the message names."
 15,content breaks a requirement,COMPOSE-FILE-NO-IMAGE,docker-compose.yml names no Neo4j image in the form neo4j:<version>-<edition>,"Write the image line as, for example, neo4j:5.26.29-community."
 15,content breaks a requirement,EXIT-TABLE-INVALID,a row of docs/exit_codes.csv breaks the table's rules,Correct the row the message names in docs/exit_codes.csv.
-15,content breaks a requirement,FILTERS-FILE-INVALID,"the ClinicalTrials.gov filters file is missing a setting the script needs, or has a filter the script does not apply","Correct the setting the message names in src/sdg/sources/ctgov_study_filters.yml, or restore the file from git."
+15,content breaks a requirement,FILTERS-FILE-INVALID,"the ClinicalTrials.gov filters file is missing a setting the script needs, has a filter the script does not apply, or has a setting with a value of the wrong kind","Correct the setting the message names in src/sdg/sources/ctgov_study_filters.yml, or restore the file from git."
 15,content breaks a requirement,FINGERPRINT-MISSING,a check's fingerprint in the validation inventory is missing or unreadable,"Put the check's fingerprint back as git last recorded it, then run build_inventory again."
 15,content breaks a requirement,GROUP-HAS-NO-IDS,a group in validation/validation_groups.yml lists no ids,Give the group an ids list naming at least one check.
 15,content breaks a requirement,GROUP-MIXES-ASPECTS,a group in validation/validation_groups.yml lists checks of more than one aspect,Keep the group to checks of one aspect.
@@ -79,7 +80,7 @@ code,group,sub_code,what_happened,what_to_do
 15,content breaks a requirement,MANIFEST-INVALID,a manifest's content breaks a requirement,"Repair the entry the message names, or restore manifests/ from git."
 15,content breaks a requirement,MANIFEST-LOCATION-OUTSIDE-INPUTS,a manifest records a location that does not stay under inputs/,"Write the entry's local as a path under inputs/, with no .., drive or leading slash."
 15,content breaks a requirement,MANIFEST-NAME-SHARED,two manifest entries record the same file name,Change the code that asks for the name so it chooses one version of the file.
-15,content breaks a requirement,MANIFEST-URL-INVALID,a manifest entry's url is not one the download library can use,Correct the url in the manifest entry.
+15,content breaks a requirement,MANIFEST-URL-INVALID,a manifest entry's url is not one the download library can use,"Correct the url the message names where it is written, in its manifest entry or in the setting the command builds it from."
 15,content breaks a requirement,PINNED-FILE-WRONG-SHAPE,a pinned file is not shaped the way a measurement expects,Look at the file the message names. A publisher change to its layout needs the measurement in src/sdgtools/check_facts.py updated.
 15,content breaks a requirement,PYPROJECT-SCRIPTS-INVALID,the [project.scripts] table of pyproject.toml does not name each command with the module and function it runs,"Write each [project.scripts] entry as the module and function it runs, as in sdg.sources.acquire_sources:main."
 15,content breaks a requirement,RUFF-OR-MYPY-PROBLEM,ruff or mypy reported a problem in a Python file,"Fix what ruff or mypy reported, above the verdict lines."
@@ -118,8 +119,9 @@ code,group,sub_code,what_happened,what_to_do
 18,the command found no target to act on,NO-CHECKS-COLLECTED,no check was collected,Point the run at a folder or file that holds checks.
 18,the command found no target to act on,NO-COMMANDS-INSTALLED,pyproject.toml installs no command,Add the commands to the [project.scripts] table of pyproject.toml.
 19,an output already exists and is not overwritten,MANIFEST-ENTRY-EXISTS,"a manifest already records the file, and replacing it was not asked for","Run acquire_sources if the recorded file is missing from inputs/. A new version of the file is a deliberate re-pin."
+20,an output could not be written,CTGOV-DOWNLOAD-NOT-PLACED,a downloaded file is recorded in its manifest but could not be given its final name,"Close any program holding the file, such as antivirus software, then run acquire_sources, which downloads the recorded file again."
 20,an output could not be written,CTGOV-RECORD-NOT-WRITTEN,"the ClinicalTrials.gov search record, or its folder, could not be written to disk","Free space on the disk, or remove what sits where searches/ctgov/ or the file should be, then run the command again."
-20,an output could not be written,DOWNLOAD-NOT-WRITTEN,"a download, or its folder, could not be written to disk","Free space on the disk, or remove what sits where the file or its folder should be, then run acquire_sources again."
+20,an output could not be written,DOWNLOAD-NOT-WRITTEN,"a download, or its folder, could not be written to disk","Free space on the disk, or remove what sits where the file or its folder should be, then run the command again."
 20,an output could not be written,MANIFEST-NOT-WRITTEN,"a manifest, or its folder, could not be written to disk","Free space on the disk, or close any program holding the manifest, then run the command again."
 21,one or more validation checks failed,CHECKS-FAILED,one or more validation checks failed,"Read the failed checks pytest listed, then fix what each names."
 22,an evaluation score fell below its threshold,,no command fails this way yet,

@@ -56,8 +56,8 @@ Exit codes:  0   SUCCEEDED  the command succeeded
              14  CTGOV-REPLY-UNPARSEABLE  the answer from ClinicalTrials.gov is not
                  valid JSON
              15  FILTERS-FILE-INVALID  the ClinicalTrials.gov filters file is
-                 missing a setting the script needs, or has a filter the script
-                 does not apply
+                 missing a setting the script needs, has a filter the script does
+                 not apply, or has a setting with a value of the wrong kind
              17  CTGOV-NO-CANDIDATES  no study on ClinicalTrials.gov passed every
                  filter (the search record is still saved)
              20  CTGOV-RECORD-NOT-WRITTEN  the ClinicalTrials.gov search record, or
@@ -74,17 +74,17 @@ import sys
 from datetime import datetime
 
 from sdg.exit_codes import fail
-from sdg.sources.fetch_ctgov_study_records import CtgovError, fetch_ctgov_study_records
+from sdg.sources.fetch_ctgov_study_records import CtgovError, fetch_study_records
 from sdg.sources.narrow_ctgov_study_records import (
     FiltersError,
-    narrow_ctgov_study_records,
+    narrow_study_records,
     read_filters,
 )
 from sdg.sources.parse_ctgov_study_records import describe_candidate
-from sdg.sources.read_manifests import REPO_ROOT, NotInRepoError, require_repo
+from sdg.sources.read_manifests import NotInRepoError, require_repo
 from sdg.sources.save_ctgov_search_records import (
     RecordNotWrittenError,
-    save_ctgov_search_records,
+    save_search_record,
 )
 
 #######################################################################################
@@ -105,12 +105,12 @@ def main(argv: list[str] | None = None) -> int:
 
     Steps:
     - read_filters reads ctgov_study_filters.yml and confirms it is complete.
-    - fetch_ctgov_study_records sends the search to ClinicalTrials.gov and collects
+    - fetch_study_records sends the search to ClinicalTrials.gov and collects
       every matching study record.
-    - narrow_ctgov_study_records keeps the studies that pass every additional filter,
+    - narrow_study_records keeps the studies that pass every additional filter,
       and counts how many were left after each one.
     - describe_candidate gathers the details of each study that passed.
-    - save_ctgov_search_records writes the search, the counts and the candidates to a
+    - save_search_record writes the search, the counts and the candidates to a
       file in searches/ctgov/.
 
     Any step that fails stops the run, and main() reports the failure with its exit
@@ -153,11 +153,9 @@ def main(argv: list[str] | None = None) -> int:
     # here and reported with their own exit number.
     try:
         filters = read_filters()
-        studies = fetch_ctgov_study_records(filters["api"], filters["query"], FIELDS)
-        candidates, remaining = narrow_ctgov_study_records(
-            studies, filters["after_fetch"]
-        )
-        path = save_ctgov_search_records(
+        studies = fetch_study_records(filters["api"], filters["query"], FIELDS)
+        candidates, remaining = narrow_study_records(studies, filters["after_fetch"])
+        path = save_search_record(
             filters,
             FIELDS,
             len(studies),
@@ -171,7 +169,7 @@ def main(argv: list[str] | None = None) -> int:
     say(f"ClinicalTrials.gov returned {len(studies)} studies.")
     for name, count in remaining.items():
         say(f"  {count} left after {name}")
-    say(f"The record of this search is in {path.relative_to(REPO_ROOT)}.")
+    say(f"The record of this search is in {path}.")
 
     # A run that leaves no candidates is still saved above, because its record shows
     # which filter removed the last of them.

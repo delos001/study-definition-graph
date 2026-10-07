@@ -78,9 +78,11 @@ Exit codes:  0   SUCCEEDED  the command succeeded
              10  DOWNLOAD-REFUSED  a download's server refused access to the
                  file
              11  CTGOV-ERROR-ANSWER  ClinicalTrials.gov answered with an error
-             11  DOWNLOAD-ERROR-ANSWER  a download's server answered with an
-                 error (here the address was built from DOCUMENT_URL, not taken
-                 from a manifest)
+             11  CTGOV-DOWNLOAD-ERROR-ANSWER  ClinicalTrials.gov's file server
+                 answered with an error
+             12  MANIFEST-MISSING  the manifests folder is missing or holds no
+                 manifest (with --accept, when a study's manifest is read to
+                 confirm a file already in inputs/study_documents/)
              13  CTGOV-DOWNLOAD-UNREADABLE  a downloaded file cannot be opened to
                  confirm its size or measure its fingerprint (the download is
                  deleted, or the message names it for removal by hand)
@@ -89,6 +91,9 @@ Exit codes:  0   SUCCEEDED  the command succeeded
                  valid JSON
              14  MANIFEST-UNPARSEABLE  a manifest is not valid JSON
              15  MANIFEST-INVALID  a manifest's content breaks a requirement
+             15  MANIFEST-LOCATION-OUTSIDE-INPUTS  a manifest records a location
+                 that does not stay under inputs/ (with --accept, an entry in the
+                 study's manifest)
              15  MANIFEST-URL-INVALID  a manifest entry's url is not one the
                  download library can use (here the address was built from
                  DOCUMENT_URL, not taken from a manifest)
@@ -104,6 +109,9 @@ Exit codes:  0   SUCCEEDED  the command succeeded
              19  MANIFEST-ENTRY-EXISTS  a manifest already records the file, and
                  replacing it was not asked for (the download is deleted, or the
                  message names it for removal by hand)
+             20  CTGOV-DOWNLOAD-NOT-PLACED  a downloaded file is recorded in its
+                 manifest but could not be given its final name (the download is
+                 deleted, or the message names it for removal by hand)
              20  DOWNLOAD-NOT-WRITTEN  a download, or its folder, could not be
                  written to disk
              20  MANIFEST-NOT-WRITTEN  a manifest, or its folder, could not be
@@ -111,7 +119,8 @@ Exit codes:  0   SUCCEEDED  the command succeeded
                  for removal by hand)
              The wording above is copied from docs/exit_codes.csv. Every problem is
              reported. When there are several, the one listed first in PRECEDENCE
-             below decides the exit number.
+             below decides the exit number. A problem missing from PRECEDENCE still
+             fails the run, with the highest exit number among the problems seen.
 
 Date:        2026-10-06
 Owner:       Jason Delosh
@@ -126,8 +135,8 @@ from pathlib import Path
 from typing import Any
 
 from sdg.exit_codes import fail, finish, problem_line
-from sdg.sources.fetch_ctgov_study_records import CtgovError, fetch_ctgov_study_records
-from sdg.sources.fetch_file import FetchError, fetch
+from sdg.sources.fetch_ctgov_study_records import CtgovError, fetch_study_records
+from sdg.sources.fetch_file import FetchError, FetchErrorAnswerError, fetch
 from sdg.sources.finalize_file import discard, place
 from sdg.sources.fingerprint_file import Fingerprint, fingerprint
 from sdg.sources.parse_ctgov_study_records import list_study_documents
@@ -140,7 +149,7 @@ from sdg.sources.read_manifests import (
     manifests,
     require_repo,
 )
-from sdg.sources.write_manifests import write_manifests
+from sdg.sources.write_manifests import write_entry
 
 #######################################################################################
 ### Settings ###
@@ -176,19 +185,23 @@ NCT_PATTERN = re.compile(r"NCT\d{8}")
 # When a run meets several problems, the first one in this list that happened decides
 # the exit number. Problems with a manifest come first, because a manifest is the
 # record of what is pinned. Failed downloads come next, because running again may fix
-# them. A study with nothing to download comes last.
+# them. A study with nothing to download comes last. A problem left off this list is
+# caught at the end of main(), so a forgotten sub-code never ends a run as a success.
 PRECEDENCE = (
     "MANIFEST-NOT-WRITTEN",
+    "MANIFEST-MISSING",
     "MANIFEST-UNREADABLE",
     "MANIFEST-UNPARSEABLE",
     "MANIFEST-INVALID",
+    "MANIFEST-LOCATION-OUTSIDE-INPUTS",
     "MANIFEST-ENTRY-EXISTS",
     "FILE-UNRECORDED",
+    "CTGOV-DOWNLOAD-NOT-PLACED",
     "CTGOV-DOWNLOAD-SIZE-MISMATCH",
     "CTGOV-DOWNLOAD-UNREADABLE",
     "DOWNLOAD-NO-ANSWER",
     "DOWNLOAD-REFUSED",
-    "DOWNLOAD-ERROR-ANSWER",
+    "CTGOV-DOWNLOAD-ERROR-ANSWER",
     "MANIFEST-URL-INVALID",
     "DOWNLOAD-NOT-WRITTEN",
     "CTGOV-STUDY-NOT-FOUND",
@@ -334,7 +347,8 @@ def protocol_and_sap(study: dict[str, Any]) -> list[dict[str, Any]]:
     when it carries either mark, so a combined protocol and SAP file is kept too.
 
     Args:
-        study: One study's record, from fetch_ctgov_study_records.
+        study: One study's record, from fetch_study_records in
+            fetch_ctgov_study_records.py.
 
     Returns:
         The entries of the protocol and SAP files, or an empty list when there are none.
@@ -410,9 +424,8 @@ def recorded_in_manifest(nct_id: str, filename: str) -> bool:
         such entry, or the study has no manifest.
 
     Raises:
-        ManifestError: The study's manifest, or another manifest read alongside it,
-            cannot be opened or breaks a requirement. Each kind of ManifestError names
-            which.
+        ManifestError: The manifests folder is missing, or the study's manifest cannot
+            be opened or breaks a requirement. Each kind of ManifestError names which.
     """
     local = f"{PINNED_DIR}/{nct_id}/{filename}"
     # A study that has never been accepted has no manifest, which manifests reports as
@@ -429,7 +442,7 @@ def recorded_in_manifest(nct_id: str, filename: str) -> bool:
 
 
 def remove_download(partial: Path) -> str:
-    """Delete a download that failed with --accept, and say whether it was deleted.
+    """Delete a download that failed, and say whether it was deleted.
 
     A file that could not be opened may also refuse to be deleted, for the same reason,
     so a failed deletion is reported rather than raised.
@@ -456,12 +469,13 @@ def manifest_set_details(nct_id: str, study: dict[str, Any]) -> dict[str, Any]:
     """Build the study-level fields of a study's manifest.
 
     These are the set name, description, publisher, source and folder, which come
-    before the list of files. write_manifests uses them only when the study has no
+    before the list of files. write_entry uses them only when the study has no
     manifest yet.
 
     Args:
         nct_id: The study's NCT number.
-        study: The study's record, from fetch_ctgov_study_records.
+        study: The study's record, from fetch_study_records in
+            fetch_ctgov_study_records.py.
 
     Returns:
         The set name, description, publisher, source and folder of the manifest.
@@ -582,7 +596,7 @@ def main(argv: list[str] | None = None) -> int:
     - The folder is chosen.
         - Without --accept, read_review_dir reads the review folder from .env.
         - With --accept, the folder is inputs/study_documents/.
-    - fetch_ctgov_study_records fetches the records of all the NCT numbers given, in
+    - fetch_study_records fetches the records of all the NCT numbers given, in
       one request.
     - protocol_and_sap keeps each study's protocol and SAP files, and drops its other
       files.
@@ -592,10 +606,12 @@ def main(argv: list[str] | None = None) -> int:
     - fetch downloads each other file under a temporary name, from the address
       document_url builds.
     - With --accept, confirm_size confirms each file's size, fingerprint measures it,
-      and write_manifests writes the entry manifest_entry builds into the study's
+      and write_entry writes the entry manifest_entry builds into the study's
       manifest. A file that fails the size check, cannot be opened, or cannot be
       recorded is deleted by remove_download.
-    - place renames each file to its final name.
+    - place renames each file to its final name. With --accept, a file that cannot
+      be renamed is already in its manifest, so it is reported, deleted by
+      remove_download, and left for acquire_sources to download again.
 
     A failure before any download starts ends the run. A problem with one study or one
     file is reported, and the run carries on with the rest.
@@ -648,7 +664,7 @@ def main(argv: list[str] | None = None) -> int:
     # there is nothing to download. Either failure ends the run here.
     try:
         folder = REPO_ROOT / PINNED_DIR if args.accept else read_review_dir()
-        studies = fetch_ctgov_study_records(
+        studies = fetch_study_records(
             API, f"AREA[NCTId]({' OR '.join(nct_ids)})", FIELDS
         )
     except (ReviewDirError, CtgovError) as exc:
@@ -731,9 +747,21 @@ def main(argv: list[str] | None = None) -> int:
 
             say(f"  downloading  {filename}")
             # A file that fails to download is reported, and the run moves on to the
-            # next file. fetch removes its own partial download when it fails.
+            # next file. fetch removes its own partial download when it fails. An error
+            # answer gets a sub-code of its own here, because the address was built
+            # from DOCUMENT_URL rather than read from a manifest, so its fix differs.
             try:
                 partial = fetch(document_url(nct_id, document), destination)
+            except FetchErrorAnswerError as exc:
+                report(
+                    say,
+                    seen,
+                    "    ",
+                    "CTGOV-DOWNLOAD-ERROR-ANSWER",
+                    11,
+                    f"FAILED  {exc}",
+                )
+                continue
             except FetchError as exc:
                 report(say, seen, "    ", exc.sub_code, exc.exit_code, f"FAILED  {exc}")
                 continue
@@ -742,12 +770,12 @@ def main(argv: list[str] | None = None) -> int:
             # name. A file whose size does not match, whose manifest entry cannot be
             # written, or which cannot be opened to measure it, is deleted, so no
             # unrecorded file is left under inputs/. OSError here can only come from
-            # opening the download, because write_manifests turns its own disk
+            # opening the download, because write_entry turns its own disk
             # failures into kinds of ManifestError.
             if args.accept:
                 try:
                     confirm_size(partial, document)
-                    write_manifests(
+                    write_entry(
                         STUDY_MANIFEST_DIR / f"{nct_id}.json",
                         manifest_set_details(nct_id, study),
                         manifest_entry(nct_id, document, fingerprint(partial)),
@@ -774,7 +802,39 @@ def main(argv: list[str] | None = None) -> int:
                         f"FAILED  {filename} could not be opened ({exc}). {outcome}",
                     )
                     continue
-            place(partial)
+
+            # A rename can fail when another program, such as antivirus software, is
+            # holding the new file. With --accept the manifest already records the
+            # file, so the problem says so and points to acquire_sources, which
+            # downloads a recorded file that is missing. The run moves on to the next
+            # file. Without --accept the failure is a plain download that could not
+            # be written.
+            try:
+                place(partial)
+            except OSError as exc:
+                outcome = remove_download(partial)
+                if args.accept:
+                    report(
+                        say,
+                        seen,
+                        "    ",
+                        "CTGOV-DOWNLOAD-NOT-PLACED",
+                        20,
+                        f"FAILED  {filename} is recorded in manifests/study_documents/"
+                        f"{nct_id}.json but could not be given its final name ({exc}). "
+                        f"{outcome} Run acquire_sources to download it again.",
+                    )
+                else:
+                    report(
+                        say,
+                        seen,
+                        "    ",
+                        "DOWNLOAD-NOT-WRITTEN",
+                        20,
+                        f"FAILED  {filename} could not be given its final name "
+                        f"({exc}). {outcome}",
+                    )
+                continue
             downloaded += 1
 
     say()
@@ -784,6 +844,12 @@ def main(argv: list[str] | None = None) -> int:
     for sub_code in PRECEDENCE:
         if sub_code in seen:
             return finish(say, seen[sub_code], sub_code)
+
+    # A problem whose sub-code is missing from PRECEDENCE would otherwise fall through
+    # to success. It still fails the run, with the highest exit number seen.
+    if seen:
+        sub_code = max(seen, key=lambda code: seen[code])
+        return finish(say, seen[sub_code], sub_code)
     return 0
 
 
