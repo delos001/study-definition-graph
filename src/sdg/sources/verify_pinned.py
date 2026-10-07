@@ -3,8 +3,8 @@ Script:      verify_pinned.py
 Description: Verifies a pinned file is the file of record then hands a pipeline stage
              the path and identity of the pinned file.
 
-             Each step is a function in sdg package:
-             verify_file(path)
+             verify_file(path) is the one function this workflow offers. It runs
+             these steps in order:
              - finds the file's manifest entry,
              - fingerprints the file and compares it to the entry, and
              - hands the file back with its source version's identity: its sha256 and

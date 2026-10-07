@@ -908,3 +908,11 @@ The API's query language reads `ALL` as "match every study", so the sex filter i
 At the final pick, a study with sites in more countries wins when all else is equal, then one that also posted an informed consent form (ICF). The chosen studies vary in therapeutic area, in rare disease or not, and in trial size.
 
 The choice is **unguided**.
+
+## docs/sources_index.md is a reference kept by hand, decided 2026-10-07
+
+`docs/sources_index.md` tells a person which pinned file answers which question and how to open it. Until now, check SA00330 ran `check_sources_map` against the real file and manifests every time the checks ran, so the two had to list exactly the same files at every moment. That forced a heading to be added in the same commit as each new pinned file, and a section for files not yet pinned could not be written ahead of time. The first study pinned from ClinicalTrials.gov would have failed the checks for that reason.
+
+The file is now kept by hand. SA00330 is retired and its check file removed. `check_sources_map` stays as a command a person runs to see where the file and the manifests disagree, and `CLAUDE.md` says a newly pinned file gets a heading. The `commit:` lines were removed from the file, because each copied a manifest's `pinned_commit`, which tells a person nothing about which file answers a question.
+
+This is a question about process, so the choice is **unguided**.

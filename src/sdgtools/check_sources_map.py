@@ -33,10 +33,10 @@ Inputs:      docs/sources_index.md                              (read-only)
 Outputs:     Nothing on disk. Prints one line per disagreement, or nothing when
              the map and the manifests agree.
 
-             This tool is not a step of the pre-commit hook, whose steps are in
-             .pre-commit-config.yaml. The check in
-             validation/sdgtools/test_check_sources_map_integrity.py makes the
-             same run over the real map and manifests.
+             This tool is run by hand, when a person wants to see where
+             docs/sources_index.md and the manifests disagree. Nothing runs it
+             automatically, because docs/sources_index.md is a reference kept by
+             hand.
 
 Usage:       check_sources_map
                  report every disagreement

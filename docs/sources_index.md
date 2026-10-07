@@ -2,6 +2,8 @@
 
 This map says which pinned file answers which question, and how to open it. Each group below is one folder under `inputs/`. Where a file came from and its fingerprint are in `manifests/`, one file per group.
 
+This file is kept by hand. `check_sources_map`, run when needed, lists every file a manifest records that has no heading here, and every location here that no manifest records a file in.
+
 The reading commands run from the repo root in the `sdg` environment. `read_pdf` opens only the documents listed in `src/sdg/view/lookup_documents.yml`, which also says which documents belong there. `read_xlsx` finds any workbook under `inputs/` by part of its name.
 
 ---
@@ -13,7 +15,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: dataDictionary.MD
 - purpose: Defines every class and attribute in the model in plain words.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -22,7 +23,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: dataStructure.yml
 - purpose: Says what each attribute points at and how many values it may hold.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -31,7 +31,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: USDM-IG.pdf
 - purpose: The implementation guide. Shows how the model applies to the content of a real protocol.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -39,7 +38,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: USDM_CT.xlsx
 - purpose: The allowed values for every coded field.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -47,7 +45,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: USDM_CORE_Rules.xlsx
 - purpose: The conformance rules a USDM document is checked against. Covers v3.0 and v4.0 together; column F marks the rules that apply to v4.0.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -55,7 +52,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: DDF_USDM_Model_Informative.pdf
 - purpose: A one-page picture of the whole model. It leaves some classes out, so a class missing here may still exist in the model.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -63,7 +59,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: UML_DELTA_3-0-0_4-0-0.csv
 - purpose: Every change from v3.0 to v4.0, one row each. Needed when reading material written against v3.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -71,7 +66,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: uml/*.png
 - purpose: The class diagrams, one image per subject area.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -79,7 +73,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: uml/USDM_UML.xmi
 - purpose: The master model. The machine-readable files above are generated from it.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -87,7 +80,6 @@ The reading commands run from the repo root in the `sdg` environment. `read_pdf`
 
 ### Document: USDM_API.json and USDM_API.yaml
 - purpose: The shape of a USDM data file, in two formats. Holds no definitions, so it cannot answer what anything means.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -105,7 +97,6 @@ Each study is one real protocol in three forms: the protocol as published, the s
 
 ### Document: <study>.pdf
 - purpose: The protocol as published.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -113,7 +104,6 @@ Each study is one real protocol in three forms: the protocol as published, the s
 
 ### Document: <study>.xlsx
 - purpose: The spreadsheet a person filled in to map the protocol into USDM, one sheet per part of the model. The mainTimeline sheet is the Schedule of Activities.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -122,7 +112,6 @@ Each study is one real protocol in three forms: the protocol as published, the s
 
 ### Document: <study>.json
 - purpose: The finished USDM data file, generated from the spreadsheet.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -139,7 +128,6 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 ### Document: cdisc_biomedical_concepts.xlsx
 - purpose: The full list of Biomedical Concepts, one row per concept parameter, with a Logical Observation Identifiers Names and Codes (LOINC) code, the standard vocabulary for laboratory and clinical observations, where the concept is a measurement.
-- commit: 031429b
 
 | Question | How to Read |
 | --- | --- |
@@ -147,7 +135,6 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 ### Document: BC_Curation_Principles_and_Completion_GLs.xlsx
 - purpose: The field dictionary for the list above. Says what each column means and how it was filled in.
-- commit: 031429b
 
 | Question | How to Read |
 | --- | --- |
@@ -155,7 +142,6 @@ A Biomedical Concept defines one clinical idea, such as a blood pressure measure
 
 ### Document: BC_Overview_Training.pdf
 - purpose: CDISC's own introduction to what a Biomedical Concept is.
-- commit: 031429b
 
 | Question | How to Read |
 | --- | --- |
@@ -172,7 +158,6 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 
 ### Document: ct-gov_mapping.xlsx
 - purpose: Maps ClinicalTrials.gov registry fields onto USDM, one sheet per topic.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -180,7 +165,6 @@ Each crosswalk maps another standard's fields onto USDM. Both run into USDM, not
 
 ### Document: m11_mapping.xlsx
 - purpose: Maps the ICH M11 protocol template's elements onto USDM.
-- commit: aa303cb
 
 | Question | How to Read |
 | --- | --- |
@@ -197,7 +181,6 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: ICH_Step4_M11_Final_Template_2025_1119.pdf
 - purpose: The protocol template itself. It says which sections a protocol has and what goes in each.
-- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -205,7 +188,6 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: ICH_Step4_M11_Final_TechnicalSpecification_2025_1119.pdf
 - purpose: Defines each protocol data element, with its data type, how many values it takes, and whether it is required.
-- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -213,7 +195,6 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: ICH_Step4_M11_Final_Guideline_2025_1119.pdf
 - purpose: The short guideline that sets M11's scope. The substance is in the other two documents.
-- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |
@@ -228,7 +209,6 @@ The M11 documents have no bookmarks, so `read_pdf` reaches them only by search t
 
 ### Document: E9-R1_Step4_Guideline_2019_1203.pdf
 - purpose: Defines what an estimand is and what its parts are.
-- commit: none; ICH publishes the file at a fixed web address with no version control, so the pin is its fingerprint and the date retrieved
 
 | Question | How to Read |
 | --- | --- |

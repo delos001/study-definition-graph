@@ -96,6 +96,7 @@ A pinned file is one downloaded from outside and frozen at a single version, wit
 ### Recording and naming
 
 - Every download gets a `manifests/` entry as it happens, never a record beside the file.
+- A newly pinned file gets a heading in `docs/sources_index.md`. `check_sources_map`, run by hand, lists where `docs/sources_index.md` and the manifests disagree.
 - `inputs/` is gitignored apart from its READMEs, so an unrecorded file cannot be restored and cannot be told apart from a pinned one.
 - A pinned file keeps its publisher's file name, with spaces replaced by underscores and nothing else changed.
 - Each standard gets one folder, named with the standard's version, whatever the file count. A version is a number or date the publisher put on the content. The date a file was downloaded and the date of a repository commit are not versions, because neither changes the content.
