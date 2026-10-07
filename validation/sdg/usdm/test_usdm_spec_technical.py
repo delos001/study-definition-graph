@@ -559,7 +559,7 @@ def test_cli_locked_file_exits_13(variant, monkeypatch, capsys):
         """Stand in for the pinned-file check with the refusal a locked file gives."""
         raise PermissionError("locked by another program")
 
-    monkeypatch.setattr(usdm_spec, "verify_pinned", locked)
+    monkeypatch.setattr(usdm_spec, "verify_file", locked)
     assert usdm_spec.main(["--list-classes"]) == 13
     err = capsys.readouterr().err
     assert exit_line(13, "PINNED-FILE-UNREADABLE") in err

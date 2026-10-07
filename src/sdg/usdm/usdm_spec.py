@@ -105,7 +105,7 @@ from sdg.sources.read_manifests import (
 from sdg.sources.verify_pinned import (
     IntegrityError,
     UnrecordedFileError,
-    verify_pinned,
+    verify_file,
 )
 
 # Where the pinned model file is, named the way its manifest records it. The
@@ -118,7 +118,7 @@ DEFAULT_SPEC = REPO_ROOT / PINNED_LOCAL
 ### Loading ###
 #
 # This section turns the pinned dataStructure.yml into the in-memory spec the rest of
-# the module reads. It obtains the verified file through verify_pinned(), reads the
+# the module reads. It obtains the verified file through verify_file(), reads the
 # YAML, confirms its shape, and hands back the result.
 #
 # Exceptions are classes so the specific kind of failure can be caught and reported
@@ -194,11 +194,11 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
         SpecShapeError: The file parsed but is not shaped like the USDM structure this
             module reads.
     """
-    # Confirmed before the file is looked for, not inside verify_pinned(). Installed
+    # Confirmed before the file is looked for, not inside verify_file(). Installed
     # without -e, DEFAULT_SPEC sits under the wrong root and does not exist
     # there, so an existence check that ran first would report "not
     # downloaded" for a file that is downloaded, and --allow-unpinned (which
-    # never reaches verify_pinned()) would never confirm the install at all.
+    # never reaches verify_file()) would never confirm the install at all.
     require_repo()
 
     target = path or DEFAULT_SPEC
@@ -206,11 +206,11 @@ def load(path: Path | None = None, verify: bool = True) -> dict:
     if not target.exists():
         raise FileNotFoundError(target)
 
-    # Obtain the file through verify_pinned() (manifest entry, size, fingerprint) before
+    # Obtain the file through verify_file() (manifest entry, size, fingerprint) before
     # trusting the content. Guards against a clean parse silently passing wrong
     # content from a modified spec.
     if verify:
-        text = verify_pinned(target).read_text()
+        text = verify_file(target).read_text()
     else:
         text = target.read_text(encoding="utf-8")
 

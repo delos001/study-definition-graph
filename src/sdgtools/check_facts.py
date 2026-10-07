@@ -33,7 +33,7 @@ Description: Recomputes each figure its list of facts records, a count or a date
              what was true on the day it was written, and a figure there is
              history rather than a claim about the pinned files today.
 
-Inputs:      inputs/**              (read-only, pinned, each verified through verify_pinned)
+Inputs:      inputs/**              (read-only, pinned, each verified through verify_file)
              every manifest, read through src/sdg/sources/read_manifests.py
                                     (read-only)
              every Markdown file git tracks, apart from EXCLUDED_DOCUMENTS in
@@ -123,7 +123,7 @@ from sdg.sources.read_manifests import (
 from sdg.sources.verify_pinned import (
     IntegrityError,
     UnrecordedFileError,
-    verify_pinned,
+    verify_file,
 )
 from sdg.usdm import usdm_spec
 from sdg.usdm.usdm_spec import SpecShapeError
@@ -173,7 +173,7 @@ class GitNotFoundError(GitError):
 # pinned file. They are deliberately small and independent so that a failing
 # measurement names exactly one fact.
 #
-# Every file is obtained through verify_pinned(), which confirms it matches
+# Every file is obtained through verify_file(), which confirms it matches
 # its manifest before it is read. A figure certified here is only worth
 # something if it was derived from the file that was actually pinned; a swapped
 # or edited copy stops the run (exit 16, PINNED-FILE-CHANGED) instead of quietly certifying the
@@ -220,7 +220,7 @@ def examples_with_estimands() -> int:
         if not exports:
             continue
 
-        document = json.loads(verify_pinned(exports[0]).read_text())
+        document = json.loads(verify_file(exports[0]).read_text())
         designs = document["study"]["versions"][0]["studyDesigns"]
         if any(design.get("estimands") for design in designs):
             count += 1
@@ -251,7 +251,7 @@ def concepts_newest_package_date() -> str:
             "  fix -> record the file in manifests/, or correct CONCEPTS_NAME in "
             "src/sdgtools/check_facts.py"
         )
-    workbook = openpyxl.load_workbook(verify_pinned(entry.path).path, read_only=True)
+    workbook = openpyxl.load_workbook(verify_file(entry.path).path, read_only=True)
     rows = workbook["Biomedical Concepts"].iter_rows(values_only=True)
     column = list(next(rows)).index("package_date")
     newest = ""

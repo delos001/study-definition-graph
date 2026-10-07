@@ -62,7 +62,7 @@ from .verify_pinned import (
     IntegrityError,
     PinnedFile,
     UnrecordedFileError,
-    verify_pinned,
+    verify_file,
 )
 from .write_manifests import (
     ManifestEntryExistsError,
@@ -121,6 +121,6 @@ __all__ = [
     "read_filters",
     "require_repo",
     "save_search_record",
-    "verify_pinned",
+    "verify_file",
     "write_entry",
 ]

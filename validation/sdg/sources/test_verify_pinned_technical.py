@@ -46,7 +46,7 @@ from sdg.sources import (
     NotInRepoError,
     UnrecordedFileError,
     read_manifests,
-    verify_pinned,
+    verify_file,
 )
 from sdgval.labels import category, code, negative, objective, positive
 from validation.sdg.sources import test_verify_pinned_integrity as integrity
@@ -56,7 +56,7 @@ from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
 ### Shared staging ###
 #
 # Each fixture stages one situation. Each check then asserts one thing about
-# what verify_pinned() handed back or how it refused.
+# what verify_file() handed back or how it refused.
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def mismatch_message(fake_repo) -> str:
     fake_repo.file(LOCAL, b"PINNED bytes\n")
     fake_repo.manifest("set_a", [fake_repo.entry(LOCAL, sha256=SHA256)])
     with pytest.raises(IntegrityError) as caught:
-        verify_pinned(LOCAL)
+        verify_file(LOCAL)
     return str(caught.value)
 
 
@@ -82,7 +82,7 @@ def refused_with(error: type[Exception], target: str | Path = LOCAL) -> str:
         The error's message.
     """
     with pytest.raises(error) as caught:
-        verify_pinned(target)
+        verify_file(target)
     return str(caught.value)
 
 
@@ -99,9 +99,9 @@ def refused_with(error: type[Exception], target: str | Path = LOCAL) -> str:
 def test_staged_record_is_the_same_by_string_or_path(recorded_file):
     """The repo-relative string a manifest writes, the same string with
     backslashes, and a full Path all give the same record."""
-    by_string = verify_pinned(LOCAL)
-    assert by_string == verify_pinned(LOCAL.replace("/", "\\"))
-    assert by_string == verify_pinned(recorded_file)
+    by_string = verify_file(LOCAL)
+    assert by_string == verify_file(LOCAL.replace("/", "\\"))
+    assert by_string == verify_file(recorded_file)
 
 
 #######################################################################################

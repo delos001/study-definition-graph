@@ -4,7 +4,7 @@ Description: Verifies a pinned file is the file of record then hands a pipeline 
              the path and identity of the pinned file.
 
              Each step is a function in sdg package:
-             verify_pinned(path)
+             verify_file(path)
              - finds the file's manifest entry,
              - fingerprints the file and compares it to the entry, and
              - hands the file back with its source version's identity: its sha256 and
@@ -33,8 +33,8 @@ Outputs:     Nothing on disk. Hands back the file with its identity: local
              records it.
 
 Usage:       This file is not run directly; other code imports it.
-             from sdg.sources import verify_pinned
-                spec = verify_pinned("inputs/standards/cdisc/usdm_v4/dataStructure.yml")
+             from sdg.sources import verify_file
+                spec = verify_file("inputs/standards/cdisc/usdm_v4/dataStructure.yml")
                 spec.read_text()   -> the content
                 spec.sha256        -> its fingerprint, for provenance
                 spec.url           -> where it came from, carrying the version
@@ -139,7 +139,7 @@ class PinnedFile:
 ### Verify Target Matches Manifest ###
 
 
-def verify_pinned(target: str | Path) -> PinnedFile:
+def verify_file(target: str | Path) -> PinnedFile:
     """Prove that the file at target is the one its manifest entry records, and hand it
     back with its identity.
 
@@ -168,7 +168,7 @@ def verify_pinned(target: str | Path) -> PinnedFile:
         raise UnrecordedFileError(
             f"cannot verify {local}: no manifest entry records it\n"
             "  a pinned file   -> add its manifest entry (url, sha256, bytes)\n"
-            "  a test fixture  -> read it directly; verify_pinned() is only for recorded files"
+            "  a test fixture  -> read it directly; verify_file() is only for recorded files"
         )
 
     if not entry.path.is_file():

@@ -30,7 +30,7 @@ from sdg.sources import (
     NotInRepoError,
     PinnedFile,
     read_manifests,
-    verify_pinned,
+    verify_file,
 )
 from sdgval.labels import category, code, objective, positive
 from validation.shared.staged_manifests import CONTENT, LOCAL, SHA256
@@ -89,7 +89,7 @@ def test_pinned_file_is_unchanged(local):
     if isinstance(local, ManifestsUnreadable):
         pytest.fail(local.message, pytrace=False)
     try:
-        verify_pinned(local)
+        verify_file(local)
     except FileNotFoundError:
         pytest.skip(f"not downloaded: {local}; run acquire_sources")
 
@@ -101,7 +101,7 @@ def test_pinned_file_is_unchanged(local):
 def test_recorded_file_carries_its_identity(recorded_file):
     """A file whose entry is correct comes back with the fingerprint, address and
     manifest name its entry records."""
-    got = verify_pinned(LOCAL)
+    got = verify_file(LOCAL)
     assert isinstance(got, PinnedFile)
     assert got.sha256 == SHA256
     assert got.url == "https://example.invalid/file.txt"
@@ -115,7 +115,7 @@ def test_recorded_file_carries_its_identity(recorded_file):
 def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
     """A verified file's path is the full path of the file on this machine, and
     its local path is the one the manifest writes."""
-    got = verify_pinned(LOCAL)
+    got = verify_file(LOCAL)
     assert got.local == LOCAL
     assert got.path == recorded_file
 
@@ -126,4 +126,4 @@ def test_recorded_file_path_is_the_file_on_this_machine(recorded_file):
 @positive
 def test_recorded_file_content_reads(recorded_file):
     """A verified file's content can be read."""
-    assert verify_pinned(LOCAL).read_text() == CONTENT.decode()
+    assert verify_file(LOCAL).read_text() == CONTENT.decode()
