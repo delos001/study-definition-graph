@@ -1,22 +1,35 @@
 """
 Script:      write_manifests.py
-Description: Writes one file's entry into a manifest, so the file is recorded as
-             pinned.
+Description: Writes a file's entry into an existing manifest or creates a new manifest
+             for the file, or set of files, if one does not exist.
 
              When the manifest does not exist yet, it is created from the set details
-             the caller gives, such as its description and its folder. When it does
-             exist, the entry is added to its list of files.
+             obtained by the script that calls this script. Details such as its
+             description and its folder are used.
+             When it does exist, the entry is added to its list of file entries.
 
-             An entry already in the manifest is never replaced unless the caller asks
-             for that, because an entry is the record of what was pinned. Entries are
-             matched by their local path, because two studies can post files with the
-             same name.
+             To tell whether a file is already recorded, its local path, such as
+             inputs/study_documents/NCT05259917/Prot_000.pdf, is compared with each
+             entry's local path.
 
-             The manifest is written to a temporary file first, then renamed over the
-             real one, so a write that fails part way never leaves a damaged manifest.
-             The layout matches the hand-written manifests, with two spaces per
-             indent. Rewriting any existing manifest in this layout leaves it
-             unchanged, so a diff shows only the entry that changed.
+             If a manifest already exists, its contents are read into memory and the
+             new entry is then added to those contents. A new manifest starts from the
+             set details. In either case, a temporary file is created
+             (manifestname + .part), so an existing manifest isn't damaged during the
+             update.
+
+             When a manifest already exists, the .part file is renamed to the
+             previous manifest's name, replacing the previous manifest.
+             When no previous manifest exists, the .part is dropped from the file name
+             to create the new manifest.
+
+             An entry already in the manifest is never replaced unless the script that
+             calls this script asks for that, because an entry is the record of what was
+             pinned.
+
+             A manifest is written in the same layout as hand-written manifests.
+             Rewriting any existing manifest in this layout leaves it unchanged,
+             so a diff shows only the entry that changed.
 
 Inputs:      one manifest file, when it already exists (read, then rewritten)
              one entry's fields, and the set details for a new manifest
@@ -30,8 +43,8 @@ Usage:       This file is not run directly; other code imports it.
                 write_manifests(path, set_details, entry)                -> path written
                 write_manifests(path, set_details, entry, replace=True)  -> path written
 
-Exit codes:  There are none, because this file is not run on its own. On a problem it stops
-             and hands an error to the program using it, which decides what to
+Exit codes:  There are none, because this file is not run on its own. On a problem it
+             stops and hands an error to the program using it, which decides what to
              do. Every error is a kind of ManifestError, which read_manifests.py
              defines, and carries the exit number and sub-code a command reports it
              with, from docs/exit_codes.csv. The last two below are defined in this
@@ -94,16 +107,17 @@ def write_manifests(
     entry: dict[str, Any],
     replace: bool = False,
 ) -> Path:
-    """Record one file in a manifest, creating the manifest when it does not exist.
+    """Record one file's details in a manifest. Create the manifest when it does not
+    exist.
 
     Args:
         path: The manifest file, such as manifests/study_documents/NCT05259917.json.
         set_details: The fields that describe the whole set rather than one file,
             such as set, description and local_dir, which come before the list of
-            files. They are used only when the manifest is created,
-            and an existing manifest keeps its own.
-        entry: The file's entry. It must hold every field in REQUIRED_FIELDS in
-            read_manifests.py.
+            files. They are used only when the manifest is created. An existing manifest
+            keeps its own set details.
+        entry: The details of one file being recorded, such as name, url, local path,
+            size and sha256. It must hold every field in REQUIRED_FIELDS in read_manifests.py.
         replace: True to replace an entry already recorded for the same local path.
 
     Returns:
@@ -126,8 +140,10 @@ def write_manifests(
 
     manifest = _read_or_start(path, set_details)
 
-    # An entry is matched by its local path. A matching entry is replaced where it
-    # stands, so the order of the files in the manifest does not change.
+    # A new entry's local path is compared with each existing entry's local path. When
+    # one matches, and if this function is called by an 'update sources' script, the
+    # existing entry is replaced where it stands so the order of the files does not
+    # change. Otherwise the write is refused.
     files = manifest["files"]
     for position, existing in enumerate(files):
         if existing.get("local") == entry["local"]:
@@ -140,9 +156,10 @@ def write_manifests(
     else:
         files.append(entry)
 
-    # The manifest is written beside itself under a .part name, then renamed over the
-    # real file. A write that fails part way fails on the .part file, so the real
-    # manifest is left as it was.
+    # The updated manifest is first written to a temporary file (manifestname + .part)
+    # in the same folder. When that write is complete, the .part file is renamed to the
+    # manifest's name, replacing the previous manifest if there was one. A write that
+    # fails part way damages only the .part file.
     partial = path.with_name(path.name + ".part")
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -155,8 +172,13 @@ def write_manifests(
     return path
 
 
+#######################################################################################
+### Getting manifest contents into memory ###
+
+
 def _read_or_start(path: Path, set_details: dict[str, Any]) -> dict[str, Any]:
-    """Read an existing manifest, or start a new one from the set details.
+    """Read an existing manifest associated with the given file or set of files, or
+    create a new manifest from the set details, and place the information into memory.
 
     Args:
         path: The manifest file.
