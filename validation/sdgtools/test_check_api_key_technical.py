@@ -183,6 +183,33 @@ def test_quoted_key_is_read(repo, monkeypatch, capsys):
     assert script.read_key(repo / ".env") == KEY
 
 
+@code("SA00674")
+@category("repository")
+@objective("functionality")
+@positive
+@pytest.mark.parametrize(
+    "line",
+    [
+        f"ANTHROPIC_API_KEY = {KEY}",
+        f"  ANTHROPIC_API_KEY={KEY}",
+        f"export ANTHROPIC_API_KEY={KEY}",
+        f"ANTHROPIC_API_KEY={KEY}  # my key",
+    ],
+    ids=[
+        "spaces around the equals sign",
+        "spaces at the start of the line",
+        "export at the start of the line",
+        "a comment after the key",
+    ],
+)
+def test_key_line_written_another_common_way_is_read(repo, line):
+    """A key line written in another way .env files commonly allow is read as the
+    key. It runs once for each way: spaces around the equals sign, spaces at the
+    start of the line, export at the start of the line, and a comment after the key."""
+    write_env(repo, line)
+    assert script.read_key(repo / ".env") == KEY
+
+
 @code("SA00506")
 @category("repository")
 @objective("functionality")

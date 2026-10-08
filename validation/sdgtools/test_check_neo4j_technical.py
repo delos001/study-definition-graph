@@ -205,6 +205,38 @@ def test_quoted_settings_are_read(repo):
     assert script.read_settings(repo / ".env") == script.Settings(URI, USER, PASSWORD)
 
 
+@code("SA00675")
+@category("repository")
+@objective("functionality")
+@positive
+@pytest.mark.parametrize(
+    "form",
+    [
+        "{name} = {value}",
+        "  {name}={value}",
+        "export {name}={value}",
+        "{name}={value}  # mine",
+    ],
+    ids=[
+        "spaces around the equals sign",
+        "spaces at the start of the line",
+        "export at the start of the line",
+        "a comment after the value",
+    ],
+)
+def test_settings_written_another_common_way_are_read(repo, form):
+    """Settings lines written in another way .env files commonly allow are read as
+    the settings. It runs once for each way: spaces around the equals sign, spaces
+    at the start of the line, export at the start of the line, and a comment after
+    the value."""
+    settings = {"NEO4J_URI": URI, "NEO4J_USER": USER, "NEO4J_PASSWORD": PASSWORD}
+    write_env(
+        repo,
+        "".join(form.format(name=n, value=v) + "\n" for n, v in settings.items()),
+    )
+    assert script.read_settings(repo / ".env") == script.Settings(URI, USER, PASSWORD)
+
+
 @code("SA00288")
 @category("repository")
 @objective("functionality")
