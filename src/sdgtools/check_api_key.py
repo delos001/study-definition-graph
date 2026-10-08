@@ -54,6 +54,7 @@ import sys
 from pathlib import Path
 
 import anthropic
+from dotenv import dotenv_values
 
 # The repo root comes from the sdg package, so this script needs the editable
 # install (pip install -e ., README.md step 4) the same as the pipeline does.
@@ -122,10 +123,10 @@ def read_key(env_path: Path) -> str:
             "  fix -> create it from the example with: Copy-Item .env.example .env"
         )
 
-    key = ""
-    for line in env_path.read_text(encoding="utf-8").splitlines():
-        if line.startswith(f"{KEY_NAME}="):
-            key = line.split("=", 1)[1].strip().strip("\"'")
+    # python-dotenv reads .env the way other tools do. It accepts spaces around the =,
+    # a line starting with spaces or with export, quotes around the value, and a
+    # comment after it. A line with no = at all reads as None, and counts as empty.
+    key = (dotenv_values(env_path, encoding="utf-8").get(KEY_NAME) or "").strip()
 
     if not key:
         raise KeyMissingError(

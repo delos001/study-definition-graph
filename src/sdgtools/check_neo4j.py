@@ -69,6 +69,7 @@ from pathlib import Path
 
 import neo4j
 import yaml
+from dotenv import dotenv_values
 
 # The repo root comes from the sdg package, so this script needs the editable
 # install (pip install -e ., README.md step 4) the same as the pipeline does.
@@ -191,11 +192,11 @@ def read_settings(env_path: Path) -> Settings:
             "  fix -> create it from the example with: Copy-Item .env.example .env"
         )
 
-    found: dict[str, str] = {}
-    for line in env_path.read_text(encoding="utf-8").splitlines():
-        for name in SETTING_NAMES:
-            if line.startswith(f"{name}="):
-                found[name] = line.split("=", 1)[1].strip().strip("\"'")
+    # python-dotenv reads .env the way other tools do. It accepts spaces around the =,
+    # a line starting with spaces or with export, quotes around the value, and a
+    # comment after it. A line with no = at all reads as None, and counts as empty.
+    values = dotenv_values(env_path, encoding="utf-8")
+    found = {name: (values.get(name) or "").strip() for name in SETTING_NAMES}
 
     missing = [name for name in SETTING_NAMES if not found.get(name)]
     if missing:

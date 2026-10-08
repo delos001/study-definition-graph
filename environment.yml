@@ -29,7 +29,7 @@ dependencies:
       - pydantic>=2.13,<3          # schemas generated from the pinned dataStructure.yml; used from Phase 3
       - neo4j>=6.3,<7              # graph driver
       - httpx>=0.28,<1             # the ClinicalTrials.gov and Digital Data Flow (DDF) services
-      - python-dotenv>=1.2,<2      # reads .env; download_ctgov_study_documents reads its review folder with it
+      - python-dotenv>=1.2,<2      # reads the settings in .env
       - pyyaml>=6.0,<7             # reads the lookup document list in src/sdg/view/, and the prompt files later
       - pytest==9.1.1              # finds and runs the checks under validation/
       - pluggy>=1.6,<2             # pytest's plugin library, which src/sdgval/report.py imports directly
