@@ -74,6 +74,8 @@ Exit codes:  0   SUCCEEDED  the command succeeded
              4   ENV-FILE-MISSING  the .env file has not been created
              4   CTGOV-REVIEW-DIR-MISSING  .env has no review folder for
                  ClinicalTrials.gov downloads
+             5   CTGOV-REVIEW-DIR-ESCAPED  the review folder in .env is in double
+                 quotes, so its backslashes were read as escape codes
              5   CTGOV-REVIEW-DIR-INVALID  the review folder in .env is not a full
                  path outside the repo
              9   CTGOV-NO-ANSWER  ClinicalTrials.gov could not be reached or did
@@ -141,6 +143,8 @@ from collections.abc import Callable
 from datetime import date
 from pathlib import Path
 from typing import Any
+
+from dotenv import dotenv_values
 
 from sdg.exit_codes import fail, finish, problem_line
 from sdg.sources.fetch_ctgov_study_records import CtgovError, fetch_study_records
@@ -226,7 +230,7 @@ PRECEDENCE = (
 class ReviewDirError(Exception):
     """Raised when the review folder cannot be read from .env.
 
-    Each of the three errors below is one reason it cannot be read.
+    Each of the four errors below is one reason it cannot be read.
     """
 
     exit_code: int
@@ -245,6 +249,14 @@ class ReviewDirMissingError(ReviewDirError):
 
     exit_code = 4
     sub_code = "CTGOV-REVIEW-DIR-MISSING"
+
+
+class ReviewDirEscapedError(ReviewDirError):
+    """Raised when the review folder is in double quotes, and its backslashes were read
+    as escape codes."""
+
+    exit_code = 5
+    sub_code = "CTGOV-REVIEW-DIR-ESCAPED"
 
 
 class ReviewDirInvalidError(ReviewDirError):
@@ -310,6 +322,8 @@ def read_review_dir(env_path: Path = ENV_FILE) -> Path:
         EnvFileMissingError: There is no .env file.
         ReviewDirMissingError: .env has no CTGOV_REVIEW_DIR line, or the line has no
             value.
+        ReviewDirEscapedError: The value is in double quotes, and its backslashes
+            were read as escape codes.
         ReviewDirInvalidError: The folder is not a full path, or it is inside the repo.
     """
     if not env_path.is_file():
@@ -317,15 +331,30 @@ def read_review_dir(env_path: Path = ENV_FILE) -> Path:
             f"{env_path.name} does not exist at {env_path.parent}."
         )
 
-    # A Windows path is often written in quotes, so quotes and spaces at either end of
-    # the value are removed.
-    value = ""
-    for line in env_path.read_text(encoding="utf-8").splitlines():
-        if line.startswith(f"{REVIEW_DIR_SETTING}="):
-            value = line.split("=", 1)[1].strip().strip("\"'")
+    # python-dotenv reads .env the way other tools do. It accepts spaces around the =,
+    # a line starting with spaces or with export, quotes around the value, and a
+    # comment after it. When the setting appears on several lines, the last one wins.
+    # A line with no = at all reads as None, and is treated like an empty value.
+    settings = dotenv_values(env_path, encoding="utf-8")
+    if REVIEW_DIR_SETTING not in settings:
+        raise ReviewDirMissingError(
+            f"{env_path.name} has no {REVIEW_DIR_SETTING} line."
+        )
+    value = (settings[REVIEW_DIR_SETTING] or "").strip()
     if not value:
         raise ReviewDirMissingError(
-            f"{env_path.name} has no value for {REVIEW_DIR_SETTING}."
+            f"the {REVIEW_DIR_SETTING} line in {env_path.name} has no value, or a "
+            f"later {REVIEW_DIR_SETTING} line with no value replaces it."
+        )
+
+    # Inside double quotes, python-dotenv reads a backslash as the start of an escape
+    # code, so \f in C:\Users\delos\for_review becomes a form feed. No folder name
+    # holds such a character, so one in the value means the path was damaged this way.
+    if any(ord(character) < 32 for character in value):
+        raise ReviewDirEscapedError(
+            f"the {REVIEW_DIR_SETTING} value in {env_path.name} is in double quotes, "
+            "so its backslashes were read as escape codes. Write the path without "
+            "quotes, or in single quotes."
         )
 
     folder = Path(value)

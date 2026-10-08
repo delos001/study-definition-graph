@@ -11,6 +11,7 @@ code,group,sub_code,what_happened,what_to_do
 4,a setting is missing,CTGOV-REVIEW-DIR-MISSING,.env has no review folder for ClinicalTrials.gov downloads,"Copy the CTGOV_REVIEW_DIR line from .env.example into .env, and set it to a folder outside the repo."
 4,a setting is missing,ENV-FILE-MISSING,the .env file has not been created,"Create .env from the example with Copy-Item .env.example .env, then fill in its values."
 4,a setting is missing,NEO4J-SETTINGS-MISSING,.env has no Neo4j connection settings,Copy the NEO4J_ lines from .env.example into .env.
+5,a setting is invalid,CTGOV-REVIEW-DIR-ESCAPED,"the review folder in .env is in double quotes, so its backslashes were read as escape codes","Write the CTGOV_REVIEW_DIR value in .env without quotes, or in single quotes."
 5,a setting is invalid,CTGOV-REVIEW-DIR-INVALID,the review folder in .env is not a full path outside the repo,"Set CTGOV_REVIEW_DIR in .env to a full path, starting with a drive letter, of a folder outside the repo."
 5,a setting is invalid,NEO4J-ADDRESS-INVALID,the Neo4j address in .env is not a valid address,"Make the NEO4J_URI line in .env match .env.example, for example bolt://localhost:7687."
 6,an outside program cannot be found,GIT-NOT-FOUND,git cannot be found on the path,Install git.
